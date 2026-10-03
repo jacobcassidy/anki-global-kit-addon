@@ -157,7 +157,8 @@ class CardShortcutInput(QPushButton):
         else:
             color = get_theme_color("FG")
         self.setStyleSheet(
-            f"{self._base_style_sheet} QPushButton {{ color: {color}; }}"
+            f"{self._base_style_sheet} QPushButton {{ color: {color}; "
+            "font-weight: normal; }"
         )
 
     def changeEvent(self, event) -> None:
