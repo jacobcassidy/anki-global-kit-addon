@@ -46,14 +46,25 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     note_types_scroll = QScrollArea(note_types_tab)
     note_types_scroll.setWidgetResizable(True)
     note_types_scroll.setFrameShape(QFrame.Shape.NoFrame)
-    note_types_scroll.viewport().setAutoFillBackground(False)
+    note_types_scroll.setObjectName("noteTypesScroll")
+    note_types_scroll.setStyleSheet(
+        "QScrollArea#noteTypesScroll { "
+        f"border: 1px solid {get_theme_color('BORDER_SUBTLE')}; "
+        "border-radius: 6px; "
+        "}"
+    )
+    scroll_viewport = note_types_scroll.viewport()
+    scroll_viewport.setObjectName("noteTypesScrollViewport")
+    scroll_viewport.setAutoFillBackground(False)
+    scroll_viewport.setStyleSheet(
+        "QWidget#noteTypesScrollViewport { border-radius: 6px; }"
+    )
     note_types_options = QFrame(note_types_scroll)
     note_types_options.setFrameShape(QFrame.Shape.NoFrame)
     note_types_options.setObjectName("noteTypesTable")
     note_types_options.setStyleSheet(
         "QFrame#noteTypesTable { "
         f"background-color: {get_theme_color('CANVAS_ELEVATED')}; "
-        f"border: 1px solid {get_theme_color('CANVAS')}; "
         "border-radius: 6px; "
         "} "
         "QWidget#noteTypesHeaderCell { "
