@@ -86,7 +86,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     ]
     note_type_checks: dict[str, dict[str, QCheckBox]] = {}
     overwrite_checks: dict[str, dict[str, QCheckBox]] = {}
-    delete_checks: dict[str, QCheckBox] = {}
+    delete_checks: dict[str, dict[str, QCheckBox]] = {}
     checkbox_size = QCheckBox()
     checkbox_size.setContentsMargins(*ZERO_MARGINS)
     table_row_height = max(
@@ -104,7 +104,11 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             checkbox.isChecked() and checkbox.isEnabled()
             for formats in overwrite_checks.values()
             for checkbox in formats.values()
-        ) or any(checkbox.isChecked() for checkbox in delete_checks.values())
+        ) or any(
+            checkbox.isChecked() and checkbox.isEnabled()
+            for formats in delete_checks.values()
+            for checkbox in formats.values()
+        )
         note_types_button.setEnabled(has_selection)
 
     def add_note_type_horizontal_divider(row: int, column_span: int) -> None:
@@ -124,13 +128,15 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         row_style: str,
         alignment=None,
         corner: str | None = None,
+        row_span: int = 1,
+        column_span: int = 1,
     ) -> QWidget:
         cell = QWidget(note_types_options)
         cell.setObjectName(row_style)
         if corner is not None:
             cell.setProperty("tableCorner", corner)
         cell.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        cell.setFixedHeight(table_row_height)
+        cell.setFixedHeight(table_row_height * row_span)
         cell_layout = QHBoxLayout(cell)
         cell_layout.setContentsMargins(
             NOTE_TYPES_ROW_PADDING,
@@ -144,14 +150,24 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             cell_layout.addWidget(content)
         else:
             cell_layout.addWidget(content, alignment=alignment)
-        note_types_grid.addWidget(cell, row, column)
+        note_types_grid.addWidget(cell, row, column, row_span, column_span)
         return cell
 
-    def make_divider_cell(row: int, column: int, row_style: str) -> None:
+    def make_header_label(label: str) -> QLabel:
+        heading = QLabel(label, note_types_options)
+        heading_font = heading.font()
+        heading_font.setBold(True)
+        heading_font.setPointSize(max(1, heading_font.pointSize() - 4))
+        heading.setFont(heading_font)
+        return heading
+
+    def make_divider_cell(
+        row: int, column: int, row_style: str, row_span: int = 1
+    ) -> None:
         cell = QWidget(note_types_options)
         cell.setObjectName(row_style)
         cell.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        cell.setFixedHeight(table_row_height)
+        cell.setFixedHeight(table_row_height * row_span)
         cell_layout = QHBoxLayout(cell)
         cell_layout.setContentsMargins(*ZERO_MARGINS)
         cell_layout.setSpacing(0)
@@ -161,7 +177,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         divider.setLineWidth(1)
         divider.setStyleSheet(f"color: {COLOR_GRAYSCALE_LIGHT_600};")
         cell_layout.addWidget(divider, alignment=Qt.AlignmentFlag.AlignHCenter)
-        note_types_grid.addWidget(cell, row, column)
+        note_types_grid.addWidget(cell, row, column, row_span, 1)
 
     def rebuild_note_types_grid() -> None:
         saved_checks = {
@@ -172,10 +188,14 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             topic: {name: checkbox.isChecked() for name, checkbox in formats.items()}
             for topic, formats in overwrite_checks.items()
         }
+        saved_deletes = {
+            topic: {name: checkbox.isChecked() for name, checkbox in formats.items()}
+            for topic, formats in delete_checks.items()
+        }
         for column in range(9):
             note_types_grid.setColumnMinimumWidth(column, 0)
             note_types_grid.setColumnStretch(column, 0)
-        for column in (2, 3, 5, 6, *([8] if custom_topics else [])):
+        for column in (2, 3, 4, 6, 7, 8):
             note_types_grid.setColumnStretch(column, 1)
         for index in range(note_types_grid.count() - 1, -1, -1):
             item = note_types_grid.takeAt(index)
@@ -185,46 +205,51 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         note_type_checks.clear()
         overwrite_checks.clear()
         delete_checks.clear()
-        headings = {0: "TOPIC"}
-        for format_index, card_format in enumerate(FORMATS):
-            selected_column = 2 + format_index * 3
-            overwrite_column = selected_column + 1
-            headings[selected_column] = card_format.upper()
-            headings[overwrite_column] = "OVERWRITE"
-        if custom_topics:
-            headings[8] = "DELETE"
+        column_count = 9
+        make_table_cell(
+            0,
+            0,
+            make_header_label("TOPIC"),
+            "noteTypesHeaderCell",
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+            "topLeft",
+            row_span=2,
+        )
+        make_table_cell(
+            0,
+            2,
+            make_header_label("ADVANCE"),
+            "noteTypesHeaderCell",
+            Qt.AlignmentFlag.AlignCenter,
+            column_span=3,
+        )
+        make_table_cell(
+            0,
+            6,
+            make_header_label("CLOZE"),
+            "noteTypesHeaderCell",
+            Qt.AlignmentFlag.AlignCenter,
+            "topRight",
+            column_span=3,
+        )
+        for column in (1, 5):
+            make_divider_cell(0, column, "noteTypesHeaderCell", row_span=2)
 
-        column_count = 9 if custom_topics else 7
-        divider_columns = {1, 4, *({7} if custom_topics else set())}
-        for column in range(column_count):
-            if column in divider_columns:
-                make_divider_cell(0, column, "noteTypesHeaderCell")
-                continue
-            heading = QLabel(headings[column], note_types_options)
-            heading_font = heading.font()
-            heading_font.setBold(True)
-            heading_font.setPointSize(max(1, heading_font.pointSize() - 4))
-            heading.setFont(heading_font)
-            alignment = (
-                Qt.AlignmentFlag.AlignLeft
-                if column == 0
-                else Qt.AlignmentFlag.AlignHCenter
-            )
-            corner = (
-                "topLeft"
-                if column == 0
-                else "topRight"
-                if column == column_count - 1
-                else None
-            )
-            make_table_cell(
-                0,
-                column,
-                heading,
-                "noteTypesHeaderCell",
-                alignment,
-                corner,
-            )
+        action_columns = {
+            "CREATE": (2, 6),
+            "REPLACE": (3, 7),
+            "DELETE": (4, 8),
+        }
+        for action, columns in action_columns.items():
+            for column in columns:
+                heading = make_header_label(action)
+                make_table_cell(
+                    1,
+                    column,
+                    heading,
+                    "noteTypesHeaderCell",
+                    Qt.AlignmentFlag.AlignCenter,
+                )
 
         existing_names = (
             {item.name for item in mw.col.models.all_names_and_ids()}
@@ -232,12 +257,12 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             else set()
         )
         topics = (*TOPICS, *custom_topics)
-        last_data_row = len(topics) + int(bool(custom_topics))
-        custom_topics_start = 1 + len(TOPICS)
+        last_data_row = len(topics) + 1 + int(bool(custom_topics))
+        custom_topics_start = 2 + len(TOPICS)
         if custom_topics:
             add_note_type_horizontal_divider(custom_topics_start, column_count)
         for index, topic in enumerate(topics):
-            row = 1 + index
+            row = 2 + index
             if custom_topics and index >= len(TOPICS):
                 row += 1
             row_style = (
@@ -253,17 +278,21 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                 row_style,
                 corner="bottomLeft" if row == last_data_row else None,
             )
-            for column in divider_columns:
+            for column in (1, 5):
                 make_divider_cell(row, column, row_style)
             note_type_checks[topic] = {}
             overwrite_checks[topic] = {}
+            delete_checks[topic] = {}
             saved_topic_checks = saved_checks.get(
                 topic, saved_selections.get(topic, {})
             )
             saved_topic_overwrites = saved_overwrites.get(topic, {})
+            saved_topic_deletes = saved_deletes.get(topic, {})
+
             for format_index, card_format in enumerate(FORMATS):
-                selected_column = 2 + format_index * 3
+                selected_column = 2 + format_index * 4
                 overwrite_column = selected_column + 1
+                delete_column = selected_column + 2
                 type_name = f"{topic} ({card_format})"
                 checkbox = QCheckBox(note_types_options)
                 exists = type_name in existing_names
@@ -287,67 +316,76 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                 )
                 overwrite_checkbox.setEnabled(exists)
                 overwrite_checkbox.setToolTip(
-                    "Overwrite this existing note type"
+                    "Replace this existing note type"
                     if exists
                     else "Available after this note type has been created"
                 )
                 overwrite_checkbox.toggled.connect(update_note_types_button_state)
+                delete_checkbox = QCheckBox(note_types_options)
+                notetype = (
+                    mw.col.models.by_name(type_name)
+                    if mw.col is not None and exists
+                    else None
+                )
+                note_count = (
+                    mw.col.models.use_count(notetype)
+                    if mw.col is not None and notetype is not None
+                    else 0
+                )
+                can_delete = exists and note_count == 0
+                delete_checkbox.setChecked(
+                    saved_topic_deletes.get(card_format, False) and can_delete
+                )
+                delete_checkbox.setEnabled(can_delete)
+                if not exists:
+                    delete_checkbox.setToolTip(
+                        "Available after this note type has been created"
+                    )
+                elif note_count:
+                    delete_checkbox.setToolTip(
+                        "Move all notes to another note type in Anki before deleting"
+                    )
+                else:
+                    delete_checkbox.setToolTip("Delete this empty note type")
+                overwrite_checkbox.toggled.connect(
+                    lambda checked, delete=delete_checkbox: delete.setChecked(False)
+                    if checked
+                    else None
+                )
+                delete_checkbox.toggled.connect(
+                    lambda checked, replace=overwrite_checkbox: replace.setChecked(
+                        False
+                    )
+                    if checked
+                    else None
+                )
+                delete_checkbox.toggled.connect(update_note_types_button_state)
                 make_table_cell(
                     row,
                     overwrite_column,
                     overwrite_checkbox,
                     row_style,
                     Qt.AlignmentFlag.AlignCenter,
+                )
+                make_table_cell(
+                    row,
+                    delete_column,
+                    delete_checkbox,
+                    row_style,
+                    Qt.AlignmentFlag.AlignCenter,
                     "bottomRight"
-                    if (
-                        not custom_topics
-                        and row == last_data_row
-                        and format_index == len(FORMATS) - 1
-                    )
+                    if row == last_data_row and delete_column == 8
                     else None,
                 )
                 overwrite_checks[topic][card_format] = overwrite_checkbox
-            if topic in custom_topics:
-                add_custom_topic_delete_checkbox(
-                    row,
-                    topic,
-                    row_style,
-                    "bottomRight" if row == last_data_row else None,
-                )
-            elif custom_topics:
-                make_table_cell(
-                    row,
-                    8,
-                    QLabel("", note_types_options),
-                    row_style,
-                    Qt.AlignmentFlag.AlignCenter,
-                    "bottomRight" if row == last_data_row else None,
-                )
+                delete_checks[topic][card_format] = delete_checkbox
+
         note_types_grid.activate()
         table_height = note_types_grid.sizeHint().height()
         if note_types_scroll.widget() is not None:
             note_types_scroll.setMaximumHeight(table_height)
             note_types_options.updateGeometry()
         update_note_types_button_state()
-
-    def add_custom_topic_delete_checkbox(
-        row: int, topic: str, row_style: str, corner: str | None
-    ) -> None:
-        delete_checkbox = QCheckBox(note_types_options)
-        delete_checkbox.setToolTip(
-            "Remove this custom topic row from settings when Update is clicked. "
-            "Existing note types are unchanged."
-        )
-        delete_checkbox.toggled.connect(update_note_types_button_state)
-        make_table_cell(
-            row,
-            8,
-            delete_checkbox,
-            row_style,
-            Qt.AlignmentFlag.AlignCenter,
-            corner,
-        )
-        delete_checks[topic] = delete_checkbox
 
     def persist_note_type_selections() -> None:
         selections = {
@@ -381,15 +419,6 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         QTimer.singleShot(0, update_note_types_table_height)
         persist_note_type_selections()
 
-    def remove_custom_topic(topic: str) -> None:
-        if topic not in custom_topics:
-            return
-        custom_topics.remove(topic)
-        saved_selections.pop(topic, None)
-        rebuild_note_types_grid()
-        QTimer.singleShot(0, update_note_types_table_height)
-        persist_note_type_selections()
-
     def update_note_types_table_height() -> None:
         note_types_grid.activate()
         note_types_scroll.setMaximumHeight(note_types_grid.sizeHint().height())
@@ -403,9 +432,6 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     note_types_layout.addWidget(note_types_scroll, 1)
 
     def create_note_types_from_panel(checked=False) -> None:
-        topics_to_remove = {
-            topic for topic, checkbox in delete_checks.items() if checkbox.isChecked()
-        }
         selections = {
             topic: {
                 card_format
@@ -417,7 +443,6 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                 )
             }
             for topic, formats in note_type_checks.items()
-            if topic not in topics_to_remove
         }
         overwrites = {
             topic: {
@@ -426,29 +451,51 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                 if checkbox.isChecked()
             }
             for topic, formats in overwrite_checks.items()
-            if topic not in topics_to_remove
         }
-        has_note_type_changes = any(selections.values())
-        if has_note_type_changes and not create_selected_note_types(
-            selections, overwrites
-        ):
+        deletions = {
+            topic: {
+                card_format
+                for card_format, checkbox in formats.items()
+                if checkbox.isChecked() and checkbox.isEnabled()
+            }
+            for topic, formats in delete_checks.items()
+        }
+        if not create_selected_note_types(selections, overwrites, deletions):
             return
-        if mw.col is not None:
-            existing_names = {item.name for item in mw.col.models.all_names_and_ids()}
-            for topic, formats in overwrite_checks.items():
-                for card_format, overwrite_checkbox in formats.items():
-                    exists = f"{topic} ({card_format})" in existing_names
-                    note_type_checks[topic][card_format].setEnabled(not exists)
-                    overwrite_checkbox.setEnabled(exists)
-                    if not exists:
-                        overwrite_checkbox.setChecked(False)
-                    overwrite_checkbox.setToolTip(
-                        "Overwrite this existing note type"
-                        if exists
-                        else "Available after this note type has been created"
-                    )
-        for topic in list(topics_to_remove):
-            remove_custom_topic(topic)
+
+        deleted_types = {
+            (topic, card_format)
+            for topic, formats in deletions.items()
+            for card_format in formats
+        }
+        for topic, card_format in deleted_types:
+            note_type_checks[topic][card_format].setChecked(False)
+            delete_checks[topic][card_format].setChecked(False)
+            if isinstance(saved_selections.get(topic), dict):
+                saved_selections[topic][card_format] = False
+
+        existing_names = (
+            {item.name for item in mw.col.models.all_names_and_ids()}
+            if mw.col is not None
+            else set()
+        )
+        for topic in list(custom_topics):
+            if (topic, "Advance") not in deleted_types and (
+                topic,
+                "Cloze",
+            ) not in deleted_types:
+                continue
+            if all(
+                f"{topic} ({card_format})" not in existing_names
+                for card_format in FORMATS
+            ):
+                custom_topics.remove(topic)
+                saved_selections.pop(topic, None)
+
+        rebuild_note_types_grid()
+        QTimer.singleShot(0, update_note_types_table_height)
+        if deleted_types:
+            persist_note_type_selections()
 
     note_types_button.clicked.connect(create_note_types_from_panel)
     add_button = QPushButton("+", note_types_tab)
