@@ -1,18 +1,37 @@
 """Reusable Qt controls and layout helpers for settings pages."""
 
 from aqt.qt import (
-    QApplication, QCheckBox, QEvent, QFrame, QHBoxLayout, QIcon, QLabel,
-    QKeySequence, QPoint, QPushButton, QScrollArea, QTimer, Qt, QVBoxLayout, QWidget,
+    QApplication,
+    QCheckBox,
+    QEvent,
+    QFrame,
+    QHBoxLayout,
+    QIcon,
+    QLabel,
+    QKeySequence,
+    QPoint,
+    QPushButton,
+    QScrollArea,
+    QTimer,
+    Qt,
+    QVBoxLayout,
+    QWidget,
 )
 from aqt.utils import is_mac
 
 from .constants import (
-    COLOR_TRANSPARENT, NESTED_INDENT,
-    SHORTCUT_MIN_WIDTH, SHORTCUT_MODIFIER_HINT, SHARED_ASSET_DIR, ZERO_MARGINS,
+    COLOR_TRANSPARENT,
+    NESTED_INDENT,
+    SHORTCUT_MIN_WIDTH,
+    SHORTCUT_MODIFIER_HINT,
+    SHARED_ASSET_DIR,
+    ZERO_MARGINS,
 )
 from .theme import get_theme_color
 from .shortcuts import (
-    format_shortcut, normalize_shortcut, reserved_shortcut_warnings,
+    format_shortcut,
+    normalize_shortcut,
+    reserved_shortcut_warnings,
 )
 
 
@@ -99,9 +118,7 @@ class CardShortcutInput(QPushButton):
         button_pressed_bg = get_theme_color(
             "BUTTON_GRADIENT_END", "BUTTON_BG", "CANVAS_ELEVATED"
         )
-        button_disabled_bg = get_theme_color(
-            "BUTTON_DISABLED", "BUTTON_BG", "CANVAS"
-        )
+        button_disabled_bg = get_theme_color("BUTTON_DISABLED", "BUTTON_BG", "CANVAS")
         self._base_style_sheet = (
             f"QPushButton {{ text-align: right; padding: 0 4px; "
             f"border: 1px solid {COLOR_TRANSPARENT}; "
@@ -130,6 +147,12 @@ class CardShortcutInput(QPushButton):
         self._capturing = self.isChecked()
         if self._capturing:
             self.setFocus()
+
+    def _stop_capture(self) -> None:
+        if not self._capturing:
+            return
+        self._capturing = False
+        self.setChecked(False)
 
     def set_shortcut(self, shortcut: str) -> None:
         self.setText(format_shortcut(shortcut) or "none")
@@ -176,12 +199,19 @@ class CardShortcutInput(QPushButton):
             callback()
 
     def eventFilter(self, watched, event) -> bool:
+        if self._capturing and watched is self:
+            if event.type() == QEvent.Type.FocusOut:
+                self._stop_capture()
+            elif event.type() == QEvent.Type.KeyPress and event.key() in (
+                Qt.Key.Key_Tab,
+                Qt.Key.Key_Backtab,
+            ):
+                self._stop_capture()
         if self._capturing and event.type() == QEvent.Type.MouseButtonPress:
             if watched is not self and not (
                 isinstance(watched, QWidget) and self.isAncestorOf(watched)
             ):
-                self._capturing = False
-                self.setChecked(False)
+                self._stop_capture()
         return super().eventFilter(watched, event)
 
     def keyPressEvent(self, event) -> None:
@@ -218,8 +248,7 @@ class CardShortcutInput(QPushButton):
         )
         if not event.modifiers() & required_modifiers:
             self._set_validation_message(
-                f"Shortcuts must include {SHORTCUT_MODIFIER_HINT}. "
-                "Shift by itself does not count as a modifier."
+                f"Shortcuts must include {SHORTCUT_MODIFIER_HINT}."
             )
             event.accept()
             return
