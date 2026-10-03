@@ -6,12 +6,16 @@ from collections.abc import Callable
 from aqt import mw
 from aqt.qt import (
     QCheckBox,
+    QEvent,
     QFrame,
     QGridLayout,
     QHBoxLayout,
     QInputDialog,
     QLabel,
+    QPainterPath,
     QPushButton,
+    QRectF,
+    QRegion,
     QScrollArea,
     Qt,
     QTimer,
@@ -36,6 +40,28 @@ class NoteTypesTab:
     collect_selections: Callable[[], dict[str, dict[str, bool]]]
 
 
+class _RoundedScrollArea(QScrollArea):
+    def __init__(self, parent: QWidget, radius: int) -> None:
+        super().__init__(parent)
+        self._corner_radius = radius
+        self.viewport().installEventFilter(self)
+
+    def eventFilter(self, watched, event) -> bool:
+        if watched is self.viewport() and event.type() == QEvent.Type.Resize:
+            self._update_viewport_mask()
+        return super().eventFilter(watched, event)
+
+    def _update_viewport_mask(self) -> None:
+        viewport = self.viewport()
+        path = QPainterPath()
+        path.addRoundedRect(
+            QRectF(viewport.rect()),
+            self._corner_radius,
+            self._corner_radius,
+        )
+        viewport.setMask(QRegion(path.toFillPolygon().toPolygon()))
+
+
 def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     note_types_tab = QWidget(parent)
     note_types_layout = QVBoxLayout(note_types_tab)
@@ -43,7 +69,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     note_types_layout.addWidget(
         QLabel("Select your card topics and formats to use for your new note types:")
     )
-    note_types_scroll = QScrollArea(note_types_tab)
+    note_types_scroll = _RoundedScrollArea(note_types_tab, radius=6)
     note_types_scroll.setWidgetResizable(True)
     note_types_scroll.setFrameShape(QFrame.Shape.NoFrame)
     note_types_scroll.setObjectName("noteTypesScroll")
