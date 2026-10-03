@@ -187,6 +187,12 @@ class CardShortcutInput(QPushButton):
         if not self._capturing:
             super().keyPressEvent(event)
             return
+        if event.key() == Qt.Key.Key_Escape:
+            self._capturing = False
+            self.setChecked(False)
+            self._set_validation_message("")
+            event.accept()
+            return
         if event.key() in (Qt.Key.Key_Backspace, Qt.Key.Key_Delete):
             self.setText("none")
             self._set_validation_message("")
