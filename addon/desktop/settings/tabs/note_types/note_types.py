@@ -24,13 +24,10 @@ from ...config import save_note_type_selections
 from ....note_types import FORMATS, TOPICS, create_selected_note_types
 from ...constants import (
     ADDON_PACKAGE_NAME,
-    COLOR_GRAYSCALE_LIGHT_200,
-    COLOR_GRAYSCALE_LIGHT_300,
-    COLOR_GRAYSCALE_LIGHT_400,
-    COLOR_GRAYSCALE_LIGHT_600,
     NOTE_TYPES_ROW_PADDING,
     ZERO_MARGINS,
 )
+from ...theme import get_theme_color
 
 
 @dataclass
@@ -55,17 +52,18 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     note_types_options.setObjectName("noteTypesTable")
     note_types_options.setStyleSheet(
         "QFrame#noteTypesTable { "
-        f"background-color: {COLOR_GRAYSCALE_LIGHT_200}; "
+        f"background-color: {get_theme_color('CANVAS_ELEVATED')}; "
+        f"border: 1px solid {get_theme_color('CANVAS')}; "
         "border-radius: 6px; "
         "} "
         "QWidget#noteTypesHeaderCell { "
-        f"background-color: {COLOR_GRAYSCALE_LIGHT_400}; "
+        f"background-color: {get_theme_color('CANVAS')}; "
         "} "
         "QWidget#noteTypesNormalCell { "
-        f"background-color: {COLOR_GRAYSCALE_LIGHT_200}; "
+        f"background-color: {get_theme_color('CANVAS_ELEVATED')}; "
         "} "
         "QWidget#noteTypesAlternateCell { "
-        f"background-color: {COLOR_GRAYSCALE_LIGHT_300}; "
+        f"background-color: {get_theme_color('CANVAS')}; "
         "} "
         "QWidget[tableCorner='topLeft'] { border-top-left-radius: 6px; } "
         "QWidget[tableCorner='topRight'] { border-top-right-radius: 6px; } "
@@ -118,7 +116,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         divider.setLineWidth(1)
         divider.setFixedHeight(1)
         divider.setContentsMargins(*ZERO_MARGINS)
-        divider.setStyleSheet(f"color: {COLOR_GRAYSCALE_LIGHT_600};")
+        divider.setStyleSheet(f"color: {get_theme_color('BORDER_SUBTLE')};")
         note_types_grid.addWidget(divider, row, 0, 1, column_span)
 
     def make_table_cell(
@@ -175,7 +173,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         divider.setFrameShape(QFrame.Shape.VLine)
         divider.setFrameShadow(QFrame.Shadow.Plain)
         divider.setLineWidth(1)
-        divider.setStyleSheet(f"color: {COLOR_GRAYSCALE_LIGHT_600};")
+        divider.setStyleSheet(f"color: {get_theme_color('BORDER_SUBTLE')};")
         cell_layout.addWidget(divider, alignment=Qt.AlignmentFlag.AlignHCenter)
         note_types_grid.addWidget(cell, row, column, row_span, 1)
 

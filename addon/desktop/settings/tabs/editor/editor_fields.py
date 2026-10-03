@@ -4,7 +4,8 @@ from dataclasses import dataclass
 
 from aqt.qt import QCheckBox, QGroupBox, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
-from ...constants import COLOR_WARNING_700, DEFAULT_SETTINGS, ZERO_MARGINS
+from ...constants import DEFAULT_SETTINGS, ZERO_MARGINS
+from ...theme import get_theme_color
 from ...widgets import CardShortcutInput, add_checkbox_row, make_reset_link
 
 
@@ -51,7 +52,9 @@ def build_editor_fields_section(parent: QWidget, current_settings: dict) -> Edit
     set_shortcut_enabled(shortcut_enabled.isChecked())
     warning_label = QLabel(section)
     warning_label.setWordWrap(True)
-    warning_label.setStyleSheet(f"color: {COLOR_WARNING_700};")
+    warning_label.setStyleSheet(
+        f"color: {get_theme_color('ACCENT_DANGER', 'FLAG_1', 'FG')};"
+    )
     warning_label.hide()
     shortcut_input.set_validation_label(warning_label)
     add_checkbox_row(

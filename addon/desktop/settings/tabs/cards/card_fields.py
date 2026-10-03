@@ -5,14 +5,11 @@ from dataclasses import dataclass
 from aqt.qt import QCheckBox, QGroupBox, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 from ...constants import (
-    COLOR_CONFLICT_700,
-    COLOR_GRAYSCALE_DARK_200,
-    COLOR_GRAYSCALE_DARK_900,
-    COLOR_WARNING_700,
     DEFAULT_SETTINGS,
     NESTED_INDENT,
     ZERO_MARGINS,
 )
+from ...theme import get_theme_color
 from ...widgets import CardShortcutInput, add_checkbox_row, make_reset_link
 
 
@@ -42,11 +39,11 @@ class CardFieldsSection:
 
 def style_shortcut_option(checkbox: QCheckBox, *, inactive: bool) -> None:
     if inactive:
-        color = COLOR_GRAYSCALE_DARK_200
+        color = get_theme_color("FG_DISABLED")
     elif getattr(checkbox, "shortcut_conflict", False):
-        color = COLOR_CONFLICT_700
+        color = get_theme_color("FLAG_2", "FLAG_1", "FG_LINK")
     else:
-        color = COLOR_GRAYSCALE_DARK_900
+        color = get_theme_color("FG")
     checkbox.setStyleSheet(f"QCheckBox {{ color: {color}; }}")
 
 
@@ -109,7 +106,9 @@ def build_card_fields_section(parent: QWidget, current_settings: dict) -> CardFi
         checkbox.toggled.connect(set_row_enabled)
         warning_label = QLabel(row_container)
         warning_label.setWordWrap(True)
-        warning_label.setStyleSheet(f"color: {COLOR_WARNING_700};")
+        warning_label.setStyleSheet(
+            f"color: {get_theme_color('ACCENT_DANGER', 'FLAG_1', 'FG')};"
+        )
         warning_label.hide()
         shortcut_input.set_validation_label(warning_label)
         row_container_layout.addWidget(row_widget)

@@ -7,12 +7,10 @@ from aqt.qt import (
 from aqt.utils import is_mac
 
 from .constants import (
-    COLOR_BLUE_100, COLOR_BLUE_200, COLOR_BLUE_300, COLOR_BLUE_700,
-    COLOR_CONFLICT_700, COLOR_GRAYSCALE_DARK_200, COLOR_GRAYSCALE_DARK_900,
-    COLOR_GRAYSCALE_LIGHT_100, COLOR_GRAYSCALE_LIGHT_200,
-    COLOR_GRAYSCALE_LIGHT_300, COLOR_TRANSPARENT, NESTED_INDENT,
+    COLOR_TRANSPARENT, NESTED_INDENT,
     SHORTCUT_MIN_WIDTH, SHORTCUT_MODIFIER_HINT, SHARED_ASSET_DIR, ZERO_MARGINS,
 )
+from .theme import get_theme_color
 from .shortcuts import (
     format_shortcut, normalize_shortcut, reserved_shortcut_warnings,
 )
@@ -26,7 +24,7 @@ def add_checkbox_row(
     validation_label: QLabel | None = None,
 ) -> None:
     checkbox.setStyleSheet(
-        f"QCheckBox:disabled {{ color: {COLOR_GRAYSCALE_DARK_200}; }}"
+        f"QCheckBox:disabled {{ color: {get_theme_color('FG_DISABLED')}; }}"
     )
     row_widget = QWidget(parent_layout.parentWidget())
     content_layout = QVBoxLayout(row_widget)
@@ -94,20 +92,32 @@ class CardShortcutInput(QPushButton):
         self.setMinimumWidth(SHORTCUT_MIN_WIDTH)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setToolTip("Click to record a shortcut. Click outside to finish.")
+        button_bg = get_theme_color("BUTTON_BG", "CANVAS_ELEVATED")
+        button_hover_bg = get_theme_color(
+            "BUTTON_GRADIENT_START", "BUTTON_BG", "CANVAS_ELEVATED"
+        )
+        button_pressed_bg = get_theme_color(
+            "BUTTON_GRADIENT_END", "BUTTON_BG", "CANVAS_ELEVATED"
+        )
+        button_disabled_bg = get_theme_color(
+            "BUTTON_DISABLED", "BUTTON_BG", "CANVAS"
+        )
         self._base_style_sheet = (
             f"QPushButton {{ text-align: right; padding: 0 4px; "
             f"border: 1px solid {COLOR_TRANSPARENT}; "
             "border-radius: 2px; "
-            f"background: {COLOR_GRAYSCALE_LIGHT_300}; }}"
-            f"QPushButton:hover {{ background: {COLOR_GRAYSCALE_LIGHT_200}; }}"
+            f"background: {button_bg}; }}"
+            f"QPushButton:hover {{ background: {button_hover_bg}; }}"
             f"QPushButton:checked {{ "
-            f"background: {COLOR_GRAYSCALE_LIGHT_100}; "
+            f"background: {get_theme_color('CANVAS_INSET')}; "
             f"border: 1px solid {COLOR_TRANSPARENT}; }}"
             f"QPushButton:pressed, QPushButton:checked:pressed "
-            f"{{ background: {COLOR_GRAYSCALE_LIGHT_200}; "
+            f"{{ background: {button_pressed_bg}; "
             f"border: 1px solid {COLOR_TRANSPARENT}; }}"
-            f"QPushButton:focus {{ border: 1px solid {COLOR_BLUE_300}; }}"
-            f"QPushButton:disabled {{ background: {COLOR_GRAYSCALE_LIGHT_300}; }}"
+            f"QPushButton:focus {{ border: 1px solid "
+            f"{get_theme_color('BORDER_FOCUS')}; }}"
+            f"QPushButton:disabled {{ "
+            f"background: {button_disabled_bg}; }}"
         )
         self._apply_text_style()
         self.toggled.connect(self._apply_text_style)
@@ -141,11 +151,11 @@ class CardShortcutInput(QPushButton):
         if not hasattr(self, "_base_style_sheet"):
             return
         if self._text_dimmed or not self.isEnabled():
-            color = COLOR_GRAYSCALE_DARK_200
+            color = get_theme_color("FG_DISABLED")
         elif self.isChecked():
-            color = COLOR_BLUE_700
+            color = get_theme_color("FG_LINK")
         else:
-            color = COLOR_GRAYSCALE_DARK_900
+            color = get_theme_color("FG")
         self.setStyleSheet(
             f"{self._base_style_sheet} QPushButton {{ color: {color}; }}"
         )
@@ -315,11 +325,13 @@ class ResetShortcutLink(QLabel):
         self.setFont(font)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setStyleSheet(
-            f"QLabel {{ color: {COLOR_BLUE_300}; text-decoration: none; }}"
-            f"QLabel:hover {{ color: {COLOR_BLUE_100}; text-decoration: none; }}"
+            f"QLabel {{ color: {get_theme_color('FG_LINK')}; "
+            "text-decoration: none; }"
+            f"QLabel:hover {{ color: {get_theme_color('FG_LINK')}; "
+            "text-decoration: none; }"
             f'QLabel[pressed="true"] '
-            f"{{ color: {COLOR_BLUE_200}; text-decoration: none; }}"
-            f"QLabel:disabled {{ color: {COLOR_GRAYSCALE_DARK_200}; }}"
+            f"{{ color: {get_theme_color('FG_LINK')}; text-decoration: none; }}"
+            f"QLabel:disabled {{ color: {get_theme_color('FG_DISABLED')}; }}"
         )
         self.setProperty("pressed", False)
         self.shortcut_input.add_change_listener(self._update_state)

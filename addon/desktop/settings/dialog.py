@@ -19,13 +19,12 @@ from aqt.qt import (
 from .assets import update_assets_for_profile
 from .config import get_editor_settings, get_settings, write_settings
 from .constants import (
-    COLOR_GRAYSCALE_LIGHT_100,
-    COLOR_GRAYSCALE_LIGHT_500,
     DEFAULT_SETTINGS,
     SECTION_SPACING,
     SHORTCUT_MODIFIER_HINT,
     SHARED_ASSET_DIR,
 )
+from .theme import get_theme_color
 from .shortcuts import (
     anki_editor_format_shortcut_warnings,
     anki_shortcut_warnings,
@@ -48,8 +47,8 @@ def open_settings() -> None:
     dialog = QDialog(mw)
     dialog.setStyleSheet(
         "QTextBrowser { "
-        f"background-color: {COLOR_GRAYSCALE_LIGHT_100}; "
-        f"border: 1px solid {COLOR_GRAYSCALE_LIGHT_500}; "
+        f"background-color: {get_theme_color('CANVAS_ELEVATED')}; "
+        f"border: 1px solid {get_theme_color('BORDER_SUBTLE')}; "
         "border-radius: 6px; "
         "}"
     )
