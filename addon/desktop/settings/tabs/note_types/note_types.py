@@ -13,7 +13,6 @@ from aqt.qt import (
     QLabel,
     QPushButton,
     QScrollArea,
-    QSizePolicy,
     Qt,
     QTimer,
     QVBoxLayout,
@@ -58,11 +57,24 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         "QFrame#noteTypesTable { "
         f"background-color: {COLOR_GRAYSCALE_LIGHT_200}; "
         "border-radius: 6px; "
-        "}"
+        "} "
+        "QWidget#noteTypesHeaderCell { "
+        f"background-color: {COLOR_GRAYSCALE_LIGHT_400}; "
+        "} "
+        "QWidget#noteTypesNormalCell { "
+        f"background-color: {COLOR_GRAYSCALE_LIGHT_200}; "
+        "} "
+        "QWidget#noteTypesAlternateCell { "
+        f"background-color: {COLOR_GRAYSCALE_LIGHT_300}; "
+        "} "
+        "QWidget[tableCorner='topLeft'] { border-top-left-radius: 6px; } "
+        "QWidget[tableCorner='topRight'] { border-top-right-radius: 6px; } "
+        "QWidget[tableCorner='bottomLeft'] { border-bottom-left-radius: 6px; } "
+        "QWidget[tableCorner='bottomRight'] { border-bottom-right-radius: 6px; }"
     )
     note_types_grid = QGridLayout(note_types_options)
-    note_types_grid.setHorizontalSpacing(0)
-    note_types_grid.setVerticalSpacing(0)
+    note_types_grid.setContentsMargins(*ZERO_MARGINS)
+    note_types_grid.setSpacing(0)
     addon_config = mw.addonManager.getConfig(ADDON_PACKAGE_NAME) or {}
     saved_selections = addon_config.get("note_type_selections", {})
     if not isinstance(saved_selections, dict):
@@ -75,6 +87,11 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     note_type_checks: dict[str, dict[str, QCheckBox]] = {}
     overwrite_checks: dict[str, dict[str, QCheckBox]] = {}
     delete_checks: dict[str, QCheckBox] = {}
+    checkbox_size = QCheckBox()
+    checkbox_size.setContentsMargins(*ZERO_MARGINS)
+    table_row_height = max(
+        checkbox_size.sizeHint().height(), note_types_options.fontMetrics().height()
+    ) + 2 * NOTE_TYPES_ROW_PADDING
     note_types_button = QPushButton("Update Selected Note Types", note_types_tab)
     note_types_button.setAutoDefault(False)
 
@@ -90,36 +107,61 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         ) or any(checkbox.isChecked() for checkbox in delete_checks.values())
         note_types_button.setEnabled(has_selection)
 
-    def add_note_type_heading(label: str, column: int, alignment=None) -> None:
-        heading = QLabel(label, note_types_options)
-        heading.setContentsMargins(2, 2, 2, 2)
-        heading_font = heading.font()
-        heading_font.setBold(True)
-        heading_font.setPointSize(max(1, heading_font.pointSize() - 4))
-        heading.setFont(heading_font)
-        if alignment is None:
-            note_types_grid.addWidget(heading, 0, column)
-        else:
-            note_types_grid.addWidget(heading, 0, column, alignment=alignment)
-
-    def add_note_type_divider(column: int, row_span: int) -> None:
-        divider = QFrame(note_types_options)
-        divider.setFrameShape(QFrame.Shape.VLine)
-        divider.setFrameShadow(QFrame.Shadow.Plain)
-        divider.setLineWidth(1)
-        divider.setSizePolicy(
-            QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding
-        )
-        divider.setStyleSheet(f"color: {COLOR_GRAYSCALE_LIGHT_600};")
-        note_types_grid.addWidget(divider, 0, column, row_span, 1)
-
     def add_note_type_horizontal_divider(row: int, column_span: int) -> None:
         divider = QFrame(note_types_options)
         divider.setFrameShape(QFrame.Shape.HLine)
         divider.setFrameShadow(QFrame.Shadow.Plain)
         divider.setLineWidth(1)
+        divider.setFixedHeight(1)
+        divider.setContentsMargins(*ZERO_MARGINS)
         divider.setStyleSheet(f"color: {COLOR_GRAYSCALE_LIGHT_600};")
         note_types_grid.addWidget(divider, row, 0, 1, column_span)
+
+    def make_table_cell(
+        row: int,
+        column: int,
+        content: QWidget,
+        row_style: str,
+        alignment=None,
+        corner: str | None = None,
+    ) -> QWidget:
+        cell = QWidget(note_types_options)
+        cell.setObjectName(row_style)
+        if corner is not None:
+            cell.setProperty("tableCorner", corner)
+        cell.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        cell.setFixedHeight(table_row_height)
+        cell_layout = QHBoxLayout(cell)
+        cell_layout.setContentsMargins(
+            NOTE_TYPES_ROW_PADDING,
+            NOTE_TYPES_ROW_PADDING,
+            NOTE_TYPES_ROW_PADDING,
+            NOTE_TYPES_ROW_PADDING,
+        )
+        cell_layout.setSpacing(0)
+        content.setContentsMargins(*ZERO_MARGINS)
+        if alignment is None:
+            cell_layout.addWidget(content)
+        else:
+            cell_layout.addWidget(content, alignment=alignment)
+        note_types_grid.addWidget(cell, row, column)
+        return cell
+
+    def make_divider_cell(row: int, column: int, row_style: str) -> None:
+        cell = QWidget(note_types_options)
+        cell.setObjectName(row_style)
+        cell.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        cell.setFixedHeight(table_row_height)
+        cell_layout = QHBoxLayout(cell)
+        cell_layout.setContentsMargins(*ZERO_MARGINS)
+        cell_layout.setSpacing(0)
+        divider = QFrame(cell)
+        divider.setFrameShape(QFrame.Shape.VLine)
+        divider.setFrameShadow(QFrame.Shadow.Plain)
+        divider.setLineWidth(1)
+        divider.setStyleSheet(f"color: {COLOR_GRAYSCALE_LIGHT_600};")
+        cell_layout.addWidget(divider, alignment=Qt.AlignmentFlag.AlignHCenter)
+        note_types_grid.addWidget(cell, row, column)
 
     def rebuild_note_types_grid() -> None:
         saved_checks = {
@@ -143,37 +185,46 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         note_type_checks.clear()
         overwrite_checks.clear()
         delete_checks.clear()
-        add_note_type_heading("TOPIC", 0)
+        headings = {0: "TOPIC"}
         for format_index, card_format in enumerate(FORMATS):
             selected_column = 2 + format_index * 3
             overwrite_column = selected_column + 1
-            add_note_type_heading(
-                card_format.upper(),
-                selected_column,
-                Qt.AlignmentFlag.AlignHCenter,
-            )
-            add_note_type_heading(
-                "OVERWRITE", overwrite_column, Qt.AlignmentFlag.AlignHCenter
-            )
+            headings[selected_column] = card_format.upper()
+            headings[overwrite_column] = "OVERWRITE"
         if custom_topics:
-            add_note_type_heading("DELETE", 8, Qt.AlignmentFlag.AlignHCenter)
+            headings[8] = "DELETE"
 
-        header_content_height = max(
-            note_types_grid.itemAtPosition(0, column).widget().fontMetrics().height()
-            for column in (0, 2, 3, 5, 6, *([8] if custom_topics else []))
-        )
-        note_types_grid.setRowMinimumHeight(0, header_content_height + 4)
-
-        header_background = QWidget(note_types_options)
-        header_background.setStyleSheet(
-            f"background-color: {COLOR_GRAYSCALE_LIGHT_400};"
-        )
-        header_background.setContentsMargins(*ZERO_MARGINS)
-        header_background.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        note_types_grid.addWidget(
-            header_background, 0, 0, 1, 9 if custom_topics else 7
-        )
-        header_background.lower()
+        column_count = 9 if custom_topics else 7
+        divider_columns = {1, 4, *({7} if custom_topics else set())}
+        for column in range(column_count):
+            if column in divider_columns:
+                make_divider_cell(0, column, "noteTypesHeaderCell")
+                continue
+            heading = QLabel(headings[column], note_types_options)
+            heading_font = heading.font()
+            heading_font.setBold(True)
+            heading_font.setPointSize(max(1, heading_font.pointSize() - 4))
+            heading.setFont(heading_font)
+            alignment = (
+                Qt.AlignmentFlag.AlignLeft
+                if column == 0
+                else Qt.AlignmentFlag.AlignHCenter
+            )
+            corner = (
+                "topLeft"
+                if column == 0
+                else "topRight"
+                if column == column_count - 1
+                else None
+            )
+            make_table_cell(
+                0,
+                column,
+                heading,
+                "noteTypesHeaderCell",
+                alignment,
+                corner,
+            )
 
         existing_names = (
             {item.name for item in mw.col.models.all_names_and_ids()}
@@ -181,44 +232,29 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             else set()
         )
         topics = (*TOPICS, *custom_topics)
+        last_data_row = len(topics) + int(bool(custom_topics))
         custom_topics_start = 1 + len(TOPICS)
         if custom_topics:
-            add_note_type_horizontal_divider(custom_topics_start, 9)
+            add_note_type_horizontal_divider(custom_topics_start, column_count)
         for index, topic in enumerate(topics):
             row = 1 + index
             if custom_topics and index >= len(TOPICS):
                 row += 1
-            row_background = QWidget(note_types_options)
-            row_background.setSizePolicy(
-                QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
+            row_style = (
+                "noteTypesAlternateCell"
+                if index % 2
+                else "noteTypesNormalCell"
             )
-            row_background_color = (
-                COLOR_GRAYSCALE_LIGHT_300
-                if row % 2 == 0
-                else COLOR_GRAYSCALE_LIGHT_200
+            topic_label = QLabel(topic, note_types_options)
+            make_table_cell(
+                row,
+                0,
+                topic_label,
+                row_style,
+                corner="bottomLeft" if row == last_data_row else None,
             )
-            row_background.setStyleSheet(
-                f"background-color: {row_background_color};"
-            )
-            row_background.setContentsMargins(*ZERO_MARGINS)
-            row_background.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-            note_types_grid.addWidget(
-                row_background, row, 0, 1, 9 if custom_topics else 7
-            )
-            row_background.lower()
-
-            topic_row = QWidget(note_types_options)
-            topic_row_layout = QHBoxLayout(topic_row)
-            topic_row_layout.setContentsMargins(
-                NOTE_TYPES_ROW_PADDING,
-                NOTE_TYPES_ROW_PADDING,
-                NOTE_TYPES_ROW_PADDING,
-                NOTE_TYPES_ROW_PADDING,
-            )
-            topic_row_layout.setSpacing(4)
-            topic_label = QLabel(topic, topic_row)
-            topic_row_layout.addWidget(topic_label, 1)
-            note_types_grid.addWidget(topic_row, row, 0)
+            for column in divider_columns:
+                make_divider_cell(row, column, row_style)
             note_type_checks[topic] = {}
             overwrite_checks[topic] = {}
             saved_topic_checks = saved_checks.get(
@@ -230,33 +266,22 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                 overwrite_column = selected_column + 1
                 type_name = f"{topic} ({card_format})"
                 checkbox = QCheckBox(note_types_options)
-                checkbox.setContentsMargins(
-                    NOTE_TYPES_ROW_PADDING,
-                    NOTE_TYPES_ROW_PADDING,
-                    NOTE_TYPES_ROW_PADDING,
-                    NOTE_TYPES_ROW_PADDING,
-                )
                 exists = type_name in existing_names
                 checkbox.setChecked(
                     exists or saved_topic_checks.get(card_format, False)
                 )
                 checkbox.setEnabled(not exists)
                 checkbox.toggled.connect(update_note_types_button_state)
-                note_types_grid.addWidget(
-                    checkbox,
+                make_table_cell(
                     row,
                     selected_column,
-                    alignment=Qt.AlignmentFlag.AlignCenter,
+                    checkbox,
+                    row_style,
+                    Qt.AlignmentFlag.AlignCenter,
                 )
                 note_type_checks[topic][card_format] = checkbox
 
                 overwrite_checkbox = QCheckBox(note_types_options)
-                overwrite_checkbox.setContentsMargins(
-                    NOTE_TYPES_ROW_PADDING,
-                    NOTE_TYPES_ROW_PADDING,
-                    NOTE_TYPES_ROW_PADDING,
-                    NOTE_TYPES_ROW_PADDING,
-                )
                 overwrite_checkbox.setChecked(
                     saved_topic_overwrites.get(card_format, False)
                 )
@@ -267,18 +292,37 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                     else "Available after this note type has been created"
                 )
                 overwrite_checkbox.toggled.connect(update_note_types_button_state)
-                note_types_grid.addWidget(
-                    overwrite_checkbox,
+                make_table_cell(
                     row,
                     overwrite_column,
-                    alignment=Qt.AlignmentFlag.AlignCenter,
+                    overwrite_checkbox,
+                    row_style,
+                    Qt.AlignmentFlag.AlignCenter,
+                    "bottomRight"
+                    if (
+                        not custom_topics
+                        and row == last_data_row
+                        and format_index == len(FORMATS) - 1
+                    )
+                    else None,
                 )
                 overwrite_checks[topic][card_format] = overwrite_checkbox
             if topic in custom_topics:
-                add_custom_topic_delete_checkbox(row, topic)
-        row_span = len(TOPICS) + len(custom_topics) + 1 + bool(custom_topics)
-        for column in (1, 4, *([7] if custom_topics else [])):
-            add_note_type_divider(column, row_span)
+                add_custom_topic_delete_checkbox(
+                    row,
+                    topic,
+                    row_style,
+                    "bottomRight" if row == last_data_row else None,
+                )
+            elif custom_topics:
+                make_table_cell(
+                    row,
+                    8,
+                    QLabel("", note_types_options),
+                    row_style,
+                    Qt.AlignmentFlag.AlignCenter,
+                    "bottomRight" if row == last_data_row else None,
+                )
         note_types_grid.activate()
         table_height = note_types_grid.sizeHint().height()
         if note_types_scroll.widget() is not None:
@@ -286,24 +330,22 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             note_types_options.updateGeometry()
         update_note_types_button_state()
 
-    def add_custom_topic_delete_checkbox(row: int, topic: str) -> None:
+    def add_custom_topic_delete_checkbox(
+        row: int, topic: str, row_style: str, corner: str | None
+    ) -> None:
         delete_checkbox = QCheckBox(note_types_options)
-        delete_checkbox.setContentsMargins(
-            NOTE_TYPES_ROW_PADDING,
-            NOTE_TYPES_ROW_PADDING,
-            NOTE_TYPES_ROW_PADDING,
-            NOTE_TYPES_ROW_PADDING,
-        )
         delete_checkbox.setToolTip(
             "Remove this custom topic row from settings when Update is clicked. "
             "Existing note types are unchanged."
         )
         delete_checkbox.toggled.connect(update_note_types_button_state)
-        note_types_grid.addWidget(
-            delete_checkbox,
+        make_table_cell(
             row,
             8,
-            alignment=Qt.AlignmentFlag.AlignCenter,
+            delete_checkbox,
+            row_style,
+            Qt.AlignmentFlag.AlignCenter,
+            corner,
         )
         delete_checks[topic] = delete_checkbox
 
