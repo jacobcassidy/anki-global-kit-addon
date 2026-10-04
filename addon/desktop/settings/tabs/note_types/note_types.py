@@ -384,7 +384,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                     delete_control = HelpIndicator(
                         "Delete",
                         "You must delete or move all cards to another note type "
-                        "before this note type can be removed.",
+                        "before this note type can be deleted.",
                         note_types_options,
                     )
                 delete_checkbox.setChecked(
