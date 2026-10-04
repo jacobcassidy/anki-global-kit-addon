@@ -258,14 +258,24 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         overwrite_checks.clear()
         delete_checks.clear()
         column_count = 9
+        topic_spacer = make_header_label("\u200b", size_adjustment=2)
+        topic_spacer.setStyleSheet("color: transparent;")
+        topic_spacer.setAccessibleName("")
         make_table_cell(
             0,
             0,
+            topic_spacer,
+            "noteTypesHeaderCell",
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+            "topLeft",
+            horizontal_padding=2 * NOTE_TYPES_ROW_PADDING,
+        )
+        make_table_cell(
+            1,
+            0,
             make_header_label("TOPIC"),
             "noteTypesHeaderCell",
-            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignBottom,
-            "topLeft",
-            row_span=2,
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
             horizontal_padding=2 * NOTE_TYPES_ROW_PADDING,
         )
         make_table_cell(
