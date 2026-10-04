@@ -1,5 +1,4 @@
 # IGNORE
-node_modules
 .TEMP
-dist
-addon/desktop/settings/tabs/note_types/__pycache__/note_types.cpython-314.pyc
+node_modules
+*.pyc
