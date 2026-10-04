@@ -586,6 +586,10 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             create_selected_note_types(selections, overwrites, deletions)
             return
 
+        for topic, formats in overwrites.items():
+            for card_format in formats:
+                overwrite_checks[topic][card_format].setChecked(False)
+
         deleted_types = {
             (topic, card_format)
             for topic, formats in checked_deletions.items()
