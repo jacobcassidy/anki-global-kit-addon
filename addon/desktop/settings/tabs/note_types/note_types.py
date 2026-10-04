@@ -167,6 +167,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         corner: str | None = None,
         row_span: int = 1,
         column_span: int = 1,
+        horizontal_padding: int = NOTE_TYPES_ROW_PADDING,
     ) -> QWidget:
         cell = QWidget(note_types_options)
         cell.setObjectName(row_style)
@@ -176,9 +177,9 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         cell.setFixedHeight(table_row_height * row_span)
         cell_layout = QHBoxLayout(cell)
         cell_layout.setContentsMargins(
+            horizontal_padding,
             NOTE_TYPES_ROW_PADDING,
-            NOTE_TYPES_ROW_PADDING,
-            NOTE_TYPES_ROW_PADDING,
+            horizontal_padding,
             NOTE_TYPES_ROW_PADDING,
         )
         cell_layout.setSpacing(0)
@@ -255,6 +256,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignBottom,
             "topLeft",
             row_span=2,
+            horizontal_padding=2 * NOTE_TYPES_ROW_PADDING,
         )
         make_table_cell(
             0,
@@ -320,6 +322,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                 topic_label,
                 row_style,
                 corner="bottomLeft" if row == last_data_row else None,
+                horizontal_padding=2 * NOTE_TYPES_ROW_PADDING,
             )
             for column in (1, 5):
                 make_divider_cell(row, column, row_style)
