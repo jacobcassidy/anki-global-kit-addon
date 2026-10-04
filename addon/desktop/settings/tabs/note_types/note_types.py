@@ -70,7 +70,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     note_types_layout = QVBoxLayout(note_types_tab)
     note_types_layout.setSpacing(8)
     note_types_layout.addWidget(
-        QLabel("Select your card topics and formats to use for your new note types:")
+        QLabel("Select the note types you want to create or modify:")
     )
     note_types_scroll = _RoundedScrollArea(note_types_tab, radius=6)
     note_types_scroll.setWidgetResizable(True)
