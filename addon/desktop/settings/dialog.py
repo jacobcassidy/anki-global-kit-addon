@@ -86,11 +86,9 @@ def open_settings() -> None:
     markdown_shortcut_inputs = fields.shortcut_inputs
     markdown_shortcut_checkboxes = fields.shortcut_enabled
     markdown_shortcut_option_checkboxes = fields.shortcut_option_checkboxes
-    markdown_shortcut_warning_labels = fields.warning_labels
     question_markdown_shortcuts = fields.master_toggle
     editor_inline_code_shortcut = editor_fields.shortcut_input
     editor_inline_code_shortcut_enabled = editor_fields.shortcut_toggle
-    editor_shortcut_warning_label = editor_fields.warning_label
 
     restore_button = QPushButton("Restore Defaults", dialog)
     restore_button.setAutoDefault(False)
@@ -237,12 +235,11 @@ def open_settings() -> None:
                 editor_messages.append(f"May overlap Anki’s {description} shortcut.")
 
         for key, _label in markdown_shortcut_definitions:
-            label = markdown_shortcut_warning_labels[key]
             message = "\n".join(messages[key])
-            label.setText(message)
-            label.setVisible(bool(message))
-        editor_shortcut_warning_label.setText("\n".join(editor_messages))
-        editor_shortcut_warning_label.setVisible(bool(editor_messages))
+            markdown_shortcut_inputs[key].set_persistent_validation_message(message)
+        editor_inline_code_shortcut.set_persistent_validation_message(
+            "\n".join(editor_messages)
+        )
 
     def validate_shortcut_candidate(key: str, candidate: str) -> str | None:
         if not question_markdown_shortcuts.isChecked():

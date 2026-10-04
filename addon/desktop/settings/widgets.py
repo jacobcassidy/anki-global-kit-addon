@@ -12,6 +12,7 @@ from aqt.qt import (
     QPoint,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QTimer,
     Qt,
     QVBoxLayout,
@@ -46,6 +47,11 @@ def add_checkbox_row(
         f"QCheckBox:disabled {{ color: {get_theme_color('FG_DISABLED')}; }}"
     )
     row_widget = QWidget(parent_layout.parentWidget())
+    if validation_label is not None:
+        row_widget.setSizePolicy(
+            QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.Maximum,
+        )
     content_layout = QVBoxLayout(row_widget)
     content_layout.setContentsMargins(*ZERO_MARGINS)
     content_layout.setSpacing(0)
@@ -63,6 +69,10 @@ def add_checkbox_row(
         row.addStretch()
         row.addWidget(trailing_widget)
     if validation_label is not None:
+        validation_label.setSizePolicy(
+            QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.Maximum,
+        )
         content_layout.addWidget(validation_label)
     parent_layout.addWidget(row_widget)
 
@@ -101,6 +111,9 @@ class CardShortcutInput(QPushButton):
     def __init__(self, shortcut: str, parent: QWidget) -> None:
         super().__init__(format_shortcut(shortcut) or "none", parent)
         self._capturing = False
+        self._capture_generation = 0
+        self._transient_validation_message = ""
+        self._persistent_validation_message = ""
         self._change_listeners = []
         self._change_order = 0
         self._text_dimmed = False
@@ -146,13 +159,25 @@ class CardShortcutInput(QPushButton):
     def _start_capture(self) -> None:
         self._capturing = self.isChecked()
         if self._capturing:
+            self._capture_generation += 1
             self.setFocus()
+        else:
+            self._clear_transient_validation()
 
     def _stop_capture(self) -> None:
         if not self._capturing:
             return
         self._capturing = False
         self.setChecked(False)
+        self._clear_transient_validation()
+
+    def _clear_transient_validation(self) -> None:
+        generation = self._capture_generation
+        QTimer.singleShot(0, lambda: self._clear_transient_if_current(generation))
+
+    def _clear_transient_if_current(self, generation: int) -> None:
+        if generation == self._capture_generation:
+            self._set_validation_message("")
 
     def set_shortcut(self, shortcut: str) -> None:
         self.setText(format_shortcut(shortcut) or "none")
@@ -248,7 +273,7 @@ class CardShortcutInput(QPushButton):
         )
         if not event.modifiers() & required_modifiers:
             self._set_validation_message(
-                f"Shortcuts must include {SHORTCUT_MODIFIER_HINT}."
+                f"Shortcuts must include at least one modifier key: {SHORTCUT_MODIFIER_HINT}."
             )
             event.accept()
             return
@@ -310,15 +335,50 @@ class CardShortcutInput(QPushButton):
 
     def set_validation_label(self, label: QLabel) -> None:
         self._validation_label = label
+        self._render_validation_message()
+
+    def set_persistent_validation_message(self, message: str) -> None:
+        self._persistent_validation_message = message
+        self._render_validation_message()
 
     def set_shortcut_validator(self, validator) -> None:
         self._shortcut_validator = validator
 
     def _set_validation_message(self, message: str) -> None:
+        self._transient_validation_message = message
+        self._render_validation_message()
+
+    def _render_validation_message(self) -> None:
         label = getattr(self, "_validation_label", None)
-        if label is not None:
-            label.setText(message)
-            label.setVisible(bool(message))
+        if label is None:
+            return
+        message = "\n".join(
+            part
+            for part in (
+                self._persistent_validation_message,
+                self._transient_validation_message,
+            )
+            if part
+        )
+        preserve_height_for = []
+        if label.isVisible() and len(message) < len(label.text()):
+            parent = self.parentWidget()
+            while parent is not None:
+                if parent.objectName() == "cardShortcutRows":
+                    preserve_height_for.append(parent)
+                if isinstance(parent, QScrollArea):
+                    content = parent.widget()
+                    if content is not None:
+                        preserve_height_for.append(content)
+                    break
+                parent = parent.parentWidget()
+        previous_heights = [widget.height() for widget in preserve_height_for]
+        label.setText(message)
+        label.setVisible(bool(message))
+        for widget, height in zip(preserve_height_for, previous_heights):
+            # Keep both the shortcut block and scroll range steady while lower
+            # rows move up, so Qt does not also move their parent containers.
+            widget.setMinimumHeight(max(widget.minimumHeight(), height))
 
     def stored_shortcut(self) -> str:
         text = self.text().strip()

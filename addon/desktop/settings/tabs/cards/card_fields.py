@@ -2,7 +2,16 @@
 
 from dataclasses import dataclass
 
-from aqt.qt import QCheckBox, QGroupBox, QHBoxLayout, QLabel, QVBoxLayout, QWidget
+from aqt.qt import (
+    QCheckBox,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QSizePolicy,
+    Qt,
+    QVBoxLayout,
+    QWidget,
+)
 
 from ...constants import (
     DEFAULT_SETTINGS,
@@ -59,8 +68,14 @@ def build_card_fields_section(parent: QWidget, current_settings: dict) -> CardFi
     )
 
     shortcut_rows = QWidget(section)
+    shortcut_rows.setObjectName("cardShortcutRows")
+    shortcut_rows.setSizePolicy(
+        QSizePolicy.Policy.Preferred,
+        QSizePolicy.Policy.Maximum,
+    )
     shortcut_rows_layout = QVBoxLayout(shortcut_rows)
     shortcut_rows_layout.setContentsMargins(NESTED_INDENT, 0, 0, 0)
+    shortcut_rows_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
     shortcut_inputs = {}
     shortcut_enabled = {}
     reset_links = {}
@@ -68,9 +83,14 @@ def build_card_fields_section(parent: QWidget, current_settings: dict) -> CardFi
 
     for key, label in SHORTCUT_DEFINITIONS:
         row_container = QWidget(shortcut_rows)
+        row_container.setSizePolicy(
+            QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.Maximum,
+        )
         row_container_layout = QVBoxLayout(row_container)
         row_container_layout.setContentsMargins(*ZERO_MARGINS)
         row_container_layout.setSpacing(0)
+        row_container_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         row_widget = QWidget(row_container)
         row = QHBoxLayout(row_widget)
         row.setContentsMargins(*ZERO_MARGINS)
