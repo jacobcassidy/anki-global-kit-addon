@@ -13,6 +13,8 @@ from .shortcuts.labels import shortcut_label
 
 ADDON_DIR = Path(__file__).resolve().parents[2]
 EDITOR_ASSET = ADDON_DIR / "desktop" / "editor" / "assets" / "editor.min.js"
+EDITOR_STYLES_DIR = ADDON_DIR / "desktop" / "editor" / "styles"
+USER_FILES_DIR = ADDON_DIR / "user_files"
 ICON_ASSET = ADDON_DIR / "desktop" / "shared" / "assets" / "inline-code.svg"
 
 
@@ -21,11 +23,28 @@ def _inject_features(editor: Editor) -> None:
         return
     settings = json.dumps(get_editor_settings(), separators=(",", ":"))
     settings = settings.replace("<", "\\u003c")
+    styles = {
+        "ui": _read_editor_styles("editor-ui.css"),
+        "fields": _read_editor_styles("editor-fields.css"),
+    }
+    styles_json = json.dumps(styles, separators=(",", ":"))
+    styles_json = styles_json.replace("<", "\\u003c")
     script = EDITOR_ASSET.read_text(encoding="utf-8")
     editor.web.eval(
         "globalThis.ankiGlobalKitEditorSettings = Object.assign("
         "globalThis.ankiGlobalKitEditorSettings || {}, "
-        f"{settings});\n{script}"
+        f"{settings});\n"
+        f"globalThis.ankiGlobalKitEditorStyles = {styles_json};\n{script}"
+    )
+
+
+def _read_editor_styles(filename: str) -> str:
+    """Combine packaged editor CSS with a user's upgrade-safe overrides."""
+    paths = (EDITOR_STYLES_DIR / filename, USER_FILES_DIR / filename)
+    return "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in paths
+        if path.is_file()
     )
 
 

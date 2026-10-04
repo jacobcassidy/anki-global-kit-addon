@@ -4,6 +4,7 @@ import { toggleInlineCode } from './formatting/inline-code.js';
 import { installCopySource } from './clipboard/copy-source.js';
 import { installClozeShortcuts } from './cloze/shortcuts.js';
 import { beginPasteLayout, finishPasteLayout } from './paste/layout.js';
+import { installEditorStyles } from './styles.js';
 
 if (!globalThis.ankiGlobalKitEditor) {
   installSelectionTracking();
@@ -31,3 +32,5 @@ if (!globalThis.ankiGlobalKitEditor) {
     finishPasteLayout,
   };
 }
+
+installEditorStyles();

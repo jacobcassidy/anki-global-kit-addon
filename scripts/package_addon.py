@@ -15,6 +15,7 @@ PACKAGE_PATHS = (
     "README.md",
     "web",
     "templates",
+    "user_files",
 )
 
 
