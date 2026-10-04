@@ -514,7 +514,7 @@ class HelpIndicator(QLabel):
         self.setContentsMargins(0, 0, 0, 0)
         icon_pixmap = QIcon(str(SHARED_ASSET_DIR / "help-indicator.svg")).pixmap(16, 16)
         self.setPixmap(icon_pixmap)
-        self.setFixedWidth(icon_pixmap.width())
+        self.setFixedSize(icon_pixmap.size())
         self.popup = HelpPopup(self, description)
         self.popup.adjustSize()
 

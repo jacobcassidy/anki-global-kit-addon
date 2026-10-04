@@ -176,6 +176,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         row_span: int = 1,
         column_span: int = 1,
         horizontal_padding: int = NOTE_TYPES_ROW_PADDING,
+        hidden_content: QWidget | None = None,
     ) -> QWidget:
         cell = QWidget(note_types_options)
         cell.setObjectName(row_style)
@@ -191,6 +192,9 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             NOTE_TYPES_ROW_PADDING,
         )
         cell_layout.setSpacing(0)
+        if hidden_content is not None:
+            hidden_content.hide()
+            cell_layout.addWidget(hidden_content)
         content.setContentsMargins(*ZERO_MARGINS)
         if alignment is None:
             cell_layout.addWidget(content)
@@ -429,6 +433,9 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                     Qt.AlignmentFlag.AlignCenter,
                     "bottomRight"
                     if row == last_data_row and delete_column == 8
+                    else None,
+                    hidden_content=delete_checkbox
+                    if delete_control is not delete_checkbox
                     else None,
                 )
                 overwrite_checks[topic][card_format] = overwrite_checkbox
