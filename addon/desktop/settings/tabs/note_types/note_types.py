@@ -6,12 +6,14 @@ from collections.abc import Callable
 from aqt import mw
 from aqt.qt import (
     QCheckBox,
+    QDialog,
     QEvent,
     QFrame,
     QGridLayout,
     QHBoxLayout,
     QInputDialog,
     QLabel,
+    QLineEdit,
     QPainterPath,
     QPushButton,
     QRectF,
@@ -450,7 +452,15 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         save_note_type_selections(selections)
 
     def add_custom_topic() -> None:
-        topic, accepted = QInputDialog.getText(parent, "Add Topic", "Topic name:")
+        dialog = QInputDialog(parent)
+        dialog.setWindowTitle("Add Topic")
+        dialog.setInputMode(QInputDialog.InputMode.TextInput)
+        dialog.setLabelText("Topic name:")
+        topic_input = dialog.findChild(QLineEdit)
+        if topic_input is not None:
+            topic_input.setStyleSheet("QLineEdit { padding: 2px 4px; }")
+        accepted = dialog.exec() == QDialog.DialogCode.Accepted
+        topic = dialog.textValue()
         topic = topic.strip()
         if not accepted:
             return
