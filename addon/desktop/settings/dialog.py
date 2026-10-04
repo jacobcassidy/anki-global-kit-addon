@@ -228,13 +228,19 @@ def open_settings() -> None:
         for shortcut, key, _label in active_shortcuts:
             description = built_in_shortcuts.get(normalize_shortcut(shortcut))
             if description:
-                messages[key].append(f"May overlap Anki’s {description} shortcut.")
+                messages[key].append(
+                    f"The {format_shortcut(shortcut)} shortcut may "
+                    f"conflict with Anki's {description} shortcut."
+                )
         if editor_shortcut:
             description = editor_built_in_shortcuts.get(
                 normalize_shortcut(editor_shortcut)
             )
             if description:
-                editor_messages.append(f"May overlap Anki’s {description} shortcut.")
+                editor_messages.append(
+                    f"The {format_shortcut(editor_shortcut)} shortcut "
+                    f"may conflict with Anki's {description} shortcut."
+                )
 
         for key, _label in markdown_shortcut_definitions:
             message = "\n".join(messages[key])
