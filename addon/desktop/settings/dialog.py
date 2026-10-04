@@ -38,6 +38,7 @@ from .tabs.cards import SHORTCUT_DEFINITIONS, build_cards_tab
 from .tabs.cards.card_fields import style_shortcut_option
 from .tabs.changelog import build_changelog_tab
 from .tabs.editor import build_editor_tab
+from .tabs.help import build_help_tab
 from .tabs.note_types import build_note_types_tab
 from .widgets import CardShortcutInput
 
@@ -78,6 +79,7 @@ def open_settings() -> None:
     tabs.addTab(note_types.widget, "Note Types")
     tabs.addTab(build_changelog_tab(dialog), "Changelog")
     tabs.addTab(build_about_tab(dialog), "About")
+    tabs.addTab(build_help_tab(dialog), "Help")
 
     all_controls = {**cards.controls, **editor.controls}
     fields = cards.fields
