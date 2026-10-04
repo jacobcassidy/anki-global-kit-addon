@@ -26,6 +26,7 @@ from aqt.utils import showWarning
 
 from ...config import save_note_type_selections
 from ....note_types import FORMATS, TOPICS, create_selected_note_types
+from ...widgets import HelpIndicator
 from ...constants import (
     ADDON_PACKAGE_NAME,
     NOTE_TYPES_ROW_PADDING,
@@ -124,25 +125,32 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     delete_checks: dict[str, dict[str, QCheckBox]] = {}
     checkbox_size = QCheckBox()
     checkbox_size.setContentsMargins(*ZERO_MARGINS)
-    table_row_height = max(
-        checkbox_size.sizeHint().height(), note_types_options.fontMetrics().height()
-    ) + 2 * NOTE_TYPES_ROW_PADDING
+    table_row_height = (
+        max(
+            checkbox_size.sizeHint().height(), note_types_options.fontMetrics().height()
+        )
+        + 2 * NOTE_TYPES_ROW_PADDING
+    )
     note_types_button = QPushButton("Update Selected Note Types", note_types_tab)
     note_types_button.setAutoDefault(False)
 
     def update_note_types_button_state(*_args) -> None:
-        has_selection = any(
-            checkbox.isChecked() and checkbox.isEnabled()
-            for formats in note_type_checks.values()
-            for checkbox in formats.values()
-        ) or any(
-            checkbox.isChecked() and checkbox.isEnabled()
-            for formats in overwrite_checks.values()
-            for checkbox in formats.values()
-        ) or any(
-            checkbox.isChecked() and checkbox.isEnabled()
-            for formats in delete_checks.values()
-            for checkbox in formats.values()
+        has_selection = (
+            any(
+                checkbox.isChecked() and checkbox.isEnabled()
+                for formats in note_type_checks.values()
+                for checkbox in formats.values()
+            )
+            or any(
+                checkbox.isChecked() and checkbox.isEnabled()
+                for formats in overwrite_checks.values()
+                for checkbox in formats.values()
+            )
+            or any(
+                checkbox.isChecked() and checkbox.isEnabled()
+                for formats in delete_checks.values()
+                for checkbox in formats.values()
+            )
         )
         note_types_button.setEnabled(has_selection)
 
@@ -153,9 +161,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         divider.setLineWidth(1)
         divider.setFixedHeight(1)
         divider.setContentsMargins(*ZERO_MARGINS)
-        divider.setStyleSheet(
-            f"color: {get_theme_color('BORDER_SUBTLE')};"
-        )
+        divider.setStyleSheet(f"color: {get_theme_color('BORDER_SUBTLE')};")
         note_types_grid.addWidget(divider, row, 0, 1, column_span)
 
     def make_table_cell(
@@ -215,9 +221,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         divider.setFrameShape(QFrame.Shape.VLine)
         divider.setFrameShadow(QFrame.Shadow.Plain)
         divider.setLineWidth(1)
-        divider.setStyleSheet(
-            f"color: {get_theme_color('BORDER_SUBTLE')};"
-        )
+        divider.setStyleSheet(f"color: {get_theme_color('BORDER_SUBTLE')};")
         cell_layout.addWidget(divider, alignment=Qt.AlignmentFlag.AlignHCenter)
         note_types_grid.addWidget(cell, row, column, row_span, 1)
 
@@ -310,11 +314,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             row = 3 + index
             if custom_topics and index >= len(TOPICS):
                 row += 1
-            row_style = (
-                "noteTypesAlternateCell"
-                if index % 2
-                else "noteTypesNormalCell"
-            )
+            row_style = "noteTypesAlternateCell" if index % 2 else "noteTypesNormalCell"
             topic_label = QLabel(topic, note_types_options)
             make_table_cell(
                 row,
@@ -379,6 +379,14 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                     else 0
                 )
                 can_delete = exists and note_count == 0
+                delete_control: QWidget = delete_checkbox
+                if exists and note_count > 0:
+                    delete_control = HelpIndicator(
+                        "Delete",
+                        "You must delete or move all cards to another note type "
+                        "before this note type can be removed.",
+                        note_types_options,
+                    )
                 delete_checkbox.setChecked(
                     saved_topic_deletes.get(card_format, False) and can_delete
                 )
@@ -394,16 +402,14 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                 else:
                     delete_checkbox.setToolTip("Delete this empty note type")
                 overwrite_checkbox.toggled.connect(
-                    lambda checked, delete=delete_checkbox: delete.setChecked(False)
-                    if checked
-                    else None
+                    lambda checked, delete=delete_checkbox: (
+                        delete.setChecked(False) if checked else None
+                    )
                 )
                 delete_checkbox.toggled.connect(
-                    lambda checked, replace=overwrite_checkbox: replace.setChecked(
-                        False
+                    lambda checked, replace=overwrite_checkbox: (
+                        replace.setChecked(False) if checked else None
                     )
-                    if checked
-                    else None
                 )
                 delete_checkbox.toggled.connect(update_note_types_button_state)
                 make_table_cell(
@@ -416,7 +422,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                 make_table_cell(
                     row,
                     delete_column,
-                    delete_checkbox,
+                    delete_control,
                     row_style,
                     Qt.AlignmentFlag.AlignCenter,
                     "bottomRight"
@@ -444,9 +450,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         save_note_type_selections(selections)
 
     def add_custom_topic() -> None:
-        topic, accepted = QInputDialog.getText(
-            parent, "Add Topic", "Topic name:"
-        )
+        topic, accepted = QInputDialog.getText(parent, "Add Topic", "Topic name:")
         topic = topic.strip()
         if not accepted:
             return
@@ -470,7 +474,6 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         note_types_scroll.setMaximumHeight(note_types_grid.sizeHint().height())
         note_types_options.updateGeometry()
         note_types_scroll.updateGeometry()
-
 
     rebuild_note_types_grid()
     note_types_scroll.setWidget(note_types_options)
