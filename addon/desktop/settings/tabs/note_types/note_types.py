@@ -397,7 +397,10 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                     if mw.col is not None and notetype is not None
                     else 0
                 )
-                can_delete = exists and note_count == 0
+                is_custom_topic = topic in custom_topics
+                can_delete = (exists and note_count == 0) or (
+                    is_custom_topic and not exists
+                )
                 delete_control: QWidget = delete_checkbox
                 if exists and note_count > 0:
                     delete_control = HelpIndicator(
@@ -412,7 +415,9 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                 delete_checkbox.setEnabled(can_delete)
                 if not exists:
                     delete_checkbox.setToolTip(
-                        "Available after this note type has been created"
+                        "Remove this uncreated custom topic"
+                        if is_custom_topic
+                        else "Available after this note type has been created"
                     )
                 elif note_count:
                     delete_checkbox.setToolTip(
@@ -426,8 +431,10 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                     )
                 )
                 delete_checkbox.toggled.connect(
-                    lambda checked, replace=overwrite_checkbox: (
-                        replace.setChecked(False) if checked else None
+                    lambda checked, create=checkbox, replace=overwrite_checkbox: (
+                        (create.setChecked(False), replace.setChecked(False))
+                        if checked
+                        else None
                     )
                 )
                 delete_checkbox.toggled.connect(update_note_types_button_state)
@@ -532,7 +539,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             }
             for topic, formats in overwrite_checks.items()
         }
-        deletions = {
+        checked_deletions = {
             topic: {
                 card_format
                 for card_format, checkbox in formats.items()
@@ -540,12 +547,48 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             }
             for topic, formats in delete_checks.items()
         }
-        if not create_selected_note_types(selections, overwrites, deletions):
+        existing_names = (
+            {item.name for item in mw.col.models.all_names_and_ids()}
+            if mw.col is not None
+            else set()
+        )
+        deletions = {
+            topic: {
+                card_format
+                for card_format in formats
+                if f"{topic} ({card_format})" in existing_names
+            }
+            for topic, formats in checked_deletions.items()
+        }
+        pending_custom_topic_removals = {
+            topic
+            for topic, formats in checked_deletions.items()
+            if topic in custom_topics
+            and any(
+                f"{topic} ({card_format})" not in existing_names
+                for card_format in formats
+            )
+        }
+        has_model_changes = (
+            any(
+                card_format in FORMATS
+                and f"{topic} ({card_format})" not in existing_names
+                for topic, formats in selections.items()
+                for card_format in formats
+            )
+            or any(formats for formats in overwrites.values())
+            or any(formats for formats in deletions.values())
+        )
+        if has_model_changes:
+            if not create_selected_note_types(selections, overwrites, deletions):
+                return
+        elif not pending_custom_topic_removals:
+            create_selected_note_types(selections, overwrites, deletions)
             return
 
         deleted_types = {
             (topic, card_format)
-            for topic, formats in deletions.items()
+            for topic, formats in checked_deletions.items()
             for card_format in formats
         }
         for topic, card_format in deleted_types:
