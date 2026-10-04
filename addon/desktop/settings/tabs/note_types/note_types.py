@@ -153,7 +153,9 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         divider.setLineWidth(1)
         divider.setFixedHeight(1)
         divider.setContentsMargins(*ZERO_MARGINS)
-        divider.setStyleSheet(f"color: {get_theme_color('BORDER_SUBTLE')};")
+        divider.setStyleSheet(
+            f"color: {get_theme_color('BORDER_SUBTLE')};"
+        )
         note_types_grid.addWidget(divider, row, 0, 1, column_span)
 
     def make_table_cell(
@@ -210,7 +212,9 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         divider.setFrameShape(QFrame.Shape.VLine)
         divider.setFrameShadow(QFrame.Shadow.Plain)
         divider.setLineWidth(1)
-        divider.setStyleSheet(f"color: {get_theme_color('BORDER_SUBTLE')};")
+        divider.setStyleSheet(
+            f"color: {get_theme_color('BORDER_SUBTLE')};"
+        )
         cell_layout.addWidget(divider, alignment=Qt.AlignmentFlag.AlignHCenter)
         note_types_grid.addWidget(cell, row, column, row_span, 1)
 
@@ -270,6 +274,8 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         for column in (1, 5):
             make_divider_cell(0, column, "noteTypesHeaderCell", row_span=2)
 
+        add_note_type_horizontal_divider(2, column_count)
+
         action_columns = {
             "CREATE": (2, 6),
             "REPLACE": (3, 7),
@@ -292,12 +298,12 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             else set()
         )
         topics = (*TOPICS, *custom_topics)
-        last_data_row = len(topics) + 1 + int(bool(custom_topics))
-        custom_topics_start = 2 + len(TOPICS)
+        last_data_row = len(topics) + 2 + int(bool(custom_topics))
+        custom_topics_start = 3 + len(TOPICS)
         if custom_topics:
             add_note_type_horizontal_divider(custom_topics_start, column_count)
         for index, topic in enumerate(topics):
-            row = 2 + index
+            row = 3 + index
             if custom_topics and index >= len(TOPICS):
                 row += 1
             row_style = (
