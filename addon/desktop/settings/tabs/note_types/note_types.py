@@ -495,7 +495,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             return
         custom_topics.append(topic)
         custom_topics.sort(key=str.casefold)
-        saved_selections[topic] = {card_format: False for card_format in FORMATS}
+        saved_selections[topic] = {card_format: True for card_format in FORMATS}
         rebuild_note_types_grid()
         QTimer.singleShot(0, update_note_types_table_height)
         persist_note_type_selections()
