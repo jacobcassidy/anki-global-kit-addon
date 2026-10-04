@@ -1,4 +1,4 @@
-# Anki Global Kit Add-on Changelog
+# Anki Global Kit Changelog
 
 ## [1.0.0] - 2026-10-02
 
