@@ -55,6 +55,7 @@ Useful project scripts:
 
 ## Implementation boundaries
 
+- Use token or variable-based colors throughout the project; do not add static hardcoded colors. Anki Desktop settings and other Qt components must use Anki color tokens, while webview components must use CSS variables.
 - Put review-time behavior in `src/cards/` when it needs to run across Anki clients. Put editor behavior in `src/editor/` and use `addon/desktop/editor/` for its Desktop integration. Do not assume Python add-on code runs outside Anki Desktop.
 - Use the Python add-on for Desktop installation, configuration, and collection operations. Connect to Anki through documented hooks and APIs instead of patching internal functions when a supported hook exists.
 - Keep the setting keys in `addon/config.json` synchronized with the keys inside `addon/meta.json`'s `config` object, including `note_type_selections`, whenever either file changes.
