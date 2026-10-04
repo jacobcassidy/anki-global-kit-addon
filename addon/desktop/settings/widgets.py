@@ -491,7 +491,7 @@ class HelpPopup(QFrame):
         message.setWordWrap(True)
         message.setMaximumWidth(464)
         popup_layout.addWidget(message)
-        self.setMaximumWidth(540)
+        self.setMaximumWidth(560)
         self.adjustSize()
 
     def enterEvent(self, event) -> None:

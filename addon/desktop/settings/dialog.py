@@ -54,7 +54,7 @@ def open_settings() -> None:
         "}"
     )
     dialog.setWindowTitle("Anki Global Kit Settings")
-    dialog.setMinimumWidth(540)
+    dialog.setMinimumWidth(560)
     layout = QVBoxLayout(dialog)
     layout.setSpacing(SECTION_SPACING)
     tabs = QTabWidget(dialog)
@@ -278,8 +278,7 @@ def open_settings() -> None:
 
     def save_current_settings(*_args) -> None:
         settings = {
-            key: setting_value(key, widget)
-            for key, widget in all_controls.items()
+            key: setting_value(key, widget) for key, widget in all_controls.items()
         }
         if not settings["anki_editor_inline_code_shortcut"]:
             settings["anki_editor_inline_code_shortcut"] = DEFAULT_SETTINGS[
