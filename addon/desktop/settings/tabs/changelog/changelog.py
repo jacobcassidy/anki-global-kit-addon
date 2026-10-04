@@ -1,8 +1,17 @@
 """Build the read-only changelog tab."""
 
-from aqt.qt import QTextBrowser, QTextCursor, QVBoxLayout, QWidget
+from aqt.qt import (
+    QDesktopServices,
+    QPushButton,
+    QUrl,
+    QTextBrowser,
+    QTextCursor,
+    QVBoxLayout,
+    QWidget,
+)
 
 from ...constants import ADDON_DIR, SECTION_SPACING
+from ...widgets import add_button_row
 
 
 def build_changelog_tab(parent: QWidget) -> QWidget:
@@ -33,4 +42,15 @@ def build_changelog_tab(parent: QWidget) -> QWidget:
             first_heading = False
         block = block.next()
     layout.addWidget(browser)
+    github_button = QPushButton("View Changelog on GitHub", tab)
+    github_button.setAutoDefault(False)
+    github_button.clicked.connect(
+        lambda checked=False: QDesktopServices.openUrl(
+            QUrl(
+                "https://github.com/jacobcassidy/anki-global-kit-addon/"
+                "blob/main/CHANGELOG.md"
+            )
+        )
+    )
+    add_button_row(layout, github_button, align_right=False)
     return tab
