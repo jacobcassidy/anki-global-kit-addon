@@ -18,7 +18,7 @@ def build_about_tab(parent: QWidget) -> QWidget:
     )
     about.setWordWrap(True)
     layout.addWidget(about)
-    repository_button = QPushButton("GitHub Repo", tab)
+    repository_button = QPushButton("View GitHub Repo", tab)
     repository_button.setAutoDefault(False)
     repository_button.clicked.connect(
         lambda checked=False: QDesktopServices.openUrl(
