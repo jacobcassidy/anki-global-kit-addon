@@ -190,11 +190,13 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         note_types_grid.addWidget(cell, row, column, row_span, column_span)
         return cell
 
-    def make_header_label(label: str) -> QLabel:
+    def make_header_label(label: str, size_adjustment: int = 0) -> QLabel:
         heading = QLabel(label, note_types_options)
         heading_font = heading.font()
         heading_font.setBold(True)
-        heading_font.setPointSize(max(1, heading_font.pointSize() - 4))
+        heading_font.setPointSize(
+            max(1, heading_font.pointSize() - 4 + size_adjustment)
+        )
         heading.setFont(heading_font)
         return heading
 
@@ -250,14 +252,14 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             0,
             make_header_label("TOPIC"),
             "noteTypesHeaderCell",
-            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignBottom,
             "topLeft",
             row_span=2,
         )
         make_table_cell(
             0,
             2,
-            make_header_label("ADVANCE"),
+            make_header_label("ADVANCE", size_adjustment=2),
             "noteTypesHeaderCell",
             Qt.AlignmentFlag.AlignCenter,
             column_span=3,
@@ -265,7 +267,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         make_table_cell(
             0,
             6,
-            make_header_label("CLOZE"),
+            make_header_label("CLOZE", size_adjustment=2),
             "noteTypesHeaderCell",
             Qt.AlignmentFlag.AlignCenter,
             "topRight",
