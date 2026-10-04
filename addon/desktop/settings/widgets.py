@@ -364,8 +364,6 @@ class CardShortcutInput(QPushButton):
         if label.isVisible() and len(message) < len(label.text()):
             parent = self.parentWidget()
             while parent is not None:
-                if parent.objectName() == "cardShortcutRows":
-                    preserve_height_for.append(parent)
                 if isinstance(parent, QScrollArea):
                     content = parent.widget()
                     if content is not None:
@@ -376,8 +374,8 @@ class CardShortcutInput(QPushButton):
         label.setText(message)
         label.setVisible(bool(message))
         for widget, height in zip(preserve_height_for, previous_heights):
-            # Keep both the shortcut block and scroll range steady while lower
-            # rows move up, so Qt does not also move their parent containers.
+            # Keep the scroll range steady while lower rows move up, so Qt
+            # does not also move the whole section.
             widget.setMinimumHeight(max(widget.minimumHeight(), height))
 
     def stored_shortcut(self) -> str:

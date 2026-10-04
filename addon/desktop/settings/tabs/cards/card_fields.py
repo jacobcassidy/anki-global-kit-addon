@@ -68,7 +68,6 @@ def build_card_fields_section(parent: QWidget, current_settings: dict) -> CardFi
     )
 
     shortcut_rows = QWidget(section)
-    shortcut_rows.setObjectName("cardShortcutRows")
     shortcut_rows.setSizePolicy(
         QSizePolicy.Policy.Preferred,
         QSizePolicy.Policy.Maximum,
