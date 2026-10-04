@@ -47,21 +47,74 @@ class _RoundedScrollArea(QScrollArea):
     def __init__(self, parent: QWidget, radius: int) -> None:
         super().__init__(parent)
         self._corner_radius = radius
+        self._header = None
+        self._header_grid = None
+        self._body_grid = None
+        self._header_viewport = QWidget(self)
         self.viewport().installEventFilter(self)
+        self.horizontalScrollBar().valueChanged.connect(self._update_header)
+        self.horizontalScrollBar().rangeChanged.connect(self._update_header)
+        self.verticalScrollBar().rangeChanged.connect(self._update_header)
+
+    def set_table_header(
+        self, header: QWidget, header_grid: QGridLayout, body_grid: QGridLayout
+    ) -> None:
+        self._header = header
+        self._header_grid = header_grid
+        self._body_grid = body_grid
+        header.setParent(self._header_viewport)
+        header.show()
+        self.widget().installEventFilter(self)
+        self.setViewportMargins(0, header.sizeHint().height(), 0, 0)
+        self._update_viewport_mask()
+        self._update_header()
+
+    def _update_header(self, *_args) -> None:
+        if self._header is None:
+            return
+        viewport_rect = self.viewport().geometry()
+        header_height = self._header.sizeHint().height()
+        self._header_viewport.setGeometry(
+            viewport_rect.x(),
+            viewport_rect.y() - header_height,
+            viewport_rect.width(),
+            header_height,
+        )
+        self._body_grid.activate()
+        for column in range(self._body_grid.columnCount()):
+            self._header_grid.setColumnMinimumWidth(
+                column, self._body_grid.cellRect(0, column).width()
+            )
+        self._header_grid.activate()
+        self._header.setGeometry(
+            -self.horizontalScrollBar().value(),
+            0,
+            self.widget().width(),
+            header_height,
+        )
+        self._header_grid.activate()
 
     def eventFilter(self, watched, event) -> bool:
         if watched is self.viewport() and event.type() == QEvent.Type.Resize:
             self._update_viewport_mask()
+        if event.type() == QEvent.Type.Resize:
+            self._update_header()
         return super().eventFilter(watched, event)
 
     def _update_viewport_mask(self) -> None:
         viewport = self.viewport()
         path = QPainterPath()
+        path.setFillRule(Qt.FillRule.WindingFill)
         path.addRoundedRect(
             QRectF(viewport.rect()),
             self._corner_radius,
             self._corner_radius,
         )
+        if self._header is not None:
+            # Only the bottom corners of the scrolling body are rounded.
+            top_edge = QPainterPath()
+            top_edge.addRect(QRectF(0, 0, viewport.width(), self._corner_radius))
+            path = path.united(top_edge)
         viewport.setMask(QRegion(path.toFillPolygon().toPolygon()))
 
 
@@ -86,7 +139,10 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     scroll_viewport.setObjectName("noteTypesScrollViewport")
     scroll_viewport.setAutoFillBackground(False)
     scroll_viewport.setStyleSheet(
-        "QWidget#noteTypesScrollViewport { border-radius: 6px; }"
+        "QWidget#noteTypesScrollViewport { "
+        "border-top-left-radius: 0; border-top-right-radius: 0; "
+        "border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; "
+        "}"
     )
     note_types_options = QFrame(note_types_scroll)
     note_types_options.setFrameShape(QFrame.Shape.NoFrame)
@@ -94,7 +150,8 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     note_types_options.setStyleSheet(
         "QFrame#noteTypesTable { "
         f"background-color: {get_theme_color('CANVAS_ELEVATED')}; "
-        "border-radius: 6px; "
+        "border-top-left-radius: 0; border-top-right-radius: 0; "
+        "border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; "
         "} "
         "QWidget#noteTypesHeaderCell { "
         f"background-color: {get_theme_color('CANVAS')}; "
@@ -113,6 +170,18 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     note_types_grid = QGridLayout(note_types_options)
     note_types_grid.setContentsMargins(*ZERO_MARGINS)
     note_types_grid.setSpacing(0)
+    note_types_header = QFrame(note_types_scroll)
+    note_types_header.setFrameShape(QFrame.Shape.NoFrame)
+    note_types_header.setStyleSheet(note_types_options.styleSheet())
+    note_types_header_grid = QGridLayout(note_types_header)
+    note_types_header_grid.setContentsMargins(*ZERO_MARGINS)
+    note_types_header_grid.setSpacing(0)
+
+    def table_grid_for_row(row: int) -> tuple[QGridLayout, int]:
+        if row < 3:
+            return note_types_header_grid, row
+        return note_types_grid, row - 3
+
     addon_config = mw.addonManager.getConfig(ADDON_PACKAGE_NAME) or {}
     saved_selections = addon_config.get("note_type_selections", {})
     if not isinstance(saved_selections, dict):
@@ -167,7 +236,8 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         divider.setFixedHeight(1)
         divider.setContentsMargins(*ZERO_MARGINS)
         divider.setStyleSheet(f"color: {get_theme_color('BORDER_SUBTLE')};")
-        note_types_grid.addWidget(divider, row, 0, 1, column_span)
+        grid, grid_row = table_grid_for_row(row)
+        grid.addWidget(divider, grid_row, 0, 1, column_span)
 
     def make_table_cell(
         row: int,
@@ -203,7 +273,8 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             cell_layout.addWidget(content)
         else:
             cell_layout.addWidget(content, alignment=alignment)
-        note_types_grid.addWidget(cell, row, column, row_span, column_span)
+        grid, grid_row = table_grid_for_row(row)
+        grid.addWidget(cell, grid_row, column, row_span, column_span)
         return cell
 
     def make_header_label(label: str, size_adjustment: int = 0) -> QLabel:
@@ -232,7 +303,8 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         divider.setLineWidth(1)
         divider.setStyleSheet(f"color: {get_theme_color('BORDER_SUBTLE')};")
         cell_layout.addWidget(divider, alignment=Qt.AlignmentFlag.AlignHCenter)
-        note_types_grid.addWidget(cell, row, column, row_span, 1)
+        grid, grid_row = table_grid_for_row(row)
+        grid.addWidget(cell, grid_row, column, row_span, 1)
 
     def rebuild_note_types_grid() -> None:
         saved_checks = {
@@ -247,16 +319,17 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             topic: {name: checkbox.isChecked() for name, checkbox in formats.items()}
             for topic, formats in delete_checks.items()
         }
-        for column in range(9):
-            note_types_grid.setColumnMinimumWidth(column, 0)
-            note_types_grid.setColumnStretch(column, 0)
+        for grid in (note_types_header_grid, note_types_grid):
+            for column in range(9):
+                grid.setColumnMinimumWidth(column, 0)
+                grid.setColumnStretch(column, 0)
+            for index in range(grid.count() - 1, -1, -1):
+                item = grid.takeAt(index)
+                widget = item.widget()
+                if widget is not None:
+                    widget.deleteLater()
         for column in (2, 3, 4, 6, 7, 8):
             note_types_grid.setColumnStretch(column, 1)
-        for index in range(note_types_grid.count() - 1, -1, -1):
-            item = note_types_grid.takeAt(index)
-            widget = item.widget()
-            if widget is not None:
-                widget.deleteLater()
         note_type_checks.clear()
         overwrite_checks.clear()
         delete_checks.clear()
@@ -461,11 +534,26 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                 overwrite_checks[topic][card_format] = overwrite_checkbox
                 delete_checks[topic][card_format] = delete_checkbox
 
-        note_types_grid.activate()
-        table_height = note_types_grid.sizeHint().height()
+        # Include heading labels in the body's minimum column widths so both
+        # grids have enough room, even when the body contains only checkboxes.
+        for column in range(column_count):
+            for row in (0, 1):
+                item = note_types_header_grid.itemAtPosition(row, column)
+                if item is None:
+                    continue
+                _, _, _, column_span = note_types_header_grid.getItemPosition(
+                    note_types_header_grid.indexOf(item.widget())
+                )
+                if column_span == 1:
+                    note_types_grid.setColumnMinimumWidth(
+                        column,
+                        max(
+                            note_types_grid.columnMinimumWidth(column),
+                            item.sizeHint().width(),
+                        ),
+                    )
         if note_types_scroll.widget() is not None:
-            note_types_scroll.setMaximumHeight(table_height)
-            note_types_options.updateGeometry()
+            update_note_types_table_height()
         update_note_types_button_state()
 
     def persist_note_type_selections() -> None:
@@ -509,13 +597,22 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
 
     def update_note_types_table_height() -> None:
         note_types_grid.activate()
-        note_types_scroll.setMaximumHeight(note_types_grid.sizeHint().height())
+        note_types_header_grid.activate()
+        note_types_scroll.setMaximumHeight(
+            note_types_grid.sizeHint().height()
+            + note_types_header_grid.sizeHint().height()
+            + 2 * note_types_scroll.frameWidth()
+        )
         note_types_options.updateGeometry()
         note_types_scroll.updateGeometry()
+        note_types_scroll._update_header()
 
     rebuild_note_types_grid()
     note_types_scroll.setWidget(note_types_options)
-    note_types_scroll.setMaximumHeight(note_types_grid.sizeHint().height())
+    note_types_scroll.set_table_header(
+        note_types_header, note_types_header_grid, note_types_grid
+    )
+    update_note_types_table_height()
     note_types_layout.addWidget(note_types_scroll, 1)
 
     def create_note_types_from_panel(checked=False) -> None:
