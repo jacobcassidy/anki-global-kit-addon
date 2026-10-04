@@ -53,6 +53,8 @@ The Note Types tab creates kit note types in the active profile and lets you rep
 - **Topic** selects which topic-specific note type to create, replace, or delete. Use **+** to add a custom topic. Deleting a custom topic row from settings does not delete its note types or cards.
 - **Update Selected Note Types** applies the checked actions after confirmation. The action reports types that were created, replaced, deleted, or left unchanged.
 
+Deleting a note type changes the collection structure. Anki cannot merge that change with AnkiWeb, so syncing may show a conflict asking which collection to keep. On the device where you deleted the note type, choose **Upload to AnkiWeb** to keep the deletion. Then sync your other devices and choose **Download from AnkiWeb** there. This replaces their local collections with the uploaded version. Syncing before quitting may show the prompt sooner, but does not remove the required choice.
+
 ## Changelog
 
 The Changelog tab displays release notes for the add-on.
