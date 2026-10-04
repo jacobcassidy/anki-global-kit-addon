@@ -117,11 +117,14 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     saved_selections = addon_config.get("note_type_selections", {})
     if not isinstance(saved_selections, dict):
         saved_selections = {}
-    custom_topics = [
-        topic
-        for topic in saved_selections
-        if isinstance(topic, str) and topic not in TOPICS
-    ]
+    custom_topics = sorted(
+        (
+            topic
+            for topic in saved_selections
+            if isinstance(topic, str) and topic not in TOPICS
+        ),
+        key=str.casefold,
+    )
     note_type_checks: dict[str, dict[str, QCheckBox]] = {}
     overwrite_checks: dict[str, dict[str, QCheckBox]] = {}
     delete_checks: dict[str, dict[str, QCheckBox]] = {}
@@ -491,6 +494,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             showWarning("A topic with that name already exists.")
             return
         custom_topics.append(topic)
+        custom_topics.sort(key=str.casefold)
         saved_selections[topic] = {card_format: False for card_format in FORMATS}
         rebuild_note_types_grid()
         QTimer.singleShot(0, update_note_types_table_height)
