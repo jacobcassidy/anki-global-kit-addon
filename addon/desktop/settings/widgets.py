@@ -55,6 +55,7 @@ def add_checkbox_row(
     content_layout = QVBoxLayout(row_widget)
     content_layout.setContentsMargins(*ZERO_MARGINS)
     content_layout.setSpacing(0)
+    content_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
     row = QHBoxLayout()
     row.setContentsMargins(*ZERO_MARGINS)
     content_layout.addLayout(row)
@@ -360,23 +361,8 @@ class CardShortcutInput(QPushButton):
             )
             if part
         )
-        preserve_height_for = []
-        if label.isVisible() and len(message) < len(label.text()):
-            parent = self.parentWidget()
-            while parent is not None:
-                if isinstance(parent, QScrollArea):
-                    content = parent.widget()
-                    if content is not None:
-                        preserve_height_for.append(content)
-                    break
-                parent = parent.parentWidget()
-        previous_heights = [widget.height() for widget in preserve_height_for]
         label.setText(message)
         label.setVisible(bool(message))
-        for widget, height in zip(preserve_height_for, previous_heights):
-            # Keep the scroll range steady while lower rows move up, so Qt
-            # does not also move the whole section.
-            widget.setMinimumHeight(max(widget.minimumHeight(), height))
 
     def stored_shortcut(self) -> str:
         text = self.text().strip()

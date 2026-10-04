@@ -59,6 +59,9 @@ def style_shortcut_option(checkbox: QCheckBox, *, inactive: bool) -> None:
 def build_card_fields_section(parent: QWidget, current_settings: dict) -> CardFieldsSection:
     section = QGroupBox("Card Fields", parent)
     layout = QVBoxLayout(section)
+    # Warning rows change size before the enclosing scroll area catches up.
+    # Keep spare height below the controls during those layout passes.
+    layout.setAlignment(Qt.AlignmentFlag.AlignTop)
     master_toggle = QCheckBox("Enable Markdown shortcuts", section)
     master_toggle.setChecked(current_settings["card_input_markdown_shortcuts"])
     add_checkbox_row(

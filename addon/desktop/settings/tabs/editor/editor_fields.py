@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from aqt.qt import QCheckBox, QGroupBox, QHBoxLayout, QLabel, QVBoxLayout, QWidget
+from aqt.qt import QCheckBox, QGroupBox, QHBoxLayout, QLabel, Qt, QVBoxLayout, QWidget
 
 from ...constants import DEFAULT_SETTINGS, ZERO_MARGINS
 from ...theme import get_theme_color
@@ -22,6 +22,7 @@ class EditorFieldsSection:
 def build_editor_fields_section(parent: QWidget, current_settings: dict) -> EditorFieldsSection:
     section = QGroupBox("Editor Fields", parent)
     layout = QVBoxLayout(section)
+    layout.setAlignment(Qt.AlignmentFlag.AlignTop)
     shortcut_enabled = QCheckBox("Enable inline code shortcut", section)
     shortcut_enabled.setChecked(
         current_settings["anki_editor_inline_code_shortcut_enabled"]
