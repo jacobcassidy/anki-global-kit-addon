@@ -68,6 +68,7 @@ code {
 pre,
 textarea.is-comparison {
 	background-color: var(--bgc--pre);
+	border: none;
 	color: var(--color--pre);
 }
 
