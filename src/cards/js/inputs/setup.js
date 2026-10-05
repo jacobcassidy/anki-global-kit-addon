@@ -8,14 +8,14 @@ import {
 } from './markdown-shortcuts.js';
 import { handleTabIndentation } from './tab-navigation.js';
 import { settings } from '../runtime/settings.js';
-import boldIcon from '../../../../addon/shared/assets/images/icons/bold.svg';
-import italicIcon from '../../../../addon/shared/assets/images/icons/italic.svg';
-import strikethroughIcon from '../../../../addon/shared/assets/images/icons/strikethrough.svg';
-import codeBlockIcon from '../../../../addon/shared/assets/images/icons/code-block.svg';
-import inlineCodeIcon from '../../../../addon/shared/assets/images/icons/inline-code-new.svg';
-import unorderedListIcon from '../../../../addon/shared/assets/images/icons/unordered-list.svg';
-import orderedListIcon from '../../../../addon/shared/assets/images/icons/ordered-list.svg';
-import blockquoteIcon from '../../../../addon/shared/assets/images/icons/blockquote.svg';
+import boldIcon from '../../../../addon/shared/assets/icons/bold.svg';
+import italicIcon from '../../../../addon/shared/assets/icons/italic.svg';
+import strikethroughIcon from '../../../../addon/shared/assets/icons/strikethrough.svg';
+import codeBlockIcon from '../../../../addon/shared/assets/icons/code-block.svg';
+import inlineCodeIcon from '../../../../addon/shared/assets/icons/inline-code-new.svg';
+import unorderedListIcon from '../../../../addon/shared/assets/icons/unordered-list.svg';
+import orderedListIcon from '../../../../addon/shared/assets/icons/ordered-list.svg';
+import blockquoteIcon from '../../../../addon/shared/assets/icons/blockquote.svg';
 
 /**
  * Watch question textareas and connect their editing and submission handlers.
