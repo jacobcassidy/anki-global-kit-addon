@@ -58,6 +58,7 @@ DEFAULT_SETTINGS = {
     "anki_editor_inline_code_shortcut": "Ctrl+Shift+C",
     "anki_editor_tab_indentation": True,
     "anki_editor_custom_fields_styles": True,
+    "anki_editor_custom_ui_styles": True,
     "anki_editor_inline_code_button": True,
     "anki_editor_normalize_code_spaces": True,
     "anki_editor_copy_source_html": True,

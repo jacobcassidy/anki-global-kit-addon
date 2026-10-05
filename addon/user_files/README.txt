@@ -9,8 +9,10 @@ add only the CSS rules you want to change. Restart Anki after editing the files
 to reload the styles.
 
 To find this folder in Anki, open Tools > Anki Global Kit Settings... > Editor,
-then click View Stylesheet in Editor Fields. Use Enable custom Editor fields
-styles to turn editor-fields.css on or off. It is enabled by default.
+then click View Stylesheet in Editor Fields or Editor UI.
+Use Enable custom stylesheet for Editor fields to turn editor-fields.css on or
+off, and Enable custom stylesheet for the Editor UI to turn editor-ui.css on or
+off. Both are enabled by default.
 
 You can also open Tools > Add-ons, select Anki Global Kit, and click View Files.
 Then open the user_files folder.

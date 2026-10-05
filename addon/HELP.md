@@ -30,6 +30,7 @@ The Editor tab controls formatting tools and text handling in Anki Desktop edito
 
 - **Enable inline code shortcut** turns the inline-code keyboard shortcut on or off. Click the shortcut field to record a key combination, or use the reset link to restore its default.
 - **Enable tab indentation** makes Tab insert four spaces instead of moving focus.
+- **Enable custom stylesheet for Editor fields** applies `user_files/editor-fields.css` after the kit defaults. **View Stylesheet** opens the folder containing the file.
 
 ### Editor Formatting
 
@@ -37,9 +38,12 @@ The Editor tab controls formatting tools and text handling in Anki Desktop edito
 - **Copy selected source HTML** includes HTML formatting on the clipboard alongside plain text when copying a selection from an editor field.
 - **Normalize spaces around inline code** replaces non-breaking spaces next to inline code with regular spaces.
 
-### Editor Toolbar
+### Editor UI
 
-- **Show inline code button** adds an inline-code button to the Desktop editor toolbar. It formats selected text or starts an inline-code span.
+- **Show inline code button in editor toolbar** adds an inline-code button to the Desktop editor toolbar. It formats selected text or starts an inline-code span.
+- **Enable custom stylesheet for the Editor UI** applies `user_files/editor-ui.css` after the kit defaults. **View Stylesheet** opens the folder containing the file.
+
+Both custom stylesheets are enabled by default. Restart Anki after editing the files to reload them.
 
 ## Note Types
 

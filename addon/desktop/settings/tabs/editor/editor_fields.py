@@ -16,7 +16,7 @@ from aqt.utils import openFolder
 
 from ...constants import DEFAULT_SETTINGS, USER_FILES_DIR, ZERO_MARGINS
 from ...theme import get_theme_color
-from ...widgets import CardShortcutInput, add_checkbox_row, make_reset_link
+from ...widgets import CardShortcutInput, HelpIndicator, add_checkbox_row, make_reset_link
 
 
 @dataclass
@@ -83,7 +83,7 @@ def build_editor_fields_section(parent: QWidget, current_settings: dict) -> Edit
         tab_indentation,
         "In Desktop editor fields, pressing Tab inserts four spaces instead of moving focus.",
     )
-    custom_styles = QCheckBox("Enable custom Editor fields styles", section)
+    custom_styles = QCheckBox("Enable custom stylesheet for Editor fields", section)
     custom_styles.setChecked(
         current_settings.get(
             "anki_editor_custom_fields_styles",
@@ -99,7 +99,18 @@ def build_editor_fields_section(parent: QWidget, current_settings: dict) -> Edit
         openFolder(str(USER_FILES_DIR))
 
     view_stylesheet.clicked.connect(view_stylesheet_folder)
-    add_checkbox_row(layout, custom_styles, trailing_widget=view_stylesheet)
+    stylesheet_controls = QWidget(section)
+    stylesheet_controls_layout = QHBoxLayout(stylesheet_controls)
+    stylesheet_controls_layout.setContentsMargins(*ZERO_MARGINS)
+    stylesheet_controls_layout.addWidget(view_stylesheet)
+    stylesheet_controls_layout.addWidget(
+        HelpIndicator(
+            custom_styles.text(),
+            "Controls the appearance of text fields in the Desktop editor, including fonts, colors, spacing, and field borders.",
+            stylesheet_controls,
+        )
+    )
+    add_checkbox_row(layout, custom_styles, trailing_widget=stylesheet_controls)
     return EditorFieldsSection(
         section,
         {

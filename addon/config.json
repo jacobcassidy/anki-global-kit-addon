@@ -32,6 +32,7 @@
   "anki_editor_inline_code_shortcut": "Ctrl+Shift+C",
   "anki_editor_tab_indentation": true,
   "anki_editor_custom_fields_styles": true,
+  "anki_editor_custom_ui_styles": true,
   "anki_editor_inline_code_button": true,
   "anki_editor_normalize_code_spaces": true,
   "anki_editor_copy_source_html": true,

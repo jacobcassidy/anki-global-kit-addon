@@ -25,7 +25,10 @@ def _inject_features(editor: Editor) -> None:
     settings = json.dumps(editor_settings, separators=(",", ":"))
     settings = settings.replace("<", "\\u003c")
     styles = {
-        "ui": _read_editor_styles("editor-ui.css"),
+        "ui": _read_editor_styles(
+            "editor-ui.css",
+            include_custom=editor_settings["anki_editor_custom_ui_styles"],
+        ),
         "fields": _read_editor_styles(
             "editor-fields.css",
             include_custom=editor_settings["anki_editor_custom_fields_styles"],
