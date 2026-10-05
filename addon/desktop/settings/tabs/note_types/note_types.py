@@ -186,6 +186,11 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     saved_selections = addon_config.get("note_type_selections", {})
     if not isinstance(saved_selections, dict):
         saved_selections = {}
+    # Persist topic rows, but restore checked states from the collection only.
+    # Pending Create selections belong to the open panel, not saved settings.
+    saved_selections = {
+        topic: {} for topic in saved_selections if isinstance(topic, str)
+    }
     custom_topics = sorted(
         (
             topic
@@ -557,14 +562,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
         update_note_types_button_state()
 
     def persist_note_type_selections() -> None:
-        selections = {
-            topic: {
-                card_format: checkbox.isChecked()
-                for card_format, checkbox in formats.items()
-            }
-            for topic, formats in note_type_checks.items()
-        }
-        save_note_type_selections(selections)
+        save_note_type_selections(collect_selections())
 
     def add_custom_topic() -> None:
         dialog = QInputDialog(parent)
@@ -736,10 +734,15 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     note_types_layout.addWidget(note_types_controls)
 
     def collect_selections() -> dict[str, dict[str, bool]]:
+        existing_names = (
+            {item.name for item in mw.col.models.all_names_and_ids()}
+            if mw.col is not None
+            else set()
+        )
         return {
             topic: {
-                card_format: checkbox.isChecked()
-                for card_format, checkbox in formats.items()
+                card_format: f"{topic} ({card_format})" in existing_names
+                for card_format in formats
             }
             for topic, formats in note_type_checks.items()
         }
