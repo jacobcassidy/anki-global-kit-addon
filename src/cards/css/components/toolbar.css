@@ -2,6 +2,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	gap: 12px;
 	background: var(--bgc--tertiary);
 	border-radius: var(--border-radius--default) var(--border-radius--default) 0 0;
 	block-size: 28px;
@@ -10,20 +11,28 @@
 	.toolbar-group {
 		display: flex;
 		align-items: center;
-		gap: calc(var(--spacing--default) / 12);
+		gap: 0;
+
+		> :first-child {
+			border-radius: var(--border-radius--default) 0 0 var(--border-radius--default);
+		}
+
+		> :last-child {
+			border-radius: 0 var(--border-radius--default) var(--border-radius--default) 0;
+		}
 	}
 
-	.toolbar-group:not(:last-child) {
+	/* .toolbar-group:not(:last-child) {
 		border-inline-end: calc(var(--spacing--default) / 24) solid var(--bgc--quaternary);
 		margin-inline-end: calc(var(--spacing--default) / 2);
 		padding-inline-end: calc(var(--spacing--default) / 2);
-	}
+	} */
 
 	.card-formatting-toolbar__button {
 		cursor: pointer;
 		background: var(--bgc--secondary);
 		border: calc(var(--spacing--default) / 24) solid var(--bgc--tertiary);
-		border-radius: var(--border-radius--default);
+		border-radius: 0;
 		color: var(--color--secondary);
 		block-size: 22px;
 		inline-size: 28px;
