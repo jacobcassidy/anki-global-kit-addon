@@ -81,6 +81,12 @@ def open_settings() -> None:
     tabs.addTab(build_about_tab(dialog), "About")
     tabs.addTab(build_help_tab(dialog), "Help")
 
+    def update_sync_note_visibility(index: int) -> None:
+        settings_note.setVisible(index in (0, 1, 2))
+
+    tabs.currentChanged.connect(update_sync_note_visibility)
+    update_sync_note_visibility(tabs.currentIndex())
+
     all_controls = {**cards.controls, **editor.controls}
     fields = cards.fields
     editor_fields = editor.fields
