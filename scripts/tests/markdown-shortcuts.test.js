@@ -197,9 +197,27 @@ test('blockquote toggling continues to apply to all selected lines', () => {
   const value = '- parent\n  - child';
   const input = textarea(value, 0, value.length);
   toggleMarkdownBlock(input, 'blockquote');
-  assert.equal(input.value, '> - parent\n>   - child');
+  assert.equal(input.value, '> - parent\n  > - child');
   input.selectionStart = 0;
   input.selectionEnd = input.value.length;
   toggleMarkdownBlock(input, 'blockquote');
   assert.equal(input.value, value);
+});
+
+test('blockquotes are added and removed at each existing indentation level', () => {
+  const value = 'parent\n  child\n    grandchild\n\ttab-indented child';
+  const input = textarea(value, 0, value.length);
+  toggleMarkdownBlock(input, 'blockquote');
+  assert.equal(input.value, '> parent\n  > child\n    > grandchild\n\t> tab-indented child');
+  input.selectionStart = 0;
+  input.selectionEnd = input.value.length;
+  toggleMarkdownBlock(input, 'blockquote');
+  assert.equal(input.value, value);
+});
+
+test('adding blockquotes preserves existing indented quotes', () => {
+  const value = '  > quoted\n    plain';
+  const input = textarea(value, 0, value.length);
+  toggleMarkdownBlock(input, 'blockquote');
+  assert.equal(input.value, '  > quoted\n    > plain');
 });

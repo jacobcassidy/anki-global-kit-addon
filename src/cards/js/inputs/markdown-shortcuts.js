@@ -84,7 +84,7 @@ export function toggleMarkdownBlock(textarea, format) {
       const withoutExistingList = removeMarker(removeMarker(line, 'unordered-list'), 'ordered-list');
       return `${indentation}${listIndex}. ${withoutExistingList.slice(indentation.length)}`;
     }
-    return hasMarker ? line : `> ${line}`;
+    return hasMarker ? line : `${indentation}> ${line.slice(indentation.length)}`;
   });
   const replacement = formattedLines.join('\n');
   textarea.setRangeText(replacement, blockStart, blockEnd, 'end');
