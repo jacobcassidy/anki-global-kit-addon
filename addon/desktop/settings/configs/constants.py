@@ -14,7 +14,7 @@ from .asset_manifest import (
 
 DESKTOP_DIR = ADDON_DIR / "desktop"
 USER_FILES_DIR = ADDON_DIR / "user_files"
-SHARED_ASSET_DIR = ADDON_DIR / "shared" / "assets" / "images" / "icons"
+SHARED_ASSET_DIR = ADDON_DIR / "shared" / "assets" / "icons"
 ADDON_PACKAGE_NAME = __package__.split(".", maxsplit=1)[0]
 VERSION = "1.0.0"
 SECTION_SPACING = 24
