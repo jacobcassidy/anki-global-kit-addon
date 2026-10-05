@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2026-10-02
+## [1.0.0] - 2026-10-05
 
 The first major release packages the card scripts, stylesheets, fonts, and new Desktop editor tools as an Anki add-on. Card features use synced templates and media so they remain available across Anki Desktop, AnkiWeb, AnkiMobile, and AnkiDroid.
 
@@ -30,7 +30,7 @@ The first major release packages the card scripts, stylesheets, fonts, and new D
 
 ### Changed
 
-- Renamed the project from `Anki Global Extension` to `Anki Global Kit` and the generated Shell topic to **Command Line**.
+- Renamed the project from `Anki Global Extension` to `Anki Global Kit`.
 - Updated card and editor typography, responsive layouts, light and dark palettes, toolbar styling, code blocks, and comparison panels using shared styles and color variables.
 - Bundled answer comparison and syntax highlighting with the kit's card assets, removing the need for a separate `_diff_match_patch.js` file or external syntax-highlighting script.
 - Updated ordered and unordered list conversion to change only the outermost selected list level while preserving child indentation and list styles. Formatting plain indented text preserves indentation and starts ordered numbering at one for each nested list.
