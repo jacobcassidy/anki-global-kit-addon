@@ -10,6 +10,7 @@ ARCHIVE_PATH = REPOSITORY_ROOT / "dist" / "anki-global-kit.ankiaddon"
 PACKAGE_PATHS = (
     "__init__.py",
     "desktop",
+    "shared",
     "config.json",
     "manifest.json",
     "README.md",

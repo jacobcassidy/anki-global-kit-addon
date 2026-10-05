@@ -19,7 +19,7 @@ def load_script_module(path: Path, name: str):
 
 
 manifest = load_script_module(
-    ROOT / "addon/desktop/settings/shared/asset_manifest.py",
+    ROOT / "addon/desktop/settings/configs/asset_manifest.py",
     "anki_global_kit_asset_manifest",
 )
 packager = load_script_module(
@@ -27,13 +27,22 @@ packager = load_script_module(
     "anki_global_kit_packager",
 )
 
-expected_categories = {".js": "js", ".css": "css", ".woff": "fonts", ".woff2": "fonts"}
+expected_categories = {".js": "js", ".css": "css"}
 packaged_paths = {path.resolve() for path in packager.package_files()}
 for media_name, source_path in manifest.ASSET_PATHS.items():
     category = expected_categories.get(source_path.suffix)
-    if category is None or source_path.parent.name != category:
+    expected_parent = (
+        ROOT / "addon" / "shared" / "assets" / "fonts"
+        if source_path.suffix in {".woff", ".woff2"}
+        else ROOT / "addon" / "web" / "assets" / category
+    )
+    valid_suffix = source_path.suffix in expected_categories or source_path.suffix in {
+        ".woff",
+        ".woff2",
+    }
+    if not valid_suffix or source_path.parent != expected_parent:
         raise SystemExit(
-            f"{media_name} must be sourced from addon/web/assets/{category or 'an expected asset folder'}/"
+            f"{media_name} must be sourced from {expected_parent.relative_to(ROOT)}/"
         )
     if Path(media_name).name != media_name:
         raise SystemExit(f"{media_name} must install at the collection.media root")
