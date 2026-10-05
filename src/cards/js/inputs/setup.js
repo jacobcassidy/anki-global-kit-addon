@@ -13,7 +13,7 @@ import boldIcon from '../../../../addon/shared/assets/icons/bold.svg';
 import italicIcon from '../../../../addon/shared/assets/icons/italic.svg';
 import strikethroughIcon from '../../../../addon/shared/assets/icons/strikethrough.svg';
 import codeBlockIcon from '../../../../addon/shared/assets/icons/code-block.svg';
-import inlineCodeIcon from '../../../../addon/shared/assets/icons/inline-code-new.svg';
+import inlineCodeIcon from '../../../../addon/shared/assets/icons/inline-code.svg';
 import unorderedListIcon from '../../../../addon/shared/assets/icons/unordered-list.svg';
 import orderedListIcon from '../../../../addon/shared/assets/icons/ordered-list.svg';
 import blockquoteIcon from '../../../../addon/shared/assets/icons/blockquote.svg';
