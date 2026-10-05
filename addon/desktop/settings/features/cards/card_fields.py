@@ -5,21 +5,14 @@ from dataclasses import dataclass
 from aqt.qt import (
     QCheckBox,
     QGroupBox,
-    QHBoxLayout,
     QLabel,
-    QSizePolicy,
     Qt,
     QVBoxLayout,
     QWidget,
 )
 
-from ...configs.constants import (
-    DEFAULT_SETTINGS,
-    NESTED_INDENT,
-    ZERO_MARGINS,
-)
-from ...ui.theme import get_theme_color
-from ...ui.widgets import CardShortcutInput, add_checkbox_row, make_reset_link
+from ...ui.widgets import CardShortcutInput, add_checkbox_row
+from ...ui.shortcut_rows import build_shortcut_rows
 
 
 MARKDOWN_SHORTCUT_DEFINITIONS = (
@@ -54,16 +47,6 @@ class CardFieldsSection:
     shortcut_masters: dict[str, QCheckBox]
 
 
-def style_shortcut_option(checkbox: QCheckBox, *, inactive: bool) -> None:
-    if inactive:
-        color = get_theme_color("FG_DISABLED")
-    elif getattr(checkbox, "shortcut_conflict", False):
-        color = get_theme_color("FLAG_2", "FLAG_1", "FG_LINK")
-    else:
-        color = get_theme_color("FG")
-    checkbox.setStyleSheet(f"QCheckBox {{ color: {color}; }}")
-
-
 def build_card_fields_section(parent: QWidget, current_settings: dict) -> CardFieldsSection:
     section = QGroupBox("Card Fields", parent)
     layout = QVBoxLayout(section)
@@ -84,95 +67,8 @@ def build_card_fields_section(parent: QWidget, current_settings: dict) -> CardFi
     warning_labels = {}
     shortcut_masters = {}
 
-    def build_shortcut_rows(master: QCheckBox, definitions) -> QWidget:
-        shortcut_rows = QWidget(section)
-        shortcut_rows.setSizePolicy(
-            QSizePolicy.Policy.Preferred,
-            QSizePolicy.Policy.Maximum,
-        )
-        shortcut_rows_layout = QVBoxLayout(shortcut_rows)
-        shortcut_rows_layout.setContentsMargins(NESTED_INDENT, 0, 0, 0)
-        shortcut_rows_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-
-        for key, label in definitions:
-            row_container = QWidget(shortcut_rows)
-            row_container.setSizePolicy(
-                QSizePolicy.Policy.Preferred,
-                QSizePolicy.Policy.Maximum,
-            )
-            row_container_layout = QVBoxLayout(row_container)
-            row_container_layout.setContentsMargins(*ZERO_MARGINS)
-            row_container_layout.setSpacing(0)
-            row_container_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-            row_widget = QWidget(row_container)
-            row = QHBoxLayout(row_widget)
-            row.setContentsMargins(*ZERO_MARGINS)
-            enabled_key = f"{key}_enabled"
-            checkbox = QCheckBox(f"Enable {label} shortcut", row_widget)
-            checkbox.shortcut_conflict = False
-            style_shortcut_option(checkbox, inactive=not master.isChecked())
-            checkbox.setChecked(
-                current_settings.get(enabled_key, DEFAULT_SETTINGS[enabled_key])
-            )
-            row.addWidget(checkbox)
-            row.addStretch()
-
-            shortcut_input = CardShortcutInput(
-                current_settings.get(key, DEFAULT_SETTINGS[key]), row_widget
-            )
-            reset_link = make_reset_link(row_widget, shortcut_input, DEFAULT_SETTINGS[key])
-            row.addWidget(reset_link)
-            row.addWidget(shortcut_input)
-
-            def set_row_enabled(
-                enabled: bool,
-                shortcut=shortcut_input,
-                reset=reset_link,
-                default=DEFAULT_SETTINGS[key],
-            ) -> None:
-                active = enabled and master.isChecked()
-                shortcut.setEnabled(active)
-                shortcut.set_text_dimmed(not active)
-                reset.setEnabled(active and shortcut.stored_shortcut() != default)
-
-            set_row_enabled(checkbox.isChecked())
-            checkbox.toggled.connect(set_row_enabled)
-            warning_label = QLabel(row_container)
-            warning_label.setWordWrap(True)
-            warning_label.setStyleSheet(
-                f"color: {get_theme_color('ACCENT_DANGER', 'FLAG_1', 'FG')};"
-            )
-            warning_label.hide()
-            shortcut_input.set_validation_label(warning_label)
-            row_container_layout.addWidget(row_widget)
-            row_container_layout.addWidget(warning_label)
-            shortcut_rows_layout.addWidget(row_container)
-            shortcut_inputs[key] = shortcut_input
-            shortcut_enabled[enabled_key] = checkbox
-            reset_links[key] = reset_link
-            warning_labels[key] = warning_label
-            shortcut_masters[key] = master
-
-        def set_shortcut_rows_enabled(enabled: bool) -> None:
-            shortcut_rows.setEnabled(enabled)
-            for key, _label in definitions:
-                shortcut_input = shortcut_inputs[key]
-                active = enabled and shortcut_enabled[f"{key}_enabled"].isChecked()
-                shortcut_input.setEnabled(active)
-                shortcut_input.set_text_dimmed(not active)
-                style_shortcut_option(
-                    shortcut_enabled[f"{key}_enabled"], inactive=not enabled
-                )
-                reset_links[key].setEnabled(
-                    active and shortcut_input.stored_shortcut() != DEFAULT_SETTINGS[key]
-                )
-
-        master.toggled.connect(set_shortcut_rows_enabled)
-        set_shortcut_rows_enabled(master.isChecked())
-
-        return shortcut_rows
-
-    layout.addWidget(build_shortcut_rows(master_toggle, MARKDOWN_SHORTCUT_DEFINITIONS))
+    markdown_rows = build_shortcut_rows(section, master_toggle, MARKDOWN_SHORTCUT_DEFINITIONS, current_settings)
+    layout.addWidget(markdown_rows.widget)
     tab_indentation = QCheckBox("Enable indentation shortcuts", section)
     tab_indentation.setChecked(current_settings["card_input_tab_indentation"])
     add_checkbox_row(
@@ -180,7 +76,14 @@ def build_card_fields_section(parent: QWidget, current_settings: dict) -> CardFi
         tab_indentation,
         "Indent the current or selected rows: four spaces for Python topics, two otherwise. Tab and Shift+Tab move focus.",
     )
-    layout.addWidget(build_shortcut_rows(tab_indentation, TAB_SHORTCUT_DEFINITIONS))
+    indentation_rows = build_shortcut_rows(section, tab_indentation, TAB_SHORTCUT_DEFINITIONS, current_settings)
+    layout.addWidget(indentation_rows.widget)
+    for rows in (markdown_rows, indentation_rows):
+        shortcut_inputs.update(rows.shortcut_inputs)
+        shortcut_enabled.update(rows.shortcut_enabled)
+        reset_links.update(rows.reset_links)
+        warning_labels.update(rows.warning_labels)
+        shortcut_masters.update(rows.shortcut_masters)
     controls: dict[str, QWidget] = {
         "card_input_markdown_shortcuts": master_toggle,
         "card_input_tab_indentation": tab_indentation,

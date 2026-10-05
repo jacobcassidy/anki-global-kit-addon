@@ -34,11 +34,14 @@ def get_settings() -> dict[str, object]:
 
 def get_editor_settings() -> dict[str, object]:
     config = mw.addonManager.getConfig(ADDON_PACKAGE_NAME) or {}
-    return {
+    settings = {
         name: config.get(name, default)
         for name, default in DEFAULT_SETTINGS.items()
         if name.startswith("anki_editor_")
     }
+    for name in ("anki_editor_indent_increase_shortcut", "anki_editor_indent_decrease_shortcut"):
+        settings[name] = settings[name].replace("Control+", "Meta+" if is_mac else "Ctrl+")
+    return settings
 
 
 def save_note_type_selections(selections: dict[str, dict[str, bool]]) -> None:

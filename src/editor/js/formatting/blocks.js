@@ -1,3 +1,4 @@
+import { matchesKeyboardShortcut } from '../../../shared/js/keyboard-shortcuts.js';
 import { getEditorSelection, getFieldInputSelection } from '../helpers/selection.js';
 import { getEditorSettings } from '../settings.js';
 
@@ -334,14 +335,38 @@ export function toggleEditorBlock(format) {
   return true;
 }
 
-/** Native Desktop Control+Tab may be consumed before a browser keydown event. */
-export function unindentEditorField() {
-  if (!getEditorSettings().anki_editor_tab_indentation) return;
+/** Native shortcuts share the same row actions as browser keyboard events. */
+export function indentEditorField(outdent = false) {
+  const settings = getEditorSettings();
+  const key = `anki_editor_indent_${outdent ? 'decrease' : 'increase'}_shortcut_enabled`;
+  if (!settings.anki_editor_tab_indentation || !settings[key]) return;
   const selection = getFieldInputSelection();
   const field = elementOf(selection?.focusNode)?.closest(FIELD);
   if (!field) return;
-  if (elementOf(selection.focusNode)?.closest('li')) document.execCommand('outdent');
-  else changeEditorTextIndentation(field, selection, true);
+  if (elementOf(selection.focusNode)?.closest('li')) document.execCommand(outdent ? 'outdent' : 'indent');
+  else changeEditorTextIndentation(field, selection, outdent);
+}
+
+export function unindentEditorField() {
+  indentEditorField(true);
+}
+
+function handleEditorIndentation(field, event) {
+  const settings = getEditorSettings();
+  if (!settings.anki_editor_tab_indentation || event.isComposing) return false;
+  const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
+  for (const action of ['increase', 'decrease']) {
+    const key = `anki_editor_indent_${action}_shortcut`;
+    if (!settings[`${key}_enabled`] || !settings[key] || !matchesKeyboardShortcut(event, settings[key], isMac))
+      continue;
+    stop(event);
+    const selection = getEditorSelection();
+    if (elementOf(selection?.focusNode)?.closest('li'))
+      document.execCommand(action === 'decrease' ? 'outdent' : 'indent');
+    else changeEditorTextIndentation(field, selection, action === 'decrease');
+    return true;
+  }
+  return false;
 }
 
 /** Collect visual text rows without rewriting BRs, blocks, or inline formatting. */
@@ -471,19 +496,8 @@ export function installBlockFormatting() {
       if (primary && !event.altKey && !event.shiftKey && [',', '.', '/'].includes(event.key)) {
         const format = { ',': 'unordered-list', '.': 'ordered-list', '/': 'blockquote' }[event.key];
         if (toggleEditorBlock(format)) stop(event);
-      } else if (event.key === 'Tab' && !event.shiftKey && getEditorSettings().anki_editor_tab_indentation) {
-        const control = event.ctrlKey;
-        const otherModifier = event.metaKey;
-        if (otherModifier || event.altKey === control) return;
-        const selection = getEditorSelection();
-        stop(event);
-        if (elementOf(selection?.focusNode)?.closest('li')) {
-          document.execCommand(control ? 'outdent' : 'indent');
-        } else if (control) {
-          changeEditorTextIndentation(field, selection, true);
-        } else {
-          changeEditorTextIndentation(field, selection, false);
-        }
+      } else {
+        handleEditorIndentation(field, event);
       }
     },
     true,

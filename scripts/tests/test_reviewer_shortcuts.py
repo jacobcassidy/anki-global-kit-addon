@@ -210,6 +210,22 @@ class ReviewerShortcutTests(unittest.TestCase):
         self.mw.reviewer.web.isAncestorOf.assert_not_called()
         self.mw.reviewer.web.eval.assert_not_called()
 
+    def test_editor_customized_tab_combinations_and_individual_switches(self):
+        self.integration.Qt.KeyboardModifier = SimpleNamespace(MetaModifier=4, ControlModifier=8, AltModifier=16, ShiftModifier=32)
+        event = Mock()
+        config = {
+            "anki_editor_indent_increase_shortcut": "Meta+Shift+Tab",
+            "anki_editor_indent_decrease_shortcut": "Alt+Tab",
+        }
+        event.modifiers.return_value = 4 | 32
+        self.assertEqual(self.integration._indentation_tab_action(event, config, "anki_editor_indent"), "globalThis.ankiGlobalKitEditor?.indent();")
+        event.modifiers.return_value = 16
+        self.assertEqual(self.integration._indentation_tab_action(event, config, "anki_editor_indent"), "globalThis.ankiGlobalKitEditor?.unindent();")
+        config["anki_editor_indent_decrease_shortcut_enabled"] = False
+        self.assertIsNone(self.integration._indentation_tab_action(event, config, "anki_editor_indent"))
+        event.modifiers.return_value = 4
+        self.assertIsNone(self.integration._indentation_tab_action(event, config, "anki_editor_indent"))
+
     def test_native_focus_recovery_refreshes_even_when_ownership_was_reset(self):
         self.integration._refresh_question_focus()
         self.mw.reviewer.web.eval.assert_called_once_with("globalThis.ankiGlobalKitReportQuestionFocus?.();")

@@ -355,6 +355,47 @@ for (const html of [
   });
 }
 
+test('editor indentation bindings can be customized and disabled independently', () => {
+  const { field, range, dom } = editor('<ul><li>A</li></ul>');
+  const commands = nativeInsertion(field);
+  range.setStart(field.querySelector('li').firstChild, 1);
+  range.collapse(true);
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+  globalThis.ankiGlobalKitEditorSettings = {
+    anki_editor_indent_increase_shortcut: 'Alt+]',
+    anki_editor_indent_decrease_shortcut: 'Alt+[',
+  };
+  const dispatch = (key, options = {}) => {
+    const event = new dom.window.KeyboardEvent('keydown', {
+      key,
+      altKey: true,
+      bubbles: true,
+      cancelable: true,
+      ...options,
+    });
+    field.dispatchEvent(event);
+    return event.defaultPrevented;
+  };
+  try {
+    installBlockFormatting();
+    assert.equal(dispatch('Tab'), false);
+    assert.equal(dispatch('Tab', { altKey: false }), false);
+    assert.equal(dispatch(']'), true);
+    assert.equal(dispatch('['), true);
+    assert.deepEqual(commands, ['indent', 'outdent']);
+    globalThis.ankiGlobalKitEditorSettings.anki_editor_indent_decrease_shortcut_enabled = false;
+    assert.equal(dispatch('['), false);
+    assert.equal(dispatch(']'), true);
+    globalThis.ankiGlobalKitEditorSettings.anki_editor_tab_indentation = false;
+    assert.equal(dispatch(']'), false);
+    assert.deepEqual(commands, ['indent', 'outdent', 'indent']);
+  } finally {
+    delete globalThis.ankiGlobalKitEditorSettings;
+  }
+});
+
 test('the existing list button and shortcut route to the same formatter', () => {
   const { field, range, dom } = editor('<ul><li>A<ul><li>B</li></ul></li></ul>');
   const commands = nativeInsertion(field);

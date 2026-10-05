@@ -16,7 +16,14 @@ from aqt.utils import openFolder
 
 from ...configs.constants import DEFAULT_SETTINGS, USER_FILES_DIR, ZERO_MARGINS
 from ...ui.theme import get_theme_color
+from ...ui.shortcut_rows import ShortcutRows, build_shortcut_rows
 from ...ui.widgets import CardShortcutInput, HelpIndicator, add_checkbox_row, make_reset_link
+
+
+INDENTATION_SHORTCUT_DEFINITIONS = (
+    ("anki_editor_indent_increase_shortcut", "increase indent"),
+    ("anki_editor_indent_decrease_shortcut", "decrease indent"),
+)
 
 
 @dataclass
@@ -27,6 +34,7 @@ class EditorFieldsSection:
     shortcut_input: CardShortcutInput
     reset_link: QWidget
     warning_label: QLabel
+    indentation_rows: ShortcutRows
 
 
 def build_editor_fields_section(parent: QWidget, current_settings: dict) -> EditorFieldsSection:
@@ -76,13 +84,15 @@ def build_editor_fields_section(parent: QWidget, current_settings: dict) -> Edit
     )
     shortcut_enabled.toggled.connect(set_shortcut_enabled)
 
-    tab_indentation = QCheckBox("Enable indentation", section)
+    tab_indentation = QCheckBox("Enable indentation shortcuts", section)
     tab_indentation.setChecked(current_settings.get("anki_editor_tab_indentation", True))
     add_checkbox_row(
         layout,
         tab_indentation,
         "Alt+Tab indents list items or adds four leading spaces to the current or selected rows. Control+Tab removes indentation (physical Control on macOS). Tab and Shift+Tab move focus.",
     )
+    indentation_rows = build_shortcut_rows(section, tab_indentation, INDENTATION_SHORTCUT_DEFINITIONS, current_settings)
+    layout.addWidget(indentation_rows.widget)
     custom_styles = QCheckBox("Enable custom Editor fields stylesheet", section)
     custom_styles.setChecked(
         current_settings.get(
@@ -118,9 +128,12 @@ def build_editor_fields_section(parent: QWidget, current_settings: dict) -> Edit
             "anki_editor_inline_code_shortcut": shortcut_input,
             "anki_editor_tab_indentation": tab_indentation,
             "anki_editor_custom_fields_styles": custom_styles,
+            **indentation_rows.shortcut_inputs,
+            **indentation_rows.shortcut_enabled,
         },
         shortcut_enabled,
         shortcut_input,
         reset_link,
         warning_label,
+        indentation_rows,
     )

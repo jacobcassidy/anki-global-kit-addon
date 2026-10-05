@@ -88,7 +88,7 @@ def _register_editor_webview(editor) -> None:
         _editor_webviews.add(editor.web)
 
 
-def _card_tab_action(event, settings):
+def _indentation_tab_action(event, settings, prefix="card_input_tab_indent"):
     """Match customized Tab combinations before Qt consumes their keypress."""
     control = Qt.KeyboardModifier.MetaModifier if is_mac else Qt.KeyboardModifier.ControlModifier
     modifiers = {
@@ -99,7 +99,7 @@ def _card_tab_action(event, settings):
         "Shift": Qt.KeyboardModifier.ShiftModifier,
     }
     for action, default in (("increase", "Alt+Tab"), ("decrease", "Control+Tab")):
-        key = f"card_input_tab_indent_{action}_shortcut"
+        key = f"{prefix}_{action}_shortcut"
         if not settings.get(f"{key}_enabled", True):
             continue
         shortcut = settings.get(key, default)
@@ -112,8 +112,15 @@ def _card_tab_action(event, settings):
         for part in parts:
             expected |= modifiers[part]
         if event.modifiers() == expected:
+            if prefix == "anki_editor_indent":
+                method = "indent" if action == "increase" else "unindent"
+                return f"globalThis.ankiGlobalKitEditor?.{method}();"
             return "globalThis.ankiGlobalKitIndentQuestion?.();" if action == "increase" else "globalThis.ankiGlobalKitUnindentQuestion?.();"
     return None
+
+
+def _card_tab_action(event, settings):
+    return _indentation_tab_action(event, settings)
 
 
 def _tab_shortcut_target(event):
@@ -125,9 +132,10 @@ def _tab_shortcut_target(event):
         return None
     for webview in _live_webviews(_editor_webviews):
         if _webview_contains_focus(webview, focused):
-            control = Qt.KeyboardModifier.MetaModifier if is_mac else Qt.KeyboardModifier.ControlModifier
-            if get_editor_settings()["anki_editor_tab_indentation"] and event.modifiers() == control:
-                return webview, "globalThis.ankiGlobalKitEditor?.unindent();"
+            settings = get_editor_settings()
+            script = _indentation_tab_action(event, settings, "anki_editor_indent")
+            if settings["anki_editor_tab_indentation"] and script:
+                return webview, script
             return None
     for webview in _live_webviews(_preview_input_webviews):
         if _webview_contains_focus(webview, focused):

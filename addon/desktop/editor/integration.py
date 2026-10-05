@@ -86,6 +86,11 @@ def _toggle_block(editor: Editor, format_name: str) -> None:
     )
 
 
+def _change_indentation(editor: Editor, action: str) -> None:
+    method = "indent" if action == "increase" else "unindent"
+    editor.web.eval(f"globalThis.ankiGlobalKitEditor?.{method}();")
+
+
 def _add_button(buttons: list, editor: Editor) -> None:
     buttons.append(editor.addButton(
         icon=str(BLOCKQUOTE_ICON),
@@ -119,6 +124,12 @@ def _add_shortcut(shortcuts: list, editor: Editor) -> None:
             settings["anki_editor_inline_code_shortcut"],
             partial(_toggle_inline_code, editor),
         ))
+    if settings["anki_editor_tab_indentation"]:
+        for action in ("increase", "decrease"):
+            key = f"anki_editor_indent_{action}_shortcut"
+            if settings[f"{key}_enabled"] and settings[key]:
+                shortcuts[:] = [entry for entry in shortcuts if entry[0] != settings[key]]
+                shortcuts.append((settings[key], partial(_change_indentation, editor, action)))
 
 
 def initialize() -> None:

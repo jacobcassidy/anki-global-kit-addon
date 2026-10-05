@@ -35,9 +35,10 @@ from ..helpers.shortcuts import (
 )
 from ..features.about import build_about_tab
 from ..features.cards import SHORTCUT_DEFINITIONS, build_cards_tab
-from ..features.cards.card_fields import style_shortcut_option
+from .shortcut_rows import style_shortcut_option
 from ..features.changelog import build_changelog_tab
 from ..features.editor import build_editor_tab
+from ..features.editor.editor_fields import INDENTATION_SHORTCUT_DEFINITIONS
 from ..features.help import build_help_tab
 from ..features.note_types import build_note_types_tab
 from .widgets import CardShortcutInput
@@ -98,6 +99,15 @@ def open_settings() -> None:
     editor_inline_code_shortcut = editor_fields.shortcut_input
     editor_inline_code_shortcut_enabled = editor_fields.shortcut_toggle
 
+    editor_definitions = (("anki_editor_inline_code_shortcut", "inline code"),) + INDENTATION_SHORTCUT_DEFINITIONS
+    editor_inputs = {"anki_editor_inline_code_shortcut": editor_inline_code_shortcut, **editor_fields.indentation_rows.shortcut_inputs}
+    editor_checks = {"anki_editor_inline_code_shortcut_enabled": editor_inline_code_shortcut_enabled, **editor_fields.indentation_rows.shortcut_enabled}
+
+    def editor_shortcut_active(key):
+        return editor_checks[f"{key}_enabled"].isChecked() and (
+            key == "anki_editor_inline_code_shortcut" or all_controls["anki_editor_tab_indentation"].isChecked()
+        )
+
     restore_button = QPushButton("Restore Defaults", dialog)
     restore_button.setAutoDefault(False)
 
@@ -149,7 +159,8 @@ def open_settings() -> None:
 
     def refresh_shortcut_warnings(*_args) -> None:
         messages = {key: [] for key, _label in markdown_shortcut_definitions}
-        editor_messages = []
+        editor_messages = {key: [] for key, _label in editor_definitions}
+        editor_active_shortcuts = []
         active_shortcuts = []
         conflict_highlights = set()
         validation_state["invalid"] = []
@@ -207,24 +218,42 @@ def open_settings() -> None:
                 inactive=not fields.shortcut_masters[key].isChecked(),
             )
 
-        editor_shortcut = ""
-        if editor_inline_code_shortcut_enabled.isChecked():
-            editor_shortcut = (
-                editor_inline_code_shortcut.stored_shortcut()
-                or DEFAULT_SETTINGS["anki_editor_inline_code_shortcut"]
-            )
-            if not shortcut_has_required_modifier(editor_shortcut):
-                editor_messages.append(f"Use {SHORTCUT_MODIFIER_HINT} with this key.")
-                validation_state["invalid"].append("Anki editor inline code")
-            reserved_action = reserved_shortcut_warnings().get(
-                normalize_shortcut(editor_shortcut)
-            )
+        for key, label in editor_definitions:
+            if not editor_shortcut_active(key):
+                continue
+            shortcut = editor_inputs[key].stored_shortcut()
+            if key == "anki_editor_inline_code_shortcut":
+                shortcut = shortcut or DEFAULT_SETTINGS[key]
+            if not shortcut:
+                continue
+            editor_active_shortcuts.append((shortcut, key, label))
+            if not shortcut_has_required_modifier(shortcut):
+                editor_messages[key].append(f"Use {SHORTCUT_MODIFIER_HINT} with this key.")
+                validation_state["invalid"].append(f"Anki editor {label}")
+            reserved_action = reserved_shortcut_warnings().get(normalize_shortcut(shortcut))
             if reserved_action:
-                editor_messages.append(
-                    f"{format_shortcut(editor_shortcut)} is reserved for "
-                    f"{reserved_action}. Choose another shortcut."
+                editor_messages[key].append(
+                    f"{format_shortcut(shortcut)} is reserved for {reserved_action}. Choose another shortcut."
                 )
-                validation_state["reserved"].append("Anki editor inline code")
+                validation_state["reserved"].append(f"Anki editor {label}")
+
+        editor_seen = {}
+        editor_conflicts = set()
+        for shortcut, key, label in editor_active_shortcuts:
+            normalized = normalize_shortcut(shortcut)
+            if normalized in editor_seen:
+                other_key, other_label = editor_seen[normalized]
+                editor_messages[key].append(
+                    f"{format_shortcut(shortcut)} conflicts with the {other_label} shortcut. Choose another."
+                )
+                editor_conflicts.add(other_key)
+                validation_state["duplicates"].append((f"Editor {other_label}", f"Editor {label}"))
+            else:
+                editor_seen[normalized] = (key, label)
+        for key, _label in INDENTATION_SHORTCUT_DEFINITIONS:
+            checkbox = editor_checks[f"{key}_enabled"]
+            checkbox.shortcut_conflict = key in editor_conflicts
+            style_shortcut_option(checkbox, inactive=not all_controls["anki_editor_tab_indentation"].isChecked())
 
         built_in_shortcuts = anki_shortcut_warnings()
         editor_built_in_shortcuts = {
@@ -238,22 +267,18 @@ def open_settings() -> None:
                     f"The {format_shortcut(shortcut)} shortcut may "
                     f"conflict with Anki's {description} shortcut."
                 )
-        if editor_shortcut:
-            description = editor_built_in_shortcuts.get(
-                normalize_shortcut(editor_shortcut)
-            )
+        for shortcut, key, _label in editor_active_shortcuts:
+            description = editor_built_in_shortcuts.get(normalize_shortcut(shortcut))
             if description:
-                editor_messages.append(
-                    f"The {format_shortcut(editor_shortcut)} shortcut "
-                    f"may conflict with Anki's {description} shortcut."
+                editor_messages[key].append(
+                    f"The {format_shortcut(shortcut)} shortcut may conflict with Anki's {description} shortcut."
                 )
 
         for key, _label in markdown_shortcut_definitions:
             message = "\n".join(messages[key])
             markdown_shortcut_inputs[key].set_persistent_validation_message(message)
-        editor_inline_code_shortcut.set_persistent_validation_message(
-            "\n".join(editor_messages)
-        )
+        for key, _label in editor_definitions:
+            editor_inputs[key].set_persistent_validation_message("\n".join(editor_messages[key]))
 
     def validate_shortcut_candidate(key: str, candidate: str) -> str | None:
         if not fields.shortcut_masters[key].isChecked():
@@ -275,6 +300,17 @@ def open_settings() -> None:
                 )
         return None
 
+    def validate_editor_shortcut_candidate(key, candidate):
+        if not editor_shortcut_active(key):
+            return None
+        for other_key, label in editor_definitions:
+            if other_key == key or not editor_shortcut_active(other_key):
+                continue
+            other = editor_inputs[other_key].stored_shortcut()
+            if other and normalize_shortcut(other) == normalize_shortcut(candidate):
+                return f"{format_shortcut(candidate)} conflicts with the {label} shortcut. Choose another."
+        return None
+
     for key, _label in markdown_shortcut_definitions:
         markdown_shortcut_inputs[key].set_shortcut_validator(
             lambda candidate, key=key: validate_shortcut_candidate(key, candidate)
@@ -285,8 +321,13 @@ def open_settings() -> None:
         )
     question_markdown_shortcuts.toggled.connect(refresh_shortcut_warnings)
     all_controls["card_input_tab_indentation"].toggled.connect(refresh_shortcut_warnings)
-    editor_inline_code_shortcut.add_change_listener(refresh_shortcut_warnings)
-    editor_inline_code_shortcut_enabled.toggled.connect(refresh_shortcut_warnings)
+    for key, _label in editor_definitions:
+        editor_inputs[key].set_shortcut_validator(
+            lambda candidate, key=key: validate_editor_shortcut_candidate(key, candidate)
+        )
+        editor_inputs[key].add_change_listener(refresh_shortcut_warnings)
+        editor_checks[f"{key}_enabled"].toggled.connect(refresh_shortcut_warnings)
+    all_controls["anki_editor_tab_indentation"].toggled.connect(refresh_shortcut_warnings)
     refresh_shortcut_warnings()
 
     def save_current_settings(*_args) -> None:
