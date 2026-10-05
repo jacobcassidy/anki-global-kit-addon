@@ -66,6 +66,7 @@ Useful project scripts:
 - Create note types through Anki's documented `col.models` APIs. Do not modify a user's existing note types automatically; if a kit type name already exists, leave it unchanged and report that to the user.
 - Note type creation lives in `addon/desktop/settings/services/note_types.py` and reads runtime template parts under `addon/templates/note-types/parts/`. Keep these inputs separate from the reference templates in `docs/reference/note-types/`.
 - Preserve cross-client behavior. Check platform-specific code in `src/cards/js/runtime/platform.js` and `src/cards/js/inputs/` before changing answer storage or keyboard behavior.
+- On macOS, Anki's Qt/webview keyboard handling swaps the usual modifier names: Anki's `Ctrl` setting corresponds to physical Command (⌘), while `Meta` corresponds to physical Control (⌃). In browser keyboard events this means Command sets `event.ctrlKey`, and physical Control sets `event.metaKey`. Keep shortcut labels consistent with that mapping. Use `event.key` when matching the character produced by the current keyboard layout; use `event.code` only when a shortcut intentionally targets a physical key regardless of layout (for example, the physical C key).
 - If changing required template markup or CSS imports, update all four reference templates and `docs/reference/note-types/styling.css`, and document the user migration in `README.md` or the changelog.
 
 ## Git commits
