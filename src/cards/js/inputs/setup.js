@@ -3,6 +3,7 @@ import { state } from '../runtime/state.js';
 import {
   handleMarkdownListEnter,
   handleMarkdownShortcuts,
+  hasMacCommandCommaHandler,
   toggleMarkdownBlock,
   toggleMarkdownFormatting,
 } from './markdown-shortcuts.js';
@@ -30,19 +31,43 @@ export function watchQuestionInputs() {
     if (state.boundInputs.has(questionInput)) return;
     state.boundInputs.add(questionInput);
 
-    questionInput.addEventListener('keydown', (event) => {
-      if (handleMarkdownListEnter(questionInput, event)) return;
-      if (
-        handleMarkdownShortcuts(questionInput, event, {
-          markdownEnabled: settings.cardInputMarkdownShortcuts,
-          shortcuts: settings.cardInputMarkdownShortcutsMap,
-        })
-      )
-        return;
-      if (settings.cardInputTabIndentation) {
-        handleTabIndentation(questionInput, event);
-      }
-    });
+    if (isAnkiPC && navigator.platform.startsWith('Mac')) {
+      const reportFocus = () => {
+        const hasCommandCommaHandler = hasMacCommandCommaHandler(
+          settings.cardInputMarkdownShortcuts,
+          settings.cardInputMarkdownShortcutsMap,
+        );
+        globalThis.pycmd(`anki-global-kit:question-input-focus:${hasCommandCommaHandler ? 'handled' : 'unhandled'}`);
+      };
+      questionInput.addEventListener('focus', reportFocus);
+      // Card initialization can focus the textarea before handlers are bound.
+      if (document.activeElement === questionInput) reportFocus();
+      questionInput.addEventListener('blur', () => {
+        queueMicrotask(() => {
+          if (!document.activeElement?.matches('.question-input')) {
+            globalThis.pycmd('anki-global-kit:question-input-blur');
+          }
+        });
+      });
+    }
+
+    questionInput.addEventListener(
+      'keydown',
+      (event) => {
+        if (handleMarkdownListEnter(questionInput, event)) return;
+        if (
+          handleMarkdownShortcuts(questionInput, event, {
+            markdownEnabled: settings.cardInputMarkdownShortcuts,
+            shortcuts: settings.cardInputMarkdownShortcutsMap,
+          })
+        )
+          return;
+        if (settings.cardInputTabIndentation) {
+          handleTabIndentation(questionInput, event);
+        }
+      },
+      { capture: true },
+    );
 
     if (settings.cardToolbarEnabled) addFormattingToolbar(questionInput);
 

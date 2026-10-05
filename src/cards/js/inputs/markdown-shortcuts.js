@@ -41,9 +41,7 @@ export function toggleMarkdownBlock(textarea, format) {
     const marker = getPrefixMarkers(line).find((candidate) => candidate.type === type);
     return marker ? line.slice(0, marker.start) + line.slice(marker.end) : line;
   };
-  const shouldRemove = lines.every((line) =>
-    getPrefixMarkers(line).some((marker) => marker.type === format),
-  );
+  const shouldRemove = lines.every((line) => getPrefixMarkers(line).some((marker) => marker.type === format));
   let listIndex = 0;
   const formattedLines = lines.map((line) => {
     const hasMarker = getPrefixMarkers(line).some((marker) => marker.type === format);
@@ -274,9 +272,7 @@ export function toggleMarkdownFormatting(textarea, prefix, suffix) {
     : isEmptyInput
       ? rangeStart + prefix.length
       : rangeStart + prefix.length + textToKeep.length + suffix.length;
-  const selectionEnd = hasMarkers
-    ? selectionStart + textToKeep.length
-    : selectionStart;
+  const selectionEnd = hasMarkers ? selectionStart + textToKeep.length : selectionStart;
   textarea.selectionStart = selectionStart;
   textarea.selectionEnd = selectionEnd;
   textarea.dispatchEvent(new Event('input', { bubbles: true }));
@@ -321,6 +317,21 @@ export function handleMarkdownShortcuts(textarea, event, options = {}) {
   return false;
 }
 
+/** Return whether a configured Markdown shortcut will handle macOS Command+Comma. */
+export function hasMacCommandCommaHandler(markdownEnabled, configuredShortcuts) {
+  if (!markdownEnabled) return false;
+  const commandComma = {
+    key: ',',
+    ctrlKey: false,
+    metaKey: true,
+    altKey: false,
+    shiftKey: false,
+  };
+  return Object.values(configuredShortcuts).some(
+    (shortcut) => Boolean(shortcut) && matchesMarkdownShortcut(commandComma, shortcut, true),
+  );
+}
+
 function matchesMarkdownShortcut(event, shortcut, isMac) {
   const parts = shortcut.split('+');
   const key = parts.pop();
@@ -331,9 +342,7 @@ function matchesMarkdownShortcut(event, shortcut, isMac) {
   // Use the character the platform reports after keyboard remapping. `code`
   // is a fallback for the code-block shortcut when a keyboard layout maps the
   // physical C key to a different character.
-  const keyMatches =
-    eventKey === key.toLowerCase() ||
-    (codeBlock && event.code === `Key${key.toUpperCase()}`);
+  const keyMatches = eventKey === key.toLowerCase() || (codeBlock && event.code === `Key${key.toUpperCase()}`);
   if (!keyMatches) return false;
   const qtCtrl = modifiers.has('ctrl');
   const qtMeta = modifiers.has('meta');
