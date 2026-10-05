@@ -9,13 +9,13 @@ import {
 import { handleTabIndentation } from './tab-navigation.js';
 import { reportQuestionShortcutFocus } from './shortcut-focus.js';
 import { settings } from '../runtime/settings.js';
-import boldIcon from '../../../../addon/shared/assets/icons/bold.svg';
-import italicIcon from '../../../../addon/shared/assets/icons/italic.svg';
-import strikethroughIcon from '../../../../addon/shared/assets/icons/strikethrough.svg';
+import boldIcon from '../../../../addon/shared/assets/icons/text-bold.svg';
+import italicIcon from '../../../../addon/shared/assets/icons/text-italic.svg';
+import strikethroughIcon from '../../../../addon/shared/assets/icons/text-strikethrough.svg';
 import codeBlockIcon from '../../../../addon/shared/assets/icons/code-block.svg';
-import inlineCodeIcon from '../../../../addon/shared/assets/icons/inline-code.svg';
-import unorderedListIcon from '../../../../addon/shared/assets/icons/unordered-list.svg';
-import orderedListIcon from '../../../../addon/shared/assets/icons/ordered-list.svg';
+import inlineCodeIcon from '../../../../addon/shared/assets/icons/code-inline.svg';
+import unorderedListIcon from '../../../../addon/shared/assets/icons/list-unordered.svg';
+import orderedListIcon from '../../../../addon/shared/assets/icons/list-ordered.svg';
 import blockquoteIcon from '../../../../addon/shared/assets/icons/blockquote.svg';
 
 /**
