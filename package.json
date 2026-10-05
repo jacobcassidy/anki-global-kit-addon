@@ -50,6 +50,7 @@
     "lint:scripts:fix": "npx eslint --fix",
     "lint:styles": "npx stylelint \"**/*.{css,scss}\" --ignore-path .gitignore",
     "lint:styles:fix": "npx stylelint \"**/*.{css,scss}\" --ignore-path .gitignore --fix",
+    "check:assets": "python3 scripts/check_assets.py",
     "build": "node scripts/build.js",
     "build:addon": "node scripts/build.js",
     "package:addon": "python3 scripts/package_addon.py",

@@ -46,7 +46,7 @@ The build bundles the card and Desktop editor sources into:
 - `addon/desktop/editor/assets/js/editor.min.js`
 - `addon/desktop/editor/assets/css/editor-fields.min.css` and `editor-ui.min.css`
 
-The packaged card font is kept in `addon/web/assets/fonts/`. `addon/desktop/settings/shared/constants.py` maps the built card assets to source paths, and `addon/desktop/settings/services/assets.py` installs them under their public filenames in `collection.media`. These generated files are included in the add-on package. Update `scripts/build.config.js` if source entry points or output names change, along with the installer and template references when renaming installed assets. The watch script watches card and editor JavaScript and CSS, plus shared CSS.
+The packaged card font is kept in `addon/web/assets/fonts/`. `addon/desktop/settings/shared/asset_manifest.py` maps public filenames to source paths, and `addon/desktop/settings/services/assets.py` installs them under those names in the `collection.media` root. Run `npm run check:assets` to verify the source, build, package, template, and media paths. These generated files are included in the add-on package. Update `scripts/build.config.js` if source entry points or output names change, along with the installer and template references when renaming installed assets. The watch script watches card and editor JavaScript and CSS, plus shared CSS.
 
 Useful project scripts:
 

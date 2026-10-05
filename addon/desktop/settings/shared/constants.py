@@ -1,25 +1,21 @@
 """Shared settings defaults, paths, and Qt styling constants."""
 
-from pathlib import Path
-
 from aqt.utils import is_mac
 
+from .asset_manifest import (
+    ADDON_DIR,
+    ASSET_DIR,
+    ASSET_NAMES,
+    ASSET_PATHS,
+    CSS_ASSET_NAME,
+    FONT_ASSET_NAME,
+    JS_ASSET_NAME,
+)
 
-DESKTOP_DIR = Path(__file__).resolve().parents[1]
-ADDON_DIR = DESKTOP_DIR.parent
+DESKTOP_DIR = ADDON_DIR / "desktop"
 USER_FILES_DIR = ADDON_DIR / "user_files"
 SHARED_ASSET_DIR = ADDON_DIR / "shared" / "assets" / "images" / "icons"
 ADDON_PACKAGE_NAME = __package__.split(".", maxsplit=1)[0]
-ASSET_DIR = ADDON_DIR / "web" / "assets"
-JS_ASSET_NAME = "_anki-global-kit.min.js"
-CSS_ASSET_NAME = "_anki-global-kit.min.css"
-FONT_ASSET_NAME = "_mesloLGL-NF.woff2"
-ASSET_PATHS = {
-    JS_ASSET_NAME: ASSET_DIR / "js" / JS_ASSET_NAME,
-    CSS_ASSET_NAME: ASSET_DIR / "css" / CSS_ASSET_NAME,
-    FONT_ASSET_NAME: ASSET_DIR / "fonts" / FONT_ASSET_NAME,
-}
-ASSET_NAMES = tuple(ASSET_PATHS)
 VERSION = "1.0.0"
 SECTION_SPACING = 24
 TAB_SECTION_TITLE_TOP_PADDING = 12
