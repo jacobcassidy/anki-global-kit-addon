@@ -27,7 +27,7 @@ export const cardsCssBuildOptions = {
 
 export const editorFieldsCssBuildOptions = {
   entryPoints: [`${root}src/editor/css/editor-fields.css`],
-  outfile: `${root}addon/desktop/editor/assets/editor-fields.min.css`,
+  outfile: `${root}addon/desktop/editor/assets/css/editor-fields.min.css`,
   bundle: true,
   legalComments: 'none',
   minify: true,
@@ -35,7 +35,7 @@ export const editorFieldsCssBuildOptions = {
 
 export const editorUiCssBuildOptions = {
   entryPoints: [`${root}src/editor/css/editor-ui.css`],
-  outfile: `${root}addon/desktop/editor/assets/editor-ui.min.css`,
+  outfile: `${root}addon/desktop/editor/assets/css/editor-ui.min.css`,
   bundle: true,
   legalComments: 'none',
   minify: true,
@@ -43,7 +43,7 @@ export const editorUiCssBuildOptions = {
 
 export const editorJsBuildOptions = {
   entryPoints: [`${root}src/editor/js/index.js`],
-  outfile: `${root}addon/desktop/editor/assets/editor.min.js`,
+  outfile: `${root}addon/desktop/editor/assets/js/editor.min.js`,
   bundle: true,
   format: 'iife',
   platform: 'browser',

@@ -13,8 +13,8 @@ from .paste.cleanup import clean_paste_mime, finish_paste_layout
 from .shortcuts.labels import shortcut_label
 
 ADDON_DIR = Path(__file__).resolve().parents[2]
-EDITOR_ASSET = ADDON_DIR / "desktop" / "editor" / "assets" / "editor.min.js"
-EDITOR_STYLES_DIR = ADDON_DIR / "desktop" / "editor" / "assets"
+EDITOR_ASSET = ADDON_DIR / "desktop" / "editor" / "assets" / "js" / "editor.min.js"
+EDITOR_STYLES_DIR = ADDON_DIR / "desktop" / "editor" / "assets" / "css"
 ICON_ASSET = ADDON_DIR / "desktop" / "shared" / "assets" / "inline-code.svg"
 
 
