@@ -4,8 +4,8 @@
 	justify-content: center;
 	background: var(--bgc--tertiary);
 	border-radius: var(--border-radius--default) var(--border-radius--default) 0 0;
+	block-size: 28px;
 	margin-block-start: calc(var(--spacing--default) / 2);
-	padding: calc(var(--spacing--default) / 6) var(--spacing--default);
 
 	.toolbar-group {
 		display: flex;
@@ -25,11 +25,11 @@
 		border: calc(var(--spacing--default) / 24) solid var(--bgc--tertiary);
 		border-radius: var(--border-radius--default);
 		color: var(--color--secondary);
-		block-size: calc(var(--spacing--default));
-		inline-size: calc(var(--spacing--default) / 0.6);
-		min-inline-size: calc(var(--spacing--default) / 0.6);
+		block-size: 22px;
+		inline-size: 28px;
+		min-inline-size: initial;
 		margin: 0;
-		padding: calc(var(--spacing--default) / 6);
+		padding: calc(var(--spacing--default) / 8);
 		line-height: 1;
 		transition: all 250ms ease;
 

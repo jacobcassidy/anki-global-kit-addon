@@ -18,9 +18,9 @@ export function showAnswerContainers() {
     // TODO - FIND WHERE THIS CLASS WAS REMOVED FROM SOURCE
     if (answerContainer.querySelector('.output-comparison-container')) return;
 
-    const referenceAnswer = answerContainer.querySelector('.reference-answer .content');
+    const referenceAnswer = answerContainer.querySelector('.reference-answer .box__content');
     const referenceClozes = referenceAnswer.querySelectorAll('.cloze');
-    const userAnswer = answerContainer.querySelector('.user-answer .content');
+    const userAnswer = answerContainer.querySelector('.user-answer .box__content');
     const hasCompare = userAnswer.getAttribute('data-compare');
     const bonusQuestion = answerContainer.querySelector('.is-bonus .question');
     const typeHint = answerContainer.querySelector('.type-hint');
@@ -56,7 +56,7 @@ export function showAnswerContainers() {
       const comparisonPreEl = document.createElement('pre');
 
       comparisonContainerEl.classList.add('box', 'has-comparison');
-      comparisonTitleEl.classList.add('title');
+      comparisonTitleEl.classList.add('box__header');
       comparisonPreEl.classList.add('comparison');
 
       if (answerContainer.classList.contains('is-primary')) {

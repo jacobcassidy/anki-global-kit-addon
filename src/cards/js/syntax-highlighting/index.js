@@ -4,7 +4,7 @@ import { settings } from '../runtime/settings.js';
 /** Highlight current and subsequently rendered answer code blocks. */
 export function watchSubmittedCodeBlocks() {
   if (!settings.cardReviewSyntaxHighlighting) return;
-  const submittedCodeSelector = '.user-answer .content pre > code';
+  const submittedCodeSelector = '.user-answer .box__content pre > code';
 
   const highlightCode = (code) => {
     if (!(code instanceof Element) || code.dataset.syntaxHighlighted === 'true') return;

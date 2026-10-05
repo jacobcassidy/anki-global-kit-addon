@@ -6,10 +6,6 @@
 
 .shigeSyntax {
 	padding: 0 !important;
-
-	pre {
-		background-color: var(--theme-bg);
-	}
 }
 
 /* BOLD */

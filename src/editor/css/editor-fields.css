@@ -24,6 +24,7 @@ code {
 	background-color: var(--code-background);
 	border-color: var(--code-border);
 	color: var(--code-text);
+	padding: 2px 4px;
 
 	.nightMode & {
 		background-color: var(--syntax-gray-dark);

@@ -8,7 +8,7 @@ export function showNoteContainers() {
   if (notesContainers.length < 1) return;
 
   notesContainers.forEach((notesContainer) => {
-    const notesContent = notesContainer.querySelector('.content');
+    const notesContent = notesContainer.querySelector('.box__content');
     // Show notes if there is visible note content.
     if (hasVisibleContent(notesContent)) notesContainer.classList.add('active');
   });

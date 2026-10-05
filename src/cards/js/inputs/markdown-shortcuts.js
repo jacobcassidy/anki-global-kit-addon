@@ -18,14 +18,45 @@ export function toggleMarkdownBlock(textarea, format) {
   const pattern = patterns[format];
   if (!pattern) return;
 
-  const shouldRemove = lines.every((line) => pattern.test(line));
-  const listPattern = /^(?:[-*+]|\d+\.)\s+/;
+  const prefixPatterns = [
+    ['unordered-list', /^[-*+]\s+/],
+    ['ordered-list', /^\d+\.\s+/],
+    ['blockquote', /^>\s?/],
+  ];
+  const getPrefixMarkers = (line) => {
+    const markers = [];
+    let offset = 0;
+    while (offset < line.length) {
+      const remaining = line.slice(offset);
+      const match = prefixPatterns
+        .map(([type, markerPattern]) => ({ type, match: remaining.match(markerPattern) }))
+        .find(({ match: markerMatch }) => markerMatch);
+      if (!match) break;
+      markers.push({ type: match.type, start: offset, end: offset + match.match[0].length });
+      offset += match.match[0].length;
+    }
+    return markers;
+  };
+  const removeMarker = (line, type) => {
+    const marker = getPrefixMarkers(line).find((candidate) => candidate.type === type);
+    return marker ? line.slice(0, marker.start) + line.slice(marker.end) : line;
+  };
+  const shouldRemove = lines.every((line) =>
+    getPrefixMarkers(line).some((marker) => marker.type === format),
+  );
   let listIndex = 0;
   const formattedLines = lines.map((line) => {
-    if (shouldRemove) return line.replace(pattern, '');
-    if (format === 'unordered-list') return `- ${line.replace(listPattern, '')}`;
-    if (format === 'ordered-list') return `${++listIndex}. ${line.replace(listPattern, '')}`;
-    return `> ${line}`;
+    const hasMarker = getPrefixMarkers(line).some((marker) => marker.type === format);
+    if (shouldRemove) return removeMarker(line, format);
+    if (format === 'unordered-list') {
+      return hasMarker ? line : `- ${removeMarker(line, 'ordered-list')}`;
+    }
+    if (format === 'ordered-list') {
+      if (hasMarker) return line;
+      const withoutExistingList = removeMarker(removeMarker(line, 'unordered-list'), 'ordered-list');
+      return `${++listIndex}. ${withoutExistingList}`;
+    }
+    return hasMarker ? line : `> ${line}`;
   });
   const replacement = formattedLines.join('\n');
   textarea.setRangeText(replacement, blockStart, blockEnd, 'end');

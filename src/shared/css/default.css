@@ -12,13 +12,7 @@ textarea {
 
 code {
 	border: calc(var(--spacing--default) / 24) solid transparent;
-	padding: calc(var(--spacing--default) / 12) calc(var(--spacing--default) / 4.8);
 	line-height: 1;
-
-	.nightMode & {
-		background-color: var(--syntax-gray-dark);
-		color: var(--syntax-gray-white);
-	}
 }
 
 pre {
@@ -44,15 +38,15 @@ table {
 pre,
 textarea,
 code#typeans,
-.user-answer .content,
-.reference-answer .content {
+.user-answer .box__content,
+.reference-answer .box__content {
 	padding: calc(var(--spacing--default) / 1.5) calc(var(--spacing--default) * 0.75);
 }
 
 pre,
 textarea,
 code#typeans,
-.notes-container .title,
-.content {
+.notes-container .box__header,
+.box__content {
 	text-align: start;
 }

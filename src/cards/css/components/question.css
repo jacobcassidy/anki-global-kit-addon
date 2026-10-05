@@ -3,17 +3,17 @@
 	text-wrap: balance;
 
 	.is-primary & {
-		padding-block-end: calc(var(--spacing--default) * 0.75);
+		margin-block-end: calc(var(--spacing--default) * 0.75);
 	}
 
 	.is-bonus & {
 		color: var(--color--secondary);
-		padding-block-end: calc(var(--spacing--default) * 0.5);
+		margin-block-end: calc(var(--spacing--default) * 0.5);
 		font-size: var(--font-size--large);
 	}
 
 	&:has(+ .type-hint.active) {
-		padding-block-end: calc(var(--spacing--default) / 3);
+		margin-block-end: calc(var(--spacing--default) / 3);
 	}
 
 	:not(.nightMode) & {
