@@ -15,7 +15,7 @@ from .features.shortcuts.labels import shortcut_label
 ADDON_DIR = Path(__file__).resolve().parents[2]
 EDITOR_ASSET = ADDON_DIR / "desktop" / "editor" / "assets" / "js" / "editor.min.js"
 EDITOR_STYLES_DIR = ADDON_DIR / "desktop" / "editor" / "assets" / "css"
-ICON_ASSET = ADDON_DIR / "desktop" / "shared" / "assets" / "inline-code.svg"
+ICON_ASSET = ADDON_DIR / "shared" / "assets" / "images" / "icons" / "inline-code.svg"
 
 
 def _inject_features(editor: Editor) -> None:

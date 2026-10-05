@@ -8,7 +8,7 @@ from aqt.utils import is_mac
 DESKTOP_DIR = Path(__file__).resolve().parents[1]
 ADDON_DIR = DESKTOP_DIR.parent
 USER_FILES_DIR = ADDON_DIR / "user_files"
-SHARED_ASSET_DIR = DESKTOP_DIR / "shared" / "assets"
+SHARED_ASSET_DIR = ADDON_DIR / "shared" / "assets" / "images" / "icons"
 ADDON_PACKAGE_NAME = __package__.split(".", maxsplit=1)[0]
 ASSET_DIR = ADDON_DIR / "web" / "assets"
 JS_ASSET_NAME = "_anki-global-kit.min.js"
