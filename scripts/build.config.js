@@ -31,6 +31,7 @@ export const editorFieldsCssBuildOptions = {
   bundle: true,
   legalComments: 'none',
   minify: true,
+  external: ['*.woff', '*.woff2'],
 };
 
 export const editorUiCssBuildOptions = {
