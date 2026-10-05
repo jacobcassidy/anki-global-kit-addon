@@ -18,14 +18,14 @@ from aqt.qt import (
 
 from ..services.assets import update_assets_for_profile
 from ..services.config import get_editor_settings, get_settings, write_settings
-from ..shared.constants import (
+from ..configs.constants import (
     DEFAULT_SETTINGS,
     SECTION_SPACING,
     SHORTCUT_MODIFIER_HINT,
     SHARED_ASSET_DIR,
 )
 from .theme import get_theme_color
-from ..shared.shortcuts import (
+from ..helpers.shortcuts import (
     anki_editor_format_shortcut_warnings,
     anki_shortcut_warnings,
     format_shortcut,

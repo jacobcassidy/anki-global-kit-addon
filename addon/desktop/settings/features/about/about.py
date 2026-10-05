@@ -10,7 +10,7 @@ from aqt.qt import (
     QWidget,
 )
 
-from ...shared.constants import ADDON_DIR, JS_ASSET_NAME, SECTION_SPACING, VERSION
+from ...configs.constants import ADDON_DIR, JS_ASSET_NAME, SECTION_SPACING, VERSION
 from ...ui.widgets import add_button_row
 
 

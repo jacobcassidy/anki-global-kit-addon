@@ -39,7 +39,7 @@ from ...services.note_types import (
     plan_note_type_changes,
 )
 from ...ui.widgets import HelpIndicator
-from ...shared.constants import (
+from ...configs.constants import (
     ADDON_PACKAGE_NAME,
     NOTE_TYPES_ROW_PADDING,
     ZERO_MARGINS,

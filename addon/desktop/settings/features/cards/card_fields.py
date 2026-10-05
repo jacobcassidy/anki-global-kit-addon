@@ -13,7 +13,7 @@ from aqt.qt import (
     QWidget,
 )
 
-from ...shared.constants import (
+from ...configs.constants import (
     DEFAULT_SETTINGS,
     NESTED_INDENT,
     ZERO_MARGINS,

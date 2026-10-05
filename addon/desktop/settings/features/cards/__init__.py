@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from aqt.qt import QVBoxLayout, QWidget
 
-from ...shared.constants import SECTION_SPACING
+from ...configs.constants import SECTION_SPACING
 from ...ui.widgets import make_scroll_area
 from .card_fields import (
     SHORTCUT_DEFINITIONS,

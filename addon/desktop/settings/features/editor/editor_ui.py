@@ -3,7 +3,7 @@
 from aqt.qt import QCheckBox, QGroupBox, QHBoxLayout, QPushButton, QVBoxLayout, QWidget
 from aqt.utils import openFolder
 
-from ...shared.constants import DEFAULT_SETTINGS, USER_FILES_DIR, ZERO_MARGINS
+from ...configs.constants import DEFAULT_SETTINGS, USER_FILES_DIR, ZERO_MARGINS
 from ...ui.widgets import HelpIndicator, add_checkbox_row
 
 

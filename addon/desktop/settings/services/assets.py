@@ -7,7 +7,7 @@ from aqt import mw
 from aqt.utils import showWarning
 
 from .config import get_settings
-from ..shared.constants import (
+from ..configs.constants import (
     ADDON_DIR, ASSET_NAMES, ASSET_PATHS, JS_ASSET_NAME,
 )
 

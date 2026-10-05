@@ -10,7 +10,7 @@ from aqt.qt import (
     QWidget,
 )
 
-from ...shared.constants import ADDON_DIR, SECTION_SPACING
+from ...configs.constants import ADDON_DIR, SECTION_SPACING
 from ...ui.widgets import add_button_row
 
 
