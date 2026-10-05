@@ -28,9 +28,9 @@ export function toggleMarkdownBlock(textarea, format) {
     return `> ${line}`;
   });
   const replacement = formattedLines.join('\n');
-  textarea.setRangeText(replacement, blockStart, blockEnd, 'select');
-  textarea.selectionStart = blockStart;
-  textarea.selectionEnd = blockStart + replacement.length;
+  textarea.setRangeText(replacement, blockStart, blockEnd, 'end');
+  textarea.selectionStart = blockStart + replacement.length;
+  textarea.selectionEnd = textarea.selectionStart;
   textarea.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
@@ -237,8 +237,15 @@ export function toggleMarkdownFormatting(textarea, prefix, suffix) {
 
   textarea.setRangeText(hasMarkers ? textToKeep : `${prefix}${textToKeep}${suffix}`, rangeStart, rangeEnd, 'end');
 
-  const selectionStart = hasMarkers ? rangeStart : rangeStart + prefix.length;
-  const selectionEnd = selectionStart + textToKeep.length;
+  const isEmptyInput = !hasMarkers && value.length === 0 && start === end;
+  const selectionStart = hasMarkers
+    ? rangeStart
+    : isEmptyInput
+      ? rangeStart + prefix.length
+      : rangeStart + prefix.length + textToKeep.length + suffix.length;
+  const selectionEnd = hasMarkers
+    ? selectionStart + textToKeep.length
+    : selectionStart;
   textarea.selectionStart = selectionStart;
   textarea.selectionEnd = selectionEnd;
   textarea.dispatchEvent(new Event('input', { bubbles: true }));
