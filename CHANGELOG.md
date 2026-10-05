@@ -7,28 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2026-10-02
 
-The first major release convert the scripts and stylesheets into an Anki addon you can now download directly in Anki. With many more features added on to improve the flashcard learning system with Anki. The project has been renamed from `Anki Global Extension` to `Anki Global Kit` to reflect this change.
+The first major release packages the card scripts, stylesheets, fonts, and new Desktop editor tools as an Anki add-on. Card features use synced templates and media so they remain available across Anki Desktop, AnkiWeb, AnkiMobile, and AnkiDroid.
 
 ### Added
 
-- Main features added:
-  - You can now style the editor UI, editor fields, and cards with the user_files included in this add-on.
-  - A Markdown toolbar with shortcuts are available in cards to go with the native editor markdown options.
-  - An inline-code button and shortcut gives you the ability to add short snippets of styled code.
-  - A setting panel is now included that give you fine-grain control over many of the new features.
-
-- Added card-side Markdown rendering, syntax highlighting, answer comparison, and configurable question formatting tools.
-- Added Advance and Cloze note type templates for the built-in topics, with optional custom topic rows.
-- Added selection and overwrite controls for note types. Existing types stay unchanged unless their **Overwrite** checkbox is selected.
-- Added a **Delete** checkbox for removing a custom topic row from settings. This only removes the settings row; existing Anki note types and cards are left intact.
-- Added separate **Cards** and **Editor** settings for review behavior, shortcuts, formatting, indentation, copying, and paste cleanup.
-- Added configurable Markdown shortcuts and formatting toolbar buttons, including list, quote, and code formatting.
+- Added automatic installation and refresh of the kit's managed card JavaScript, CSS, and font files when an Anki Desktop profile opens or switches. Card settings are included in the installed media for syncing to other devices.
+- Added a **Tools > Anki Global Kit Settings...** panel with separate **Cards**, **Editor**, and **Note Types** controls, plus **About**, **Help**, and **Changelog** tabs.
+- Added independent settings for card input shortcuts, Tab indentation, answer Markdown rendering, syntax highlighting, and the formatting toolbar, along with Desktop editor formatting and appearance options.
+- Added card-side Markdown rendering for headings, paragraphs, line breaks, nested ordered and unordered lists, blockquotes, fenced code blocks, inline code, bold, italics, strikethrough, and HTTP(S) links.
+- Added a configurable formatting toolbar above card question inputs, with shared SVG icons and shortcut tooltips for bold, italics, strikethrough, inline code, code blocks, lists, and blockquotes.
+- Added configurable Markdown shortcuts with individual enable switches, shortcut capture, per-shortcut reset links, inline conflict warnings, and Escape to cancel capture. Formatting applies to the selection or the word at the caret and can be toggled off again.
+- Added Markdown list indentation with **Tab**, unindentation with **Shift+Tab**, and forward focus navigation with physical **Control+Tab**. Ordinary card text uses four-space indentation for Python topics and two spaces for other topics.
+- Added bundled code syntax highlighting that recognizes fenced-code language names and aliases, falls back to the card topic, and highlights newly rendered answers.
+- Added topic-specific **Advance** and **Cloze** note type creation for Command Line, CSS, Git, JavaScript, PHP, Python, React, Regex, Ruby, TypeScript, Vocabulary, and WordPress, plus alphabetically sorted custom topics.
+- Added **Create**, **Replace**, and **Delete** controls for each note type format. Replacement requires an explicit selection and confirmation, keeps existing notes and fields, and adds missing kit fields. Deletion is available only for empty note types; uncreated custom topic rows can also be removed.
+- Added a Desktop editor inline-code button and configurable shortcut for formatting selections or words, toggling existing code formatting, and starting an empty code span.
+- Added Desktop editor Tab indentation, inline-code space normalization, source HTML copying, and external rich-text paste cleanup, each controlled through settings.
+- Added physical Control shortcuts for the Desktop editor's Cloze buttons on macOS, leaving Command+Shift+C available for inline code.
+- Added separate customizable Desktop editor field and UI stylesheets in `user_files`, with enable switches and **View Stylesheet** buttons.
+- Added hover help for settings, Markdown help and About content, a rendered changelog, and buttons linking to the GitHub help, repository, and changelog.
+- Added the shared MesloLGL NF font, bundled card and editor assets, an add-on packaging script, and asset path checks.
 
 ### Changed
 
-- Renamed the Note Types action to **Update Selected Note Types** to cover creating and overwriting selected types as well as applying custom topic row changes.
-- Focuses the **Save** button when settings open or the selected tab changes, while keeping normal Tab navigation through controls.
-- Standardized settings panel colors, spacing, and section backgrounds, and added dividers between note type table columns.
+- Renamed the project from `Anki Global Extension` to `Anki Global Kit` and the generated Shell topic to **Command Line**.
+- Updated card and editor typography, responsive layouts, light and dark palettes, toolbar styling, code blocks, and comparison panels using shared styles and color variables.
+- Bundled answer comparison and syntax highlighting with the kit's card assets, removing the need for a separate `_diff_match_patch.js` file or external syntax-highlighting script.
+- Updated ordered and unordered list conversion to change only the outermost selected list level while preserving child indentation and list styles. Formatting plain indented text preserves indentation and starts ordered numbering at one for each nested list.
+- Standardized macOS shortcut labels and modifier handling, including support for remapped keys and configurable list and blockquote shortcuts.
+- Renamed the Note Types action to **Update Selected Note Types**, grouped actions by card format, and kept table headings visible while scrolling. Existing note types are detected when settings open; pending checkbox selections are cleared across restarts while custom topics are retained.
+- Improved settings colors, spacing, section backgrounds, help indicators, shortcut warning layout, and keyboard navigation. **Save** receives focus when settings open or tabs change, and **Restore Defaults** is disabled when settings already match their defaults.
+- Reorganized card, Desktop editor, shared assets, runtime template parts, and settings modules, with separate build outputs and a single canonical changelog included in the add-on package.
+
+### Fixed
+
+- Fixed Markdown toggle behavior inside formatted text and immediately after closing markers, including caret placement, empty selections, fenced code, and inline-code markers inside emphasis.
+- Fixed macOS reviewer shortcut conflicts so configured Markdown actions, including Command+Comma, can handle their keys while question inputs are focused.
+- Fixed answer comparisons to preserve Unicode code points, rendered line breaks, and normalized nonbreaking spaces, and to avoid duplicate comparison output during repeated initialization.
+- Fixed repeated card initialization to preserve typed answers, active input focus, existing rendered answers, and event bindings.
+- Fixed bonus questions and notes containing images or other media so they remain visible, and prevented duplicate bonus input hints.
+- Fixed duplicate cloze text in answer comparisons and unwanted line breaks in code blocks and list items.
+- Fixed shared font, icon, editor webview, and installed card asset paths after reorganizing the package.
 
 ## [0.10.0] - 2025-04-02
 
