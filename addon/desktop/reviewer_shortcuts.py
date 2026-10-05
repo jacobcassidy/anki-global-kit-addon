@@ -44,6 +44,19 @@ def _sync_preferences_action(*_args) -> None:
         _preferences_was_enabled = None
 
 
+def _refresh_question_focus(*_args) -> None:
+    """Ask the DOM again after Qt focus returns without a textarea focus event."""
+    _sync_preferences_action()
+    if not is_mac or mw.state != "review":
+        return
+    focused_widget = QApplication.focusWidget()
+    webview = mw.reviewer.web
+    if focused_widget is webview or (
+        focused_widget is not None and webview.isAncestorOf(focused_widget)
+    ):
+        webview.eval("globalThis.ankiGlobalKitReportQuestionFocus?.();")
+
+
 class _PreferencesShortcutFilter(QObject):
     """Let the focused card input handle macOS Command+Comma."""
 
@@ -87,6 +100,13 @@ def _on_card_will_show(html: str, card, kind: str) -> str:
         _active_reviewer = None
         _command_comma_handled = False
         _sync_preferences_action()
+        if is_mac:
+            # The Python hook runs before the asynchronous card DOM replacement.
+            html += (
+                "<script>onShownHook.push(function () {"
+                "globalThis.ankiGlobalKitReportQuestionFocus?.();"
+                "});</script>"
+            )
     return html
 
 
@@ -97,7 +117,7 @@ def initialize() -> None:
     if app is not None and _shortcut_filter is None:
         _shortcut_filter = _PreferencesShortcutFilter(app)
         app.installEventFilter(_shortcut_filter)
-        app.focusChanged.connect(_sync_preferences_action)
+        app.focusChanged.connect(_refresh_question_focus)
     if not _message_hook_installed:
         gui_hooks.webview_did_receive_js_message.append(_on_webview_message)
         gui_hooks.card_will_show.append(_on_card_will_show)

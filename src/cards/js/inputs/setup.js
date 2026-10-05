@@ -3,11 +3,11 @@ import { state } from '../runtime/state.js';
 import {
   handleMarkdownListEnter,
   handleMarkdownShortcuts,
-  hasMacCommandCommaHandler,
   toggleMarkdownBlock,
   toggleMarkdownFormatting,
 } from './markdown-shortcuts.js';
 import { handleTabIndentation } from './tab-navigation.js';
+import { reportQuestionShortcutFocus } from './shortcut-focus.js';
 import { settings } from '../runtime/settings.js';
 import boldIcon from '../../../../addon/shared/assets/icons/bold.svg';
 import italicIcon from '../../../../addon/shared/assets/icons/italic.svg';
@@ -25,6 +25,12 @@ export function watchQuestionInputs() {
   const questionInputs = document.querySelectorAll('.question-input');
   if (questionInputs.length < 1) return;
 
+  if (isAnkiPC && navigator.platform.startsWith('Mac')) {
+    globalThis.ankiGlobalKitReportQuestionFocus = () =>
+      reportQuestionShortcutFocus(settings.cardInputMarkdownShortcuts, settings.cardInputMarkdownShortcutsMap);
+    globalThis.ankiGlobalKitReportQuestionFocus();
+  }
+
   state.outputAnswers = Array.from(questionInputs, (questionInput) => questionInput.value);
 
   questionInputs.forEach((questionInput, inputIndex) => {
@@ -33,11 +39,7 @@ export function watchQuestionInputs() {
 
     if (isAnkiPC && navigator.platform.startsWith('Mac')) {
       const reportFocus = () => {
-        const hasCommandCommaHandler = hasMacCommandCommaHandler(
-          settings.cardInputMarkdownShortcuts,
-          settings.cardInputMarkdownShortcutsMap,
-        );
-        globalThis.pycmd(`anki-global-kit:question-input-focus:${hasCommandCommaHandler ? 'handled' : 'unhandled'}`);
+        globalThis.ankiGlobalKitReportQuestionFocus();
       };
       questionInput.addEventListener('focus', reportFocus);
       // Card initialization can focus the textarea before handlers are bound.
