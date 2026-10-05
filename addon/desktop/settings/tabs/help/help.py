@@ -1,8 +1,17 @@
 """Build the read-only help tab."""
 
-from aqt.qt import QTextBrowser, QTextCursor, QVBoxLayout, QWidget
+from aqt.qt import (
+    QDesktopServices,
+    QPushButton,
+    QTextBrowser,
+    QTextCursor,
+    QUrl,
+    QVBoxLayout,
+    QWidget,
+)
 
 from ...constants import ADDON_DIR, SECTION_SPACING
+from ...widgets import add_button_row
 
 
 def build_help_tab(parent: QWidget) -> QWidget:
@@ -31,4 +40,15 @@ def build_help_tab(parent: QWidget) -> QWidget:
             first_heading = False
         block = block.next()
     layout.addWidget(browser)
+    github_button = QPushButton("View Help on GitHub", tab)
+    github_button.setAutoDefault(False)
+    github_button.clicked.connect(
+        lambda checked=False: QDesktopServices.openUrl(
+            QUrl(
+                "https://github.com/jacobcassidy/anki-global-kit/"
+                "blob/main/addon/HELP.md"
+            )
+        )
+    )
+    add_button_row(layout, github_button, align_right=False)
     return tab
