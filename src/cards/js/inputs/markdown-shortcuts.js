@@ -1,11 +1,11 @@
 /**
- * Toggle a Markdown prefix on every line touched by the textarea selection.
+ * Toggle Markdown block formatting while preserving selected list hierarchies.
  */
 export function toggleMarkdownBlock(textarea, format) {
   const value = textarea.value;
   const selectionStart = textarea.selectionStart;
   const selectionEnd = textarea.selectionEnd;
-  const blockStart = value.lastIndexOf('\n', selectionStart - 1) + 1;
+  const blockStart = selectionStart === 0 ? 0 : value.lastIndexOf('\n', selectionStart - 1) + 1;
   const selectionIncludesLineBreak = selectionEnd > selectionStart && value[selectionEnd - 1] === '\n';
   const nextLineStart = value.indexOf('\n', selectionEnd);
   const blockEnd = selectionIncludesLineBreak ? selectionEnd - 1 : nextLineStart === -1 ? value.length : nextLineStart;
@@ -25,7 +25,7 @@ export function toggleMarkdownBlock(textarea, format) {
   ];
   const getPrefixMarkers = (line) => {
     const markers = [];
-    let offset = 0;
+    let offset = line.match(/^[ \t]*/)[0].length;
     while (offset < line.length) {
       const remaining = line.slice(offset);
       const match = prefixPatterns
@@ -41,18 +41,48 @@ export function toggleMarkdownBlock(textarea, format) {
     const marker = getPrefixMarkers(line).find((candidate) => candidate.type === type);
     return marker ? line.slice(0, marker.start) + line.slice(marker.end) : line;
   };
-  const shouldRemove = lines.every((line) => getPrefixMarkers(line).some((marker) => marker.type === format));
-  let listIndex = 0;
-  const formattedLines = lines.map((line) => {
-    const hasMarker = getPrefixMarkers(line).some((marker) => marker.type === format);
+  const isListFormat = format === 'unordered-list' || format === 'ordered-list';
+  const lineInfo = lines.map((line) => {
+    const indentation = line.match(/^[ \t]*/)[0];
+    const markers = getPrefixMarkers(line);
+    return {
+      indentation,
+      depth: indentation.replace(/\t/g, '    ').length,
+      markers,
+      isListItem: markers.some((marker) => marker.type === 'unordered-list' || marker.type === 'ordered-list'),
+    };
+  });
+  const hasListItems = lineInfo.some((info) => info.isListItem);
+  const selectedListDepth = hasListItems
+    ? Math.min(...lineInfo.filter((info) => info.isListItem).map((info) => info.depth))
+    : 0;
+  const eligible = lines.map(
+    (line, index) =>
+      !isListFormat ||
+      ((line.trim().length > 0 || (lines.length === 1 && selectionStart === selectionEnd)) &&
+        (!hasListItems || lineInfo[index].depth === selectedListDepth)),
+  );
+  const shouldRemove = lines.every(
+    (line, index) => !eligible[index] || lineInfo[index].markers.some((marker) => marker.type === format),
+  );
+  const listIndexes = new Map();
+  const formattedLines = lines.map((line, index) => {
+    if (!eligible[index]) return line;
+    const { indentation, depth, markers } = lineInfo[index];
+    const hasMarker = markers.some((marker) => marker.type === format);
     if (shouldRemove) return removeMarker(line, format);
     if (format === 'unordered-list') {
-      return hasMarker ? line : `- ${removeMarker(line, 'ordered-list')}`;
+      return hasMarker ? line : `${indentation}- ${removeMarker(line, 'ordered-list').slice(indentation.length)}`;
     }
     if (format === 'ordered-list') {
-      if (hasMarker) return line;
+      // Start each nested list at one, then resume its parent's numbering.
+      for (const previousDepth of listIndexes.keys()) {
+        if (previousDepth > depth) listIndexes.delete(previousDepth);
+      }
+      const listIndex = (listIndexes.get(depth) || 0) + 1;
+      listIndexes.set(depth, listIndex);
       const withoutExistingList = removeMarker(removeMarker(line, 'unordered-list'), 'ordered-list');
-      return `${++listIndex}. ${withoutExistingList}`;
+      return `${indentation}${listIndex}. ${withoutExistingList.slice(indentation.length)}`;
     }
     return hasMarker ? line : `> ${line}`;
   });

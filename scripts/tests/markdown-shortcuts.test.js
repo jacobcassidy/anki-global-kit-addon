@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { toggleMarkdownFormatting } from '../../src/cards/js/inputs/markdown-shortcuts.js';
+import { toggleMarkdownBlock, toggleMarkdownFormatting } from '../../src/cards/js/inputs/markdown-shortcuts.js';
 
 function textarea(value, start, end = start) {
   return {
@@ -92,4 +92,114 @@ test('italic at the end of bold text adds italic without removing the bold marke
   const input = textarea('**word**', 8);
   toggleMarkdownFormatting(input, '*', '*');
   assert.equal(input.value, '***word***');
+});
+
+const listConversions = [
+  {
+    name: 'unordered parents to ordered parents',
+    input: '- parent\n  - child\n    1. grandchild\n- sibling\n  + child',
+    format: 'ordered-list',
+    expected: '1. parent\n  - child\n    1. grandchild\n2. sibling\n  + child',
+  },
+  {
+    name: 'ordered parents to unordered parents',
+    input: '1. parent\n  1. child\n    - grandchild\n2. sibling\n  2. child',
+    format: 'unordered-list',
+    expected: '- parent\n  1. child\n    - grandchild\n- sibling\n  2. child',
+  },
+  {
+    name: 'toggle off only unordered parents',
+    input: '- parent\n  1. child\n- sibling\n  - child',
+    format: 'unordered-list',
+    expected: 'parent\n  1. child\nsibling\n  - child',
+  },
+  {
+    name: 'toggle off only ordered parents',
+    input: '1. parent\n  - child\n2. sibling\n  1. child',
+    format: 'ordered-list',
+    expected: 'parent\n  - child\nsibling\n  1. child',
+  },
+  {
+    name: 'plain indentation becomes an unordered hierarchy',
+    input: 'parent\n  child\n    grandchild\nsibling\n  other child',
+    format: 'unordered-list',
+    expected: '- parent\n  - child\n    - grandchild\n- sibling\n  - other child',
+  },
+  {
+    name: 'plain indentation becomes ordered lists numbered at each level',
+    input: 'parent\n  child\n  child two\n    grandchild\nsibling\n  other child',
+    format: 'ordered-list',
+    expected: '1. parent\n  1. child\n  2. child two\n    1. grandchild\n2. sibling\n  1. other child',
+  },
+  {
+    name: 'tabs and spaces keep their original indentation',
+    input: '- parent\n\t- child\n    - other child\n- sibling',
+    format: 'ordered-list',
+    expected: '1. parent\n\t- child\n    - other child\n2. sibling',
+  },
+  {
+    name: 'mixed parent styles become one consistently numbered list',
+    input: '- parent\n  - child\n8. sibling',
+    format: 'ordered-list',
+    expected: '1. parent\n  - child\n2. sibling',
+  },
+  {
+    name: 'blank lines remain blank when formatting plain text',
+    input: 'parent\n\n  child\n   ',
+    format: 'unordered-list',
+    expected: '- parent\n\n  - child\n   ',
+  },
+];
+
+for (const { name, input: value, format, expected } of listConversions) {
+  test(name, () => {
+    const input = textarea(value, 0, value.length);
+    toggleMarkdownBlock(input, format);
+    assert.equal(input.value, expected);
+    assert.equal(input.inputEvents, 1);
+  });
+}
+
+test('selecting children as the outermost level converts them and preserves grandchildren', () => {
+  const value = '- parent\n  - child\n    - grandchild\n  - sibling\n- other parent';
+  const input = textarea(value, value.indexOf('child'), value.indexOf('\n- other parent'));
+  toggleMarkdownBlock(input, 'ordered-list');
+  assert.equal(input.value, '- parent\n  1. child\n    - grandchild\n  2. sibling\n- other parent');
+});
+
+test('a caret in a child item converts just that item at its original level', () => {
+  const value = '1. parent\n  1. child\n    - grandchild\n  2. sibling';
+  const input = textarea(value, value.indexOf('child') + 2);
+  toggleMarkdownBlock(input, 'unordered-list');
+  assert.equal(input.value, '1. parent\n  - child\n    - grandchild\n  2. sibling');
+});
+
+test('a selection ending at the next line excludes that line', () => {
+  const input = textarea('- one\n- two\n- three', 0, 12);
+  toggleMarkdownBlock(input, 'ordered-list');
+  assert.equal(input.value, '1. one\n2. two\n- three');
+});
+
+test('a leading empty line does not hide the first selected parent', () => {
+  const value = '\n- parent\n  - child';
+  const input = textarea(value, 0, value.length);
+  toggleMarkdownBlock(input, 'ordered-list');
+  assert.equal(input.value, '\n1. parent\n  - child');
+});
+
+test('list buttons still create a marker at an empty caret', () => {
+  const input = textarea('  ', 2);
+  toggleMarkdownBlock(input, 'unordered-list');
+  assert.equal(input.value, '  - ');
+});
+
+test('blockquote toggling continues to apply to all selected lines', () => {
+  const value = '- parent\n  - child';
+  const input = textarea(value, 0, value.length);
+  toggleMarkdownBlock(input, 'blockquote');
+  assert.equal(input.value, '> - parent\n>   - child');
+  input.selectionStart = 0;
+  input.selectionEnd = input.value.length;
+  toggleMarkdownBlock(input, 'blockquote');
+  assert.equal(input.value, value);
 });
