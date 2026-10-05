@@ -17,7 +17,7 @@ def build_editor_ui_section(parent: QWidget, current_settings: dict):
         inline_code_button,
         "Add an inline code button to the Desktop editor toolbar for formatting selected text or starting an inline code span.",
     )
-    custom_styles = QCheckBox("Enable custom Editor UI stylesheet", section)
+    custom_styles = QCheckBox("Enable custom editor UI stylesheet", section)
     custom_styles.setChecked(
         current_settings.get(
             "anki_editor_custom_ui_styles",
