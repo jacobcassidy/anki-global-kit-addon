@@ -10,9 +10,16 @@ ADDON_DIR = DESKTOP_DIR.parent
 USER_FILES_DIR = ADDON_DIR / "user_files"
 SHARED_ASSET_DIR = DESKTOP_DIR / "shared" / "assets"
 ADDON_PACKAGE_NAME = __package__.split(".", maxsplit=1)[0]
-ASSET_DIR = ADDON_DIR / "web"
+ASSET_DIR = ADDON_DIR / "web" / "assets"
 JS_ASSET_NAME = "_anki-global-kit.min.js"
-ASSET_NAMES = (JS_ASSET_NAME, "_anki-global-kit.min.css")
+CSS_ASSET_NAME = "_anki-global-kit.min.css"
+FONT_ASSET_NAME = "_mesloLGL-NF.woff2"
+ASSET_PATHS = {
+    JS_ASSET_NAME: ASSET_DIR / "js" / JS_ASSET_NAME,
+    CSS_ASSET_NAME: ASSET_DIR / "css" / CSS_ASSET_NAME,
+    FONT_ASSET_NAME: ASSET_DIR / "fonts" / FONT_ASSET_NAME,
+}
+ASSET_NAMES = tuple(ASSET_PATHS)
 VERSION = "1.0.0"
 SECTION_SPACING = 24
 TAB_SECTION_TITLE_TOP_PADDING = 12

@@ -8,7 +8,7 @@ from aqt.utils import showWarning
 
 from .config import get_settings
 from .constants import (
-    ADDON_DIR, ASSET_DIR, ASSET_NAMES, JS_ASSET_NAME,
+    ADDON_DIR, ASSET_NAMES, ASSET_PATHS, JS_ASSET_NAME,
 )
 
 
@@ -17,7 +17,7 @@ def update_assets_for_profile() -> None:
     if mw.col is None:
         return
 
-    missing = [name for name in ASSET_NAMES if not (ASSET_DIR / name).is_file()]
+    missing = [name for name in ASSET_NAMES if not ASSET_PATHS[name].is_file()]
     if missing:
         showWarning(
             "Anki Global Kit assets have not been built. From the project folder, "
@@ -27,7 +27,7 @@ def update_assets_for_profile() -> None:
 
     try:
         for name in ASSET_NAMES:
-            data = (ASSET_DIR / name).read_bytes()
+            data = ASSET_PATHS[name].read_bytes()
             if name == JS_ASSET_NAME:
                 settings = json.dumps(get_settings(), separators=(",", ":"))
                 data = f"globalThis.ankiGlobalKitSettings={settings};\n".encode() + data
