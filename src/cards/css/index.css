@@ -1,8 +1,11 @@
 /* BASE */
-@import url("../../shared/css/syntax-highlighting.css");
+@import url("../../shared/css/fonts.css");
+@import url("../../shared/css/variables.css");
 @import url("./base/variables.css");
+@import url("../../shared/css/default.css");
 @import url("./base/default.css");
 @import url("./base/native.css");
+@import url("../../shared/css/syntax-highlighting.css");
 
 /* COMPONENTS */
 @import url("./components/box.css");
@@ -10,7 +13,6 @@
 @import url("./components/columns.css");
 @import url("./components/containers.css");
 @import url("./components/question.css");
-@import url("./components/syntax-highlighting.css");
 @import url("./components/toolbar.css");
 @import url("./components/topic.css");
 @import url("./components/type-hint.css");

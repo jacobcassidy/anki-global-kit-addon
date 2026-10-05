@@ -7,6 +7,10 @@
  * Use class .nightMode or .night_mode for night mode specific CSS.
  * Use the attribute selector mid for for note type specific CSS, e.g. [mid="1616909476324"]
  */
+
+@import url("../../shared/css/fonts.css");
+@import url("../../shared/css/variables.css");
+@import url("../../shared/css/default.css");
 @import url("../../shared/css/syntax-highlighting.css");
 
 anki-editable {
@@ -16,20 +20,10 @@ anki-editable {
 	--theme-bg: #242424;
 }
 
-code,
-pre {
-	border-radius: 6px;
-	font-family: var(--font-family--mono);
-	font-size: 16px;
-	font-style: normal;
-}
-
 code {
 	background-color: var(--code-background);
-	border: 1px solid var(--code-border);
+	border-color: var(--code-border);
 	color: var(--code-text);
-	padding: 2px 4px;
-	line-height: 1;
 
 	.nightMode & {
 		background-color: var(--syntax-gray-dark);
@@ -41,14 +35,8 @@ pre {
 	background-color: var(--theme-bg);
 	color: var(--syntax-gray-light);
 	margin: 0 auto;
-	padding: 24px;
-	text-align: start;
-	white-space: pre-wrap;
 
-	& code {
-		background: transparent;
-		border: none;
+	code {
 		color: var(--syntax-gray-light);
-		padding: 0;
 	}
 }

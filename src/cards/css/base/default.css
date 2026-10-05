@@ -1,20 +1,4 @@
 /* DEFAULT STYLES */
-@font-face {
-	font-display: swap;
-	font-family: Inconsolata;
-	font-style: normal;
-	font-weight: 400;
-	src: url("_inconsolata-regular.woff2") format("woff2"),
-		url("_inconsolata-regular.woff") format("woff");
-}
-
-@font-face {
-	font-display: swap;
-	font-family: "MesloLGL NF";
-	font-style: normal;
-	font-weight: 400;
-	src: url("_mesloLGL-NF.woff2") format("woff2");
-}
 
 *,
 *::before,
@@ -66,15 +50,6 @@ li + li {
 	margin-block-start: calc(var(--spacing--default) / 3);
 }
 
-code,
-input,
-pre,
-textarea {
-	border-radius: var(--border-radius--default);
-	font-family: var(--font-family--mono);
-	font-size: var(--font-size--medium);
-}
-
 input,
 pre,
 textarea {
@@ -84,32 +59,15 @@ textarea {
 	line-height: 1.333;
 }
 
-code,
-pre {
-	font-style: normal;
-}
-
-pre {
-	code {
-		background: none !important;
-		border: none !important;
-		padding: 0 !important;
-	}
-}
-
 code {
 	background-color: var(--bgc--secondary);
-	border: calc(var(--spacing--default) / 24) solid var(--bgc--tertiary);
-	padding: calc(var(--spacing--default) / 12) calc(var(--spacing--default) / 4.8);
-	line-height: 1;
+	border-color: var(--bgc--tertiary);
 }
 
 pre,
 textarea.is-comparison {
 	background-color: var(--bgc--pre);
-	border-width: 0;
 	color: var(--color--pre);
-	white-space: pre-wrap;
 }
 
 input,
@@ -134,28 +92,4 @@ textarea::placeholder {
 	font-family: var(--font-family--primary);
 	font-size: var(--font-size--large);
 	line-height: 1.5;
-}
-
-table {
-	inline-size: 100% !important;
-
-	pre {
-		margin: 0;
-	}
-}
-
-pre,
-textarea,
-code#typeans,
-.user-answer .content,
-.reference-answer .content {
-	padding: calc(var(--spacing--default) / 1.5) calc(var(--spacing--default) * 0.75);
-}
-
-pre,
-textarea,
-code#typeans,
-.notes-container .title,
-.content {
-	text-align: start;
 }

@@ -1,0 +1,58 @@
+/* SHARED DEFAULT STYLES */
+
+code,
+input,
+pre,
+textarea {
+	border-radius: var(--border-radius--default);
+	font-family: var(--font-family--mono);
+	font-size: var(--font-size--medium);
+	font-style: normal;
+}
+
+code {
+	border: calc(var(--spacing--default) / 24) solid transparent;
+	padding: calc(var(--spacing--default) / 12) calc(var(--spacing--default) / 4.8);
+	line-height: 1;
+
+	.nightMode & {
+		background-color: var(--syntax-gray-dark);
+		color: var(--syntax-gray-white);
+	}
+}
+
+pre {
+	border-width: 0;
+	white-space: pre-wrap;
+
+	code {
+		background: none !important;
+		border: none !important;
+		padding: 0 !important;
+	}
+}
+
+table {
+	inline-size: 100% !important;
+	max-inline-size: 780px;
+
+	pre {
+		margin: 0;
+	}
+}
+
+pre,
+textarea,
+code#typeans,
+.user-answer .content,
+.reference-answer .content {
+	padding: calc(var(--spacing--default) / 1.5) calc(var(--spacing--default) * 0.75);
+}
+
+pre,
+textarea,
+code#typeans,
+.notes-container .title,
+.content {
+	text-align: start;
+}

@@ -6,21 +6,6 @@
 	/* ADDITION 0.0018 * 10% */
 	/* SUBTRACTION 0.0022 * 10% */
 
-	/* ALL THEMES VARIABLES */
-
-	--border-radius--default: 0.375rem;
-	--font-family--mono: "MesloLGL NF", menlo, monospace;
-	--font-family--primary: arial, sans-serif;
-	--font-size--large: 1.125rem;
-	--font-size--medium: 1rem;
-	--font-size--small: 0.75rem;
-	--font-size--x-large: 1.25rem;
-	--font-size--x-small: 0.625rem;
-	--font-weight--normal: 400;
-	--font-weight--strong: 700;
-	--spacing--default: 24px;
-	--container-width: 40rem;
-
 	/* DEFAULT THEME VARIABLES */
 
 	--bgc--input: oklch(
