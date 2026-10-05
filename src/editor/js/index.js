@@ -5,26 +5,17 @@ import { installCopySource } from './clipboard/copy-source.js';
 import { installClozeShortcuts } from './cloze/shortcuts.js';
 import { beginPasteLayout, finishPasteLayout } from './paste/layout.js';
 import { installEditorStyles } from './styles.js';
+import { installBlockFormatting, toggleEditorBlock } from './formatting/blocks.js';
 
 if (!globalThis.ankiGlobalKitEditor) {
   installSelectionTracking();
   installCodeSpaceNormalization();
   installCopySource();
   installClozeShortcuts();
-  document.addEventListener(
-    'keydown',
-    (event) => {
-      if (event.key !== 'Tab' || event.shiftKey || !globalThis.ankiGlobalKitEditorSettings?.anki_editor_tab_indentation)
-        return;
-      const field = event.composedPath().find((node) => node?.matches?.('anki-editable, [contenteditable="true"]'));
-      if (!field) return;
-      event.preventDefault();
-      document.execCommand('insertText', false, '    ');
-    },
-    true,
-  );
+  installBlockFormatting();
 
   globalThis.ankiGlobalKitEditor = {
+    toggleBlock: toggleEditorBlock,
     toggleInlineCode() {
       return toggleInlineCode.call({ node: getEditorSelection()?.focusNode }, '<code>', '</code>');
     },

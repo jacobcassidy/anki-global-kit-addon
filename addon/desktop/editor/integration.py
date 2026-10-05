@@ -16,6 +16,12 @@ ADDON_DIR = Path(__file__).resolve().parents[2]
 EDITOR_ASSET = ADDON_DIR / "desktop" / "editor" / "assets" / "js" / "editor.min.js"
 EDITOR_STYLES_DIR = ADDON_DIR / "desktop" / "editor" / "assets" / "css"
 ICON_ASSET = ADDON_DIR / "shared" / "assets" / "icons" / "inline-code.svg"
+BLOCKQUOTE_ICON = ICON_ASSET.with_name("blockquote.svg")
+BLOCK_SHORTCUTS = {
+    "unordered-list": "Ctrl+,",
+    "ordered-list": "Ctrl+.",
+    "blockquote": "Ctrl+/",
+}
 
 
 def _inject_features(editor: Editor) -> None:
@@ -24,6 +30,11 @@ def _inject_features(editor: Editor) -> None:
     editor_settings = get_editor_settings()
     settings = json.dumps(editor_settings, separators=(",", ":"))
     settings = settings.replace("<", "\\u003c")
+    list_labels = json.dumps({
+        name: shortcut_label(keys)
+        for name, keys in BLOCK_SHORTCUTS.items()
+        if name != "blockquote"
+    })
     styles = {
         "ui": _read_editor_styles(
             "editor-ui.min.css",
@@ -44,6 +55,7 @@ def _inject_features(editor: Editor) -> None:
         "globalThis.ankiGlobalKitEditorSettings || {}, "
         f"{settings});\n"
         f"globalThis.ankiGlobalKitEditorStyles = {styles_json};\n{script}"
+        f"\nglobalThis.ankiGlobalKitEditorListLabels = {list_labels};"
     )
 
 
@@ -68,7 +80,19 @@ def _toggle_inline_code(editor: Editor) -> None:
     editor.web.eval("globalThis.ankiGlobalKitEditor?.toggleInlineCode();")
 
 
+def _toggle_block(editor: Editor, format_name: str) -> None:
+    editor.web.eval(
+        f"globalThis.ankiGlobalKitEditor?.toggleBlock({json.dumps(format_name)});"
+    )
+
+
 def _add_button(buttons: list, editor: Editor) -> None:
+    buttons.append(editor.addButton(
+        icon=str(BLOCKQUOTE_ICON),
+        cmd="anki_global_kit_blockquote",
+        func=lambda editor: _toggle_block(editor, "blockquote"),
+        tip=f"Blockquote ({shortcut_label(BLOCK_SHORTCUTS['blockquote'])})",
+    ))
     settings = get_editor_settings()
     if not settings["anki_editor_inline_code_button"]:
         return
@@ -84,6 +108,11 @@ def _add_button(buttons: list, editor: Editor) -> None:
 
 
 def _add_shortcut(shortcuts: list, editor: Editor) -> None:
+    # The editor hook owns these keys locally, so Command+Comma reaches the
+    # focused editor instead of the application's Preferences menu on macOS.
+    shortcuts[:] = [entry for entry in shortcuts if entry[0] not in BLOCK_SHORTCUTS.values()]
+    for name, keys in BLOCK_SHORTCUTS.items():
+        shortcuts.append((keys, partial(_toggle_block, editor, name)))
     settings = get_editor_settings()
     if settings["anki_editor_inline_code_shortcut_enabled"]:
         shortcuts.append((
