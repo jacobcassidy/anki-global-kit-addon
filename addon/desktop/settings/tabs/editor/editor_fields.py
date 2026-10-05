@@ -83,7 +83,7 @@ def build_editor_fields_section(parent: QWidget, current_settings: dict) -> Edit
         tab_indentation,
         "In Desktop editor fields, pressing Tab inserts four spaces instead of moving focus.",
     )
-    custom_styles = QCheckBox("Enable custom stylesheet for Editor fields", section)
+    custom_styles = QCheckBox("Enable custom Editor fields stylesheet", section)
     custom_styles.setChecked(
         current_settings.get(
             "anki_editor_custom_fields_styles",
