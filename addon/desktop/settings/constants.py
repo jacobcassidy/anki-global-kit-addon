@@ -7,6 +7,7 @@ from aqt.utils import is_mac
 
 DESKTOP_DIR = Path(__file__).resolve().parents[1]
 ADDON_DIR = DESKTOP_DIR.parent
+USER_FILES_DIR = ADDON_DIR / "user_files"
 SHARED_ASSET_DIR = DESKTOP_DIR / "shared" / "assets"
 ADDON_PACKAGE_NAME = __package__.split(".", maxsplit=1)[0]
 ASSET_DIR = ADDON_DIR / "web"
@@ -56,6 +57,7 @@ DEFAULT_SETTINGS = {
     "anki_editor_inline_code_shortcut_enabled": True,
     "anki_editor_inline_code_shortcut": "Ctrl+Shift+C",
     "anki_editor_tab_indentation": True,
+    "anki_editor_custom_fields_styles": True,
     "anki_editor_inline_code_button": True,
     "anki_editor_normalize_code_spaces": True,
     "anki_editor_copy_source_html": True,

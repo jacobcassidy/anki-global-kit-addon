@@ -4,9 +4,11 @@ This add-on installs the generated JavaScript and CSS into the active Anki profi
 
 Choose **Tools > Anki Global Kit Settings...**, open **Note Types**, and select the topics and card formats you want. Choose **Update Selected Note Types** to create new note types from the bundled card template parts, named like `CSS (Advance)` and `CSS (Cloze)`. Existing note types are left unchanged unless you select the enabled **Overwrite** checkbox beside that format. Overwriting updates the kit templates and styling while preserving existing notes and fields; custom card templates may be replaced.
 
-### Customizing editor styles
+## Customizing editor styles
 
-To customize the Anki Desktop editor, open **Tools > Add-ons**, select **Anki Global Kit**, and click **View Files**. In `user_files`, create or edit `editor-ui.css` to style the editor interface around fields, or `editor-fields.css` to style field contents. These rules are appended after the kit defaults. Restart Anki to reload the styles. The `user_files/README.txt` file is also included with the add-on.
+To customize field contents, open **Tools > Anki Global Kit Settings... > Editor**. In **Editor Fields**, use **Enable custom Editor fields styles** to turn your custom field CSS on or off, and click **View Stylesheet** to open `user_files`, where you can edit `editor-fields.css`. Custom field styles are enabled by default and appended after the kit defaults. Restart Anki after editing the stylesheet to reload it.
+
+You can also create or edit `user_files/editor-ui.css` to style the editor interface around fields. To find these files through the add-ons dialog, open **Tools > Add-ons**, select **Anki Global Kit**, and click **View Files**, then open `user_files`. The `user_files/README.txt` file is also included with the add-on.
 
 Use **+** to add a custom topic row. To remove a custom topic row from settings, check its **Delete** box and choose **Update Selected Note Types**. This does not delete an existing Anki note type or its cards.
 

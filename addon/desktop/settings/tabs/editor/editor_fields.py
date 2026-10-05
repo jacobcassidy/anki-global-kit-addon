@@ -2,9 +2,19 @@
 
 from dataclasses import dataclass
 
-from aqt.qt import QCheckBox, QGroupBox, QHBoxLayout, QLabel, Qt, QVBoxLayout, QWidget
+from aqt.qt import (
+    QCheckBox,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    Qt,
+    QVBoxLayout,
+    QWidget,
+)
+from aqt.utils import openFolder
 
-from ...constants import DEFAULT_SETTINGS, ZERO_MARGINS
+from ...constants import DEFAULT_SETTINGS, USER_FILES_DIR, ZERO_MARGINS
 from ...theme import get_theme_color
 from ...widgets import CardShortcutInput, add_checkbox_row, make_reset_link
 
@@ -73,12 +83,30 @@ def build_editor_fields_section(parent: QWidget, current_settings: dict) -> Edit
         tab_indentation,
         "In Desktop editor fields, pressing Tab inserts four spaces instead of moving focus.",
     )
+    custom_styles = QCheckBox("Enable custom Editor fields styles", section)
+    custom_styles.setChecked(
+        current_settings.get(
+            "anki_editor_custom_fields_styles",
+            DEFAULT_SETTINGS["anki_editor_custom_fields_styles"],
+        )
+    )
+    view_stylesheet = QPushButton("View Stylesheet", section)
+    view_stylesheet.setAutoDefault(False)
+    view_stylesheet.setToolTip("Open user_files, which contains editor-fields.css.")
+
+    def view_stylesheet_folder() -> None:
+        USER_FILES_DIR.mkdir(parents=True, exist_ok=True)
+        openFolder(str(USER_FILES_DIR))
+
+    view_stylesheet.clicked.connect(view_stylesheet_folder)
+    add_checkbox_row(layout, custom_styles, trailing_widget=view_stylesheet)
     return EditorFieldsSection(
         section,
         {
             "anki_editor_inline_code_shortcut_enabled": shortcut_enabled,
             "anki_editor_inline_code_shortcut": shortcut_input,
             "anki_editor_tab_indentation": tab_indentation,
+            "anki_editor_custom_fields_styles": custom_styles,
         },
         shortcut_enabled,
         shortcut_input,

@@ -8,24 +8,28 @@ from aqt import gui_hooks
 from aqt.editor import Editor
 
 from ..settings import get_editor_settings
+from ..settings.constants import USER_FILES_DIR
 from .paste.cleanup import clean_paste_mime, finish_paste_layout
 from .shortcuts.labels import shortcut_label
 
 ADDON_DIR = Path(__file__).resolve().parents[2]
 EDITOR_ASSET = ADDON_DIR / "desktop" / "editor" / "assets" / "editor.min.js"
 EDITOR_STYLES_DIR = ADDON_DIR / "desktop" / "editor" / "styles"
-USER_FILES_DIR = ADDON_DIR / "user_files"
 ICON_ASSET = ADDON_DIR / "desktop" / "shared" / "assets" / "inline-code.svg"
 
 
 def _inject_features(editor: Editor) -> None:
     if not EDITOR_ASSET.is_file():
         return
-    settings = json.dumps(get_editor_settings(), separators=(",", ":"))
+    editor_settings = get_editor_settings()
+    settings = json.dumps(editor_settings, separators=(",", ":"))
     settings = settings.replace("<", "\\u003c")
     styles = {
         "ui": _read_editor_styles("editor-ui.css"),
-        "fields": _read_editor_styles("editor-fields.css"),
+        "fields": _read_editor_styles(
+            "editor-fields.css",
+            include_custom=editor_settings["anki_editor_custom_fields_styles"],
+        ),
     }
     styles_json = json.dumps(styles, separators=(",", ":"))
     styles_json = styles_json.replace("<", "\\u003c")
@@ -38,9 +42,11 @@ def _inject_features(editor: Editor) -> None:
     )
 
 
-def _read_editor_styles(filename: str) -> str:
+def _read_editor_styles(filename: str, *, include_custom: bool = True) -> str:
     """Combine packaged editor CSS with a user's upgrade-safe overrides."""
-    paths = (EDITOR_STYLES_DIR / filename, USER_FILES_DIR / filename)
+    paths = [EDITOR_STYLES_DIR / filename]
+    if include_custom:
+        paths.append(USER_FILES_DIR / filename)
     return "\n".join(
         path.read_text(encoding="utf-8")
         for path in paths
