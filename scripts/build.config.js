@@ -25,6 +25,22 @@ export const cardsCssBuildOptions = {
   external: ['*.woff', '*.woff2'],
 };
 
+export const editorFieldsCssBuildOptions = {
+  entryPoints: [`${root}src/editor/css/editor-fields.css`],
+  outfile: `${root}addon/desktop/editor/assets/editor-fields.min.css`,
+  bundle: true,
+  legalComments: 'none',
+  minify: true,
+};
+
+export const editorUiCssBuildOptions = {
+  entryPoints: [`${root}src/editor/css/editor-ui.css`],
+  outfile: `${root}addon/desktop/editor/assets/editor-ui.min.css`,
+  bundle: true,
+  legalComments: 'none',
+  minify: true,
+};
+
 export const editorJsBuildOptions = {
   entryPoints: [`${root}src/editor/js/index.js`],
   outfile: `${root}addon/desktop/editor/assets/editor.min.js`,

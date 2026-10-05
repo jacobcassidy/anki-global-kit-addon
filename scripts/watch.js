@@ -3,7 +3,13 @@ import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { context, formatMessages } from 'esbuild';
-import { cardsCssBuildOptions, cardsJsBuildOptions, editorJsBuildOptions } from './build.config.js';
+import {
+  cardsCssBuildOptions,
+  cardsJsBuildOptions,
+  editorFieldsCssBuildOptions,
+  editorJsBuildOptions,
+  editorUiCssBuildOptions,
+} from './build.config.js';
 
 const colors = {
   yellow: '\u001B[33m',
@@ -32,7 +38,7 @@ async function indexDirectory(directory) {
   }
 }
 
-for (const sourceDirectory of ['src/cards/js', 'src/cards/css', 'src/editor/js']) {
+for (const sourceDirectory of ['src/cards/js', 'src/cards/css', 'src/editor/js', 'src/editor/css', 'src/shared/css']) {
   const absoluteDirectory = fileURLToPath(new URL(`../${sourceDirectory}`, import.meta.url));
   await indexDirectory(absoluteDirectory);
 
@@ -53,7 +59,12 @@ for (const sourceDirectory of ['src/cards/js', 'src/cards/css', 'src/editor/js']
         if (content) contentByPath.set(changedPath, content);
         else contentByPath.delete(changedPath);
 
-        changedDirectories.add(directory);
+        if (directory === 'src/shared/css') {
+          changedDirectories.add('src/cards/css');
+          changedDirectories.add('src/editor/css');
+        } else {
+          changedDirectories.add(directory);
+        }
         const file = relative(fileURLToPath(new URL('../', import.meta.url)), changedPath);
         console.log(colorize(`Changed: ${file}`, colors.yellow));
       }
@@ -108,6 +119,8 @@ const contexts = await Promise.all(
     [cardsJsBuildOptions, 'src/cards/js'],
     [cardsCssBuildOptions, 'src/cards/css'],
     [editorJsBuildOptions, 'src/editor/js'],
+    [editorFieldsCssBuildOptions, 'src/editor/css'],
+    [editorUiCssBuildOptions, 'src/editor/css'],
   ].map(([options, sourceDirectory]) =>
     context({
       ...options,
@@ -119,4 +132,6 @@ const contexts = await Promise.all(
 );
 
 await Promise.all(contexts.map((buildContext) => buildContext.watch()));
-console.log('Watching src/cards/js, src/cards/css, and src/editor/js. Press Ctrl+C to stop.');
+console.log(
+  'Watching src/cards/js, src/cards/css, src/editor/js, src/editor/css, and src/shared/css. Press Ctrl+C to stop.',
+);

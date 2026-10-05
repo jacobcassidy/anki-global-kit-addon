@@ -14,7 +14,7 @@ from .shortcuts.labels import shortcut_label
 
 ADDON_DIR = Path(__file__).resolve().parents[2]
 EDITOR_ASSET = ADDON_DIR / "desktop" / "editor" / "assets" / "editor.min.js"
-EDITOR_STYLES_DIR = ADDON_DIR / "desktop" / "editor" / "styles"
+EDITOR_STYLES_DIR = ADDON_DIR / "desktop" / "editor" / "assets"
 ICON_ASSET = ADDON_DIR / "desktop" / "shared" / "assets" / "inline-code.svg"
 
 
@@ -26,11 +26,13 @@ def _inject_features(editor: Editor) -> None:
     settings = settings.replace("<", "\\u003c")
     styles = {
         "ui": _read_editor_styles(
-            "editor-ui.css",
+            "editor-ui.min.css",
+            custom_filename="editor-ui.css",
             include_custom=editor_settings["anki_editor_custom_ui_styles"],
         ),
         "fields": _read_editor_styles(
-            "editor-fields.css",
+            "editor-fields.min.css",
+            custom_filename="editor-fields.css",
             include_custom=editor_settings["anki_editor_custom_fields_styles"],
         ),
     }
@@ -45,11 +47,16 @@ def _inject_features(editor: Editor) -> None:
     )
 
 
-def _read_editor_styles(filename: str, *, include_custom: bool = True) -> str:
+def _read_editor_styles(
+    filename: str,
+    *,
+    custom_filename: str,
+    include_custom: bool = True,
+) -> str:
     """Combine packaged editor CSS with a user's upgrade-safe overrides."""
     paths = [EDITOR_STYLES_DIR / filename]
     if include_custom:
-        paths.append(USER_FILES_DIR / filename)
+        paths.append(USER_FILES_DIR / custom_filename)
     return "\n".join(
         path.read_text(encoding="utf-8")
         for path in paths

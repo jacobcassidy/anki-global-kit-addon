@@ -1,4 +1,5 @@
 /* BASE */
+@import url("../../shared/css/syntax-highlighting.css");
 @import url("./base/variables.css");
 @import url("./base/default.css");
 @import url("./base/native.css");
