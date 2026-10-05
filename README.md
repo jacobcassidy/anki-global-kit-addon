@@ -8,7 +8,7 @@ Anki Global Kit adds reusable card templates, typed-answer tools, Markdown rende
 
 - Add multiple multiline answer fields to a card, including an optional bonus question and answer.
 - Show type hints and hide empty bonus sections automatically.
-- Use **Tab** to insert indentation (four spaces when the topic contains “Python,” otherwise two); use **Shift+Tab** to move focus forward.
+- Use **Tab** to indent Markdown list items by one level or insert indentation in other text (four spaces when the topic contains “Python,” otherwise two). Use **Shift+Tab** to unindent list items and **Control+Tab** to move focus forward.
 - Submit an answer with **Ctrl+Enter** on Anki Desktop and AnkiWeb.
 - Preserve typed answers for display on the back of the card, including AnkiDroid's review flow.
 

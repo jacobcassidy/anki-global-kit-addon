@@ -10,7 +10,7 @@ The Cards tab controls behavior in card question fields and during reviews.
 
 - **Enable Markdown shortcuts** turns the configured formatting shortcuts on or off as a group.
 - Each **Enable … shortcut** checkbox controls its individual shortcut. Click the shortcut field to record a key combination. Use its reset link to restore the default. Shortcuts require a modifier such as Ctrl, Alt, or Command; warnings identify conflicts and reserved keys.
-- **Enable tab indentation** makes Tab insert indentation in question fields: four spaces for Python topics and two spaces for other topics. Shift+Tab moves to the next field.
+- **Enable tab indentation** makes Tab indent Markdown list items by one level or insert indentation in other text: four spaces for Python topics and two spaces for other topics. Shift+Tab unindents list items. Control+Tab moves focus to the next element (use the physical Control key on macOS).
 
 ### Card Toolbar
 
