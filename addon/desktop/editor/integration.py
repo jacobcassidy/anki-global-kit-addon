@@ -15,7 +15,7 @@ from .features.shortcuts.labels import shortcut_label
 ADDON_DIR = Path(__file__).resolve().parents[2]
 EDITOR_ASSET = ADDON_DIR / "desktop" / "editor" / "assets" / "js" / "editor.min.js"
 EDITOR_STYLES_DIR = ADDON_DIR / "desktop" / "editor" / "assets" / "css"
-ICON_ASSET = ADDON_DIR / "shared" / "assets" / "icons" / "inline-code.svg"
+ICON_ASSET = ADDON_DIR / "shared" / "assets" / "icons" / "code-inline.svg"
 BLOCKQUOTE_ICON = ICON_ASSET.with_name("blockquote.svg")
 BLOCK_SHORTCUTS = {
     "unordered-list": "Ctrl+,",
