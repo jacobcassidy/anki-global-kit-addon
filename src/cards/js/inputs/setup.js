@@ -231,6 +231,7 @@ function addFormattingToolbar(textarea) {
       const button = document.createElement('button');
       button.className = `card-formatting-toolbar__button ${action.className}`;
       button.type = 'button';
+      button.tabIndex = -1;
       button.innerHTML = action.icon;
       const label = action.shortcut ? `${action.name} (${action.shortcut})` : action.name;
       button.title = label;
