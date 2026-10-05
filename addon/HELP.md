@@ -1,72 +1,47 @@
-# Settings
+# Anki Global Kit Help
 
-Save applies the settings in the dialog. Cancel closes it without saving. Settings are stored in the active Anki profile; sync the collection to carry changes to other devices.
+Open **Tools > Anki Global Kit Settings...** on Desktop. Use **Cards** for review tools and **Editor** for editing notes. Hover over help icons for individual setting details.
 
-## Cards
+**Save** applies settings; sync to carry card changes to other devices. Editor settings apply on Desktop. **Cancel** discards unsaved settings but does not undo confirmed note type actions.
 
-The Cards tab controls behavior in card question fields and during reviews.
+## Set up kit note types
 
-### Card Fields
+1. Open **Note Types** and choose a topic.
+2. Check **Create** under **Advance** for question-and-answer cards, or **Cloze** for cloze-deletion cards. Use **+** to add your own topic.
+3. Choose **Update Selected Note Types** and confirm the changes.
+4. Add a note using the new type, such as **Python (Advance)**, then sync your collection and media before reviewing on another device.
 
-- **Enable Markdown shortcuts** turns the configured formatting shortcuts on or off as a group.
-- Each **Enable … shortcut** checkbox controls its individual shortcut. Click the shortcut field to record a key combination. Use its reset link to restore the default. Shortcuts require a modifier such as Ctrl, Alt, or Command; warnings identify conflicts and reserved keys.
-- **Enable tab indentation** makes Tab indent Markdown list items by one level or insert indentation in other text: four spaces for Python topics and two spaces for other topics. Shift+Tab unindents list items. Control+Tab moves focus to the next element (use the physical Control key on macOS).
+For Advance notes, fill in **Question** and **Answer**. Enter `yes` in **Compare** to highlight differences from your typed answer; leave it empty to show the answers separately. Hints, bonus questions, and notes are optional. Cloze notes use **Cloze Question** and compare the primary answer automatically.
 
-### Card Toolbar
+Existing note types are checked automatically. To update their kit templates and styling, select **Replace** and confirm. Existing notes and fields are kept, but custom card templates may be replaced.
 
-- **Show formatting toolbar** displays a toolbar below each question field.
-- The individual button options show or hide the bold, italic, strikethrough, code block, inline code, unordered list, ordered list, and blockquote buttons.
+**Delete** removes empty note types or uncreated custom topics. Move or delete a type's notes first if deletion is unavailable. Note type actions apply through **Update Selected Note Types**, separately from **Save**.
 
-### Card Reviews
+After deleting a note type, Anki may require a full sync. Upload from the device where you made the deletion, then download on your other devices to keep the same collection. Sync other devices' pending changes before deleting.
 
-- **Enable Markdown rendering** converts submitted Markdown answers into formatted content, including headings, lists, links, and code blocks.
-- **Enable code block syntax highlighting** colors code blocks by language. A language named after the opening backticks takes precedence; otherwise, the card topic is used when possible.
+## Type and format answers
 
-## Editor
+Type in the card's input field, then reveal the answer to see your response and the reference.
 
-The Editor tab controls formatting tools and text handling in Anki Desktop editor fields.
+- Select text and use a formatting toolbar button or shortcut. With no selection, word formatting applies to the word at the caret. Apply it again to remove the formatting.
+- The toolbar appears above each input. Enable **Cards > Card Toolbar > Show formatting toolbar** if it is hidden. Hover over a button to see its shortcut.
+- With **Enable tab indentation** on, **Tab** indents list items and **Shift+Tab** unindents them. In other text, Tab inserts four spaces for Python topics and two otherwise. Physical **Control+Tab** moves focus forward, including on macOS.
 
-### Editor Fields
+Enable **Markdown rendering** under **Card Reviews** to format submitted answers: `**bold**`, `*italic*`, and `` `inline code` ``. Surround code blocks with lines of three backticks. Add a language after the opening backticks, such as `python`, to choose highlighting; otherwise, the topic is used when possible.
 
-- **Enable inline code shortcut** turns the inline-code keyboard shortcut on or off. Click the shortcut field to record a key combination, or use the reset link to restore its default.
-- **Enable tab indentation** makes Tab insert four spaces instead of moving focus.
-- **Enable custom Editor fields stylesheet** applies `user_files/editor-fields.css` after the kit defaults. **View Stylesheet** opens the folder containing the file.
+Click a shortcut field and press the new combination. **Escape** cancels capture; the reset link restores the default. Enable both the Markdown shortcut group and the individual shortcut, and resolve conflict warnings before saving. On macOS, displayed Command and Control symbols identify the physical keys.
 
-### Editor Formatting
+## Edit notes and customize appearance
 
-- **Clean up formatting when pasting** removes unwanted formatting while keeping useful content and structure.
-- **Copy selected source HTML** includes HTML formatting on the clipboard alongside plain text when copying a selection from an editor field.
-- **Normalize spaces around inline code** replaces non-breaking spaces next to inline code with regular spaces.
+Enable the inline-code button under **Editor UI** or its shortcut under **Editor Fields** to format a selection or word. On macOS, physical **Control+Shift+C** inserts Cloze; **Command+Shift+C** is the default inline-code shortcut. Turn paste cleanup off under **Editor Formatting** to keep original pasted formatting.
 
-### Editor UI
+Choose **View Stylesheet** to open `user_files`. Edit `editor-fields.css` for note fields or `editor-ui.css` for the surrounding interface. Enable the corresponding stylesheet setting and restart Anki to reload edits. These files survive add-on upgrades.
 
-- **Show inline code button in editor toolbar** adds an inline-code button to the Desktop editor toolbar. It formats selected text or starts an inline-code span.
-- **Enable custom Editor UI stylesheet** applies `user_files/editor-ui.css` after the kit defaults. **View Stylesheet** opens the folder containing the file.
+## If something does not work
 
-Both custom stylesheets are enabled by default. Restart Anki after editing the files to reload them.
+- **Changes are missing on another device:** save the card settings on Desktop and sync both the collection and media, then sync the other device. After updating the add-on, restart Desktop before syncing.
+- **A shortcut does nothing:** check its enable switches and conflict warning. Check whether another Anki shortcut uses the same keys.
+- **Answers show plain text:** enable Markdown rendering and syntax highlighting in **Card Reviews**. Check that code fences have matching opening and closing lines.
+- **Cards lack the kit tools:** use a kit note type. To update an existing kit type's templates, select **Replace** in **Note Types**.
 
-## Note Types
-
-The Note Types tab creates kit note types in the active profile and lets you replace or delete eligible kit note types. It does not modify existing note types unless you select **Replace**.
-
-- **Advance** creates a standard question-and-answer note type with typed-answer comparison.
-- **Cloze** creates a cloze-deletion note type.
-- **Create** selects a note type to create when it does not already exist. Existing note types are left unchanged.
-- **Replace** updates an existing note type with the kit templates and styling. Its notes and fields are kept, missing kit fields are added, and custom card templates may be replaced.
-- **Delete** removes an empty note type. Move or delete its cards first. The help icon in a disabled Delete cell explains this requirement.
-- **Topic** selects which topic-specific note type to create, replace, or delete. Use **+** to add a custom topic. Deleting a custom topic row from settings does not delete its note types or cards.
-- **Update Selected Note Types** applies the checked actions after confirmation. The action reports types that were created, replaced, deleted, or left unchanged.
-
-Deleting a note type changes the collection structure. Anki cannot merge that change with AnkiWeb, so syncing may show a conflict asking which collection to keep. On the device where you deleted the note type, choose **Upload to AnkiWeb** to keep the deletion. Then sync your other devices and choose **Download from AnkiWeb** there. This replaces their local collections with the uploaded version. Syncing before quitting may show the prompt sooner, but does not remove the required choice.
-
-## Changelog
-
-The Changelog tab displays release notes for the add-on.
-
-## About
-
-The About tab shows the add-on name, version, a short description, where settings are stored, and a link to the project repository.
-
-## Help
-
-The Help tab displays this guide. Use it to look up what each settings tab and option does.
+For an unresolved problem, [report an issue](https://github.com/jacobcassidy/anki-global-kit/issues) with your Anki version, device, steps to reproduce it, and a screenshot if useful.
