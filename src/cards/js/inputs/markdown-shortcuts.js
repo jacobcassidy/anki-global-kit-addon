@@ -126,6 +126,32 @@ export function toggleMarkdownFormatting(textarea, prefix, suffix) {
     return before === after && (prefix === '**' ? before >= 2 : before === 1 || before >= 3);
   };
 
+  // Formatting leaves the caret after the closing markers. Resolve that
+  // boundary to the contents so the next invocation can remove the wrapper.
+  if (start === end && value.slice(start - suffix.length, start) === suffix) {
+    if (isAsteriskStyle) {
+      const closingLength = countStarsBefore(start);
+      const closingStart = start - closingLength;
+      const openingEnd = closingStart > 0 ? value.lastIndexOf('*', closingStart - 1) + 1 : 0;
+      if (openingEnd > 0 && matchingAsteriskWrapper(openingEnd, closingStart)) {
+        start = end = closingStart;
+      } else if (openingEnd === 0 && closingLength === prefix.length + suffix.length) {
+        // An empty pair has no separate opening and closing runs.
+        start = end = start - suffix.length;
+      }
+    } else {
+      const closingStart = start - suffix.length;
+      const openingStart = value.lastIndexOf(prefix, closingStart - prefix.length);
+      if (
+        openingStart >= 0 &&
+        openingStart + prefix.length <= closingStart &&
+        !value.slice(openingStart + prefix.length, closingStart).includes(prefix)
+      ) {
+        start = end = closingStart;
+      }
+    }
+  }
+
   // First recognize an empty pair at the caret. This must happen before word
   // detection, otherwise the marker characters can be mistaken for a word.
   let isEmptyAsteriskSyntax = false;
@@ -214,7 +240,7 @@ export function toggleMarkdownFormatting(textarea, prefix, suffix) {
   // Recognize a code span or fenced block even when the caret or selection is
   // somewhere inside its contents rather than directly beside its markers.
   if (!isAsteriskStyle && !selectedHasMarkers) {
-    const openingStart = value.lastIndexOf(prefix, start);
+    const openingStart = value.lastIndexOf(prefix, start - prefix.length);
     const openingEnd = openingStart + prefix.length;
     const closingStart = value.indexOf(suffix, Math.max(end, openingEnd));
 
