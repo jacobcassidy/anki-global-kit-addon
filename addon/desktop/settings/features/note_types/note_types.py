@@ -27,7 +27,7 @@ from aqt.qt import (
 from aqt.utils import showWarning
 
 from ...services.config import save_note_type_selections
-from ....note_types import FORMATS, TOPICS, create_selected_note_types
+from ...services.note_types import FORMATS, TOPICS, create_selected_note_types
 from ...ui.widgets import HelpIndicator
 from ...shared.constants import (
     ADDON_PACKAGE_NAME,

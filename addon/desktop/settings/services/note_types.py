@@ -9,7 +9,7 @@ from aqt import mw
 from aqt.utils import askUser, showInfo, showWarning
 
 
-ADDON_DIR = Path(__file__).resolve().parent.parent
+ADDON_DIR = Path(__file__).resolve().parents[3]
 TEMPLATE_DIR = ADDON_DIR / "templates" / "note-types" / "parts"
 HTML_DIR = TEMPLATE_DIR / "html"
 STYLING_DIR = TEMPLATE_DIR / "styling"
