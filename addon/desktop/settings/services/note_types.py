@@ -1,12 +1,12 @@
 """Create topic-specific Anki Global Kit note types from template parts."""
 
 from copy import deepcopy
+from dataclasses import dataclass
 from html import escape
 from pathlib import Path
 
 from anki.consts import MODEL_CLOZE
 from aqt import mw
-from aqt.utils import askUser, showInfo, showWarning
 
 
 ADDON_DIR = Path(__file__).resolve().parents[3]
@@ -14,6 +14,57 @@ TEMPLATE_DIR = ADDON_DIR / "templates" / "note-types" / "parts"
 HTML_DIR = TEMPLATE_DIR / "html"
 STYLING_DIR = TEMPLATE_DIR / "styling"
 SCRIPT_PATH = TEMPLATE_DIR / "script" / "card-script.js"
+
+
+@dataclass(frozen=True)
+class NoteTypeOperation:
+    topic: str
+    card_format: str
+    name: str
+
+
+@dataclass(frozen=True)
+class NoteTypeChangePlan:
+    creates: tuple[NoteTypeOperation, ...]
+    overwrites: tuple[NoteTypeOperation, ...]
+    deletions: tuple[NoteTypeOperation, ...]
+    skipped: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class NoteTypeChangeResult:
+    created: tuple[str, ...]
+    overwritten: tuple[str, ...]
+    deleted: tuple[str, ...]
+    skipped: tuple[str, ...]
+
+
+class NoteTypeServiceError(Exception):
+    """Base class for note type service failures that the UI can present."""
+
+
+class NoActiveCollectionError(NoteTypeServiceError):
+    pass
+
+
+class DeletionValidationError(NoteTypeServiceError):
+    def __init__(self, name: str, *, missing: bool, after_confirmation: bool = False):
+        self.name = name
+        self.missing = missing
+        self.after_confirmation = after_confirmation
+
+
+class MissingTemplateFilesError(NoteTypeServiceError):
+    def __init__(self, paths: tuple[str, ...]):
+        self.paths = paths
+
+
+class NoteTypeApplyError(NoteTypeServiceError):
+    def __init__(self, applied_names: tuple[str, ...], cause: Exception):
+        self.applied_names = applied_names
+        self.cause = cause
+
+
 TOPICS = (
     "Command Line",
     "CSS",
@@ -142,77 +193,56 @@ def _create_note_type(
         models.update_dict(notetype)
 
 
-def create_selected_note_types(
+def plan_note_type_changes(
     selections: dict[str, set[str]],
     overwrites: dict[str, set[str]] | None = None,
     deletions: dict[str, set[str]] | None = None,
-) -> bool:
-    """Apply selected note type creates, replacements, and empty-type deletions."""
+) -> NoteTypeChangePlan:
+    """Plan note type changes and validate required template and deletion inputs."""
     if mw.col is None:
-        showWarning("Open an Anki profile before creating Anki Global Kit note types.")
-        return False
+        raise NoActiveCollectionError
 
+    overwrites = overwrites or {}
+    deletions = deletions or {}
     selected = [
         (topic, card_format)
         for topic, selected_formats in selections.items()
         for card_format in FORMATS
         if card_format in selected_formats
     ]
-    overwrites = overwrites or {}
-    deletions = deletions or {}
-
     existing_names = {entry.name for entry in mw.col.models.all_names_and_ids()}
-    requested = [
-        (topic, card_format, f"{topic} ({card_format})")
+    requested = tuple(
+        NoteTypeOperation(topic, card_format, f"{topic} ({card_format})")
         for topic, card_format in selected
-    ]
-    names_to_create = [item for item in requested if item[2] not in existing_names]
-    names_to_overwrite = [
-        item
-        for item in requested
-        if item[2] in existing_names and item[1] in overwrites.get(item[0], set())
-    ]
-    skipped = [
-        item[2]
-        for item in requested
-        if item[2] in existing_names and item not in names_to_overwrite
-    ]
-
-    requested_deletions = [
-        (topic, card_format, f"{topic} ({card_format})")
+    )
+    creates = tuple(operation for operation in requested if operation.name not in existing_names)
+    overwrite_operations = tuple(
+        operation
+        for operation in requested
+        if operation.name in existing_names
+        and operation.card_format in overwrites.get(operation.topic, set())
+    )
+    skipped = tuple(
+        operation.name
+        for operation in requested
+        if operation.name in existing_names and operation not in overwrite_operations
+    )
+    requested_deletions = tuple(
+        NoteTypeOperation(topic, card_format, f"{topic} ({card_format})")
         for topic, selected_formats in deletions.items()
         for card_format in FORMATS
         if card_format in selected_formats
-    ]
-    names_to_delete = []
-    for topic, card_format, name in requested_deletions:
-        notetype = mw.col.models.by_name(name)
+    )
+    for operation in requested_deletions:
+        notetype = mw.col.models.by_name(operation.name)
         if notetype is None:
-            showWarning(
-                f"The note type {name} no longer exists. Reopen settings and try again."
-            )
-            return False
+            raise DeletionValidationError(operation.name, missing=True)
         if mw.col.models.use_count(notetype):
-            showWarning(
-                f"The note type {name} contains notes and cannot be deleted here. "
-                "Move its notes to another note type in Anki first."
-            )
-            return False
-        names_to_delete.append((topic, card_format, name))
-
-    if not names_to_create and not names_to_overwrite and not names_to_delete:
-        if skipped:
-            showInfo(
-                "All selected note types already exist in this profile. "
-                "Select Replace beside an existing format to update it."
-            )
-        else:
-            showInfo("Select at least one note type action to apply.")
-        return False
+            raise DeletionValidationError(operation.name, missing=False)
 
     selected_for_templates = {
-        (topic, card_format)
-        for topic, card_format, _name in names_to_create + names_to_overwrite
+        (operation.topic, operation.card_format)
+        for operation in (*creates, *overwrite_operations)
     }
     required_paths = (
         [SCRIPT_PATH, STYLING_DIR / "imports.css"]
@@ -223,106 +253,88 @@ def create_selected_note_types(
         spec = FORMATS[card_format]
         required_paths.extend(HTML_DIR / spec[side] for side in ("front", "back"))
         required_paths.append(_topic_style_path(topic))
-    missing = [
+    missing_paths = tuple(
         str(path.relative_to(ADDON_DIR))
         for path in required_paths
         if not path.is_file()
-    ]
-    if missing:
-        showWarning(
-            "Anki Global Kit card template files are missing. Rebuild or reinstall "
-            "the add-on package.\n\n" + "\n".join(missing)
-        )
-        return False
+    )
+    if missing_paths:
+        raise MissingTemplateFilesError(missing_paths)
 
-    confirmation = []
-    if names_to_create:
-        names = "\n".join(f"• {name}" for _, _, name in names_to_create)
-        confirmation.append(f"Create these new note types?\n{names}")
-    if names_to_overwrite:
-        names = "\n".join(f"• {name}" for _, _, name in names_to_overwrite)
-        confirmation.append(
-            "Replace these existing note types with the kit templates and styling?\n"
-            "Their notes and fields will be kept; missing kit fields will be added, "
-            "and custom card templates may be replaced.\n"
-            f"{names}"
-        )
-    if names_to_delete:
-        names = "\n".join(f"• {name}" for _, _, name in names_to_delete)
-        confirmation.append(
-            "Delete these empty note types? They contain no notes.\n" + names
-        )
-    if not askUser(
-        "Apply the selected note type changes in the active Anki profile?\n\n"
-        + "\n\n".join(confirmation)
-    ):
-        return False
+    return NoteTypeChangePlan(
+        creates=creates,
+        overwrites=overwrite_operations,
+        deletions=requested_deletions,
+        skipped=skipped,
+    )
 
-    # Recheck after confirmation so notes added while the dialog was open are safe.
-    for _topic, _card_format, name in names_to_delete:
-        notetype = mw.col.models.by_name(name)
+
+def _revalidate_deletions(
+    operations: tuple[NoteTypeOperation, ...],
+) -> None:
+    if mw.col is None:
+        raise NoActiveCollectionError
+    for operation in operations:
+        notetype = mw.col.models.by_name(operation.name)
         if notetype is None:
-            showWarning(
-                f"The note type {name} no longer exists. Reopen settings and try again."
+            raise DeletionValidationError(
+                operation.name,
+                missing=True,
+                after_confirmation=True,
             )
-            return False
         if mw.col.models.use_count(notetype):
-            showWarning(
-                f"The note type {name} now contains notes and cannot be deleted. "
-                "Move its notes to another note type in Anki first."
+            raise DeletionValidationError(
+                operation.name,
+                missing=False,
+                after_confirmation=True,
             )
-            return False
 
-    created = []
-    overwritten = []
-    deleted = []
+
+def apply_note_type_changes(plan: NoteTypeChangePlan) -> NoteTypeChangeResult:
+    """Apply a previously confirmed note type change plan."""
+    if mw.col is None:
+        raise NoActiveCollectionError
+    _revalidate_deletions(plan.deletions)
+
+    created: list[str] = []
+    overwritten: list[str] = []
+    deleted: list[str] = []
     try:
-        for topic, card_format, name in names_to_create:
-            _create_note_type(name, topic, FORMATS[card_format])
-            created.append(name)
-        for topic, card_format, name in names_to_overwrite:
-            existing_notetype = mw.col.models.by_name(name)
+        for operation in plan.creates:
+            _create_note_type(
+                operation.name,
+                operation.topic,
+                FORMATS[operation.card_format],
+            )
+            created.append(operation.name)
+        for operation in plan.overwrites:
+            existing_notetype = mw.col.models.by_name(operation.name)
             if existing_notetype is None:
                 raise RuntimeError(
-                    f"The existing note type {name} could not be loaded."
+                    f"The existing note type {operation.name} could not be loaded."
                 )
             _create_note_type(
-                name,
-                topic,
-                FORMATS[card_format],
+                operation.name,
+                operation.topic,
+                FORMATS[operation.card_format],
                 existing_notetype,
             )
-            overwritten.append(name)
-        for _topic, _card_format, name in names_to_delete:
-            notetype = mw.col.models.by_name(name)
+            overwritten.append(operation.name)
+        for operation in plan.deletions:
+            notetype = mw.col.models.by_name(operation.name)
             if notetype is None:
-                raise RuntimeError(f"The note type {name} could not be loaded.")
+                raise RuntimeError(
+                    f"The note type {operation.name} could not be loaded."
+                )
             mw.col.models.remove(notetype["id"])
-            deleted.append(name)
+            deleted.append(operation.name)
     except Exception as error:
-        details = "\n".join(created + overwritten + deleted) if (
-            created or overwritten or deleted
-        ) else "None"
-        showWarning(
-            "Anki Global Kit could not apply all selected note type changes.\n\n"
-            f"Applied changes:\n{details}\n\nError: {error}"
-        )
-        return False
+        applied_names = tuple(created + overwritten + deleted)
+        raise NoteTypeApplyError(applied_names, error) from error
 
-    message_parts = []
-    if created:
-        message_parts.append("Created note types:\n" + "\n".join(created))
-    if overwritten:
-        message_parts.append("Replaced note types:\n" + "\n".join(overwritten))
-    if deleted:
-        message_parts.append("Deleted empty note types:\n" + "\n".join(deleted))
-    if skipped:
-        message_parts.append(
-            "Already present and left unchanged:\n" + "\n".join(skipped)
-        )
-    if created or overwritten or deleted:
-        message_parts.append(
-            "Sync this profile to make the note type changes available on other devices."
-        )
-    showInfo("\n\n".join(message_parts))
-    return True
+    return NoteTypeChangeResult(
+        created=tuple(created),
+        overwritten=tuple(overwritten),
+        deleted=tuple(deleted),
+        skipped=plan.skipped,
+    )
