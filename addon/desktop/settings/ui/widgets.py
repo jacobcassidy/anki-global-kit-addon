@@ -112,6 +112,7 @@ class CardShortcutInput(QPushButton):
     def __init__(self, shortcut: str, parent: QWidget) -> None:
         super().__init__(format_shortcut(shortcut) or "none", parent)
         self._capturing = False
+        self._captured_tab = False
         self._capture_generation = 0
         self._transient_validation_message = ""
         self._persistent_validation_message = ""
@@ -226,6 +227,28 @@ class CardShortcutInput(QPushButton):
 
     def eventFilter(self, watched, event) -> bool:
         if self._capturing and watched is self:
+            if self._captured_tab and event.type() == QEvent.Type.KeyPress:
+                self._captured_tab = False
+                event.accept()
+                return True
+            if event.type() == QEvent.Type.KeyRelease:
+                self._captured_tab = False
+            modified_tab = (
+                event.key() in (Qt.Key.Key_Tab, Qt.Key.Key_Backtab)
+                and event.modifiers() & (
+                    Qt.KeyboardModifier.ControlModifier
+                    | Qt.KeyboardModifier.AltModifier
+                    | Qt.KeyboardModifier.MetaModifier
+                )
+            ) if event.type() in (QEvent.Type.ShortcutOverride, QEvent.Type.KeyPress) else False
+            if modified_tab and event.type() == QEvent.Type.ShortcutOverride:
+                # Capture the intact Tab combination before Qt focus traversal.
+                self._captured_tab = True
+                self.keyPressEvent(event)
+                return True
+            if modified_tab and event.type() == QEvent.Type.KeyPress:
+                event.accept()
+                return True
             if event.type() == QEvent.Type.FocusOut:
                 self._stop_capture()
             elif event.type() == QEvent.Type.KeyPress and event.key() in (
@@ -303,7 +326,8 @@ class CardShortcutInput(QPushButton):
                 parts.append(name)
 
         key_name = (
-            QKeySequence(event.key()).toString(QKeySequence.SequenceFormat.PortableText)
+            "Tab" if event.key() in (Qt.Key.Key_Tab, Qt.Key.Key_Backtab)
+            else QKeySequence(event.key()).toString(QKeySequence.SequenceFormat.PortableText)
             or event.text().upper()
         )
         if key_name and key_name not in parts:
@@ -380,7 +404,7 @@ class CardShortcutInput(QPushButton):
             modifiers = [
                 {"Shift": "Shift", "Alt": "Alt"}.get(part, part) for part in pieces
             ]
-        key = text.upper()
+        key = "Tab" if text.lower() == "tab" else text.upper()
         modifier_set = set(modifiers)
         if (is_mac and modifier_set == {"Ctrl", "Meta"}) or (
             not is_mac and modifier_set == {"Ctrl", "Alt"}

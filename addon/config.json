@@ -86,5 +86,11 @@
       "Advance": false,
       "Cloze": false
     }
-  }
+  },
+  "card_input_tab_indent_increase_shortcut": "Alt+Tab",
+  "card_input_tab_indent_increase_shortcut_enabled": true,
+  "card_input_tab_indent_decrease_shortcut": "Control+Tab",
+  "card_input_tab_indent_decrease_shortcut_enabled": true,
+  "card_toolbar_indent_increase": true,
+  "card_toolbar_indent_decrease": true
 }

@@ -388,7 +388,7 @@ export function hasMacCommandCommaHandler(markdownEnabled, configuredShortcuts) 
   );
 }
 
-function matchesMarkdownShortcut(event, shortcut, isMac) {
+export function matchesMarkdownShortcut(event, shortcut, isMac) {
   const parts = shortcut.split('+');
   const key = parts.pop();
   if (!key) return false;
@@ -402,7 +402,7 @@ function matchesMarkdownShortcut(event, shortcut, isMac) {
   if (!keyMatches) return false;
   const qtCtrl = modifiers.has('ctrl');
   const qtMeta = modifiers.has('meta');
-  const ctrl = (isMac ? qtMeta : qtCtrl) || codeBlock;
+  const ctrl = (isMac ? qtMeta : qtCtrl) || modifiers.has('control') || codeBlock;
   const meta = (isMac ? qtCtrl : qtMeta) || (codeBlock && isMac);
   const alt = modifiers.has('alt') || (codeBlock && !isMac);
   const shift = modifiers.has('shift');

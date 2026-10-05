@@ -6,7 +6,7 @@ import {
   toggleMarkdownBlock,
   toggleMarkdownFormatting,
 } from './markdown-shortcuts.js';
-import { handleTabIndentation } from './tab-navigation.js';
+import { handleTabIndentation, changeTextareaIndentation } from './tab-navigation.js';
 import { reportQuestionShortcutFocus } from './shortcut-focus.js';
 import { settings } from '../runtime/settings.js';
 import boldIcon from '../../../../addon/shared/assets/icons/text-bold.svg';
@@ -16,6 +16,8 @@ import codeBlockIcon from '../../../../addon/shared/assets/icons/code-block.svg'
 import inlineCodeIcon from '../../../../addon/shared/assets/icons/code-inline.svg';
 import unorderedListIcon from '../../../../addon/shared/assets/icons/list-unordered.svg';
 import orderedListIcon from '../../../../addon/shared/assets/icons/list-ordered.svg';
+import indentIncreaseIcon from '../../../../addon/shared/assets/icons/indent-increase.svg';
+import indentDecreaseIcon from '../../../../addon/shared/assets/icons/indent-decrease.svg';
 import blockquoteIcon from '../../../../addon/shared/assets/icons/blockquote.svg';
 
 /**
@@ -26,17 +28,24 @@ export function watchQuestionInputs() {
   if (questionInputs.length < 1) return;
 
   if (isAnkiPC) {
+    globalThis.ankiGlobalKitIndentQuestion = () => {
+      const input = document.activeElement;
+      if (settings.cardInputTabIndentation && input?.matches('.question-input')) changeTextareaIndentation(input);
+    };
     globalThis.ankiGlobalKitUnindentQuestion = () => {
       const input = document.activeElement;
       if (settings.cardInputTabIndentation && input?.matches('.question-input')) {
-        handleTabIndentation(input, new KeyboardEvent('keydown', { key: 'Tab', ctrlKey: true }));
+        changeTextareaIndentation(input, true);
       }
     };
   }
 
   if (isAnkiPC) {
     globalThis.ankiGlobalKitReportQuestionFocus = () =>
-      reportQuestionShortcutFocus(settings.cardInputMarkdownShortcuts, settings.cardInputMarkdownShortcutsMap);
+      reportQuestionShortcutFocus(true, {
+        ...(settings.cardInputMarkdownShortcuts ? settings.cardInputMarkdownShortcutsMap : {}),
+        ...(settings.cardInputTabIndentation ? settings.cardInputTabShortcutsMap : {}),
+      });
     globalThis.ankiGlobalKitReportQuestionFocus();
   }
 
@@ -74,7 +83,7 @@ export function watchQuestionInputs() {
         )
           return;
         if (settings.cardInputTabIndentation) {
-          handleTabIndentation(questionInput, event);
+          handleTabIndentation(questionInput, event, settings.cardInputTabShortcutsMap);
         }
       },
       { capture: true },
@@ -101,8 +110,8 @@ function addFormattingToolbar(textarea) {
         : 'Ctrl+Alt+' + shortcut.split('+').pop();
     const isMac = navigator.platform.startsWith('Mac');
     const labels = isMac
-      ? { Ctrl: '⌘', Meta: '⌃', Alt: '⌥', Shift: '⇧' }
-      : { Ctrl: 'Ctrl', Meta: 'Meta', Alt: 'Alt', Shift: 'Shift' };
+      ? { Ctrl: '⌘', Meta: '⌃', Control: '⌃', Alt: '⌥', Shift: '⇧' }
+      : { Ctrl: 'Ctrl', Meta: 'Meta', Control: 'Ctrl', Alt: 'Alt', Shift: 'Shift' };
     return shortcut
       .split('+')
       .map((part) => labels[part] ?? part)
@@ -178,6 +187,24 @@ function addFormattingToolbar(textarea) {
       group: 'Lists and quotes',
     },
     {
+      enabled: settings.cardToolbarIndentIncrease,
+      name: 'Indent increase',
+      icon: indentIncreaseIcon,
+      indentation: 'increase',
+      shortcut: settings.cardInputTabIndentation ? formatShortcut(settings.cardInputTabShortcutsMap.increase) : '',
+      className: 'is-indent-increase',
+      group: 'Lists and quotes',
+    },
+    {
+      enabled: settings.cardToolbarIndentDecrease,
+      name: 'Indent decrease',
+      icon: indentDecreaseIcon,
+      indentation: 'decrease',
+      shortcut: settings.cardInputTabIndentation ? formatShortcut(settings.cardInputTabShortcutsMap.decrease) : '',
+      className: 'is-indent-decrease',
+      group: 'Lists and quotes',
+    },
+    {
       enabled: settings.cardToolbarBlockquote,
       name: 'Blockquote',
       icon: blockquoteIcon,
@@ -214,7 +241,9 @@ function addFormattingToolbar(textarea) {
         const selectionEnd = textarea.selectionEnd;
         textarea.focus();
         textarea.setSelectionRange(selectionStart, selectionEnd);
-        if (action.blockMarker) {
+        if (action.indentation) {
+          changeTextareaIndentation(textarea, action.indentation === 'decrease');
+        } else if (action.blockMarker) {
           toggleMarkdownBlock(textarea, action.blockMarker);
         } else {
           toggleMarkdownFormatting(textarea, action.prefix, action.suffix);

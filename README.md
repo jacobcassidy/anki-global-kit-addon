@@ -43,14 +43,14 @@ Restart Anki Desktop so the updated card assets are installed, then sync the col
 - Multiline answer inputs, optional bonus questions, type hints, and notes.
 - Typed answers retained for display on the card back, including AnkiDroid's review flow.
 - Character-by-character answer comparison showing matching text, mistakes, and omissions, with Unicode characters kept intact.
-- **Alt+Tab** to indent Markdown list items and physical **Control+Tab** to unindent. Alt+Tab indents the current or selected rows by four spaces for Python topics and two otherwise; Control+Tab removes leading indentation. **Tab** and **Shift+Tab** retain native focus navigation.
+- **Alt+Tab** to indent Markdown list items and physical **Control+Tab** to unindent by default. Enable, disable, or customize each under **Cards → Card Fields → Enable tab indentation shortcuts**. Alt+Tab indents the current or selected rows by four spaces for Python topics and two otherwise; Control+Tab removes leading indentation. **Tab** and **Shift+Tab** retain native focus navigation.
 - Reveal answers with **Control+Enter** on Windows/Linux Desktop and AnkiWeb, or **Command+Enter** on macOS Desktop.
 
 ### Markdown and code
 
 Submitted answers can render headings, paragraphs, line breaks, nested lists, blockquotes, fenced code blocks, inline code, bold, italics, strikethrough, and HTTP(S) links.
 
-Use the optional formatting toolbar above card inputs or configure shortcuts in **Cards**. Each shortcut and toolbar button can be enabled individually. Word formatting applies to selected text or the word at the caret; applying it again removes the markers. List conversion preserves nested items' indentation and list styles.
+Use the optional formatting toolbar above card inputs or configure shortcuts in **Cards**. Indent increase and decrease buttons appear after the ordered list button and before blockquote; they work independently of their shortcut enable switches. Each shortcut and toolbar button can be enabled individually. Word formatting applies to selected text or the word at the caret; applying it again removes the markers. List conversion preserves nested items' indentation and list styles.
 
 Code blocks use the language written after the opening backticks, such as `python`, or infer a language from the topic. Supported languages and aliases include Python, JavaScript/Node, TypeScript, Java, C, C++, C#, SQL, Bash/shell, JSON, Ruby, Go, Rust, and PHP. Comparison and syntax highlighting are bundled with the kit.
 

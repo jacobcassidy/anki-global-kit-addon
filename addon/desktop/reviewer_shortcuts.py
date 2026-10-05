@@ -3,7 +3,7 @@
 from weakref import WeakSet
 
 from aqt import gui_hooks, mw
-from aqt.qt import QApplication, QEvent, QObject, Qt
+from aqt.qt import QApplication, QEvent, QObject, Qt, sip
 from aqt.reviewer import Reviewer
 from aqt.utils import is_mac
 
@@ -16,6 +16,25 @@ _editor_webviews = WeakSet()
 _preview_input_webviews = WeakSet()
 
 
+def _live_webviews(webviews):
+    """A weak Python reference can outlive the wrapped Qt widget."""
+    for webview in list(webviews):
+        if sip.isdeleted(webview):
+            webviews.discard(webview)
+        else:
+            yield webview
+
+
+def _webview_contains_focus(webview, focused):
+    return (
+        webview is not None
+        and focused is not None
+        and not sip.isdeleted(webview)
+        and not sip.isdeleted(focused)
+        and (focused is webview or webview.isAncestorOf(focused))
+    )
+
+
 def _input_owns_command_comma() -> bool:
     if not (
         is_mac
@@ -26,9 +45,7 @@ def _input_owns_command_comma() -> bool:
         return False
     focused_widget = QApplication.focusWidget()
     webview = mw.reviewer.web
-    return focused_widget is webview or (
-        focused_widget is not None and webview.isAncestorOf(focused_widget)
-    )
+    return _webview_contains_focus(webview, focused_widget)
 
 
 def _sync_preferences_action(*_args) -> None:
@@ -52,17 +69,13 @@ def _refresh_question_focus(*_args) -> None:
     """Ask the DOM again after Qt focus returns without a textarea focus event."""
     _sync_preferences_action()
     focused_widget = QApplication.focusWidget()
-    for webview in list(_preview_input_webviews):
-        if focused_widget is webview or (
-            focused_widget is not None and webview.isAncestorOf(focused_widget)
-        ):
+    for webview in _live_webviews(_preview_input_webviews):
+        if _webview_contains_focus(webview, focused_widget):
             webview.eval("globalThis.ankiGlobalKitReportQuestionFocus?.();")
     if mw.state != "review":
         return
     webview = mw.reviewer.web
-    if focused_widget is webview or (
-        focused_widget is not None and webview.isAncestorOf(focused_widget)
-    ):
+    if _webview_contains_focus(webview, focused_widget):
         webview.eval("globalThis.ankiGlobalKitReportQuestionFocus?.();")
 
 
@@ -71,33 +84,65 @@ def _register_editor_tab_shortcut(shortcuts, editor) -> None:
 
 
 def _register_editor_webview(editor) -> None:
-    _editor_webviews.add(editor.web)
+    if editor.web is not None and not sip.isdeleted(editor.web):
+        _editor_webviews.add(editor.web)
 
 
-def _tab_shortcut_target():
+def _card_tab_action(event, settings):
+    """Match customized Tab combinations before Qt consumes their keypress."""
+    control = Qt.KeyboardModifier.MetaModifier if is_mac else Qt.KeyboardModifier.ControlModifier
+    modifiers = {
+        "Ctrl": Qt.KeyboardModifier.ControlModifier,
+        "Meta": Qt.KeyboardModifier.MetaModifier,
+        "Control": control,
+        "Alt": Qt.KeyboardModifier.AltModifier,
+        "Shift": Qt.KeyboardModifier.ShiftModifier,
+    }
+    for action, default in (("increase", "Alt+Tab"), ("decrease", "Control+Tab")):
+        key = f"card_input_tab_indent_{action}_shortcut"
+        if not settings.get(f"{key}_enabled", True):
+            continue
+        shortcut = settings.get(key, default)
+        parts = shortcut.split("+")
+        if parts.pop().lower() != "tab":
+            continue
+        expected = event.modifiers() & ~event.modifiers()
+        if not parts or any(part not in modifiers for part in parts):
+            continue
+        for part in parts:
+            expected |= modifiers[part]
+        if event.modifiers() == expected:
+            return "globalThis.ankiGlobalKitIndentQuestion?.();" if action == "increase" else "globalThis.ankiGlobalKitUnindentQuestion?.();"
+    return None
+
+
+def _tab_shortcut_target(event):
     """Only claim Control+Tab in webviews whose indentation setting is enabled."""
     from .settings import get_editor_settings, get_settings
 
     focused = QApplication.focusWidget()
     if focused is None:
         return None
-    for webview in list(_editor_webviews):
-        if focused is webview or webview.isAncestorOf(focused):
-            if get_editor_settings()["anki_editor_tab_indentation"]:
+    for webview in _live_webviews(_editor_webviews):
+        if _webview_contains_focus(webview, focused):
+            control = Qt.KeyboardModifier.MetaModifier if is_mac else Qt.KeyboardModifier.ControlModifier
+            if get_editor_settings()["anki_editor_tab_indentation"] and event.modifiers() == control:
                 return webview, "globalThis.ankiGlobalKitEditor?.unindent();"
             return None
-    for webview in list(_preview_input_webviews):
-        if focused is webview or webview.isAncestorOf(focused):
-            if get_settings()["card_input_tab_indentation"]:
-                return webview, "globalThis.ankiGlobalKitUnindentQuestion?.();"
+    for webview in _live_webviews(_preview_input_webviews):
+        if _webview_contains_focus(webview, focused):
+            settings = get_settings()
+            script = _card_tab_action(event, settings)
+            if settings["card_input_tab_indentation"] and script:
+                return webview, script
             return None
     if mw.state == "review" and _active_reviewer is mw.reviewer:
         webview = mw.reviewer.web
-        if (
-            (focused is webview or webview.isAncestorOf(focused))
-            and get_settings()["card_input_tab_indentation"]
-        ):
-            return webview, "globalThis.ankiGlobalKitUnindentQuestion?.();"
+        if _webview_contains_focus(webview, focused):
+            settings = get_settings()
+            script = _card_tab_action(event, settings)
+            if settings["card_input_tab_indentation"] and script:
+                return webview, script
     return None
 
 
@@ -105,12 +150,10 @@ class _PreferencesShortcutFilter(QObject):
     """Route native Control+Tab and let the card input handle Command+Comma."""
 
     def eventFilter(self, watched, event) -> bool:
-        control = Qt.KeyboardModifier.MetaModifier if is_mac else Qt.KeyboardModifier.ControlModifier
         if (
             event.type() in (QEvent.Type.ShortcutOverride, QEvent.Type.KeyPress)
-            and event.key() == Qt.Key.Key_Tab
-            and event.modifiers() == control
-            and (target := _tab_shortcut_target()) is not None
+            and event.key() in (Qt.Key.Key_Tab, Qt.Key.Key_Backtab)
+            and (target := _tab_shortcut_target(event)) is not None
         ):
             # Chromium can lose the Tab key in the subsequent native KeyPress.
             # Handle the intact ShortcutOverride before focus traversal wins.
@@ -146,7 +189,7 @@ def _on_webview_message(handled: tuple[bool, object], message: str, context):
         # The JS-message hook supplies the window owning the card webview.
         # Browse previewers expose _web; template previews expose preview_web.
         webview = getattr(context, "preview_web", None) or getattr(context, "_web", None)
-        if webview is None:
+        if webview is None or sip.isdeleted(webview):
             return handled
         if is_focus:
             _preview_input_webviews.add(webview)

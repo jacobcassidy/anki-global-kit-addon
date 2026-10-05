@@ -1,19 +1,29 @@
-/** Indent with Alt+Tab and unindent with physical Control+Tab; leave Tab to native focus navigation. */
-export function handleTabIndentation(textarea, event) {
-  if (event.key !== 'Tab' || event.isComposing || event.shiftKey) return;
+import { matchesMarkdownShortcut } from './markdown-shortcuts.js';
 
-  const controlPressed = event.ctrlKey;
-  const otherModifierPressed = event.metaKey;
-  if (otherModifierPressed || event.altKey === controlPressed) return;
-  const outdent = controlPressed;
+/** Handle configured indentation shortcuts; leave plain Tab to native navigation. */
+export function handleTabIndentation(textarea, event, shortcuts) {
+  if (event.isComposing) return false;
+  const isMac = navigator.platform.startsWith('Mac');
+  const configured = shortcuts ?? { increase: 'Alt+Tab', decrease: 'Control+Tab' };
+  for (const [action, shortcut] of Object.entries(configured)) {
+    if (!shortcut || !matchesMarkdownShortcut(event, shortcut, isMac)) continue;
+    event.preventDefault();
+    event.stopPropagation();
+    changeTextareaIndentation(textarea, action === 'decrease');
+    return true;
+  }
+  return false;
+}
 
+/** Shared row indentation action for toolbar buttons and keyboard shortcuts. */
+export function changeTextareaIndentation(textarea, outdent = false) {
   const topic = document.querySelector('.topic');
   const indentation = topic && /python/i.test(topic.textContent) ? '    ' : '  ';
-  indentLines(textarea, event, indentation, outdent);
+  indentLines(textarea, indentation, outdent);
 }
 
 /** Change leading indentation on every current or selected text row. */
-function indentLines(textarea, event, indentation, outdent) {
+function indentLines(textarea, indentation, outdent) {
   const value = textarea.value;
   const start = textarea.selectionStart;
   const end = textarea.selectionEnd;
@@ -40,8 +50,6 @@ function indentLines(textarea, event, indentation, outdent) {
     })
     .join('\n');
 
-  event.preventDefault();
-  event.stopPropagation();
   if (!edits.length) return true;
 
   const mapPosition = (position) =>

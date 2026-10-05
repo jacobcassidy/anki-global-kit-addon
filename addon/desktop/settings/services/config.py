@@ -1,6 +1,7 @@
 """Read and write add-on settings."""
 
 from aqt import mw
+from aqt.utils import is_mac
 
 from ..configs.constants import ADDON_PACKAGE_NAME, DEFAULT_SETTINGS
 from ..helpers.shortcuts import migrate_legacy_card_shortcut
@@ -13,6 +14,10 @@ def get_settings() -> dict[str, object]:
         for name, default in DEFAULT_SETTINGS.items()
         if not name.startswith("anki_editor_")
     }
+    for name in ("card_input_tab_indent_increase_shortcut", "card_input_tab_indent_decrease_shortcut"):
+        # These new settings already store Qt modifier names. Only translate
+        # the portable physical-Control default, never swap a saved Meta key.
+        settings[name] = settings[name].replace("Control+", "Meta+" if is_mac else "Ctrl+")
     for name in (
         "card_input_markdown_bold_shortcut",
         "card_input_markdown_italic_shortcut",

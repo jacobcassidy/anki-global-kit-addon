@@ -156,8 +156,8 @@ def open_settings() -> None:
         validation_state["duplicates"] = []
         validation_state["reserved"] = []
 
-        if question_markdown_shortcuts.isChecked():
-            for key, label in markdown_shortcut_definitions:
+        for key, label in markdown_shortcut_definitions:
+            if fields.shortcut_masters[key].isChecked():
                 enabled_key = f"{key}_enabled"
                 if not markdown_shortcut_checkboxes[enabled_key].isChecked():
                     continue
@@ -204,7 +204,7 @@ def open_settings() -> None:
             checkbox.shortcut_conflict = key in conflict_highlights
             style_shortcut_option(
                 checkbox,
-                inactive=not question_markdown_shortcuts.isChecked(),
+                inactive=not fields.shortcut_masters[key].isChecked(),
             )
 
         editor_shortcut = ""
@@ -256,11 +256,11 @@ def open_settings() -> None:
         )
 
     def validate_shortcut_candidate(key: str, candidate: str) -> str | None:
-        if not question_markdown_shortcuts.isChecked():
+        if not fields.shortcut_masters[key].isChecked():
             return None
         candidate_normalized = normalize_shortcut(candidate)
         for other_key, other_label in markdown_shortcut_definitions:
-            if other_key == key:
+            if other_key == key or not fields.shortcut_masters[other_key].isChecked():
                 continue
             if not markdown_shortcut_checkboxes[f"{other_key}_enabled"].isChecked():
                 continue
@@ -284,6 +284,7 @@ def open_settings() -> None:
             refresh_shortcut_warnings
         )
     question_markdown_shortcuts.toggled.connect(refresh_shortcut_warnings)
+    all_controls["card_input_tab_indentation"].toggled.connect(refresh_shortcut_warnings)
     editor_inline_code_shortcut.add_change_listener(refresh_shortcut_warnings)
     editor_inline_code_shortcut_enabled.toggled.connect(refresh_shortcut_warnings)
     refresh_shortcut_warnings()

@@ -37,6 +37,16 @@ export const settings = {
         : '',
   },
   cardInputTabIndentation: savedSettings.card_input_tab_indentation !== false,
+  cardInputTabShortcutsMap: {
+    increase:
+      savedSettings.card_input_tab_indent_increase_shortcut_enabled !== false
+        ? (savedSettings.card_input_tab_indent_increase_shortcut ?? 'Alt+Tab')
+        : '',
+    decrease:
+      savedSettings.card_input_tab_indent_decrease_shortcut_enabled !== false
+        ? (savedSettings.card_input_tab_indent_decrease_shortcut ?? 'Control+Tab')
+        : '',
+  },
   cardReviewMarkdownRendering: savedSettings.card_review_markdown_rendering !== false,
   cardReviewSyntaxHighlighting: savedSettings.card_review_syntax_highlighting !== false,
   cardToolbarEnabled: savedSettings.card_toolbar_enabled !== false,
@@ -47,5 +57,7 @@ export const settings = {
   cardToolbarInlineCode: savedSettings.card_toolbar_inline_code !== false,
   cardToolbarUnorderedList: savedSettings.card_toolbar_unordered_list !== false,
   cardToolbarOrderedList: savedSettings.card_toolbar_ordered_list !== false,
+  cardToolbarIndentIncrease: savedSettings.card_toolbar_indent_increase !== false,
+  cardToolbarIndentDecrease: savedSettings.card_toolbar_indent_decrease !== false,
   cardToolbarBlockquote: savedSettings.card_toolbar_blockquote !== false,
 };

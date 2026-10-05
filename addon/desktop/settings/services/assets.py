@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from aqt import mw
-from aqt.utils import showWarning
+from aqt.utils import is_mac, showWarning
 
 from .config import get_settings
 from ..configs.constants import (
@@ -29,7 +29,17 @@ def update_assets_for_profile() -> None:
         for name in ASSET_NAMES:
             data = ASSET_PATHS[name].read_bytes()
             if name == JS_ASSET_NAME:
-                settings = json.dumps(get_settings(), separators=(",", ":"))
+                web_settings = get_settings()
+                for action in ("increase", "decrease"):
+                    key = f"card_input_tab_indent_{action}_shortcut"
+                    # Keep physical Control consistent when this media file syncs
+                    # from Desktop to another client's browser keyboard events.
+                    physical_control = "Meta" if is_mac else "Ctrl"
+                    web_settings[key] = "+".join(
+                        "Control" if part == physical_control else part
+                        for part in web_settings[key].split("+")
+                    )
+                settings = json.dumps(web_settings, separators=(",", ":"))
                 data = f"globalThis.ankiGlobalKitSettings={settings};\n".encode() + data
             destination = Path(mw.col.media.dir()) / name
             previous = destination.read_bytes() if destination.is_file() else None
