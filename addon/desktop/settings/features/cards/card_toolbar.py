@@ -2,8 +2,8 @@
 
 from aqt.qt import QCheckBox, QGroupBox, QVBoxLayout, QWidget
 
-from ...constants import NESTED_INDENT
-from ...widgets import add_checkbox_row
+from ...shared.constants import NESTED_INDENT
+from ...ui.widgets import add_checkbox_row
 
 
 BUTTON_SETTINGS = (

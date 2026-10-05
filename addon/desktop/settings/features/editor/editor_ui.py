@@ -3,8 +3,8 @@
 from aqt.qt import QCheckBox, QGroupBox, QHBoxLayout, QPushButton, QVBoxLayout, QWidget
 from aqt.utils import openFolder
 
-from ...constants import DEFAULT_SETTINGS, USER_FILES_DIR, ZERO_MARGINS
-from ...widgets import HelpIndicator, add_checkbox_row
+from ...shared.constants import DEFAULT_SETTINGS, USER_FILES_DIR, ZERO_MARGINS
+from ...ui.widgets import HelpIndicator, add_checkbox_row
 
 
 def build_editor_ui_section(parent: QWidget, current_settings: dict):

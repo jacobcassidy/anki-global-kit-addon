@@ -16,16 +16,16 @@ from aqt.qt import (
     QVBoxLayout,
 )
 
-from .assets import update_assets_for_profile
-from .config import get_editor_settings, get_settings, write_settings
-from .constants import (
+from ..services.assets import update_assets_for_profile
+from ..services.config import get_editor_settings, get_settings, write_settings
+from ..shared.constants import (
     DEFAULT_SETTINGS,
     SECTION_SPACING,
     SHORTCUT_MODIFIER_HINT,
     SHARED_ASSET_DIR,
 )
 from .theme import get_theme_color
-from .shortcuts import (
+from ..shared.shortcuts import (
     anki_editor_format_shortcut_warnings,
     anki_shortcut_warnings,
     format_shortcut,
@@ -33,13 +33,13 @@ from .shortcuts import (
     reserved_shortcut_warnings,
     shortcut_has_required_modifier,
 )
-from .features.about import build_about_tab
-from .features.cards import SHORTCUT_DEFINITIONS, build_cards_tab
-from .features.cards.card_fields import style_shortcut_option
-from .features.changelog import build_changelog_tab
-from .features.editor import build_editor_tab
-from .features.help import build_help_tab
-from .features.note_types import build_note_types_tab
+from ..features.about import build_about_tab
+from ..features.cards import SHORTCUT_DEFINITIONS, build_cards_tab
+from ..features.cards.card_fields import style_shortcut_option
+from ..features.changelog import build_changelog_tab
+from ..features.editor import build_editor_tab
+from ..features.help import build_help_tab
+from ..features.note_types import build_note_types_tab
 from .widgets import CardShortcutInput
 
 

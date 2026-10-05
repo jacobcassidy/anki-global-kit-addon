@@ -13,13 +13,13 @@ from aqt.qt import (
     QWidget,
 )
 
-from ...constants import (
+from ...shared.constants import (
     DEFAULT_SETTINGS,
     NESTED_INDENT,
     ZERO_MARGINS,
 )
-from ...theme import get_theme_color
-from ...widgets import CardShortcutInput, add_checkbox_row, make_reset_link
+from ...ui.theme import get_theme_color
+from ...ui.widgets import CardShortcutInput, add_checkbox_row, make_reset_link
 
 
 SHORTCUT_DEFINITIONS = (

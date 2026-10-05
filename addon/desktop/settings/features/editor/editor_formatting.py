@@ -2,7 +2,7 @@
 
 from aqt.qt import QCheckBox, QGroupBox, QVBoxLayout, QWidget
 
-from ...widgets import add_checkbox_row
+from ...ui.widgets import add_checkbox_row
 
 
 def build_editor_formatting_section(parent: QWidget, current_settings: dict):

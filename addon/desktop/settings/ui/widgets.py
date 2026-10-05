@@ -20,7 +20,7 @@ from aqt.qt import (
 )
 from aqt.utils import is_mac
 
-from .constants import (
+from ..shared.constants import (
     COLOR_TRANSPARENT,
     NESTED_INDENT,
     SHORTCUT_MIN_WIDTH,
@@ -29,7 +29,7 @@ from .constants import (
     ZERO_MARGINS,
 )
 from .theme import get_theme_color
-from .shortcuts import (
+from ..shared.shortcuts import (
     format_shortcut,
     normalize_shortcut,
     reserved_shortcut_warnings,

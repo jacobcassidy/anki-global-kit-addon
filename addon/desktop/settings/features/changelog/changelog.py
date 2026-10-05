@@ -10,8 +10,8 @@ from aqt.qt import (
     QWidget,
 )
 
-from ...constants import ADDON_DIR, SECTION_SPACING
-from ...widgets import add_button_row
+from ...shared.constants import ADDON_DIR, SECTION_SPACING
+from ...ui.widgets import add_button_row
 
 
 def build_changelog_tab(parent: QWidget) -> QWidget:

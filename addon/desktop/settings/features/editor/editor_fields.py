@@ -14,9 +14,9 @@ from aqt.qt import (
 )
 from aqt.utils import openFolder
 
-from ...constants import DEFAULT_SETTINGS, USER_FILES_DIR, ZERO_MARGINS
-from ...theme import get_theme_color
-from ...widgets import CardShortcutInput, HelpIndicator, add_checkbox_row, make_reset_link
+from ...shared.constants import DEFAULT_SETTINGS, USER_FILES_DIR, ZERO_MARGINS
+from ...ui.theme import get_theme_color
+from ...ui.widgets import CardShortcutInput, HelpIndicator, add_checkbox_row, make_reset_link
 
 
 @dataclass

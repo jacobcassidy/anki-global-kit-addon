@@ -10,8 +10,8 @@ from aqt.qt import (
     QWidget,
 )
 
-from ...constants import ADDON_DIR, JS_ASSET_NAME, SECTION_SPACING, VERSION
-from ...widgets import add_button_row
+from ...shared.constants import ADDON_DIR, JS_ASSET_NAME, SECTION_SPACING, VERSION
+from ...ui.widgets import add_button_row
 
 
 def build_about_tab(parent: QWidget) -> QWidget:

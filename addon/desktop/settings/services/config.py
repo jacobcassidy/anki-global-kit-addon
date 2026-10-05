@@ -2,8 +2,8 @@
 
 from aqt import mw
 
-from .constants import ADDON_PACKAGE_NAME, DEFAULT_SETTINGS
-from .shortcuts import migrate_legacy_card_shortcut
+from ..shared.constants import ADDON_PACKAGE_NAME, DEFAULT_SETTINGS
+from ..shared.shortcuts import migrate_legacy_card_shortcut
 
 
 def get_settings() -> dict[str, object]:

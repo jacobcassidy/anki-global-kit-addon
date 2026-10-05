@@ -26,15 +26,15 @@ from aqt.qt import (
 )
 from aqt.utils import showWarning
 
-from ...config import save_note_type_selections
+from ...services.config import save_note_type_selections
 from ....note_types import FORMATS, TOPICS, create_selected_note_types
-from ...widgets import HelpIndicator
-from ...constants import (
+from ...ui.widgets import HelpIndicator
+from ...shared.constants import (
     ADDON_PACKAGE_NAME,
     NOTE_TYPES_ROW_PADDING,
     ZERO_MARGINS,
 )
-from ...theme import get_theme_color
+from ...ui.theme import get_theme_color
 
 
 @dataclass

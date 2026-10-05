@@ -8,7 +8,7 @@ from aqt import gui_hooks
 from aqt.editor import Editor
 
 from ..settings import get_editor_settings
-from ..settings.constants import USER_FILES_DIR
+from ..settings.shared.constants import USER_FILES_DIR
 from .features.paste.cleanup import clean_paste_mime, finish_paste_layout
 from .features.shortcuts.labels import shortcut_label
 
