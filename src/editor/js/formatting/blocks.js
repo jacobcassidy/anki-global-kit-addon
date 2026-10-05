@@ -334,6 +334,32 @@ export function toggleEditorBlock(format) {
   return true;
 }
 
+/** Remove one space indentation level with native edits so undo remains available. */
+function unindentEditorText(field, selection) {
+  if (!selection?.rangeCount) return;
+  const range = selection.getRangeAt(0);
+  if (!field.contains(range.startContainer) || !field.contains(range.endContainer)) return;
+  const start = textOffset(field, range.startContainer, range.startOffset);
+  const end = textOffset(field, range.endContainer, range.endOffset);
+  const blocks = selectedBlocks(field, range);
+  if (!blocks.length) blocks.push(field);
+  const edits = blocks
+    .map((block) => ({
+      start: textOffset(field, block, 0),
+      length: (block.textContent.match(/^(?:\t|[ \u00a0]{1,4})/) || [''])[0].length,
+    }))
+    .filter((edit) => edit.length);
+  for (const edit of [...edits].reverse()) {
+    selection.removeAllRanges();
+    selection.addRange(rangeAt(field, edit.start, edit.start + edit.length));
+    document.execCommand('delete');
+  }
+  const map = (position) =>
+    position - edits.reduce((offset, edit) => offset + Math.max(0, Math.min(position - edit.start, edit.length)), 0);
+  selection.removeAllRanges();
+  selection.addRange(rangeAt(field, map(start), map(end)));
+}
+
 function stop(event) {
   event.preventDefault();
   event.stopImmediatePropagation();
@@ -364,25 +390,25 @@ export function installBlockFormatting() {
   document.addEventListener(
     'keydown',
     (event) => {
-      if (event.isComposing || event.altKey) return;
+      if (event.isComposing) return;
       const field = event.composedPath().find((node) => node?.matches?.(FIELD));
       if (!field) return;
       const primary = /Mac|iPhone|iPad/.test(navigator.platform) ? event.metaKey : event.ctrlKey;
-      if (primary && !event.shiftKey && [',', '.', '/'].includes(event.key)) {
+      if (primary && !event.altKey && !event.shiftKey && [',', '.', '/'].includes(event.key)) {
         const format = { ',': 'unordered-list', '.': 'ordered-list', '/': 'blockquote' }[event.key];
         if (toggleEditorBlock(format)) stop(event);
-      } else if (
-        event.key === 'Tab' &&
-        !event.ctrlKey &&
-        !event.metaKey &&
-        getEditorSettings().anki_editor_tab_indentation
-      ) {
+      } else if (event.key === 'Tab' && !event.shiftKey && getEditorSettings().anki_editor_tab_indentation) {
+        const mac = /Mac|iPhone|iPad/.test(navigator.platform);
+        const control = mac ? event.metaKey : event.ctrlKey;
+        const otherModifier = mac ? event.ctrlKey : event.metaKey;
+        if (otherModifier || event.altKey === control) return;
         const selection = getEditorSelection();
+        stop(event);
         if (elementOf(selection?.focusNode)?.closest('li')) {
-          stop(event);
-          document.execCommand(event.shiftKey ? 'outdent' : 'indent');
-        } else if (!event.shiftKey) {
-          stop(event);
+          document.execCommand(control ? 'outdent' : 'indent');
+        } else if (control) {
+          unindentEditorText(field, selection);
+        } else {
           document.execCommand('insertText', false, '    ');
         }
       }

@@ -43,7 +43,7 @@ Restart Anki Desktop so the updated card assets are installed, then sync the col
 - Multiline answer inputs, optional bonus questions, type hints, and notes.
 - Typed answers retained for display on the card back, including AnkiDroid's review flow.
 - Character-by-character answer comparison showing matching text, mistakes, and omissions, with Unicode characters kept intact.
-- **Tab** to indent Markdown list items, **Shift+Tab** to unindent, and physical **Control+Tab** to move focus forward. In other text, Tab inserts four spaces for Python topics and two otherwise.
+- **Alt+Tab** to indent Markdown list items and physical **Control+Tab** to unindent. In other text, Alt+Tab inserts four spaces for Python topics and two otherwise; Control+Tab removes leading indentation. **Tab** and **Shift+Tab** retain native focus navigation.
 - Reveal answers with **Control+Enter** on Windows/Linux Desktop and AnkiWeb, or **Command+Enter** on macOS Desktop.
 
 ### Markdown and code
@@ -65,7 +65,7 @@ Code blocks use the language written after the opening backticks, such as `pytho
 
 - Inline-code formatting through a configurable shortcut and optional toolbar button.
 - Tab indentation, inline-code space normalization, source HTML copying, and rich-text paste cleanup.
-- List buttons and shortcuts change only the outermost selected list level, preserving child styles and indentation. Plain indented rows become nested lists. **Tab** and **Shift+Tab** indent and unindent list items when editor tab indentation is enabled.
+- List buttons and shortcuts change only the outermost selected list level, preserving child styles and indentation. Plain indented rows become nested lists. **Alt+Tab** and physical **Control+Tab** indent and unindent list items when editor tab indentation is enabled. In plain text, Alt+Tab inserts four spaces and Control+Tab removes leading indentation. **Tab** and **Shift+Tab** retain native focus navigation.
 - Add or remove a blockquote at the current indentation level with the toolbar button or **Command+/** on macOS (**Control+/** on Windows/Linux).
 - Physical **Control+Shift+C** for Cloze on macOS, leaving the default **Command+Shift+C** shortcut available for inline code.
 - Separate custom stylesheets for editor fields and the surrounding UI. Use **View Stylesheet** in the **Editor** tab to open `user_files/editor-fields.css` or `user_files/editor-ui.css`, then restart Anki after editing. These files are preserved during add-on upgrades.

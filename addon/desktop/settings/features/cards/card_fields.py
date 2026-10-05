@@ -164,7 +164,7 @@ def build_card_fields_section(parent: QWidget, current_settings: dict) -> CardFi
     add_checkbox_row(
         layout,
         tab_indentation,
-        "Tab indents list items or inserts spaces: four for Python topics, two otherwise. Shift+Tab unindents list items. Control+Tab moves focus forward (physical Control on macOS).",
+        "Alt+Tab indents list items or inserts spaces: four for Python topics, two otherwise. Control+Tab removes indentation (physical Control on macOS). Tab and Shift+Tab move focus.",
     )
     controls: dict[str, QWidget] = {
         "card_input_markdown_shortcuts": master_toggle,

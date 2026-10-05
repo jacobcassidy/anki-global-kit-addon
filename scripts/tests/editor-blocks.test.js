@@ -156,7 +156,7 @@ test('formatting uses one native insertion and keeps the caret on the same conte
   assert.equal(window.getSelection().focusOffset, 1);
 });
 
-test('Tab and Shift+Tab in lists use indent and outdent; Control+Tab passes through', () => {
+test('Alt+Tab and Control+Tab change list levels while Tab retains native navigation', () => {
   const { field, range, dom } = editor('<ul><li>A</li></ul>');
   const commands = nativeInsertion(field);
   range.setStart(field.querySelector('li').firstChild, 1);
@@ -164,12 +164,72 @@ test('Tab and Shift+Tab in lists use indent and outdent; Control+Tab passes thro
   window.getSelection().removeAllRanges();
   window.getSelection().addRange(range);
   installBlockFormatting();
-  for (const options of [{}, { shiftKey: true }, { ctrlKey: true }]) {
+  for (const options of [{}, { shiftKey: true }, { altKey: true }, { ctrlKey: true }]) {
     field.dispatchEvent(
       new dom.window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true, ...options }),
     );
   }
   assert.deepEqual(commands, ['indent', 'outdent']);
+});
+
+for (const [platform, modifier] of [
+  ['MacIntel', 'metaKey'],
+  ['Linux', 'ctrlKey'],
+]) {
+  test(`editor physical Control+Tab unindents on ${platform}`, () => {
+    const { field, range, dom } = editor('<ul><li>A</li></ul>');
+    Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { platform } });
+    const commands = nativeInsertion(field);
+    range.setStart(field.querySelector('li').firstChild, 1);
+    range.collapse(true);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    installBlockFormatting();
+    const dispatch = (options) => {
+      const event = new dom.window.KeyboardEvent('keydown', {
+        key: 'Tab',
+        bubbles: true,
+        cancelable: true,
+        ...options,
+      });
+      field.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    assert.equal(dispatch({}), false);
+    assert.equal(dispatch({ shiftKey: true }), false);
+    assert.equal(dispatch({ altKey: true, [modifier]: true }), false);
+    assert.equal(dispatch({ [modifier === 'metaKey' ? 'ctrlKey' : 'metaKey']: true }), false);
+    assert.equal(dispatch({ altKey: true }), true);
+    assert.equal(dispatch({ [modifier]: true }), true);
+    assert.deepEqual(commands, ['indent', 'outdent']);
+  });
+}
+
+test('editor Control+Tab removes plain text indentation and preserves formatting and selection', () => {
+  const { field, range, dom } = editor('<div>    <b>one</b></div><div>  two</div><div>three</div>');
+  const selection = window.getSelection();
+  range.setStart(field.firstChild.querySelector('b').firstChild, 1);
+  range.setEnd(field.children[2].firstChild, 0);
+  selection.addRange(range);
+  const commands = [];
+  document.execCommand = (command) => {
+    commands.push(command);
+    assert.equal(command, 'delete');
+    selection.getRangeAt(0).deleteContents();
+    return true;
+  };
+  installBlockFormatting();
+  field.dispatchEvent(
+    new dom.window.KeyboardEvent('keydown', {
+      key: 'Tab',
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true,
+    }),
+  );
+  assert.equal(field.innerHTML, '<div><b>one</b></div><div>two</div><div>three</div>');
+  assert.equal(selection.toString(), 'netwo');
+  assert.deepEqual(commands, ['delete', 'delete']);
 });
 
 test('the existing list button and shortcut route to the same formatter', () => {

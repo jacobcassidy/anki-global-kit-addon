@@ -65,15 +65,15 @@ function key(options = {}) {
 }
 
 for (const marker of ['-', '*', '+', '1.', '12.']) {
-  test(`Tab and Shift+Tab change the ${marker} list level at the line start`, () => {
+  test(`Alt+Tab and Control+Tab change the ${marker} list level at the line start`, () => {
     const text = `${marker} item`;
     const { input, next } = setup(text, text.length - 2);
     const caret = input.selectionStart;
-    handleTabIndentation(input, key());
+    handleTabIndentation(input, key({ altKey: true }));
     assert.equal(input.value, `  ${text}`);
     assert.equal(input.selectionStart, caret + 2);
     assert.equal(input.selectionEnd, caret + 2);
-    handleTabIndentation(input, key({ shiftKey: true }));
+    handleTabIndentation(input, key({ metaKey: true }));
     assert.equal(input.value, text);
     assert.equal(input.selectionStart, caret);
     assert.equal(input.inputEvents, 2);
@@ -81,38 +81,38 @@ for (const marker of ['-', '*', '+', '1.', '12.']) {
   });
 }
 
-test('a nested list item renders as a child after Tab and a sibling after Shift+Tab', () => {
+test('a nested list item renders as a child after Alt+Tab and a sibling after Control+Tab', () => {
   const { input } = setup('- parent\n- child');
-  handleTabIndentation(input, key());
+  handleTabIndentation(input, key({ altKey: true }));
   assert.equal((markdownToHtml(input.value).match(/<ul>/g) || []).length, 2);
-  handleTabIndentation(input, key({ shiftKey: true }));
+  handleTabIndentation(input, key({ metaKey: true }));
   assert.equal((markdownToHtml(input.value).match(/<ul>/g) || []).length, 1);
 });
 
 test('Python list levels use four spaces', () => {
   const { input } = setup('- item', 6, 6, 'Python');
-  handleTabIndentation(input, key());
+  handleTabIndentation(input, key({ altKey: true }));
   assert.equal(input.value, '    - item');
-  handleTabIndentation(input, key({ shiftKey: true }));
+  handleTabIndentation(input, key({ metaKey: true }));
   assert.equal(input.value, '- item');
 });
 
 test('selected list items indent together without including the following line', () => {
   const value = '- one\n- two\n- three';
   const { input } = setup(value, 0, 12);
-  handleTabIndentation(input, key());
+  handleTabIndentation(input, key({ altKey: true }));
   assert.equal(input.value, '  - one\n  - two\n- three');
   assert.equal(input.selectionStart, 2);
   assert.equal(input.selectionEnd, 16);
-  handleTabIndentation(input, key({ shiftKey: true }));
+  handleTabIndentation(input, key({ metaKey: true }));
   assert.equal(input.value, value);
   assert.equal(input.selectionStart, 0);
   assert.equal(input.selectionEnd, 12);
 });
 
-test('Shift+Tab at the root list level consumes the key without moving focus', () => {
+test('Control+Tab at the root list level consumes the key without moving focus', () => {
   const { input, next } = setup('- item');
-  const event = key({ shiftKey: true });
+  const event = key({ metaKey: true });
   handleTabIndentation(input, event);
   assert.equal(input.value, '- item');
   assert.equal(input.inputEvents, 0);
@@ -121,62 +121,66 @@ test('Shift+Tab at the root list level consumes the key without moving focus', (
 });
 
 for (const indentation of [' ', '\t']) {
-  test(`Shift+Tab removes a partial level or a tab: ${JSON.stringify(indentation)}`, () => {
+  test(`Control+Tab removes a partial level or a tab: ${JSON.stringify(indentation)}`, () => {
     const { input } = setup(`${indentation}- item`);
-    handleTabIndentation(input, key({ shiftKey: true }));
+    handleTabIndentation(input, key({ metaKey: true }));
     assert.equal(input.value, '- item');
   });
 }
 
-test('Tab in plain text still replaces the selection with spaces', () => {
+test('Alt+Tab in plain text still replaces the selection with spaces', () => {
   const { input } = setup('some text', 5, 9);
-  handleTabIndentation(input, key());
+  handleTabIndentation(input, key({ altKey: true }));
   assert.equal(input.value, 'some   ');
   assert.equal(input.selectionStart, 7);
 });
 
-test('list-like text in a fenced code block uses ordinary Tab insertion', () => {
+test('list-like text in a fenced code block uses Alt+Tab space insertion', () => {
   const { input } = setup('```\n- item\n```', 8);
-  handleTabIndentation(input, key());
+  handleTabIndentation(input, key({ altKey: true }));
   assert.equal(input.value, '```\n- it  em\n```');
 });
 
-test('Shift+Tab outside a list keeps native backward navigation', () => {
-  const { input, next } = setup('plain');
-  const event = key({ shiftKey: true });
-  handleTabIndentation(input, event);
-  assert.equal(event.prevented, false);
-  assert.equal(next.focusCalls, 0);
-});
+for (const options of [{}, { shiftKey: true }]) {
+  test(`Tab retains native focus navigation: ${JSON.stringify(options)}`, () => {
+    const { input } = setup('- item');
+    const event = key(options);
+    handleTabIndentation(input, event);
+    assert.equal(input.value, '- item');
+    assert.equal(event.prevented, false);
+    assert.equal(event.stopped, false);
+  });
+}
 
 for (const [platform, modifier] of [
   ['MacIntel', 'metaKey'],
   ['Linux', 'ctrlKey'],
 ]) {
-  test(`physical Control+Tab advances focus on ${platform}`, () => {
-    const { input, next } = setup('- item', 6, 6, 'JavaScript', platform);
+  test(`physical Control+Tab unindents on ${platform}`, () => {
+    const { input } = setup('  - item', 8, 8, 'JavaScript', platform);
     const event = key({ [modifier]: true });
     handleTabIndentation(input, event);
-    assert.equal(next.focusCalls, 1);
     assert.equal(input.value, '- item');
     assert.equal(event.prevented, true);
     assert.equal(event.stopped, true);
   });
 }
 
-test('Control+Tab skips hidden and disabled elements', () => {
-  const { input, next } = setup('plain');
-  const hidden = { ...next, hidden: true };
-  const disabled = { ...next, disabled: true };
-  document.querySelectorAll = () => [input, hidden, disabled, next];
-  window.getComputedStyle = (element) => ({ visibility: element.hidden ? 'hidden' : 'visible', display: 'block' });
+test('Control+Tab removes leading spaces from selected plain text and code', () => {
+  const { input } = setup('```\n    one\n    two\n```', 4, 20, 'Python');
   handleTabIndentation(input, key({ metaKey: true }));
-  assert.equal(next.focusCalls, 1);
-  assert.equal(hidden.focusCalls, 0);
-  assert.equal(disabled.focusCalls, 0);
+  assert.equal(input.value, '```\none\ntwo\n```');
+  assert.equal(input.selectionStart, 4);
+  assert.equal(input.selectionEnd, 12);
 });
 
-for (const options of [{ ctrlKey: true }, { altKey: true }, { isComposing: true }, { key: 'Enter' }]) {
+for (const options of [
+  { ctrlKey: true },
+  { altKey: true, metaKey: true },
+  { altKey: true, shiftKey: true },
+  { altKey: true, isComposing: true },
+  { altKey: true, key: 'Enter' },
+]) {
   test(`unrelated shortcuts and composition leave text unchanged: ${JSON.stringify(options)}`, () => {
     const { input } = setup('- item');
     const event = key(options);

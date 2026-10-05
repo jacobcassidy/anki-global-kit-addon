@@ -1,40 +1,17 @@
 import { isAnkiPC } from '../runtime/platform.js';
 
-/** Indent list items or text with Tab; advance focus with physical Control+Tab. */
+/** Indent with Alt+Tab and unindent with physical Control+Tab; leave Tab to native focus navigation. */
 export function handleTabIndentation(textarea, event) {
-  if (event.key !== 'Tab' || event.isComposing || event.altKey) return;
+  if (event.key !== 'Tab' || event.isComposing || event.shiftKey) return;
 
   const controlPressed = isAnkiPC && navigator.platform.startsWith('Mac') ? event.metaKey : event.ctrlKey;
   const otherModifierPressed = isAnkiPC && navigator.platform.startsWith('Mac') ? event.ctrlKey : event.metaKey;
-  if (otherModifierPressed) return;
-
-  if (controlPressed) {
-    if (event.shiftKey) return;
-    event.preventDefault();
-    event.stopPropagation();
-    const focusableElements = Array.from(
-      document.querySelectorAll('a[href], button, input, select, textarea, [tabindex], [contenteditable="true"]'),
-    ).filter((element) => {
-      const style = window.getComputedStyle(element);
-      return (
-        !element.disabled &&
-        element.tabIndex >= 0 &&
-        style.visibility !== 'hidden' &&
-        style.display !== 'none' &&
-        element.getClientRects().length > 0
-      );
-    });
-    const currentIndex = focusableElements.indexOf(textarea);
-    const nextElement = focusableElements[currentIndex + 1];
-
-    if (currentIndex >= 0 && nextElement) nextElement.focus();
-    return;
-  }
+  if (otherModifierPressed || event.altKey === controlPressed) return;
+  const outdent = controlPressed;
 
   const topic = document.querySelector('.topic');
   const indentation = topic && /python/i.test(topic.textContent) ? '    ' : '  ';
-  if (indentMarkdownList(textarea, event, indentation)) return;
-  if (event.shiftKey) return;
+  if (indentLines(textarea, event, indentation, outdent)) return;
 
   event.preventDefault();
   event.stopPropagation();
@@ -45,8 +22,8 @@ export function handleTabIndentation(textarea, event) {
   textarea.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
-/** Change the leading indentation on each selected Markdown list item. */
-function indentMarkdownList(textarea, event, indentation) {
+/** Change list levels, or remove leading whitespace from selected text lines. */
+function indentLines(textarea, event, indentation, outdent) {
   const value = textarea.value;
   const start = textarea.selectionStart;
   const end = textarea.selectionEnd;
@@ -56,7 +33,7 @@ function indentMarkdownList(textarea, event, indentation) {
   const blockEnd = nextNewline < 0 ? value.length : nextNewline;
   const edits = [];
   let lineStart = blockStart;
-  // List-like text in a fenced code block should retain ordinary Tab behavior.
+  // List-like text in a fenced code block should retain ordinary space insertion.
   let inCodeBlock =
     value
       .slice(0, blockStart)
@@ -64,30 +41,30 @@ function indentMarkdownList(textarea, event, indentation) {
       .filter((line) => /^\s*```/.test(line)).length %
       2 ===
     1;
-  let hasListItem = false;
+  let hasMatchingLine = false;
   const lines = value.slice(blockStart, blockEnd).split('\n');
   const replacement = lines
     .map((line) => {
       const originalStart = lineStart;
       lineStart += line.length + 1;
-      if (/^\s*```/.test(line)) {
+      if (!outdent && /^\s*```/.test(line)) {
         inCodeBlock = !inCodeBlock;
         return line;
       }
-      const list = !inCodeBlock && line.match(/^([ \t]*)(?:[-+*]|\d+\.)[ \t]+/);
+      const list = outdent ? line.match(/^([ \t]*)/) : !inCodeBlock && line.match(/^([ \t]*)(?:[-+*]|\d+\.)[ \t]+/);
       if (!list) return line;
-      hasListItem = true;
-      const removeLength = event.shiftKey
+      hasMatchingLine = true;
+      const removeLength = outdent
         ? list[1].startsWith('\t')
           ? 1
           : Math.min(list[1].match(/^ */)[0].length, indentation.length)
         : 0;
-      const prefix = event.shiftKey ? '' : indentation;
+      const prefix = outdent ? '' : indentation;
       if (removeLength || prefix) edits.push({ start: originalStart, removeLength, prefix });
       return prefix + line.slice(removeLength);
     })
     .join('\n');
-  if (!hasListItem) return false;
+  if (!hasMatchingLine) return false;
 
   event.preventDefault();
   event.stopPropagation();
