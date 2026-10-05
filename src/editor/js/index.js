@@ -5,7 +5,7 @@ import { installCopySource } from './clipboard/copy-source.js';
 import { installClozeShortcuts } from './cloze/shortcuts.js';
 import { beginPasteLayout, finishPasteLayout } from './paste/layout.js';
 import { installEditorStyles } from './styles.js';
-import { installBlockFormatting, toggleEditorBlock } from './formatting/blocks.js';
+import { installBlockFormatting, toggleEditorBlock, unindentEditorField } from './formatting/blocks.js';
 
 if (!globalThis.ankiGlobalKitEditor) {
   installSelectionTracking();
@@ -23,5 +23,9 @@ if (!globalThis.ankiGlobalKitEditor) {
     finishPasteLayout,
   };
 }
+
+// Note loads reinject the bundle into existing editor webviews. Refresh the
+// native action even if the editor was initialized with an older bundle.
+globalThis.ankiGlobalKitEditor.unindent = unindentEditorField;
 
 installEditorStyles();

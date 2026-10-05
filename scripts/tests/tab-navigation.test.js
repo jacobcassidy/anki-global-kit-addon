@@ -73,7 +73,7 @@ for (const marker of ['-', '*', '+', '1.', '12.']) {
     assert.equal(input.value, `  ${text}`);
     assert.equal(input.selectionStart, caret + 2);
     assert.equal(input.selectionEnd, caret + 2);
-    handleTabIndentation(input, key({ metaKey: true }));
+    handleTabIndentation(input, key({ ctrlKey: true }));
     assert.equal(input.value, text);
     assert.equal(input.selectionStart, caret);
     assert.equal(input.inputEvents, 2);
@@ -85,7 +85,7 @@ test('a nested list item renders as a child after Alt+Tab and a sibling after Co
   const { input } = setup('- parent\n- child');
   handleTabIndentation(input, key({ altKey: true }));
   assert.equal((markdownToHtml(input.value).match(/<ul>/g) || []).length, 2);
-  handleTabIndentation(input, key({ metaKey: true }));
+  handleTabIndentation(input, key({ ctrlKey: true }));
   assert.equal((markdownToHtml(input.value).match(/<ul>/g) || []).length, 1);
 });
 
@@ -93,7 +93,7 @@ test('Python list levels use four spaces', () => {
   const { input } = setup('- item', 6, 6, 'Python');
   handleTabIndentation(input, key({ altKey: true }));
   assert.equal(input.value, '    - item');
-  handleTabIndentation(input, key({ metaKey: true }));
+  handleTabIndentation(input, key({ ctrlKey: true }));
   assert.equal(input.value, '- item');
 });
 
@@ -104,7 +104,7 @@ test('selected list items indent together without including the following line',
   assert.equal(input.value, '  - one\n  - two\n- three');
   assert.equal(input.selectionStart, 2);
   assert.equal(input.selectionEnd, 16);
-  handleTabIndentation(input, key({ metaKey: true }));
+  handleTabIndentation(input, key({ ctrlKey: true }));
   assert.equal(input.value, value);
   assert.equal(input.selectionStart, 0);
   assert.equal(input.selectionEnd, 12);
@@ -112,7 +112,7 @@ test('selected list items indent together without including the following line',
 
 test('Control+Tab at the root list level consumes the key without moving focus', () => {
   const { input, next } = setup('- item');
-  const event = key({ metaKey: true });
+  const event = key({ ctrlKey: true });
   handleTabIndentation(input, event);
   assert.equal(input.value, '- item');
   assert.equal(input.inputEvents, 0);
@@ -123,22 +123,23 @@ test('Control+Tab at the root list level consumes the key without moving focus',
 for (const indentation of [' ', '\t']) {
   test(`Control+Tab removes a partial level or a tab: ${JSON.stringify(indentation)}`, () => {
     const { input } = setup(`${indentation}- item`);
-    handleTabIndentation(input, key({ metaKey: true }));
+    handleTabIndentation(input, key({ ctrlKey: true }));
     assert.equal(input.value, '- item');
   });
 }
 
-test('Alt+Tab in plain text still replaces the selection with spaces', () => {
+test('Alt+Tab indents the row and preserves the selected text', () => {
   const { input } = setup('some text', 5, 9);
   handleTabIndentation(input, key({ altKey: true }));
-  assert.equal(input.value, 'some   ');
+  assert.equal(input.value, '  some text');
   assert.equal(input.selectionStart, 7);
+  assert.equal(input.selectionEnd, 11);
 });
 
-test('list-like text in a fenced code block uses Alt+Tab space insertion', () => {
+test('Alt+Tab indents the current row inside a fenced code block', () => {
   const { input } = setup('```\n- item\n```', 8);
   handleTabIndentation(input, key({ altKey: true }));
-  assert.equal(input.value, '```\n- it  em\n```');
+  assert.equal(input.value, '```\n  - item\n```');
 });
 
 for (const options of [{}, { shiftKey: true }]) {
@@ -153,7 +154,7 @@ for (const options of [{}, { shiftKey: true }]) {
 }
 
 for (const [platform, modifier] of [
-  ['MacIntel', 'metaKey'],
+  ['MacIntel', 'ctrlKey'],
   ['Linux', 'ctrlKey'],
 ]) {
   test(`physical Control+Tab unindents on ${platform}`, () => {
@@ -168,15 +169,15 @@ for (const [platform, modifier] of [
 
 test('Control+Tab removes leading spaces from selected plain text and code', () => {
   const { input } = setup('```\n    one\n    two\n```', 4, 20, 'Python');
-  handleTabIndentation(input, key({ metaKey: true }));
+  handleTabIndentation(input, key({ ctrlKey: true }));
   assert.equal(input.value, '```\none\ntwo\n```');
   assert.equal(input.selectionStart, 4);
   assert.equal(input.selectionEnd, 12);
 });
 
 for (const options of [
-  { ctrlKey: true },
-  { altKey: true, metaKey: true },
+  { metaKey: true },
+  { altKey: true, ctrlKey: true },
   { altKey: true, shiftKey: true },
   { altKey: true, isComposing: true },
   { altKey: true, key: 'Enter' },
@@ -189,3 +190,21 @@ for (const options of [
     assert.equal(event.prevented, false);
   });
 }
+
+test('Alt+Tab midway through a plain word indents only that row and retains the caret', () => {
+  const { input } = setup('one\nsecond sentence\nthree', 7);
+  handleTabIndentation(input, key({ altKey: true }));
+  assert.equal(input.value, 'one\n  second sentence\nthree');
+  assert.equal(input.selectionStart, 9);
+  handleTabIndentation(input, key({ ctrlKey: true }));
+  assert.equal(input.value, 'one\nsecond sentence\nthree');
+  assert.equal(input.selectionStart, 7);
+});
+
+test('Alt+Tab indents all selected plain rows without replacing the selection', () => {
+  const { input } = setup('one\ntwo\nthree', 0, 8);
+  handleTabIndentation(input, key({ altKey: true }));
+  assert.equal(input.value, '  one\n  two\nthree');
+  assert.equal(input.selectionStart, 2);
+  assert.equal(input.selectionEnd, 12);
+});

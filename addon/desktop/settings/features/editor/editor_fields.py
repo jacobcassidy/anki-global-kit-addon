@@ -81,7 +81,7 @@ def build_editor_fields_section(parent: QWidget, current_settings: dict) -> Edit
     add_checkbox_row(
         layout,
         tab_indentation,
-        "Alt+Tab indents list items or inserts four spaces. Control+Tab removes indentation (physical Control on macOS). Tab and Shift+Tab move focus.",
+        "Alt+Tab indents list items or adds four leading spaces to the current or selected rows. Control+Tab removes indentation (physical Control on macOS). Tab and Shift+Tab move focus.",
     )
     custom_styles = QCheckBox("Enable custom Editor fields stylesheet", section)
     custom_styles.setChecked(

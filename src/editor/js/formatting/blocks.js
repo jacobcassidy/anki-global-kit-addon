@@ -1,4 +1,4 @@
-import { getEditorSelection } from '../helpers/selection.js';
+import { getEditorSelection, getFieldInputSelection } from '../helpers/selection.js';
 import { getEditorSettings } from '../settings.js';
 
 const FIELD = 'anki-editable,[contenteditable="true"]';
@@ -334,30 +334,104 @@ export function toggleEditorBlock(format) {
   return true;
 }
 
-/** Remove one space indentation level with native edits so undo remains available. */
-function unindentEditorText(field, selection) {
-  if (!selection?.rangeCount) return;
-  const range = selection.getRangeAt(0);
-  if (!field.contains(range.startContainer) || !field.contains(range.endContainer)) return;
-  const start = textOffset(field, range.startContainer, range.startOffset);
-  const end = textOffset(field, range.endContainer, range.endOffset);
-  const blocks = selectedBlocks(field, range);
-  if (!blocks.length) blocks.push(field);
-  const edits = blocks
-    .map((block) => ({
-      start: textOffset(field, block, 0),
-      length: (block.textContent.match(/^(?:\t|[ \u00a0]{1,4})/) || [''])[0].length,
-    }))
-    .filter((edit) => edit.length);
-  for (const edit of [...edits].reverse()) {
-    selection.removeAllRanges();
-    selection.addRange(rangeAt(field, edit.start, edit.start + edit.length));
-    document.execCommand('delete');
+/** Native Desktop Control+Tab may be consumed before a browser keydown event. */
+export function unindentEditorField() {
+  if (!getEditorSettings().anki_editor_tab_indentation) return;
+  const selection = getFieldInputSelection();
+  const field = elementOf(selection?.focusNode)?.closest(FIELD);
+  if (!field) return;
+  if (elementOf(selection.focusNode)?.closest('li')) document.execCommand('outdent');
+  else changeEditorTextIndentation(field, selection, true);
+}
+
+/** Collect visual text rows without rewriting BRs, blocks, or inline formatting. */
+function editorTextRows(field) {
+  const rows = [];
+  let segments = [];
+  let start = [field, 0];
+  const finish = (end, next = end, includeEmpty = false) => {
+    if (segments.length || includeEmpty) {
+      const range = document.createRange();
+      range.setStart(...start);
+      range.setEnd(...end);
+      rows.push({ range, segments, text: segments.map(({ text }) => text).join('') });
+    }
+    segments = [];
+    start = next;
+  };
+  const walk = (node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      let from = 0;
+      for (let index = 0; index <= node.length; index++) {
+        if (index !== node.length && node.data[index] !== '\n') continue;
+        if (index > from) segments.push({ node, from, text: node.data.slice(from, index) });
+        if (index < node.length) finish([node, index], [node, index + 1], true);
+        from = index + 1;
+      }
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const index = [...node.parentNode.childNodes].indexOf(node);
+    if (node.nodeName === 'BR') {
+      finish([node.parentNode, index], [node.parentNode, index + 1], true);
+      return;
+    }
+    const block = node.matches(BLOCK) || isList(node);
+    if (block) finish([node.parentNode, index], [node, 0]);
+    for (const child of node.childNodes) walk(child);
+    if (block) finish([node, node.childNodes.length], [node.parentNode, index + 1]);
+  };
+  for (const child of field.childNodes) walk(child);
+  finish([field, field.childNodes.length]);
+  return rows;
+}
+
+function rowPoint(row, offset) {
+  for (const segment of row.segments) {
+    if (offset <= segment.text.length) return [segment.node, segment.from + offset];
+    offset -= segment.text.length;
   }
-  const map = (position) =>
-    position - edits.reduce((offset, edit) => offset + Math.max(0, Math.min(position - edit.start, edit.length)), 0);
+}
+
+/** Change leading whitespace on the current or selected rows with native undoable edits. */
+function changeEditorTextIndentation(field, selection, outdent) {
+  if (!selection?.rangeCount) return;
+  const original = selection.getRangeAt(0).cloneRange();
+  if (!field.contains(original.startContainer) || !field.contains(original.endContainer)) return;
+  const rows = editorTextRows(field).filter(({ range }) =>
+    original.collapsed
+      ? original.compareBoundaryPoints(Range.START_TO_START, range) >= 0 &&
+        original.compareBoundaryPoints(Range.END_TO_START, range) <= 0
+      : original.compareBoundaryPoints(Range.END_TO_START, range) < 0 &&
+        original.compareBoundaryPoints(Range.START_TO_END, range) > 0,
+  );
+  const edits = [];
+  for (const row of rows) {
+    const length = outdent ? (row.text.match(/^(?:\t|[ \u00a0]{1,4})/) || [''])[0].length : 0;
+    if (outdent && !length) continue;
+    const edit = document.createRange();
+    const start = row.segments.length ? rowPoint(row, 0) : [row.range.startContainer, row.range.startOffset];
+    edit.setStart(...start);
+    edit.setEnd(...(outdent ? rowPoint(row, length) : start));
+    edits.push(edit);
+  }
+  if (!outdent && !edits.length && original.collapsed) edits.push(original.cloneRange());
+  for (const edit of edits.reverse()) {
+    const moveStart = !outdent && original.compareBoundaryPoints(Range.START_TO_START, edit) === 0;
+    const moveEnd = !outdent && original.compareBoundaryPoints(Range.END_TO_END, edit) === 0;
+    selection.removeAllRanges();
+    selection.addRange(edit);
+    if (outdent) document.execCommand('delete');
+    else document.execCommand('insertText', false, '    ');
+    if (moveStart || moveEnd) {
+      const inserted = selection.getRangeAt(0);
+      if (moveEnd) original.setEnd(inserted.endContainer, inserted.endOffset);
+      if (moveStart) original.setStart(inserted.endContainer, inserted.endOffset);
+    }
+  }
+  // DOM ranges follow native edits and retain the row and inline boundaries.
   selection.removeAllRanges();
-  selection.addRange(rangeAt(field, map(start), map(end)));
+  selection.addRange(original);
 }
 
 function stop(event) {
@@ -398,18 +472,17 @@ export function installBlockFormatting() {
         const format = { ',': 'unordered-list', '.': 'ordered-list', '/': 'blockquote' }[event.key];
         if (toggleEditorBlock(format)) stop(event);
       } else if (event.key === 'Tab' && !event.shiftKey && getEditorSettings().anki_editor_tab_indentation) {
-        const mac = /Mac|iPhone|iPad/.test(navigator.platform);
-        const control = mac ? event.metaKey : event.ctrlKey;
-        const otherModifier = mac ? event.ctrlKey : event.metaKey;
+        const control = event.ctrlKey;
+        const otherModifier = event.metaKey;
         if (otherModifier || event.altKey === control) return;
         const selection = getEditorSelection();
         stop(event);
         if (elementOf(selection?.focusNode)?.closest('li')) {
           document.execCommand(control ? 'outdent' : 'indent');
         } else if (control) {
-          unindentEditorText(field, selection);
+          changeEditorTextIndentation(field, selection, true);
         } else {
-          document.execCommand('insertText', false, '    ');
+          changeEditorTextIndentation(field, selection, false);
         }
       }
     },

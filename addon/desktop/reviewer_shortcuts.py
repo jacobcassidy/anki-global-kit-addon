@@ -1,5 +1,7 @@
 """Reviewer keyboard handling that must run before Qt menu shortcuts."""
 
+from weakref import WeakSet
+
 from aqt import gui_hooks, mw
 from aqt.qt import QApplication, QEvent, QObject, Qt
 from aqt.reviewer import Reviewer
@@ -10,6 +12,8 @@ _command_comma_handled = False
 _shortcut_filter: "_PreferencesShortcutFilter | None" = None
 _message_hook_installed = False
 _preferences_was_enabled: bool | None = None
+_editor_webviews = WeakSet()
+_preview_input_webviews = WeakSet()
 
 
 def _input_owns_command_comma() -> bool:
@@ -47,9 +51,14 @@ def _sync_preferences_action(*_args) -> None:
 def _refresh_question_focus(*_args) -> None:
     """Ask the DOM again after Qt focus returns without a textarea focus event."""
     _sync_preferences_action()
-    if not is_mac or mw.state != "review":
-        return
     focused_widget = QApplication.focusWidget()
+    for webview in list(_preview_input_webviews):
+        if focused_widget is webview or (
+            focused_widget is not None and webview.isAncestorOf(focused_widget)
+        ):
+            webview.eval("globalThis.ankiGlobalKitReportQuestionFocus?.();")
+    if mw.state != "review":
+        return
     webview = mw.reviewer.web
     if focused_widget is webview or (
         focused_widget is not None and webview.isAncestorOf(focused_widget)
@@ -57,10 +66,58 @@ def _refresh_question_focus(*_args) -> None:
         webview.eval("globalThis.ankiGlobalKitReportQuestionFocus?.();")
 
 
+def _register_editor_tab_shortcut(shortcuts, editor) -> None:
+    _register_editor_webview(editor)
+
+
+def _register_editor_webview(editor) -> None:
+    _editor_webviews.add(editor.web)
+
+
+def _tab_shortcut_target():
+    """Only claim Control+Tab in webviews whose indentation setting is enabled."""
+    from .settings import get_editor_settings, get_settings
+
+    focused = QApplication.focusWidget()
+    if focused is None:
+        return None
+    for webview in list(_editor_webviews):
+        if focused is webview or webview.isAncestorOf(focused):
+            if get_editor_settings()["anki_editor_tab_indentation"]:
+                return webview, "globalThis.ankiGlobalKitEditor?.unindent();"
+            return None
+    for webview in list(_preview_input_webviews):
+        if focused is webview or webview.isAncestorOf(focused):
+            if get_settings()["card_input_tab_indentation"]:
+                return webview, "globalThis.ankiGlobalKitUnindentQuestion?.();"
+            return None
+    if mw.state == "review" and _active_reviewer is mw.reviewer:
+        webview = mw.reviewer.web
+        if (
+            (focused is webview or webview.isAncestorOf(focused))
+            and get_settings()["card_input_tab_indentation"]
+        ):
+            return webview, "globalThis.ankiGlobalKitUnindentQuestion?.();"
+    return None
+
+
 class _PreferencesShortcutFilter(QObject):
-    """Let the focused card input handle macOS Command+Comma."""
+    """Route native Control+Tab and let the card input handle Command+Comma."""
 
     def eventFilter(self, watched, event) -> bool:
+        control = Qt.KeyboardModifier.MetaModifier if is_mac else Qt.KeyboardModifier.ControlModifier
+        if (
+            event.type() in (QEvent.Type.ShortcutOverride, QEvent.Type.KeyPress)
+            and event.key() == Qt.Key.Key_Tab
+            and event.modifiers() == control
+            and (target := _tab_shortcut_target()) is not None
+        ):
+            # Chromium can lose the Tab key in the subsequent native KeyPress.
+            # Handle the intact ShortcutOverride before focus traversal wins.
+            event.accept()
+            if event.type() == QEvent.Type.ShortcutOverride:
+                target[0].eval(target[1])
+            return True
         if (
             event.type() == QEvent.Type.ShortcutOverride
             and _input_owns_command_comma()
@@ -84,9 +141,20 @@ def _on_webview_message(handled: tuple[bool, object], message: str, context):
         "anki-global-kit:question-input-blur",
     }:
         return handled
-    if not isinstance(context, Reviewer) or context is not mw.reviewer:
-        return handled
     is_focus = message != "anki-global-kit:question-input-blur"
+    if not isinstance(context, Reviewer):
+        # The JS-message hook supplies the window owning the card webview.
+        # Browse previewers expose _web; template previews expose preview_web.
+        webview = getattr(context, "preview_web", None) or getattr(context, "_web", None)
+        if webview is None:
+            return handled
+        if is_focus:
+            _preview_input_webviews.add(webview)
+        else:
+            _preview_input_webviews.discard(webview)
+        return (True, None)
+    if context is not mw.reviewer:
+        return handled
     _active_reviewer = context if is_focus else None
     _command_comma_handled = message.endswith(":handled") if is_focus else False
     _sync_preferences_action()
@@ -100,13 +168,16 @@ def _on_card_will_show(html: str, card, kind: str) -> str:
         _active_reviewer = None
         _command_comma_handled = False
         _sync_preferences_action()
-        if is_mac:
-            # The Python hook runs before the asynchronous card DOM replacement.
-            html += (
-                "<script>onShownHook.push(function () {"
-                "globalThis.ankiGlobalKitReportQuestionFocus?.();"
-                "});</script>"
-            )
+    if kind in {
+        "reviewQuestion", "reviewAnswer", "previewQuestion", "previewAnswer",
+        "clayoutQuestion", "clayoutAnswer",
+    }:
+        # The Python hook runs before the asynchronous card DOM replacement.
+        html += (
+            "<script>onShownHook.push(function () {"
+            "globalThis.ankiGlobalKitReportQuestionFocus?.();"
+            "});</script>"
+        )
     return html
 
 
@@ -119,6 +190,8 @@ def initialize() -> None:
         app.installEventFilter(_shortcut_filter)
         app.focusChanged.connect(_refresh_question_focus)
     if not _message_hook_installed:
+        gui_hooks.editor_did_init_shortcuts.append(_register_editor_tab_shortcut)
+        gui_hooks.editor_did_load_note.append(_register_editor_webview)
         gui_hooks.webview_did_receive_js_message.append(_on_webview_message)
         gui_hooks.card_will_show.append(_on_card_will_show)
         gui_hooks.state_did_change.append(_sync_preferences_action)

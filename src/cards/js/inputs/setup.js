@@ -25,7 +25,16 @@ export function watchQuestionInputs() {
   const questionInputs = document.querySelectorAll('.question-input');
   if (questionInputs.length < 1) return;
 
-  if (isAnkiPC && navigator.platform.startsWith('Mac')) {
+  if (isAnkiPC) {
+    globalThis.ankiGlobalKitUnindentQuestion = () => {
+      const input = document.activeElement;
+      if (settings.cardInputTabIndentation && input?.matches('.question-input')) {
+        handleTabIndentation(input, new KeyboardEvent('keydown', { key: 'Tab', ctrlKey: true }));
+      }
+    };
+  }
+
+  if (isAnkiPC) {
     globalThis.ankiGlobalKitReportQuestionFocus = () =>
       reportQuestionShortcutFocus(settings.cardInputMarkdownShortcuts, settings.cardInputMarkdownShortcutsMap);
     globalThis.ankiGlobalKitReportQuestionFocus();
@@ -37,7 +46,7 @@ export function watchQuestionInputs() {
     if (state.boundInputs.has(questionInput)) return;
     state.boundInputs.add(questionInput);
 
-    if (isAnkiPC && navigator.platform.startsWith('Mac')) {
+    if (isAnkiPC) {
       const reportFocus = () => {
         globalThis.ankiGlobalKitReportQuestionFocus();
       };

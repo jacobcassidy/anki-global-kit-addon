@@ -5,6 +5,7 @@ import {
   formatBlockContent,
   installBlockFormatting,
   toggleEditorBlock,
+  unindentEditorField,
 } from '../../src/editor/js/formatting/blocks.js';
 
 function editor(html) {
@@ -173,7 +174,7 @@ test('Alt+Tab and Control+Tab change list levels while Tab retains native naviga
 });
 
 for (const [platform, modifier] of [
-  ['MacIntel', 'metaKey'],
+  ['MacIntel', 'ctrlKey'],
   ['Linux', 'ctrlKey'],
 ]) {
   test(`editor physical Control+Tab unindents on ${platform}`, () => {
@@ -231,6 +232,128 @@ test('editor Control+Tab removes plain text indentation and preserves formatting
   assert.equal(selection.toString(), 'netwo');
   assert.deepEqual(commands, ['delete', 'delete']);
 });
+
+for (const [html, expected, caretText, caretOffset] of [
+  ['    <b>text</b>', '<b>text</b>', 'text', 4],
+  ['<b>    text</b>', '<b>text</b>', '    text', 8],
+  ['<div>    <code>text</code></div>', '<div><code>text</code></div>', 'text', 4],
+  ['text    ', 'text    ', 'text    ', 8],
+  ['<b>text</b> \u00a0 \u00a0', '<b>text</b> &nbsp; &nbsp;', ' \u00a0 \u00a0', 4],
+]) {
+  test(`native editor unindent handles inline markup and inserted spaces: ${html}`, () => {
+    const { field, range } = editor(html);
+    const walker = document.createTreeWalker(field, NodeFilter.SHOW_TEXT);
+    let text;
+    while ((text = walker.nextNode())) if (text.data === caretText) break;
+    assert.ok(text);
+    range.setStart(text, caretOffset);
+    range.collapse(true);
+    const selection = window.getSelection();
+    selection.addRange(range);
+    document.execCommand = (command) => {
+      assert.equal(command, 'delete');
+      selection.getRangeAt(0).deleteContents();
+      return true;
+    };
+    unindentEditorField();
+    assert.equal(field.innerHTML, expected);
+    assert.equal(selection.isCollapsed, true);
+  });
+}
+
+for (const html of [
+  '    one<br>    two<br>    three',
+  '    <b>one</b><br>    <code>two</code><br>    <i>three</i>',
+  '<div>    one<br>    two<br>    three</div>',
+  '<div>    one</div><div>    two</div><div>    three</div>',
+  '<pre>    one\n    two\n    three</pre>',
+]) {
+  test(`unindent the second visual row without changing other rows: ${html}`, () => {
+    const { field, range } = editor(html);
+    const walker = document.createTreeWalker(field, NodeFilter.SHOW_TEXT);
+    let text;
+    while ((text = walker.nextNode())) if (text.data.includes('two')) break;
+    const offset = text.data.indexOf('two') + 2;
+    const caretHadIndent = text.data.indexOf('two') >= 4;
+    range.setStart(text, offset);
+    range.collapse(true);
+    const selection = window.getSelection();
+    selection.addRange(range);
+    document.execCommand = (command) => {
+      assert.equal(command, 'delete');
+      selection.getRangeAt(0).deleteContents();
+      return true;
+    };
+    unindentEditorField();
+    const expected = html.replace(/ {4}(?=(?:<code>)?two)/, '');
+    assert.equal(field.innerHTML, expected);
+    assert.equal(selection.focusNode, text);
+    assert.equal(selection.focusOffset, offset - (caretHadIndent ? 4 : 0));
+    assert.equal(selection.isCollapsed, true);
+  });
+}
+
+test('an element-boundary caret and a selection ending at the next BR row start stay on the intended row', () => {
+  const { field, range } = editor('    one<br>    two<br>    three');
+  range.setStart(field, 2);
+  range.setEnd(field, 4);
+  const selection = window.getSelection();
+  selection.addRange(range);
+  document.execCommand = () => {
+    selection.getRangeAt(0).deleteContents();
+    return true;
+  };
+  unindentEditorField();
+  assert.equal(field.innerHTML, '    one<br>two<br>    three');
+});
+
+for (const html of [
+  'one<br>second sentence<br>three',
+  'one<br><b>second sentence</b><br>three',
+  '<div>one</div><div>second sentence</div><div>three</div>',
+  '<pre>one\nsecond sentence\nthree</pre>',
+]) {
+  test(`Alt+Tab at the middle of a word indents only its row: ${html}`, () => {
+    const { field, range, dom } = editor(html);
+    const walker = document.createTreeWalker(field, NodeFilter.SHOW_TEXT);
+    let text;
+    while ((text = walker.nextNode())) if (text.data.includes('second')) break;
+    const offset = text.data.indexOf('second') + 3;
+    range.setStart(text, offset);
+    range.collapse(true);
+    const selection = window.getSelection();
+    selection.addRange(range);
+    document.execCommand = (command, _, value) => {
+      const edit = selection.getRangeAt(0);
+      if (command === 'delete') edit.deleteContents();
+      else {
+        assert.equal(command, 'insertText');
+        const node = edit.startContainer;
+        const position = edit.startOffset;
+        node.insertData(position, value);
+        edit.setStart(node, position + value.length);
+        edit.collapse(true);
+      }
+      return true;
+    };
+    installBlockFormatting();
+    field.dispatchEvent(
+      new dom.window.KeyboardEvent('keydown', {
+        key: 'Tab',
+        altKey: true,
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+    assert.equal(field.innerHTML, html.replace('second', '    second'));
+    assert.equal(selection.focusNode, text);
+    assert.equal(selection.focusOffset, offset + 4);
+    unindentEditorField();
+    assert.equal(field.innerHTML, html);
+    assert.equal(selection.focusNode, text);
+    assert.equal(selection.focusOffset, offset);
+  });
+}
 
 test('the existing list button and shortcut route to the same formatter', () => {
   const { field, range, dom } = editor('<ul><li>A<ul><li>B</li></ul></li></ul>');
