@@ -35,8 +35,8 @@ MARKDOWN_SHORTCUT_DEFINITIONS = (
 
 
 TAB_SHORTCUT_DEFINITIONS = (
-    ("card_input_tab_indent_increase_shortcut", "tab indent increase"),
-    ("card_input_tab_indent_decrease_shortcut", "tab indent decrease"),
+    ("card_input_tab_indent_increase_shortcut", "increase indent"),
+    ("card_input_tab_indent_decrease_shortcut", "decrease indent"),
 )
 SHORTCUT_DEFINITIONS = MARKDOWN_SHORTCUT_DEFINITIONS + TAB_SHORTCUT_DEFINITIONS
 
@@ -173,7 +173,7 @@ def build_card_fields_section(parent: QWidget, current_settings: dict) -> CardFi
         return shortcut_rows
 
     layout.addWidget(build_shortcut_rows(master_toggle, MARKDOWN_SHORTCUT_DEFINITIONS))
-    tab_indentation = QCheckBox("Enable tab indentation shortcuts", section)
+    tab_indentation = QCheckBox("Enable indentation shortcuts", section)
     tab_indentation.setChecked(current_settings["card_input_tab_indentation"])
     add_checkbox_row(
         layout,

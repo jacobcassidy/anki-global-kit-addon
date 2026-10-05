@@ -188,7 +188,7 @@ function addFormattingToolbar(textarea) {
     },
     {
       enabled: settings.cardToolbarIndentIncrease,
-      name: 'Indent increase',
+      name: 'Increase indent',
       icon: indentIncreaseIcon,
       indentation: 'increase',
       shortcut: settings.cardInputTabIndentation ? formatShortcut(settings.cardInputTabShortcutsMap.increase) : '',
@@ -197,7 +197,7 @@ function addFormattingToolbar(textarea) {
     },
     {
       enabled: settings.cardToolbarIndentDecrease,
-      name: 'Indent decrease',
+      name: 'Decrease indent',
       icon: indentDecreaseIcon,
       indentation: 'decrease',
       shortcut: settings.cardInputTabIndentation ? formatShortcut(settings.cardInputTabShortcutsMap.decrease) : '',

@@ -76,7 +76,7 @@ def build_editor_fields_section(parent: QWidget, current_settings: dict) -> Edit
     )
     shortcut_enabled.toggled.connect(set_shortcut_enabled)
 
-    tab_indentation = QCheckBox("Enable tab indentation", section)
+    tab_indentation = QCheckBox("Enable indentation", section)
     tab_indentation.setChecked(current_settings.get("anki_editor_tab_indentation", True))
     add_checkbox_row(
         layout,

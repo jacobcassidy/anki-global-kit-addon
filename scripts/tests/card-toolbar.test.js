@@ -34,8 +34,8 @@ test('indent toolbar buttons appear between ordered list and blockquote and pres
     );
     const increase = document.querySelector('.is-indent-increase');
     const decrease = document.querySelector('.is-indent-decrease');
-    assert.equal(increase.title, 'Indent increase (⌥Tab)');
-    assert.equal(decrease.title, 'Indent decrease (⌃Tab)');
+    assert.equal(increase.title, 'Increase indent (⌥Tab)');
+    assert.equal(decrease.title, 'Decrease indent (⌃Tab)');
     increase.click();
     assert.equal(input.value, 'one\n    two\nthree');
     assert.equal(input.selectionStart, 9);
@@ -52,7 +52,7 @@ test('toolbar indentation stays available when keyboard indentation is disabled'
   const { dom, input, document } = card({ card_input_tab_indentation: false });
   try {
     const increase = document.querySelector('.is-indent-increase');
-    assert.equal(increase.title, 'Indent increase');
+    assert.equal(increase.title, 'Increase indent');
     increase.click();
     assert.equal(input.value, 'one\n    two\nthree');
     const event = new dom.window.KeyboardEvent('keydown', { key: 'Tab', ctrlKey: true, cancelable: true });
@@ -71,8 +71,8 @@ test('custom indentation shortcuts work independently of Markdown shortcuts and 
     card_input_tab_indent_decrease_shortcut: 'Alt+[',
   });
   try {
-    assert.equal(document.querySelector('.is-indent-increase').title, 'Indent increase (⌥])');
-    assert.equal(document.querySelector('.is-indent-decrease').title, 'Indent decrease (⌥[)');
+    assert.equal(document.querySelector('.is-indent-increase').title, 'Increase indent (⌥])');
+    assert.equal(document.querySelector('.is-indent-decrease').title, 'Decrease indent (⌥[)');
     for (const [key, expected] of [
       [']', 'one\n    two\nthree'],
       ['[', 'one\ntwo\nthree'],
@@ -98,7 +98,7 @@ test('individual shortcut and toolbar switches are independent', () => {
   try {
     assert.equal(document.querySelector('.is-indent-decrease'), null);
     const increase = document.querySelector('.is-indent-increase');
-    assert.equal(increase.title, 'Indent increase');
+    assert.equal(increase.title, 'Increase indent');
     const event = new dom.window.KeyboardEvent('keydown', { key: 'Tab', altKey: true, cancelable: true });
     input.dispatchEvent(event);
     assert.equal(event.defaultPrevented, false);

@@ -25,7 +25,7 @@ Type in the card's input field, then reveal the answer to see your response and 
 
 - Select text and use a formatting toolbar button or shortcut. With no selection, word formatting applies to the word at the caret. Apply it again to remove the formatting.
 - The toolbar appears above each input. Enable **Cards > Card Toolbar > Show formatting toolbar** if it is hidden. Hover over a button to see its shortcut.
-- With **Enable tab indentation** on, **Tab** indents list items and **Shift+Tab** unindents them. In other text, Tab inserts four spaces for Python topics and two otherwise. Physical **Control+Tab** moves focus forward, including on macOS.
+- With **Enable indentation shortcuts** on, **Alt+Tab** increases indent and physical **Control+Tab** decreases indent by default. Customize or disable each shortcut beneath this option. Indentation applies to the current or selected rows, using four spaces for Python topics and two otherwise. **Tab** and **Shift+Tab** move focus. The **Increase indent** and **Decrease indent** toolbar buttons use the same row actions.
 
 Enable **Markdown rendering** under **Card Reviews** to format submitted answers: `**bold**`, `*italic*`, and `` `inline code` ``. Surround code blocks with lines of three backticks. Add a language after the opening backticks, such as `python`, to choose highlighting; otherwise, the topic is used when possible.
 

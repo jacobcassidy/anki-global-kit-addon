@@ -13,7 +13,7 @@ The first major release packages the card scripts, stylesheets, fonts, and new D
 
 - Added automatic installation and refresh of the kit's managed card JavaScript, CSS, and font files when an Anki Desktop profile opens or switches. Card settings are included in the installed media for syncing to other devices.
 - Added a **Tools > Anki Global Kit Settings...** panel with separate **Cards**, **Editor**, and **Note Types** controls, plus **About**, **Help**, and **Changelog** tabs.
-- Added independent settings for card input shortcuts, Tab indentation, answer Markdown rendering, syntax highlighting, and the formatting toolbar, along with Desktop editor formatting and appearance options.
+- Added independent settings for card input shortcuts, indentation, answer Markdown rendering, syntax highlighting, and the formatting toolbar, along with Desktop editor formatting and appearance options.
 - Added card-side Markdown rendering for headings, paragraphs, line breaks, nested ordered and unordered lists, blockquotes, fenced code blocks, inline code, bold, italics, strikethrough, and HTTP(S) links.
 - Added a configurable formatting toolbar above card question inputs, with shared SVG icons and shortcut tooltips for bold, italics, strikethrough, inline code, code blocks, lists, and blockquotes.
 - Added configurable Markdown shortcuts with individual enable switches, shortcut capture, per-shortcut reset links, inline conflict warnings, and Escape to cancel capture. Formatting applies to the selection or the word at the caret and can be toggled off again.
@@ -22,7 +22,7 @@ The first major release packages the card scripts, stylesheets, fonts, and new D
 - Added topic-specific **Advance** and **Cloze** note type creation for Command Line, CSS, Git, JavaScript, PHP, Python, React, Regex, Ruby, TypeScript, Vocabulary, and WordPress, plus alphabetically sorted custom topics.
 - Added **Create**, **Replace**, and **Delete** controls for each note type format. Replacement requires an explicit selection and confirmation, keeps existing notes and fields, and adds missing kit fields. Deletion is available only for empty note types; uncreated custom topic rows can also be removed.
 - Added a Desktop editor inline-code button and configurable shortcut for formatting selections or words, toggling existing code formatting, and starting an empty code span.
-- Added Desktop editor Tab indentation, inline-code space normalization, source HTML copying, and external rich-text paste cleanup, each controlled through settings.
+- Added Desktop editor indentation, inline-code space normalization, source HTML copying, and external rich-text paste cleanup, each controlled through settings.
 - Added physical Control shortcuts for the Desktop editor's Cloze buttons on macOS, leaving Command+Shift+C available for inline code.
 - Added separate customizable Desktop editor field and UI stylesheets in `user_files`, with enable switches and **View Stylesheet** buttons.
 - Added hover help for settings, Markdown help and About content, a rendered changelog, and buttons linking to the GitHub help, repository, and changelog.
