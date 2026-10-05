@@ -33,7 +33,7 @@ export const settings = {
         : '',
     blockquote:
       savedSettings.card_input_markdown_blockquote_shortcut_enabled === true
-        ? (savedSettings.card_input_markdown_blockquote_shortcut ?? '')
+        ? (savedSettings.card_input_markdown_blockquote_shortcut ?? 'Ctrl+/')
         : '',
   },
   cardInputTabIndentation: savedSettings.card_input_tab_indentation !== false,

@@ -261,7 +261,7 @@ export function handleMarkdownShortcuts(textarea, event, options = {}) {
     codeBlock: ['CodeBlock+C', '```\n', '\n```'],
     unorderedList: ['', 'unordered-list'],
     orderedList: ['', 'ordered-list'],
-    blockquote: ['', 'blockquote'],
+    blockquote: ['Ctrl+/', 'blockquote'],
   };
   const configured = {
     ...Object.fromEntries(Object.entries(shortcuts).map(([name, value]) => [name, value[0]])),
