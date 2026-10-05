@@ -43,7 +43,7 @@ def build_about_tab(parent: QWidget) -> QWidget:
             cursor.setBlockFormat(block_format)
             first_heading = False
         block = block.next()
-    layout.addWidget(browser)
+    layout.addWidget(browser, 1)
     repository_button = QPushButton("View GitHub Repo", tab)
     repository_button.setAutoDefault(False)
     repository_button.clicked.connect(

@@ -39,7 +39,7 @@ def build_help_tab(parent: QWidget) -> QWidget:
             cursor.setBlockFormat(block_format)
             first_heading = False
         block = block.next()
-    layout.addWidget(browser)
+    layout.addWidget(browser, 1)
     github_button = QPushButton("View Help on GitHub", tab)
     github_button.setAutoDefault(False)
     github_button.clicked.connect(
