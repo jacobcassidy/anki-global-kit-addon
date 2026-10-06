@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Desktop inline-code formatting for selections spanning existing code and ordinary text, preserving surrounding markup and avoiding nested code elements.
 - Applied Desktop inline-code formatting through native editor transactions so formatting and subsequent typing can be undone and redone independently, including empty code spans.
 - Fixed shortcuts containing a literal plus key, preserving the key when saving, matching, checking conflicts, and displaying shortcut labels.
+- Created kit Cloze note types from Anki's stock definition instead of copying a profile's customized type, including profiles with no existing Cloze type. Replacement now validates the existing type's format before confirmation and again before applying changes.
 
 ## [1.0.0] - 2026-10-05
 

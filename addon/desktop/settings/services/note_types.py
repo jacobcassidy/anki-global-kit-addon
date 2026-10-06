@@ -7,7 +7,8 @@ from dataclasses import dataclass
 from html import escape
 from pathlib import Path
 
-from anki.consts import MODEL_CLOZE
+from anki.consts import MODEL_CLOZE, MODEL_STD
+from anki.stdmodels import get_stock_notetypes
 from aqt import mw
 
 
@@ -59,6 +60,10 @@ class DeletionValidationError(NoteTypeServiceError):
 class MissingTemplateFilesError(NoteTypeServiceError):
     def __init__(self, paths: tuple[str, ...]):
         self.paths = paths
+
+
+class ReplacementValidationError(NoteTypeServiceError):
+    """An existing type is missing or incompatible with the requested format."""
 
 
 class NoteTypeApplyError(NoteTypeServiceError):
@@ -135,6 +140,44 @@ def _card_template(filename: str, topic: str, script: str) -> str:
     return f"{html.rstrip()}\n\n<script>\n{script.rstrip()}\n</script>\n"
 
 
+def _stock_cloze_note_type() -> dict[str, object]:
+    # Stock definitions come from Anki, independently of the profile's types.
+    # Copy the factory result before customizing its fields and templates.
+    for _name, factory in get_stock_notetypes(mw.col):
+        notetype = factory(mw.col)
+        if notetype["type"] == MODEL_CLOZE:
+            return deepcopy(notetype)
+    raise NoteTypeServiceError("Anki's stock Cloze definition is unavailable.")
+
+
+def _validate_replacement_type(
+    name: str,
+    spec: dict[str, object],
+    notetype: dict[str, object] | None,
+) -> None:
+    if notetype is None:
+        raise ReplacementValidationError(
+            f"The note type {name} no longer exists. Reopen settings and try again."
+        )
+    expected_type = MODEL_CLOZE if spec["cloze"] else MODEL_STD
+    if notetype["type"] != expected_type:
+        expected = "Cloze" if spec["cloze"] else "standard"
+        raise ReplacementValidationError(
+            f"The note type {name} is not a {expected} note type and cannot be "
+            "replaced with this format. Rename this type in Anki before creating "
+            "the kit type with this name."
+        )
+
+
+def _validate_replacements(operations: tuple[NoteTypeOperation, ...]) -> None:
+    for operation in operations:
+        _validate_replacement_type(
+            operation.name,
+            FORMATS[operation.card_format],
+            mw.col.models.by_name(operation.name),
+        )
+
+
 def _create_note_type(
     name: str,
     topic: str,
@@ -143,6 +186,7 @@ def _create_note_type(
 ) -> None:
     models = mw.col.models
     if existing_notetype is not None:
+        _validate_replacement_type(name, spec, existing_notetype)
         notetype = deepcopy(existing_notetype)
         fields_by_name = {field["name"]: field for field in notetype["flds"]}
         for field_name in spec["fields"]:
@@ -160,16 +204,11 @@ def _create_note_type(
         template["ord"] = 0
         template["name"] = "Cloze" if spec["cloze"] else "Card 1"
     elif spec["cloze"]:
-        stock_cloze = next(
-            (model for model in models.all() if model["type"] == MODEL_CLOZE), None
-        )
-        if stock_cloze is None:
-            raise RuntimeError("Anki's built-in cloze note type was not found.")
-        notetype = deepcopy(stock_cloze)
+        notetype = _stock_cloze_note_type()
         notetype["id"] = 0
         notetype["name"] = name
         notetype["flds"] = []
-        notetype["tmpls"] = [deepcopy(stock_cloze["tmpls"][0])]
+        notetype["tmpls"] = [notetype["tmpls"][0]]
         template = notetype["tmpls"][0]
         template["ord"] = 0
         template["name"] = "Cloze"
@@ -200,7 +239,7 @@ def plan_note_type_changes(
     overwrites: dict[str, set[str]] | None = None,
     deletions: dict[str, set[str]] | None = None,
 ) -> NoteTypeChangePlan:
-    """Plan note type changes and validate required template and deletion inputs."""
+    """Plan changes and validate replacement formats, templates, and deletions."""
     if mw.col is None:
         raise NoActiveCollectionError
 
@@ -224,6 +263,7 @@ def plan_note_type_changes(
         if operation.name in existing_names
         and operation.card_format in overwrites.get(operation.topic, set())
     )
+    _validate_replacements(overwrite_operations)
     skipped = tuple(
         operation.name
         for operation in requested
@@ -296,6 +336,7 @@ def apply_note_type_changes(plan: NoteTypeChangePlan) -> NoteTypeChangeResult:
     """Apply a previously confirmed note type change plan."""
     if mw.col is None:
         raise NoActiveCollectionError
+    _validate_replacements(plan.overwrites)
     _revalidate_deletions(plan.deletions)
 
     created: list[str] = []

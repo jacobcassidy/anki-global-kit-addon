@@ -26,6 +26,7 @@ Built-in topics include Command Line, CSS, Git, JavaScript, PHP, Python, React, 
 
 - **Create** adds a missing note type. Existing types are detected and checked automatically.
 - **Replace** updates an existing type's kit templates and styling after explicit selection and confirmation. Notes and fields are kept, missing kit fields are added, and custom card templates may be replaced.
+- Replacement requires the existing type to match the selected format: a standard note type for **Advance**, or a Cloze note type for **Cloze**. A type's name alone does not determine its format.
 - **Delete** removes an empty note type or an uncreated custom topic. Types containing notes cannot be deleted through this panel.
 
 Choose **Update Selected Note Types** to apply these actions. **Save** applies settings separately; **Cancel** does not undo confirmed note type changes. Pending action checkboxes are not retained across restarts, while custom topics remain available.
