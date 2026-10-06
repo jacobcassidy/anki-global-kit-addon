@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Desktop inline-code formatting for selections spanning blocks with boundaries anchored to the editor field, guarding missing parents and keeping staged selection expansion inside the field.
 - Protected Markdown link destinations from emphasis, strikethrough, and inline-code formatting, rendering link labels separately and preserving escaped URLs in submitted answers.
 - Normalized Qt's Space, Return, arrow, page-navigation, Escape, Insert, and Delete key names when matching browser shortcuts, and aligned Desktop conflict and reserved-shortcut checks with these aliases. Rebuilt the card and editor JavaScript bundles.
+- Encoded braces in generated topic headings so custom topic names containing Anki field expressions display literally instead of revealing field contents or invalidating templates. Existing affected kit note types require a confirmed Replace to refresh their headings, followed by syncing the collection and media.
 
 ## [1.0.0] - 2026-10-05
 

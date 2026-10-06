@@ -152,9 +152,11 @@ def _topic_style_path(topic: str) -> Path:
 
 def _card_template(filename: str, topic: str, script: str) -> str:
     html = _read_template(HTML_DIR / filename)
+    # Anki parses field expressions before the browser decodes HTML entities.
+    topic_heading = escape(topic).replace("{", "&#123;").replace("}", "&#125;")
     html = html.replace(
         '<h1 class="topic">Topic</h1>',
-        f'<h1 class="topic">{escape(topic)}</h1>',
+        f'<h1 class="topic">{topic_heading}</h1>',
     )
     return f"{html.rstrip()}\n\n<script>\n{script.rstrip()}\n</script>\n"
 

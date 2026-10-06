@@ -19,6 +19,8 @@ Existing note types are checked automatically. To update their first card templa
 
 **Delete** removes empty note types or uncreated custom topics. Move or delete a type's notes first if deletion is unavailable. Note type actions apply through **Update Selected Note Types**, separately from **Save**.
 
+Custom topic headings display braces as literal text. If an existing kit topic name contains `{{…}}`, select **Replace** for its note types and confirm to apply the corrected heading, then sync the collection and media.
+
 After deleting a note type, Anki may require a full sync. Upload from the device where you made the deletion, then download on your other devices to keep the same collection. Sync other devices' pending changes before deleting.
 
 ## Type and format answers
