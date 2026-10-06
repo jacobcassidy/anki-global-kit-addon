@@ -1,6 +1,6 @@
 import { isAnkiDroid, isAnkiPC, isAnkiWeb } from '../runtime/platform.js';
 import { state } from '../runtime/state.js';
-import { writeStoredAnswer } from '../runtime/answer-storage.js';
+import { clearStoredAnswers, writeStoredAnswer } from '../runtime/answer-storage.js';
 import {
   handleMarkdownListEnter,
   handleMarkdownShortcuts,
@@ -28,6 +28,10 @@ import blockquoteIcon from '../../../../addon/shared/assets/icons/blockquote.svg
 export function watchQuestionInputs() {
   const questionInputs = document.querySelectorAll('.question-input');
   if (questionInputs.length < 1) return;
+
+  // A newly bound question starts fresh even if the previous card was skipped.
+  // Repeated setup of the same inputs must preserve the answers being typed.
+  if (isAnkiDroid && !state.boundInputs.has(questionInputs[0])) clearStoredAnswers();
 
   if (isAnkiPC) {
     globalThis.ankiGlobalKitIndentQuestion = () => {

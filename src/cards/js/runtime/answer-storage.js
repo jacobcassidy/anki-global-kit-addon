@@ -18,7 +18,7 @@ export function writeStoredAnswer(inputIndex, value) {
   }
 }
 
-/** Remove only the kit's stored answers after rendering the card back. */
+/** Remove only the kit's stored answers when starting or completing a card. */
 export function clearStoredAnswers() {
   try {
     const storage = globalThis.sessionStorage;
