@@ -10,7 +10,13 @@ from aqt.qt import (
     QWidget,
 )
 
-from ...configs.constants import ADDON_DIR, JS_ASSET_NAME, SECTION_SPACING, VERSION
+from ...configs.constants import (
+    ADDON_DIR,
+    JS_ASSET_NAME,
+    MARKDOWN_BLOCK_SPACING,
+    SECTION_SPACING,
+    VERSION,
+)
 from ...ui.widgets import add_button_row
 
 
@@ -38,10 +44,20 @@ def build_about_tab(parent: QWidget) -> QWidget:
     while block.isValid():
         if block.blockFormat().headingLevel() > 0:
             block_format = block.blockFormat()
-            block_format.setTopMargin(0 if first_heading else 16)
+            block_format.setTopMargin(0 if first_heading else MARKDOWN_BLOCK_SPACING)
             cursor = QTextCursor(block)
             cursor.setBlockFormat(block_format)
             first_heading = False
+        elif block.textList() is None:
+            block_format = block.blockFormat()
+            block_format.setBottomMargin(MARKDOWN_BLOCK_SPACING)
+            QTextCursor(block).setBlockFormat(block_format)
+        else:
+            next_block = block.next()
+            if not next_block.isValid() or next_block.textList() != block.textList():
+                block_format = block.blockFormat()
+                block_format.setBottomMargin(MARKDOWN_BLOCK_SPACING)
+                QTextCursor(block).setBlockFormat(block_format)
         block = block.next()
     layout.addWidget(browser, 1)
     repository_button = QPushButton("View GitHub Repo", tab)
