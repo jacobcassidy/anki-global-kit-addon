@@ -39,6 +39,7 @@
     "stylelint-plugin-logical-css": "^2.1.0"
   },
   "allowScripts": {
+    "esbuild@0.28.2": true,
     "lefthook@2.1.15": true,
     "unrs-resolver@1.12.2": true
   },

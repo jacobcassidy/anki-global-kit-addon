@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed the shared font to `_meslolgl-nf.woff2` and updated source and built stylesheet references to match Anki's lowercase media filenames, preventing installation errors. Asset checks now reject mixed-case managed filenames; custom CSS or templates using the old font filename need their references updated.
 - Removed unused `ADDON_DIR` and `NESTED_INDENT` imports from the media installer and shared settings widgets.
 - Updated the Lefthook install-script approval pin to `2.1.15`, matching the installed and locked dependency version.
+- Approved the locked `esbuild@0.28.2` install script so npm can prepare and validate the platform-specific build binary.
 
 ## [1.0.0] - 2026-10-05
 
