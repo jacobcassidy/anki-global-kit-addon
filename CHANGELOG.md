@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Corrected the card toolbar help text to describe its position above each question input field.
 - Corrected the agent repository guide's settings folder map to describe `helpers/` and `configs/` instead of the nonexistent `shared/` folder.
 - Removed the unused `highlightSubmittedCode()` helper that duplicated the active submitted-code watcher's highlighting logic.
+- Removed the unreferenced `help.svg` asset from the add-on package; settings help controls use `help-indicator.svg`.
 
 ## [1.0.0] - 2026-10-05
 
