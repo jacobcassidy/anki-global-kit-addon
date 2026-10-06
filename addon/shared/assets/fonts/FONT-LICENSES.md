@@ -80,4 +80,6 @@ A separate copy of the common OFL 1.1 text is provided in [OFL-1.1.txt](licenses
 
 Nerd Fonts v3 changed some icon code points from v2. Notes containing pasted Nerd Font icons may need their characters updated using the [Nerd Fonts cheat sheet](https://www.nerdfonts.com/cheat-sheet). The add-on refreshes the font on profile open; sync media afterward to update other clients.
 
-The packager includes this document and `licenses/` under `shared/assets/fonts/`. Keep the notices with the font when redistributing the add-on. The current media installer copies only the font binary to `collection.media`; these notices are packaged with the Desktop add-on.
+The packager includes this document and `licenses/` under `shared/assets/fonts/`. Builds and packaging also generate `_meslolgl-nf-license.txt` in this folder by combining this document with every license text. Relative license links are replaced with references to the full texts included in that file. Edit the source documents rather than the generated companion, then rebuild or package to refresh it. `npm run check:assets` rejects a missing or stale companion and checks that its source notices are packaged.
+
+The media installer manages `_meslolgl-nf-license.txt` alongside the font, refreshing it when a profile opens or settings are saved. Sync media to carry the complete notices to other clients. The lowercase filename matches Anki's media writer, and its leading underscore keeps it out of unused-media cleanup. Keep these notices with the font when redistributing it.

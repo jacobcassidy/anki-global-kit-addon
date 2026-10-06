@@ -65,8 +65,10 @@ def package_files() -> list[Path]:
 def main() -> None:
     if __package__:
         from .check_assets import validate_assets
+        from .font_notices import write_font_notice
     else:
         from check_assets import validate_assets
+        from font_notices import write_font_notice
 
     changelog = REPOSITORY_ROOT / "CHANGELOG.md"
     if not changelog.is_file():
@@ -77,6 +79,8 @@ def main() -> None:
             f"The project license is missing or is not a file: {license_path}"
         )
 
+    validate_package_paths()
+    write_font_notice()
     files = package_files()
     print(validate_assets(files))
     ARCHIVE_PATH.parent.mkdir(parents=True, exist_ok=True)

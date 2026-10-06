@@ -18,7 +18,7 @@ For setup details, shortcuts, customization, and troubleshooting, read the [user
 4. Adjust review tools in **Cards** and Desktop editing tools in **Editor**, then choose **Save**.
 5. Sync the collection and media from Desktop, then sync your other devices before reviewing there.
 
-The add-on automatically installs or refreshes its managed card scripts, stylesheets, and font in the active profile when it opens, when you switch profiles, and when you save settings. You do not need to copy media files or card templates manually for newly created kit note types.
+The add-on automatically installs or refreshes its managed card scripts, stylesheets, font, and combined font license notice in the active profile when it opens, when you switch profiles, and when you save settings. You do not need to copy media files or card templates manually for newly created kit note types.
 
 ### Create and update note types
 
@@ -100,7 +100,7 @@ The add-on assembles topic-specific note types from packaged HTML, script, and s
 
 ## Development
 
-From the repository root, install dependencies, build the card and editor assets, check asset paths, and create an installable package:
+With Node.js and Python 3 installed, run these commands from the repository root to install dependencies, build the card and editor assets and combined font notice, check asset paths, and create an installable package:
 
 ```sh
 npm install

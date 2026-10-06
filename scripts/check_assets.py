@@ -103,7 +103,9 @@ def validate_assets(package_files: list[Path]) -> str:
     packaged_paths = {path.resolve() for path in package_files}
     categories = {".js": "js", ".css": "css"}
     for media_name, source_path in manifest.ASSET_PATHS.items():
-        if source_path.suffix in {".woff", ".woff2"}:
+        if source_path.suffix in {".woff", ".woff2"} or (
+            media_name == manifest.FONT_LICENSE_ASSET_NAME and source_path.suffix == ".txt"
+        ):
             expected_parent = ROOT / "addon/shared/assets/fonts"
         elif source_path.suffix in categories:
             expected_parent = ROOT / "addon/web/assets" / categories[source_path.suffix]
@@ -114,6 +116,13 @@ def validate_assets(package_files: list[Path]) -> str:
         if Path(media_name).name != media_name:
             raise ValueError(f"{media_name} must install at the collection.media root")
         require_packaged(source_path, packaged_paths)
+
+    font_notices = load_script_module(ROOT / "scripts/font_notices.py", "anki_global_kit_font_notices")
+    for path in font_notices.font_notice_sources():
+        require_packaged(path, packaged_paths)
+    notice = manifest.ASSET_PATHS[manifest.FONT_LICENSE_ASSET_NAME]
+    if notice.read_bytes() != font_notices.render_font_notice():
+        raise ValueError("The combined font notice is out of date. Run `npm run build:addon`.")
 
     build_config = read_source(ROOT / "scripts/build.config.js")
     for target, entry, category, asset_name in (
