@@ -1,4 +1,4 @@
-/* DEFAULT STYLES */
+/* CARD DEFAULT STYLES */
 
 *,
 *::before,
@@ -23,32 +23,9 @@ body {
 	margin: 0 auto;
 } */
 
-p {
-	margin: var(--spacing--default) 0;
-}
-
-a {
-	color: currentcolor;
-	text-decoration: underline;
-	text-decoration-skip-ink: none;
-	text-decoration-thickness: calc(var(--spacing--default) / 12);
-	text-underline-offset: calc(var(--spacing--default) / 12);
-	transition: all 250ms;
-
-	&:hover {
-		color: var(--color--cloze);
-	}
-}
-
-ol,
-ul {
-	margin: calc(var(--spacing--default) / 1.5) 0 0;
-	padding: 0 0 0 calc(var(--spacing--default) / 0.75);
-}
-
-li + li {
+/* li + li {
 	margin-block-start: calc(var(--spacing--default) / 3);
-}
+} */
 
 input,
 pre,
@@ -86,7 +63,9 @@ input {
 textarea {
 	resize: block;
 	display: block;
+	overflow-block: auto;
 	block-size: 9.75rem;
+	max-block-size: 480px;
 }
 
 textarea::placeholder {
@@ -95,5 +74,3 @@ textarea::placeholder {
 	font-size: var(--font-size--large);
 	line-height: 1.5;
 }
-	max-block-size: 640px;
-	overflow-y: auto;

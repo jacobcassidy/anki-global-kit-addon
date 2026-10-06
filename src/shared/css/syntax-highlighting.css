@@ -33,7 +33,7 @@ pre .cs, /* Comment.Special */
 pre .gh, /* Generic.Heading */
 pre .gu, /* Generic.Subheading */
 pre .sd /* Literal.String.Doc */ {
-	color: var(--syntax-gray-dark);
+	color: var(--syntax-gray-medium-dark);
 	font-style: italic;
 }
 
@@ -54,15 +54,12 @@ pre .x  /* base source */ {
 	color: var(--syntax-gray-light);
 }
 
-/* GRAY-LIGHT-WHITE */
-
-pre .nb /* Name.Builtin */ {
-	color: var(--syntax-gray-light-white);
-}
+/* GRAY-EXTRA-LIGHT */
 
 /* GRAY-WHITE */
 
 pre .fm, /* Name.Function.Magic */
+pre .nb, /* Name.Builtin */
 pre .nd, /* Name.Decorator */
 pre .ne, /* Name.Exception */
 pre .sa /* Literal.String.Affix, such as an f-string in Python */ {

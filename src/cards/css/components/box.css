@@ -30,6 +30,8 @@
 	}
 
 	.box__content {
+		text-align: start;
+
 		> *:first-child {
 			margin-block-start: 0;
 		}
@@ -59,6 +61,11 @@
 		> div > ul:last-child {
 			margin-block-end: 0;
 		}
+
+		.user-answer &,
+		.reference-answer & {
+			padding: calc(var(--spacing--default) / 1.5) calc(var(--spacing--default) * 0.75);
+		}
 	}
 
 	.answer-container & {
@@ -83,8 +90,11 @@
 		color: var(--color--tertiary);
 
 		.box__header {
+			align-items: flex-end;
+			justify-content: flex-start;
 			color: var(--color--quaternary);
-			padding: calc(var(--spacing--default) / 2) var(--spacing--default) 0;
+			opacity: 0.75;
+			padding: 0 var(--spacing--default);
 		}
 
 		.box__content {

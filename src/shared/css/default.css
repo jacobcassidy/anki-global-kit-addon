@@ -1,5 +1,37 @@
 /* SHARED DEFAULT STYLES */
 
+p {
+	margin: var(--spacing--default) 0;
+}
+
+a {
+	color: var(--color--link);
+	text-decoration: underline;
+	text-decoration-skip-ink: none;
+	text-decoration-thickness: calc(var(--spacing--default) / 12);
+	text-underline-offset: calc(var(--spacing--default) / 12);
+	transition: all 250ms;
+
+	&:hover {
+		color: var(--color--link-hover);
+	}
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	margin: 0 0 calc(var(--spacing--default) / 2);
+}
+
+ol,
+ul {
+	margin: 0 0 var(--spacing--default);
+	padding: 0 0 0 calc(var(--spacing--default) / 0.75);
+}
+
 code,
 input,
 pre,
@@ -8,6 +40,13 @@ textarea {
 	font-family: var(--font-family--mono);
 	font-size: var(--font-size--medium);
 	font-style: normal;
+}
+
+pre,
+textarea,
+code#typeans {
+	padding: calc(var(--spacing--default) / 1.5) calc(var(--spacing--default) * 0.75);
+	text-align: start;
 }
 
 code {
@@ -33,20 +72,4 @@ table {
 	pre {
 		margin: 0;
 	}
-}
-
-pre,
-textarea,
-code#typeans,
-.user-answer .box__content,
-.reference-answer .box__content {
-	padding: calc(var(--spacing--default) / 1.5) calc(var(--spacing--default) * 0.75);
-}
-
-pre,
-textarea,
-code#typeans,
-.notes-container .box__header,
-.box__content {
-	text-align: start;
 }

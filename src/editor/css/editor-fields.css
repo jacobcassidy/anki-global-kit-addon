@@ -13,27 +13,20 @@
 @import url("../../shared/css/default.css");
 @import url("../../shared/css/syntax-highlighting.css");
 
-anki-editable {
-	--code-background: #f1f1f1; /* --syntax-gray-white-light */
-	--code-border: #e1e1e1;
-	--code-text: #383838; /* --syntax-gray-fade */
-	--theme-bg: #242424;
-}
-
 code {
-	background-color: var(--code-background);
-	border-color: var(--code-border);
-	color: var(--code-text);
+	background-color: var(--syntax-gray-white-light-extra);
+	border-color: var(--syntax-gray-white-light);
+	color: var(--syntax-gray-fade);
 	padding: 2px 4px;
 
 	.nightMode & {
-		background-color: var(--syntax-gray-dark);
+		background-color: var(--syntax-gray-medium-dark);
 		color: var(--syntax-gray-white);
 	}
 }
 
 pre {
-	background-color: var(--theme-bg);
+	background-color: var(--syntax-gray-fade-black);
 	color: var(--syntax-gray-light);
 	margin: 0 auto;
 

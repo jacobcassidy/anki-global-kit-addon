@@ -43,11 +43,10 @@
 		calc(var(--brand-color-c) - 0.0612)
 		var(--brand-color-h)
 	);
-	--bgc--typed-bad: oklch(80% 0.114 20deg);
-	--bgc--typed-good: oklch(80% 0.114 144deg);
-	--bgc--typed-missed: oklch(80% 0 0deg);
-	--color--cloze: oklch(50% 0.28 264deg);
-	--color--pre: oklch(80% 0 0deg);
+	--bgc--typed-bad: oklch(80% 0.114 20);
+	--bgc--typed-good: oklch(80% 0.114 144);
+	--bgc--typed-missed: oklch(80% 0 0);
+	--color--pre: oklch(80% 0 0);
 	--color--primary: oklch(
 		calc(var(--brand-color-l) - 16%)
 		calc(var(--brand-color-c) - 0.0352)
@@ -68,7 +67,7 @@
 		calc(var(--brand-color-c) - 0.0288)
 		var(--brand-color-h)
 	);
-	--color--typed: oklch(50% 0 0deg);
+	--color--typed: oklch(50% 0 0);
 }
 
 /* NIGHTMODE THEME VARIABLES */
@@ -109,11 +108,10 @@
 		calc(var(--brand-color-c) - 0.0176)
 		var(--brand-color-h)
 	);
-	--bgc--typed-bad: oklch(80% 0.114 20deg / 0.75);
-	--bgc--typed-good: oklch(80% 0.114 144deg / 0.75);
-	--bgc--typed-missed: oklch(80% 0 0deg / 0.75);
-	--color--cloze: oklch(60% 0.2 264deg / 0.9);
-	--color--pre: oklch(80% 0 0deg / 0.75);
+	--bgc--typed-bad: oklch(80% 0.114 20 / 0.75);
+	--bgc--typed-good: oklch(80% 0.114 144 / 0.75);
+	--bgc--typed-missed: oklch(80% 0 0 / 0.75);
+	--color--pre: oklch(80% 0 0 / 0.75);
 	--color--primary: oklch(
 		calc(var(--brand-color-l) + 16%)
 		calc(var(--brand-color-c) - 0.0288)
@@ -134,5 +132,5 @@
 		calc(var(--brand-color-c) - 0.0044)
 		var(--brand-color-h)
 	);
-	--color--typed: oklch(40% 0 0deg);
+	--color--typed: oklch(40% 0 0);
 }
