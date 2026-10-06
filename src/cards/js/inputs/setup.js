@@ -55,6 +55,9 @@ export function watchQuestionInputs() {
     if (state.boundInputs.has(questionInput)) return;
     state.boundInputs.add(questionInput);
 
+    resizeQuestionInput(questionInput);
+    questionInput.addEventListener('input', () => resizeQuestionInput(questionInput));
+
     if (isAnkiPC) {
       const reportFocus = () => {
         globalThis.ankiGlobalKitReportQuestionFocus();
@@ -93,6 +96,11 @@ export function watchQuestionInputs() {
 
     handleQuestionInputSubmission(questionInput, inputIndex);
   });
+}
+
+function resizeQuestionInput(textarea) {
+  textarea.style.blockSize = 'auto';
+  textarea.style.blockSize = `${Math.min(textarea.scrollHeight, 640)}px`;
 }
 
 function addFormattingToolbar(textarea) {

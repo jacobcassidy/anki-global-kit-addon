@@ -95,3 +95,5 @@ textarea::placeholder {
 	font-size: var(--font-size--large);
 	line-height: 1.5;
 }
+	max-block-size: 640px;
+	overflow-y: auto;
