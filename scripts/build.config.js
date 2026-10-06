@@ -40,6 +40,7 @@ export const editorUiCssBuildOptions = {
   bundle: true,
   legalComments: 'none',
   minify: true,
+  external: ['*.woff', '*.woff2'],
 };
 
 export const editorJsBuildOptions = {

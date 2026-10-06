@@ -8,7 +8,6 @@
  * Use the attribute selector mid for for note type specific CSS, e.g. [mid="1616909476324"]
  */
 
-@import url("../../shared/css/fonts.css");
 @import url("../../shared/css/variables.css");
 @import url("../../shared/css/default.css");
 @import url("../../shared/css/syntax-highlighting.css");

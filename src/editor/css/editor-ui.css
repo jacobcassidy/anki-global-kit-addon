@@ -2,4 +2,6 @@
  * Default styles for the Anki Desktop editor interface around each field.
  * User rules from user_files/editor-ui.css are appended after this file.
  */
+/* Register fonts in the document; Chromium ignores font faces in field shadow roots. */
+@import url("../../shared/css/fonts.css");
 @import url("../../shared/css/syntax-highlighting.css");

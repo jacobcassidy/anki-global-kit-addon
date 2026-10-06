@@ -157,10 +157,15 @@ def validate_assets(package_files: list[Path]) -> str:
     for stylesheet in (
         ROOT / "src/shared/css/fonts.css",
         manifest.ASSET_PATHS[manifest.CSS_ASSET_NAME],
-        ROOT / "addon/desktop/editor/assets/css/editor-fields.min.css",
+        ROOT / "addon/desktop/editor/assets/css/editor-ui.min.css",
     ):
         if not re.search(css_asset_url(manifest.FONT_ASSET_NAME), read_source(stylesheet)):
             raise ValueError(f"{stylesheet.relative_to(ROOT)} does not reference {manifest.FONT_ASSET_NAME}")
+
+    editor_ui_css = read_source(ROOT / "addon/desktop/editor/assets/css/editor-ui.min.css")
+    editor_fields_css = read_source(ROOT / "addon/desktop/editor/assets/css/editor-fields.min.css")
+    if "@font-face" not in editor_ui_css or "@font-face" in editor_fields_css:
+        raise ValueError("Editor font faces must be declared in the document UI stylesheet, not field shadow roots")
 
     installer = read_source(ROOT / "addon/desktop/settings/services/assets.py")
     required_installer_paths = (
