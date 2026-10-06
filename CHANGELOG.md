@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expanded asset validation to editor bundles, referenced shared icons, configured note type template parts, and shared font references. Packaging now requires these checks to pass before opening the output archive.
 - Updated the packaged README to describe Create, Replace, and Delete accurately, including confirmation, format compatibility, empty-type deletion, and the complete packaging workflow.
 - Aligned repository, issue, help, and listing image URLs with the canonical `anki-global-kit-addon` repository.
+- Corrected the card toolbar help text to describe its position above each question input field.
 
 ## [1.0.0] - 2026-10-05
 

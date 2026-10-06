@@ -28,7 +28,7 @@ def build_card_toolbar_section(parent: QWidget, current_settings: dict):
     add_checkbox_row(
         layout,
         enabled,
-        "Show a toolbar below each question field with buttons for common Markdown formatting, including lists, quotes, and code.",
+        "Show a toolbar above each question input field with buttons for common Markdown formatting, including lists, quotes, and code.",
     )
     button_container = QWidget(section)
     button_layout = QVBoxLayout(button_container)
