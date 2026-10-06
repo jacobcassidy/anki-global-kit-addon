@@ -55,7 +55,7 @@ def build_help_tab(parent: QWidget) -> QWidget:
     github_button.clicked.connect(
         lambda checked=False: QDesktopServices.openUrl(
             QUrl(
-                "https://github.com/jacobcassidy/anki-global-kit/"
+                "https://github.com/jacobcassidy/anki-global-kit-addon/"
                 "blob/main/addon/HELP.md"
             )
         )

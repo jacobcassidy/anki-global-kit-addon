@@ -46,4 +46,4 @@ Choose **View Stylesheet** to open `user_files`. Edit `editor-fields.css` for no
 - **Answers show plain text:** enable Markdown rendering and syntax highlighting in **Card Reviews**. Check that code fences have matching opening and closing lines.
 - **Cards lack the kit tools:** use a kit note type. To update an existing kit type's templates, select **Replace** in **Note Types**.
 
-For an unresolved problem, [report an issue](https://github.com/jacobcassidy/anki-global-kit/issues) with your Anki version, device, steps to reproduce it, and a screenshot if useful.
+For an unresolved problem, [report an issue](https://github.com/jacobcassidy/anki-global-kit-addon/issues) with your Anki version, device, steps to reproduce it, and a screenshot if useful.

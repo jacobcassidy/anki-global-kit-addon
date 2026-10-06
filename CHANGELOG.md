@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stopped packaging when required top-level files or folders are missing or have the wrong type, reporting the affected paths before opening the output archive.
 - Expanded asset validation to editor bundles, referenced shared icons, configured note type template parts, and shared font references. Packaging now requires these checks to pass before opening the output archive.
 - Updated the packaged README to describe Create, Replace, and Delete accurately, including confirmation, format compatibility, empty-type deletion, and the complete packaging workflow.
+- Aligned repository, issue, help, and listing image URLs with the canonical `anki-global-kit-addon` repository.
 
 ## [1.0.0] - 2026-10-05
 
