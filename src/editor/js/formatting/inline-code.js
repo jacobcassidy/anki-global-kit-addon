@@ -5,6 +5,7 @@ import { normalizeSpaceBeforeCode } from './code-spaces.js';
 // Inline code formatting action.
 export function toggleInlineCode(begin = '<code>', end = '</code>') {
   toggleInlineCode.cancelEntry?.();
+  toggleInlineCode.cancelExit?.();
   const selection = getEditorSelection() || getFieldInputSelection();
   if (!selection || !selection.rangeCount) {
     // A completely empty shadow field may have no native caret range.
@@ -73,17 +74,14 @@ export function toggleInlineCode(begin = '<code>', end = '</code>') {
       const tail = range.cloneRange();
       tail.setEnd(code, code.childNodes.length);
       if (empty(tail.cloneContents())) {
-        // A caret at the end of formatted text starts a new empty wrapper.
-        // Keep the existing formatting intact and anchor typing in its sibling.
-        const emptyCode = document.createElement('code');
-        const anchor = document.createTextNode('\u200b');
-        emptyCode.append(anchor);
-        code.parentNode.insertBefore(emptyCode, code.nextSibling);
-        range.setStart(anchor, 1);
+        // Move to the boundary after the code. Chromium may pull typed text
+        // back into the code, so arm a one-insertion boundary workaround.
+        const outside = code.nextSibling;
+        if (outside?.nodeType === Node.TEXT_NODE) range.setStart(outside, 0);
+        else range.setStartAfter(code);
         range.collapse(true);
         select(range);
-        armInlineCodeEntry(anchor);
-        changed();
+        armInlineCodeExit(code, selection, select);
         return;
       }
       // A caret inside code toggles the entire element, including spaces.
@@ -179,6 +177,87 @@ function armInlineCodeEntry(anchor) {
     options,
   );
   root.addEventListener('focusout', cancel, options);
+}
+
+// Chromium can pull a boundary caret back into the preceding <code>.
+// Make code non-editable only during the next native insertion, then restore it.
+function armInlineCodeExit(code, selection, select) {
+  const root = code.getRootNode();
+  const controller = new AbortController();
+  const options = { capture: true, signal: controller.signal };
+  const original = code.getAttribute('contenteditable');
+  let locked = false;
+  const restore = () => {
+    if (locked) {
+      if (original === null) code.removeAttribute('contenteditable');
+      else code.setAttribute('contenteditable', original);
+      locked = false;
+    }
+  };
+  const cancel = () => {
+    restore();
+    controller.abort();
+    if (toggleInlineCode.cancelExit === cancel) toggleInlineCode.cancelExit = null;
+  };
+  toggleInlineCode.cancelExit = cancel;
+  root.addEventListener('pointerdown', cancel, options);
+  root.addEventListener('focusout', cancel, options);
+  root.addEventListener(
+    'keydown',
+    (event) => {
+      if (
+        [
+          'ArrowLeft',
+          'ArrowRight',
+          'ArrowUp',
+          'ArrowDown',
+          'Home',
+          'End',
+          'PageUp',
+          'PageDown',
+          'Escape',
+          'Tab',
+          'Backspace',
+          'Delete',
+        ].includes(event.key)
+      )
+        cancel();
+    },
+    options,
+  );
+  root.addEventListener(
+    'beforeinput',
+    (event) => {
+      if (!event.inputType.startsWith('insert') || !code.isConnected || !selection.rangeCount) {
+        cancel();
+        return;
+      }
+      const current = selection.getRangeAt(0);
+      const boundary = document.createRange();
+      boundary.setStartAfter(code);
+      boundary.collapse(true);
+      const atBoundary =
+        current.collapsed &&
+        (current.compareBoundaryPoints(Range.START_TO_START, boundary) === 0 ||
+          (current.startContainer === code.nextSibling && current.startOffset === 0));
+      let atCodeEnd = false;
+      if (current.collapsed && code.contains(current.startContainer)) {
+        const tail = current.cloneRange();
+        tail.setEnd(code, code.childNodes.length);
+        atCodeEnd = !tail.toString() && !tail.cloneContents().querySelector('br,img,hr');
+      }
+      if (!atBoundary && !atCodeEnd) {
+        cancel();
+        return;
+      }
+      locked = true;
+      code.setAttribute('contenteditable', 'false');
+      select(boundary);
+      root.addEventListener('input', cancel, options);
+      setTimeout(cancel, 0);
+    },
+    options,
+  );
 }
 
 // Find a token delimited by whitespace or prose punctuation, crossing inline formatting but not blocks.
