@@ -1,7 +1,3 @@
-/* :not(.global-kit-container, .topic) {
-  zoom: 1 !important;
-} */
-
 .card {
   background-color: var(--bgc--primary);
 }
