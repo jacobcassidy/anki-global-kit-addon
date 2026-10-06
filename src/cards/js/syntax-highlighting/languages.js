@@ -36,7 +36,8 @@ export const syntaxLanguageRules = {
     comments: '//[^\\n]*|/\\*[\\s\\S]*?\\*/',
     keywords:
       'abstract any as asserts async await boolean break case catch class const constructor continue declare default delete do else enum export extends finally for from function get if implements import in infer instanceof interface is keyof let module namespace never new null number object of package private protected public readonly require return set static string super switch symbol this throw try type typeof undefined unique unknown var void while with yield',
-    builtins: 'Array Boolean Date Error Function Map Math Number Object Promise Record RegExp Set String Symbol WeakMap WeakSet console document window',
+    builtins:
+      'Array Boolean Date Error Function Map Math Number Object Promise Record RegExp Set String Symbol WeakMap WeakSet console document window',
   },
   java: {
     comments: '//[^\\n]*|/\\*[\\s\\S]*?\\*/',

@@ -32,7 +32,8 @@
 **/dev/archive
 
 # IGNORE MINIFIED FILES
+**/**.min.css
 **/**.min.js
 
-
-collection.media/_diff_match_patch.js
+# IGNORE GENERATED FILES
+addon/meta.json

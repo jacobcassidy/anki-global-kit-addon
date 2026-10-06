@@ -22,12 +22,6 @@
     }
   }
 
-  /* .toolbar-group:not(:last-child) {
-		border-inline-end: calc(var(--spacing--default) / 24) solid var(--bgc--quaternary);
-		margin-inline-end: calc(var(--spacing--default) / 2);
-		padding-inline-end: calc(var(--spacing--default) / 2);
-	} */
-
   .card-formatting-toolbar__button {
     cursor: pointer;
     background: var(--bgc--secondary);
@@ -52,7 +46,10 @@
     &:focus-visible {
       background: var(--bgc--tertiary);
       border-color: var(--bgc--quaternary);
-      box-shadow: 0 2px 1px -1px rgb(20 20 20 / 0.12), 0 1px 1px 0 rgb(20 20 20 / 0.06), 0 1px 3px 0 rgb(20 20 20 / 0.04);
+      box-shadow:
+        0 2px 1px -1px rgb(20 20 20 / 0.12),
+        0 1px 1px 0 rgb(20 20 20 / 0.06),
+        0 1px 3px 0 rgb(20 20 20 / 0.04);
     }
 
     &:active {
