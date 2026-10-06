@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Consolidated the About, Help, and Changelog tabs' Markdown browser setup and document spacing into a shared settings UI helper.
 - Removed the legacy theme API compatibility fallback now that Anki Desktop 26.05+ is required; settings resolve color tokens through `theme_manager.var()` directly.
 - Replaced hardcoded card toolbar hover and focus shadow colors with palette-derived CSS variables, using softer shadows in light mode and stronger shadows in dark mode.
+- Rendered settings help indicators with Anki's `FG_SUBTLE` and `CANVAS` color tokens, refreshing them on theme changes and scaling the SVG for the display's pixel ratio.
 
 ## [1.0.0] - 2026-10-05
 

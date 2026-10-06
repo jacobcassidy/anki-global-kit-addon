@@ -8,7 +8,6 @@ from aqt.qt import (
     QEvent,
     QFrame,
     QHBoxLayout,
-    QIcon,
     QLabel,
     QKeySequence,
     QPoint,
@@ -27,7 +26,6 @@ from ..configs.constants import (
     NESTED_INDENT,
     SHORTCUT_MIN_WIDTH,
     SHORTCUT_MODIFIER_HINT,
-    SHARED_ASSET_DIR,
     ZERO_MARGINS,
 )
 from .theme import get_theme_color
@@ -534,14 +532,14 @@ class HelpIndicator(QLabel):
     """Show an immediate, wrapped help popup while hovered."""
 
     def __init__(self, setting_name: str, description: str, parent: QWidget) -> None:
+        from .icons import install_help_indicator_icon
+
         super().__init__(parent)
         self.setAccessibleName(f"Help: {setting_name}")
         self.setCursor(Qt.CursorShape.WhatsThisCursor)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setContentsMargins(0, 0, 0, 0)
-        icon_pixmap = QIcon(str(SHARED_ASSET_DIR / "help-indicator.svg")).pixmap(16, 16)
-        self.setPixmap(icon_pixmap)
-        self.setFixedSize(icon_pixmap.size())
+        install_help_indicator_icon(self)
         self.popup = HelpPopup(self, description)
         self.popup.adjustSize()
 
