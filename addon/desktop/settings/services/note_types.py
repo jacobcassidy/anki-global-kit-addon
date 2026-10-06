@@ -192,8 +192,7 @@ def _create_note_type(
         for field_name in spec["fields"]:
             if field_name not in fields_by_name:
                 field = models.new_field(field_name)
-                field["ord"] = len(notetype["flds"])
-                notetype["flds"].append(field)
+                models.add_field(notetype, field)
                 fields_by_name[field_name] = field
         template = (
             deepcopy(notetype["tmpls"][0])
