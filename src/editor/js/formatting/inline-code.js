@@ -74,16 +74,17 @@ export function toggleInlineCode(begin = '<code>', end = '</code>') {
       const tail = range.cloneRange();
       tail.setEnd(code, code.childNodes.length);
       if (empty(tail.cloneContents())) {
-        // Place the caret at the parent boundary; add no text to the note.
-        const outside = code.nextSibling;
-        if (outside?.nodeType === Node.TEXT_NODE) {
-          range.setStart(outside, 0);
-        } else {
-          range.setStartAfter(code);
-        }
+        // A caret at the end of formatted text starts a new empty wrapper.
+        // Keep the existing formatting intact and anchor typing in its sibling.
+        const emptyCode = document.createElement('code');
+        const anchor = document.createTextNode('\u200b');
+        emptyCode.append(anchor);
+        code.parentNode.insertBefore(emptyCode, code.nextSibling);
+        range.setStart(anchor, 1);
         range.collapse(true);
         select(range);
-        armInlineCodeExit(code, selection, select);
+        armInlineCodeEntry(anchor);
+        changed();
         return;
       }
       // A caret inside code toggles the entire element, including spaces.
@@ -334,7 +335,12 @@ function toggleInlineCodeWord(word, code, selection) {
     const wrapper = document.createElement('code');
     wrapper.append(range.extractContents());
     range.insertNode(wrapper);
-    restore(Array.from(wrapper.childNodes));
+    const caret = document.createRange();
+    caret.setStartAfter(wrapper);
+    caret.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(caret);
+    return;
   }
   function restore(nodes) {
     let remaining = word.offset;
@@ -376,7 +382,8 @@ function wrap2(begin, end) {
       const code = document.createElement('code');
       code.appendChild(range.extractContents());
       range.insertNode(code);
-      range.selectNodeContents(code);
+      range.setStartAfter(code);
+      range.collapse(true);
       selection.removeAllRanges();
       selection.addRange(range);
       return;

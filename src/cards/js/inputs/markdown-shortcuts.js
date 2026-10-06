@@ -326,10 +326,10 @@ export function toggleMarkdownFormatting(textarea, prefix, suffix) {
 
   textarea.setRangeText(hasMarkers ? textToKeep : `${prefix}${textToKeep}${suffix}`, rangeStart, rangeEnd, 'end');
 
-  const isEmptyInput = !hasMarkers && value.length === 0 && start === end;
+  const isEmptyFormatting = !hasMarkers && start === end && textToKeep.length === 0;
   const selectionStart = hasMarkers
     ? rangeStart
-    : isEmptyInput
+    : isEmptyFormatting
       ? rangeStart + prefix.length
       : rangeStart + prefix.length + textToKeep.length + suffix.length;
   const selectionEnd = hasMarkers ? selectionStart + textToKeep.length : selectionStart;
