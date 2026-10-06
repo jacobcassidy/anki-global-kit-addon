@@ -20,8 +20,6 @@ export default defineConfig([
   globalIgnores([
     '**/*.min.js',
     '**/docs/**',
-    '**/_diff_match_patch.js',
-    '**/dev/archive/type-match/**',
   ]),
   {
     plugins: {
@@ -44,17 +42,6 @@ export default defineConfig([
     rules: {
       'no-unused-vars': 'warn',
       yoda: ['warn', 'never'],
-    },
-  },
-  {
-    files: ['addon/web/_anki-global-kit.min.js'],
-    languageOptions: {
-      sourceType: 'script',
-      globals: {
-        pycmd: 'readonly',
-        study: 'readonly',
-        AnkiDroidJS: 'readonly',
-      },
     },
   },
 ]);
