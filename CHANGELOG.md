@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed the unreferenced `help.svg` asset from the add-on package; settings help controls use `help-indicator.svg`.
 - Removed obsolete ESLint ignores for deleted legacy files and an inactive override for an old generated-bundle path.
 - Disconnected prior card-rendering and submitted-code observers during repeated initialization, including bundle reloads in the same webview. Observer setup now handles missing targets and disables an existing highlighting observer when highlighting is turned off.
+- Consolidated the About, Help, and Changelog tabs' Markdown browser setup and document spacing into a shared settings UI helper.
 
 ## [1.0.0] - 2026-10-05
 
