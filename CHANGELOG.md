@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cleared the kit's AnkiDroid answer storage when binding a fresh question, preventing answers from skipped cards from appearing on later cards while preserving answers during repeated setup of the same question.
 - Stopped tracking Anki's local `addon/meta.json`, preserving the local file and ignoring future saved settings changes. Documented `addon/config.json` as the release defaults and kept local metadata excluded from release archives.
 - Disclosed additional standard card template and card removal during Replace confirmation, listing affected note types, template names, and removal counts, including loss of the removed cards' scheduling. Replacement impact is checked again before applying changes; changed templates or counts require a new confirmation. Updated user and developer documentation to describe this behavior.
+- Fixed Desktop inline-code formatting for selections spanning blocks with boundaries anchored to the editor field, guarding missing parents and keeping staged selection expansion inside the field.
 
 ## [1.0.0] - 2026-10-05
 

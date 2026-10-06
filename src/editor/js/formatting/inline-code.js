@@ -564,11 +564,15 @@ function wrap2(begin, end, selection) {
     }
   }
 
+  // The staged field is detached. Keep field boundaries inside it and only
+  // expand around ancestors that have a parent to anchor the range to.
   let startParent = range.startContainer.parentNode;
   if (
+    range.startContainer !== base &&
+    startParent?.parentNode &&
     startParent !== base &&
     startParent.tagName !== 'ANKI-EDITABLE' &&
-    startParent?.firstChild === range.startContainer &&
+    startParent.firstChild === range.startContainer &&
     range.startOffset === 0
   ) {
     range.setStartBefore(startParent);
@@ -576,9 +580,11 @@ function wrap2(begin, end, selection) {
 
   let endParent = range.endContainer.parentNode;
   if (
+    range.endContainer !== base &&
+    endParent?.parentNode &&
     endParent !== base &&
     endParent.tagName !== 'ANKI-EDITABLE' &&
-    endParent?.lastChild === range.endContainer &&
+    endParent.lastChild === range.endContainer &&
     ((range.endContainer.nodeType !== Node.ELEMENT_NODE &&
       range.endOffset === range.endContainer.textContent?.length) ||
       (range.endContainer.nodeType === Node.ELEMENT_NODE && range.endOffset === range.endContainer.childNodes.length))
@@ -593,28 +599,33 @@ function wrap2(begin, end, selection) {
     }
 
     if (
-      startParent &&
+      startParent?.parentNode &&
       startParent.parentNode !== base &&
       startParent.parentNode.tagName !== 'ANKI-EDITABLE' &&
-      startParent.parentNode?.firstChild === startParent &&
-      range.isPointInRange(startParent.parentNode, startParent.parentNode?.childNodes.length)
+      startParent.parentNode.firstChild === startParent &&
+      range.isPointInRange(startParent.parentNode, startParent.parentNode.childNodes.length)
     ) {
       startParent = startParent.parentNode;
       range.setStartBefore(startParent);
       expand = true;
     }
     if (
-      endParent &&
+      endParent?.parentNode &&
       endParent.parentNode !== base &&
       endParent.parentNode.tagName !== 'ANKI-EDITABLE' &&
-      endParent.parentNode?.lastChild === endParent &&
+      endParent.parentNode.lastChild === endParent &&
       range.isPointInRange(endParent.parentNode, 0)
     ) {
       endParent = endParent.parentNode;
       range.setEndAfter(endParent);
       expand = true;
     }
-    if (range.endOffset === 0 && range.endContainer.tagName !== 'ANKI-EDITABLE') {
+    if (
+      range.endOffset === 0 &&
+      range.endContainer !== base &&
+      range.endContainer.parentNode &&
+      range.endContainer.tagName !== 'ANKI-EDITABLE'
+    ) {
       range.setEndBefore(range.endContainer);
       expand = true;
     }
