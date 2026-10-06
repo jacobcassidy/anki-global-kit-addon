@@ -63,11 +63,17 @@ def package_files() -> list[Path]:
 
 
 def main() -> None:
+    if __package__:
+        from .check_assets import validate_assets
+    else:
+        from check_assets import validate_assets
+
     changelog = REPOSITORY_ROOT / "CHANGELOG.md"
     if not changelog.is_file():
         raise FileNotFoundError(f"The canonical changelog is missing: {changelog}")
 
     files = package_files()
+    print(validate_assets(files))
     ARCHIVE_PATH.parent.mkdir(parents=True, exist_ok=True)
     with ZipFile(ARCHIVE_PATH, "w", compression=ZIP_DEFLATED) as archive:
         for path in files:
@@ -80,5 +86,5 @@ def main() -> None:
 if __name__ == "__main__":
     try:
         main()
-    except FileNotFoundError as error:
+    except (FileNotFoundError, ValueError, SyntaxError) as error:
         raise SystemExit(str(error)) from error

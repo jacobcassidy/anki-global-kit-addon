@@ -31,6 +31,8 @@ The archive is written to `dist/anki-global-kit.ankiaddon` and contains `__init_
 
 Packaging requires every listed top-level file and folder, plus the canonical changelog. Missing components or paths with the wrong file/folder type stop packaging before the output archive is opened, leaving any existing archive intact. Restore the reported paths before retrying.
 
+Packaging also runs the asset checks available through `npm run check:assets`: card and editor bundles, their source entry points and build outputs, referenced shared icons, configured note type template parts, and shared font references must match the package paths. These checks validate the existing bundles; rebuild them before packaging changes to JavaScript or CSS.
+
 The Anki add-on guide documents the required archive layout and upload process: [Sharing Add-ons](https://addon-docs.ankiweb.net/sharing.html).
 
 ## Publish the first listing
