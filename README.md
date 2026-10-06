@@ -4,7 +4,7 @@ Anki Global Kit is an Anki Desktop add-on for creating reusable card templates, 
 
 Install and configure the kit on Desktop, then sync your collection and media to use its card features in AnkiWeb, AnkiMobile, and AnkiDroid. Editor tools and the settings panel run on Desktop.
 
-For setup details, shortcuts, customization, and troubleshooting, read the [user guide (HELP.md)](addon/HELP.md). The same guide is available in the settings panel's **Help** tab.
+For setup details, shortcuts, customization, and troubleshooting, read the [user guide (HELP.md)](addon/HELP.md). The same guide is available in the Anki Global Kit Settings panel's **Help** tab.
 
 ## Setup
 
