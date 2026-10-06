@@ -9,24 +9,31 @@ export function markdownToHtml(markdown) {
     });
 
   const renderInline = (text) => {
-    const codeSpans = [];
-    let html = escapeHtml(text).replace(/`([^`]+)`/g, (_, code) => {
-      const token = `\u0000${codeSpans.length}\u0000`;
-      codeSpans.push(`<code>${code}</code>`);
-      return token;
-    });
+    const fragments = [];
+    // Protect code and complete links before formatting surrounding text.
+    // Render link labels separately so Markdown never rewrites the URL.
+    let html = escapeHtml(
+      text.replace(/`([^`]+)`|\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, code, label, url) => {
+        const token = `\u0000${fragments.length}\u0000`;
+        fragments.push(
+          code !== undefined
+            ? `<code>${escapeHtml(code)}</code>`
+            : `<a href="${escapeHtml(url)}">${renderInline(label)}</a>`,
+        );
+        return token;
+      }),
+    );
 
     html = html
-      .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2">$1</a>')
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
       .replace(/__([^_]+)__/g, '<strong>$1</strong>')
       .replace(/\*([^*\n]+)\*/g, '<em>$1</em>')
       .replace(/_([^_\n]+)_/g, '<em>$1</em>')
       .replace(/~~([^~]+)~~/g, '<del>$1</del>');
 
-    // Restore code spans after the other Markdown replacements.
+    // Restore protected HTML after formatting the surrounding text.
     // eslint-disable-next-line no-control-regex
-    html = html.replace(/\u0000(\d+)\u0000/g, (_, index) => codeSpans[Number(index)]);
+    html = html.replace(/\u0000(\d+)\u0000/g, (_, index) => fragments[Number(index)]);
 
     return html;
   };

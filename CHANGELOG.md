@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stopped tracking Anki's local `addon/meta.json`, preserving the local file and ignoring future saved settings changes. Documented `addon/config.json` as the release defaults and kept local metadata excluded from release archives.
 - Disclosed additional standard card template and card removal during Replace confirmation, listing affected note types, template names, and removal counts, including loss of the removed cards' scheduling. Replacement impact is checked again before applying changes; changed templates or counts require a new confirmation. Updated user and developer documentation to describe this behavior.
 - Fixed Desktop inline-code formatting for selections spanning blocks with boundaries anchored to the editor field, guarding missing parents and keeping staged selection expansion inside the field.
+- Protected Markdown link destinations from emphasis, strikethrough, and inline-code formatting, rendering link labels separately and preserving escaped URLs in submitted answers.
 
 ## [1.0.0] - 2026-10-05
 
