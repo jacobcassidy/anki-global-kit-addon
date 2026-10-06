@@ -14,6 +14,8 @@ PACKAGE_PATHS = (
     "config.json",
     "manifest.json",
     "README.md",
+    "ABOUT.md",
+    "HELP.md",
     "web",
     "templates",
     "user_files",
