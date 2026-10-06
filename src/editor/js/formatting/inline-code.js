@@ -1,11 +1,10 @@
 import { getEditorSelection, getFieldInputSelection } from '../helpers/selection.js';
 import { getEditorSettings } from '../settings.js';
-import { normalizeSpaceBeforeCode, watchInlineCodeSeparator } from './code-spaces.js';
+import { normalizeSpaceBeforeCode } from './code-spaces.js';
 
 // Inline code formatting action.
 export function toggleInlineCode(begin = '<code>', end = '</code>') {
   toggleInlineCode.cancelEntry?.();
-  toggleInlineCode.cancelExit?.();
   const selection = getEditorSelection() || getFieldInputSelection();
   if (!selection || !selection.rangeCount) {
     // A completely empty shadow field may have no native caret range.
@@ -180,88 +179,6 @@ function armInlineCodeEntry(anchor) {
     options,
   );
   root.addEventListener('focusout', cancel, options);
-}
-
-// Chromium otherwise pulls a boundary caret back into the preceding <code>.
-// Make code non-editable only during the next native insertion, then restore it.
-function armInlineCodeExit(code, selection, select) {
-  const root = code.getRootNode();
-  if (getEditorSettings().anki_editor_normalize_code_spaces) watchInlineCodeSeparator(code, root);
-  const controller = new AbortController();
-  const options = { capture: true, signal: controller.signal };
-  const original = code.getAttribute('contenteditable');
-  let locked = false;
-  const restore = () => {
-    if (locked) {
-      if (original === null) code.removeAttribute('contenteditable');
-      else code.setAttribute('contenteditable', original);
-      locked = false;
-    }
-  };
-  const cancel = () => {
-    restore();
-    controller.abort();
-    if (toggleInlineCode.cancelExit === cancel) toggleInlineCode.cancelExit = null;
-  };
-  toggleInlineCode.cancelExit = cancel;
-  root.addEventListener('pointerdown', cancel, options);
-  root.addEventListener('focusout', cancel, options);
-  root.addEventListener(
-    'keydown',
-    (event) => {
-      if (
-        [
-          'ArrowLeft',
-          'ArrowRight',
-          'ArrowUp',
-          'ArrowDown',
-          'Home',
-          'End',
-          'PageUp',
-          'PageDown',
-          'Escape',
-          'Tab',
-          'Backspace',
-          'Delete',
-        ].includes(event.key)
-      )
-        cancel();
-    },
-    options,
-  );
-  root.addEventListener(
-    'beforeinput',
-    (event) => {
-      if (!event.inputType.startsWith('insert') || !code.isConnected || !selection.rangeCount) {
-        cancel();
-        return;
-      }
-      const current = selection.getRangeAt(0);
-      const boundary = document.createRange();
-      boundary.setStartAfter(code);
-      boundary.collapse(true);
-      const atBoundary =
-        current.collapsed &&
-        (current.compareBoundaryPoints(Range.START_TO_START, boundary) === 0 ||
-          (current.startContainer === code.nextSibling && current.startOffset === 0));
-      let atCodeEnd = false;
-      if (current.collapsed && code.contains(current.startContainer)) {
-        const tail = current.cloneRange();
-        tail.setEnd(code, code.childNodes.length);
-        atCodeEnd = !tail.toString() && !tail.cloneContents().querySelector('br,img,hr');
-      }
-      if (!atBoundary && !atCodeEnd) {
-        cancel();
-        return;
-      }
-      locked = true;
-      code.setAttribute('contenteditable', 'false');
-      select(boundary);
-      root.addEventListener('input', cancel, options);
-      setTimeout(cancel, 0); // Also restore if another listener cancels the edit.
-    },
-    options,
-  );
 }
 
 // Find a token delimited by whitespace or prose punctuation, crossing inline formatting but not blocks.
