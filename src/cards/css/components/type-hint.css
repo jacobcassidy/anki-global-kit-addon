@@ -7,6 +7,7 @@
   font-style: italic;
 
   code {
+    color: var(--color--tertiary);
     font-size: var(--font-size--x-small);
   }
 

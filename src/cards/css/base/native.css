@@ -1,7 +1,6 @@
-:not(.global-kit-container, .topic) {
-  /* REVIEW -- Is this needed? */
+/* :not(.global-kit-container, .topic) {
   zoom: 1 !important;
-}
+} */
 
 .card {
   background-color: var(--bgc--primary);
@@ -58,54 +57,23 @@ hr#answer {
 
 /* DEFAULT ANKIWEB ELEMENTS */
 
-body > div:not(#qa) {
-  nav.navbar {
-    margin-block-end: 0 !important;
+nav.navbar {
+  margin-block-end: 0 !important;
+}
+
+main.container {
+  max-inline-size: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+
+  .float-start,
+  .float-end,
+  #ansarea {
+    padding: 1rem;
   }
 
-  main.container {
-    max-inline-size: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-
-    #quiz {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      background-color: #eee;
-      border-block-start: calc(var(--spacing--default) / 24) solid #ddd;
-
-      .float-start,
-      .float-end,
-      #ansarea-pad,
-      #ansarea {
-        padding: 1rem;
-      }
-
-      .pt-1,
-      .pt-3 {
-        display: none;
-      }
-
-      #ansarea-pad {
-        background-color: var(--bgc--primary);
-      }
-
-      #qa_box {
-        #qa {
-          margin: 0;
-        }
-      }
-
-      #ansarea {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-    }
-
-    .form-group {
+  #qa_box {
+    #qa {
       margin: 0;
     }
   }

@@ -18,11 +18,6 @@ body {
   text-align: center;
 }
 
-/* div:not(.float-start, .float-end, #ansarea, .justify-content-center, .d-flex > div, .answer-container) {
-	inline-size: 100%;
-	margin: 0 auto;
-} */
-
 /* li + li {
 	margin-block-start: calc(var(--spacing--default) / 3);
 } */
