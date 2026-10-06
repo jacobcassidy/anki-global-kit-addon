@@ -1,3 +1,5 @@
+# Anki Global Kit README
+
 ![Anki Global Kit logo](docs/branding/anki-global-kit-logo.png)
 
 Anki Global Kit is an Anki Desktop add-on for creating reusable card templates, formatting typed answers with Markdown, highlighting code, comparing answers, and customizing the Desktop editor.
