@@ -1,5 +1,6 @@
 import { isAnkiDroid, isAnkiPC, isAnkiWeb } from '../runtime/platform.js';
 import { state } from '../runtime/state.js';
+import { writeStoredAnswer } from '../runtime/answer-storage.js';
 import {
   handleMarkdownListEnter,
   handleMarkdownShortcuts,
@@ -278,11 +279,7 @@ export function handleQuestionInputSubmission(questionInput, inputIndex) {
 
     // Store input data on AnkiDroid
     if (isAnkiDroid) {
-      try {
-        sessionStorage.setItem(inputIndex, inputValue);
-      } catch (error) {
-        console.log(`${error.name}: ${error.message}`);
-      }
+      writeStoredAnswer(inputIndex, inputValue);
       // Store input data on AnkiPC, AnkiWeb, & AnkiIOS
     } else {
       state.outputAnswers.splice(inputIndex, 1, inputValue);

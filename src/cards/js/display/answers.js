@@ -1,5 +1,6 @@
 import { isAnkiDroid } from '../runtime/platform.js';
 import { state } from '../runtime/state.js';
+import { clearStoredAnswers, readStoredAnswer } from '../runtime/answer-storage.js';
 import { hasVisibleContent } from '../helpers/dom.js';
 import { showBonusQuestion, showTypeHint } from './type-hints.js';
 import { getRenderedAnswerText, diffAnswerCharacters } from './answer-comparison.js';
@@ -21,6 +22,9 @@ export function showAnswerContainers() {
     const referenceClozes = referenceAnswer.querySelectorAll('.cloze');
     const userAnswer = answerContainer.querySelector('.user-answer .box__content');
     const hasCompare = userAnswer.getAttribute('data-compare');
+    const typedAnswer = isAnkiDroid
+      ? readStoredAnswer(answerContainerIndex)
+      : state.outputAnswers?.[answerContainerIndex];
     const bonusQuestion = answerContainer.querySelector('.is-bonus .question');
     const typeHint = answerContainer.querySelector('.type-hint');
 
@@ -65,12 +69,7 @@ export function showAnswerContainers() {
       }
 
       // Don't compare user's answer to card's answer if the user did NOT input an answer.
-      if (
-        (isAnkiDroid && sessionStorage === undefined) ||
-        (isAnkiDroid && sessionStorage[answerContainerIndex] === undefined) ||
-        (!isAnkiDroid && state.outputAnswers === undefined) ||
-        (!isAnkiDroid && state.outputAnswers[answerContainerIndex] === undefined)
-      ) {
+      if (typedAnswer === undefined) {
         const cardAnswerCharArr = Array.from(cardAnswer);
         const cardAnswerComparisonArr = [];
 
@@ -82,19 +81,6 @@ export function showAnswerContainers() {
 
         // Compare user's answer to card's answer when user did input an answer.
       } else {
-        let typedAnswer;
-
-        // Get typedAnswer value for AnkiDroid.
-        if (isAnkiDroid) {
-          // console.log(sessionStorage);
-          // console.log(answerContainerIndex);
-          typedAnswer = sessionStorage[answerContainerIndex];
-
-          // Get typedAnswer value for AnkiPC, AnkiWeb, or AnkiIOS.
-        } else {
-          typedAnswer = state.outputAnswers[answerContainerIndex];
-        }
-
         const dmpArr = diffAnswerCharacters(cardAnswer, typedAnswer.replace(/\u00a0/g, ' '));
         const dmpMatchTypeAndCharArr = [];
         const typedComparisonArr = [];
@@ -165,12 +151,12 @@ export function showAnswerContainers() {
       // Directly output user's answer if comparison is NOT active.
     } else {
       if (userAnswer && !state.renderedPlainOutputs.has(userAnswer)) {
-        if (isAnkiDroid && sessionStorage !== undefined) {
-          const answer = sessionStorage[answerContainerIndex] || '';
+        if (isAnkiDroid) {
+          const answer = typedAnswer || '';
           userAnswer.innerHTML = settings.cardReviewMarkdownRendering ? markdownToHtml(answer) : escapeText(answer);
           state.renderedPlainOutputs.add(userAnswer);
         } else if (!isAnkiDroid && state.outputAnswers !== undefined) {
-          const answer = state.outputAnswers[answerContainerIndex] || '';
+          const answer = typedAnswer || '';
           userAnswer.innerHTML = settings.cardReviewMarkdownRendering ? markdownToHtml(answer) : escapeText(answer);
           state.renderedPlainOutputs.add(userAnswer);
         }
@@ -178,9 +164,9 @@ export function showAnswerContainers() {
     }
   });
 
-  // Clear sessionStorage for next card on AnkiDroid
+  // Clear the kit's stored answers for the next card on AnkiDroid.
   if (isAnkiDroid) {
-    sessionStorage.clear();
+    clearStoredAnswers();
   }
 }
 
