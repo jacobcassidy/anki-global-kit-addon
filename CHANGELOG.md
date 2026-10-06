@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed the unused `highlightSubmittedCode()` helper that duplicated the active submitted-code watcher's highlighting logic.
 - Removed the unreferenced `help.svg` asset from the add-on package; settings help controls use `help-indicator.svg`.
 - Removed obsolete ESLint ignores for deleted legacy files and an inactive override for an old generated-bundle path.
+- Disconnected prior card-rendering and submitted-code observers during repeated initialization, including bundle reloads in the same webview. Observer setup now handles missing targets and disables an existing highlighting observer when highlighting is turned off.
 
 ## [1.0.0] - 2026-10-05
 

@@ -1,9 +1,12 @@
 import { getSyntaxLanguage, highlightCodeText } from './tokenizer.js';
 import { settings } from '../runtime/settings.js';
+import { observers } from '../runtime/state.js';
 
 /** Highlight current and subsequently rendered answer code blocks. */
 export function watchSubmittedCodeBlocks() {
-  if (!settings.cardReviewSyntaxHighlighting) return;
+  observers.submittedCode?.disconnect();
+  observers.submittedCode = null;
+  if (!settings.cardReviewSyntaxHighlighting || !document.body) return null;
   const submittedCodeSelector = '.user-answer .box__content pre > code';
 
   const highlightCode = (code) => {
@@ -28,7 +31,10 @@ export function watchSubmittedCodeBlocks() {
   };
 
   document.querySelectorAll(submittedCodeSelector).forEach(highlightCode);
-  new MutationObserver((mutations) => {
+  const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => mutation.addedNodes.forEach(scan));
-  }).observe(document.body, { childList: true, subtree: true });
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+  observers.submittedCode = observer;
+  return observer;
 }

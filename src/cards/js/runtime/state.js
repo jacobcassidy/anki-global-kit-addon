@@ -4,3 +4,9 @@ export const state = {
   boundInputs: new WeakSet(),
   renderedPlainOutputs: new WeakSet(),
 };
+
+/** Retain observer handles if the card bundle is loaded again in this webview. */
+export const observers = (globalThis.ankiGlobalKitObservers ??= {
+  cardChanges: null,
+  submittedCode: null,
+});
