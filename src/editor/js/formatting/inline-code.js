@@ -1,12 +1,16 @@
 import { getEditorSelection, getFieldInputSelection } from '../helpers/selection.js';
 import { getEditorSettings } from '../settings.js';
 import { normalizeSpaceBeforeCode } from './code-spaces.js';
+import { editWithNativeUndo } from '../helpers/edit-transaction.js';
+
+const ENTRY_ATTRIBUTE = 'data-anki-global-kit-inline-code-entry';
+const entryCodes = new WeakSet();
 
 // Inline code formatting action.
 export function toggleInlineCode(begin = '<code>', end = '</code>') {
-  toggleInlineCode.cancelEntry?.();
+  const pendingAnchor = toggleInlineCode.cancelEntry?.(false);
   toggleInlineCode.cancelExit?.();
-  const selection = getEditorSelection() || getFieldInputSelection();
+  let selection = getEditorSelection() || getFieldInputSelection();
   if (!selection || !selection.rangeCount) {
     // A completely empty shadow field may have no native caret range.
     let active = document.activeElement;
@@ -18,21 +22,82 @@ export function toggleInlineCode(begin = '<code>', end = '</code>') {
       !field.textContent.replace(/[\s\u200b\ufeff]/gu, '') &&
       !field.querySelector('img,hr,input,video,audio,iframe,object,svg,canvas')
     ) {
-      codes[0].replaceWith(...Array.from(codes[0].childNodes));
-      field.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+      field.focus();
+      selection = field.getRootNode().getSelection?.() || window.getSelection();
+      if (!selection) return;
+      const range = document.createRange();
+      range.setStartBefore(codes[0]);
+      range.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(range);
     }
-    return;
+    if (!selection?.rangeCount) return;
   }
+  const element = (node) => (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement);
+  const originalRange = selection.getRangeAt(0);
+  const field = element(originalRange.startContainer)?.closest('anki-editable, [contenteditable="true"]');
+  if (!field || field.closest('.cm-editor') || !field.contains(originalRange.endContainer)) return;
+  const effects = {};
+  const result = editWithNativeUndo(
+    field,
+    selection,
+    (clone, stagedSelection, resolveNode) => {
+      const anchor = resolveNode(pendingAnchor);
+      if (anchor?.data.startsWith('\u200b')) anchor.deleteData(0, 1);
+      formatInlineCodeContent(clone, stagedSelection, begin, end, effects);
+      if (effects.entryAnchor) effects.entryAnchor.parentElement.setAttribute(ENTRY_ATTRIBUTE, '');
+    },
+    restoreInlineCodeEntry,
+  );
+  if (!result && pendingAnchor?.isConnected && pendingAnchor.data.startsWith('\u200b')) {
+    armInlineCodeEntry(pendingAnchor);
+  }
+  if (result?.resolveNode && effects.exitCode) {
+    const code = result.resolveNode(effects.exitCode);
+    armInlineCodeExit(code, selection, (range) => {
+      selection.removeAllRanges();
+      selection.addRange(range);
+    });
+  }
+}
+
+function restoreInlineCodeEntry(event, field) {
+  const codes = [...field.querySelectorAll(`[${ENTRY_ATTRIBUTE}]`)];
+  if (event.inputType === 'historyRedo' || event.inputType === 'historyUndo') {
+    codes.push(...[...field.querySelectorAll('code')].filter((code) => entryCodes.has(code)));
+  }
+  for (const code of new Set(codes)) {
+    code.removeAttribute(ENTRY_ATTRIBUTE);
+    entryCodes.add(code);
+    let anchor = [...code.childNodes].find(
+      (node) => node.nodeType === Node.TEXT_NODE && node.data.startsWith('\u200b'),
+    );
+    if (!anchor && !code.textContent && !code.querySelector('br,img,hr,input,video,audio,iframe,object,svg,canvas')) {
+      anchor = document.createTextNode('\u200b');
+      code.append(anchor);
+    }
+    if (anchor) {
+      const selection = field.getRootNode().getSelection?.() || window.getSelection();
+      if (!selection) continue;
+      const range = document.createRange();
+      range.setStart(anchor, 0);
+      range.setEnd(anchor, 1);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      armInlineCodeEntry(anchor);
+    }
+  }
+}
+
+function formatInlineCodeContent(field, selection, begin, end, effects) {
   const range = selection.getRangeAt(0);
   const element = (node) => (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement);
-  const field = element(range.startContainer)?.closest('anki-editable, [contenteditable="true"]');
   const codeAt = (node) => element(node)?.closest('code');
   const empty = (fragment) => !fragment.textContent && !fragment.querySelector('br,img,hr,input,video,audio');
   const select = (r) => {
     selection.removeAllRanges();
     selection.addRange(r);
   };
-  const changed = () => field?.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
 
   const emptyCode = (node) =>
     node?.nodeName === 'CODE' &&
@@ -68,7 +133,6 @@ export function toggleInlineCode(begin = '<code>', end = '</code>') {
         }
         range.collapse(true);
         select(range);
-        changed();
         return;
       }
       const tail = range.cloneRange();
@@ -81,7 +145,7 @@ export function toggleInlineCode(begin = '<code>', end = '</code>') {
         else range.setStartAfter(code);
         range.collapse(true);
         select(range);
-        armInlineCodeExit(code, selection, select);
+        effects.exitCode = code;
         return;
       }
       // A caret inside code toggles the entire element, including spaces.
@@ -91,7 +155,6 @@ export function toggleInlineCode(begin = '<code>', end = '</code>') {
       const contents = document.createRange();
       contents.selectNodeContents(code);
       toggleInlineCodeWord({ range: contents, offset: prefix.toString().length }, code, selection);
-      changed();
       return;
     }
     // A caret inside a word toggles that word without requiring selection.
@@ -102,7 +165,6 @@ export function toggleInlineCode(begin = '<code>', end = '</code>') {
     const word = inlineCodeWordAtCaret(range, block || field, false);
     if (word && word.offset > 0 && (word.offset < word.range.toString().length || word.beforePunctuation)) {
       toggleInlineCodeWord(word, null, selection);
-      changed();
       return;
     }
     code = document.createElement('code');
@@ -111,16 +173,16 @@ export function toggleInlineCode(begin = '<code>', end = '</code>') {
     code.append(anchor);
     range.insertNode(code);
     if (getEditorSettings().anki_editor_normalize_code_spaces) normalizeSpaceBeforeCode(code);
-    range.setStart(anchor, 1);
-    range.collapse(true);
+    // Replacing the selected placeholder records its removal in the same
+    // native transaction as typing, so Undo can restore an empty code span.
+    range.setStart(anchor, 0);
+    range.setEnd(anchor, 1);
     select(range);
-    armInlineCodeEntry(anchor);
-    changed();
+    effects.entryAnchor = anchor;
     return;
   }
 
   if (begin === '<code>' && end === '</code>' && toggleMixedInlineCodeSelection(field, range, selection)) {
-    changed();
     return;
   }
 
@@ -152,14 +214,12 @@ export function toggleInlineCode(begin = '<code>', end = '</code>') {
         code.remove();
         select(range);
       }
-      changed();
     }
     return;
   }
 
   // Preserve the existing block-aware wrapping behavior for plain selections.
-  wrap2.call(this, begin, end);
-  changed();
+  wrap2.call({ node: field }, begin, end, selection);
 }
 
 /** Toggle mixed selections without nesting code or moving surrounding markup. */
@@ -258,12 +318,35 @@ function armInlineCodeEntry(anchor) {
   const root = anchor.getRootNode();
   const controller = new AbortController();
   const options = { capture: true, signal: controller.signal };
-  const cancel = () => {
-    if (anchor.data.startsWith('\u200b')) anchor.deleteData(0, 1);
+  const cancel = (removeAnchor = true) => {
+    if (removeAnchor && anchor.isConnected && anchor.data.startsWith('\u200b')) anchor.deleteData(0, 1);
     controller.abort();
     if (toggleInlineCode.cancelEntry === cancel) toggleInlineCode.cancelEntry = null;
+    return anchor;
   };
   toggleInlineCode.cancelEntry = cancel;
+  root.addEventListener(
+    'beforeinput',
+    (event) => {
+      if (!event.inputType.startsWith('insert') || !anchor.isConnected || !anchor.data.startsWith('\u200b')) return;
+      const selection = root.getSelection?.() || window.getSelection();
+      if (!selection?.rangeCount) return;
+      const current = selection.getRangeAt(0);
+      const index = [...anchor.parentNode.childNodes].indexOf(anchor);
+      if (
+        current.collapsed &&
+        ((current.startContainer === anchor && current.startOffset <= 1) ||
+          (current.startContainer === anchor.parentNode && [index, index + 1].includes(current.startOffset)))
+      ) {
+        const replacement = document.createRange();
+        replacement.setStart(anchor, 0);
+        replacement.setEnd(anchor, 1);
+        selection.removeAllRanges();
+        selection.addRange(replacement);
+      } else if (!current.intersectsNode(anchor)) cancel();
+    },
+    options,
+  );
   root.addEventListener(
     'input',
     (event) => {
@@ -457,9 +540,8 @@ function toggleInlineCodeWord(word, code, selection) {
 }
 
 // Block-aware wrapping adapted from Wrapper meta-addon and Anki PR #3038.
-function wrap2(begin, end) {
+function wrap2(begin, end, selection) {
   const { node: base } = this;
-  const selection = getEditorSelection() || getFieldInputSelection();
   const range = selection.getRangeAt(0);
   if (!range) {
     return;
@@ -540,7 +622,9 @@ function wrap2(begin, end) {
 
   const fragment = range.extractContents();
   if (fragment.childNodes.length === 0) {
-    document.execCommand('inserthtml', false, begin + end);
+    const container = document.createElement('div');
+    container.innerHTML = begin + end;
+    range.insertNode(container.firstChild);
   } else {
     const div = document.createElement('div');
     for (const node of Array.from(fragment.childNodes)) {
