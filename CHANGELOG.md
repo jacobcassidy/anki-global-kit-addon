@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Generated a combined `_meslolgl-nf-license.txt` during builds and packaging and added it to managed profile media so the font's attribution and full license notices sync with the font. Asset checks now require its sources and detect a missing or stale companion.
 - Renamed the shared font to `_meslolgl-nf.woff2` and updated source and built stylesheet references to match Anki's lowercase media filenames, preventing installation errors. Asset checks now reject mixed-case managed filenames; custom CSS or templates using the old font filename need their references updated.
 - Removed unused `ADDON_DIR` and `NESTED_INDENT` imports from the media installer and shared settings widgets.
+- Updated the Lefthook install-script approval pin to `2.1.15`, matching the installed and locked dependency version.
 
 ## [1.0.0] - 2026-10-05
 
