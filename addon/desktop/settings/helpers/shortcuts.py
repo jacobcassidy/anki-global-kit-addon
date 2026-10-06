@@ -2,16 +2,6 @@
 
 from aqt.utils import is_mac
 
-def migrate_legacy_card_shortcut(shortcut: str) -> str:
-    """Translate saved card shortcut names to Qt's Ctrl/Meta names."""
-    if not shortcut or shortcut.startswith("CodeBlock+"):
-        return shortcut
-    aliases = {"Primary": "Ctrl"}
-    aliases["Control"] = "Meta" if is_mac else "Ctrl"
-    aliases["Meta"] = "Ctrl" if is_mac else "Meta"
-    return "+".join(aliases.get(part, part) for part in shortcut.split("+"))
-
-
 def format_shortcut(shortcut: str) -> str:
     """Format Qt Ctrl/Meta shortcut names for the current platform."""
     if not shortcut:

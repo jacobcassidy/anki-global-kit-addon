@@ -4,7 +4,6 @@ from aqt import mw
 from aqt.utils import is_mac
 
 from ..configs.constants import ADDON_PACKAGE_NAME, DEFAULT_SETTINGS
-from ..helpers.shortcuts import migrate_legacy_card_shortcut
 
 
 def get_settings() -> dict[str, object]:
@@ -18,17 +17,6 @@ def get_settings() -> dict[str, object]:
         # These new settings already store Qt modifier names. Only translate
         # the portable physical-Control default, never swap a saved Meta key.
         settings[name] = settings[name].replace("Control+", "Meta+" if is_mac else "Ctrl+")
-    for name in (
-        "card_input_markdown_bold_shortcut",
-        "card_input_markdown_italic_shortcut",
-        "card_input_markdown_strikethrough_shortcut",
-        "card_input_markdown_inline_code_shortcut",
-        "card_input_markdown_code_block_shortcut",
-        "card_input_markdown_unordered_list_shortcut",
-        "card_input_markdown_ordered_list_shortcut",
-        "card_input_markdown_blockquote_shortcut",
-    ):
-        settings[name] = migrate_legacy_card_shortcut(settings[name])
     return settings
 
 
