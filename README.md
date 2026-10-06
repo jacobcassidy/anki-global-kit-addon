@@ -121,6 +121,8 @@ Desktop Python code lives under `addon/desktop`, card sources under `src/cards`,
 
 See [publishing instructions](docs/dev/PUBLISHING.md) for packaging and AnkiWeb release steps.
 
+See [development dependency notes](docs/dev/DEPENDENCIES.md) for patched transitive dependency overrides and the remaining `braces` advisory.
+
 ## Help and feedback
 
 Read [HELP.md](addon/HELP.md) for settings guidance and common problems, or open the **Help** tab in **Anki Global Kit Settings...**. For an unresolved problem, [report an issue](https://github.com/jacobcassidy/anki-global-kit-addon/issues) with your Anki version, device, and steps to reproduce it. See the [changelog](CHANGELOG.md) for release notes.

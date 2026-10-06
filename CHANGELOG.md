@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Normalized Qt's Space, Return, arrow, page-navigation, Escape, Insert, and Delete key names when matching browser shortcuts, and aligned Desktop conflict and reserved-shortcut checks with these aliases. Rebuilt the card and editor JavaScript bundles.
 - Encoded braces in generated topic headings so custom topic names containing Anki field expressions display literally instead of revealing field contents or invalidating templates. Existing affected kit note types require a confirmed Replace to refresh their headings, followed by syncing the collection and media.
 - Validated saved card and Desktop editor setting types before using them, falling back to each setting's default for invalid values and preventing malformed shortcuts from breaking settings loading or asset installation.
+- Pinned patched development dependencies through npm overrides: `source-map-js` 1.2.2, `smol-toml` 1.9.0, and KaTeX 0.18.2. Documented the remaining unpatched `braces` advisory, its development-tool exposure, and the override review process.
 
 ## [1.0.0] - 2026-10-05
 

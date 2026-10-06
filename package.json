@@ -39,6 +39,11 @@
     "stylelint-order": "^8.1.1",
     "stylelint-plugin-logical-css": "^2.1.0"
   },
+  "overrides": {
+    "katex": "0.18.2",
+    "smol-toml": "1.9.0",
+    "source-map-js": "1.2.2"
+  },
   "allowScripts": {
     "esbuild@0.28.2": true,
     "lefthook@2.1.17": true,
