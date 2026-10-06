@@ -4,7 +4,7 @@
 
 Anki Global Kit combines Anki Desktop features with card-side JavaScript and CSS. Desktop code runs in the add-on. Card assets are installed into the active profile's `collection.media` folder; card templates load those files and Anki sync carries the media and template changes to AnkiWeb and the mobile clients.
 
-The add-on can create new topic and format note types in the active profile. It does not rewrite existing note types. Keep this safety boundary in mind when proposing or implementing template changes.
+The add-on can create missing topic and format note types in the active profile. It does not modify existing types automatically: users must select **Replace** and confirm before kit templates and styling are applied. Replacement keeps notes and fields, adds missing kit fields, and may replace custom card templates. **Delete** is available only for empty note types or uncreated custom topics.
 
 ## Repository map
 
@@ -12,8 +12,9 @@ The add-on can create new topic and format note types in the active profile. It 
 - `addon/desktop/` — Python code that runs in Anki Desktop.
   - `settings/features/` contains settings pages; `services/` handles settings persistence, media installation, and note type operations; `ui/` and `shared/` provide common controls and helpers.
   - `editor/features/` contains editor integrations such as paste handling and shortcut labels; editor hooks live in `editor/integration.py`.
-- `addon/shared/assets/images/icons/` — SVG icons shared by the card toolbar, Desktop editor, and settings UI.
-- `addon/web/assets/` — Built card assets grouped into `css/`, `js/`, and `fonts/`. The installer copies managed files into the active profile's `collection.media` root under their public filenames.
+- `addon/shared/assets/icons/` — SVG icons shared by the card toolbar, Desktop editor, and settings UI.
+- `addon/shared/assets/fonts/` — Packaged shared card and editor fonts.
+- `addon/web/assets/` — Built card assets grouped into `css/` and `js/`. The installer copies managed files into the active profile's `collection.media` root under their public filenames.
 - `addon/desktop/editor/assets/` — Built Desktop editor assets grouped into `css/` and `js/`.
 - `addon/templates/note-types/parts/` — HTML, script, and styling parts used to create note types.
 - `src/cards/js/` — Card-side JavaScript.
@@ -27,7 +28,7 @@ The add-on can create new topic and format note types in the active profile. It 
 - `src/editor/js/` and `src/editor/css/` — Desktop editor JavaScript and styles.
 - `src/shared/js/` and `src/shared/css/` — Code shared between card and editor targets when runtime behavior is genuinely common.
 - `scripts/` — esbuild configuration, build, and watch scripts.
-- `docs/reference/note-types/` — Reference front/back templates and matching styling. Keep asset filenames and markup selectors in sync with the card-side code.
+- `docs/reference/screenshots/` — Screenshots of card layouts and settings pages.
 - `docs/dev/` — Developer and publishing instructions.
 - `README.md` — User-facing features and setup.
 
@@ -63,11 +64,11 @@ Useful project scripts:
 - Keep the setting keys in `addon/config.json` synchronized with the keys inside `addon/meta.json`'s `config` object, including `note_type_selections`, whenever either file changes.
 - Treat media filenames as public interfaces: the installer, templates, and stylesheet imports must use identical names.
 - The add-on refreshes the kit's reserved asset names through Anki's media manager on `profile_did_open`. Keep installation scoped to those managed assets; do not overwrite user templates or unrelated media without an explicit opt-in design.
-- Create note types through Anki's documented `col.models` APIs. Do not modify a user's existing note types automatically; if a kit type name already exists, leave it unchanged and report that to the user.
-- Note type creation lives in `addon/desktop/settings/services/note_types.py` and reads runtime template parts under `addon/templates/note-types/parts/`. Keep these inputs separate from the reference templates in `docs/reference/note-types/`.
+- Create, replace, and delete note types through Anki's documented `col.models` APIs. Never replace or delete a user's type without explicit selection and confirmation; deletion is limited to empty types. If a kit type name already exists and Replace was not selected, leave it unchanged and report that to the user.
+- Note type operations live in `addon/desktop/settings/services/note_types.py` and read runtime template parts from `addon/templates/note-types/parts/{html,script,styling}/`. These are the source templates used to create or explicitly replace kit types.
 - Preserve cross-client behavior. Check platform-specific code in `src/cards/js/runtime/platform.js` and `src/cards/js/inputs/` before changing answer storage or keyboard behavior.
 - On macOS, Anki's Qt/webview keyboard handling swaps the usual modifier names: Anki's `Ctrl` setting corresponds to physical Command (⌘), while `Meta` corresponds to physical Control (⌃). Browser keyboard events use the standard mapping: Command sets `event.metaKey`, and physical Control sets `event.ctrlKey`. Do not apply the Qt modifier swap to browser events. Keep shortcut labels consistent with that mapping. Use `event.key` when matching the character produced by the current keyboard layout; use `event.code` only when a shortcut intentionally targets a physical key regardless of layout (for example, the physical C key).
-- If changing required template markup or CSS imports, update all four reference templates and `docs/reference/note-types/styling.css`, and document the user migration in `README.md` or the changelog.
+- If changing required template markup or CSS imports, update the applicable runtime parts under `addon/templates/note-types/parts/` and document any user migration in `README.md` or the changelog. Existing note types receive the change only after the user selects Replace and confirms.
 
 ## Git commits
 

@@ -1,6 +1,6 @@
 # Publishing the Anki Global Kit add-on
 
-This guide covers publishing the Desktop add-on on AnkiWeb's Shared Add-ons site. The add-on installs the card JavaScript and CSS into the active profile's `collection.media` folder and can create selected topic and card-format note types. It leaves existing note types untouched.
+This guide covers publishing the Desktop add-on on AnkiWeb's Shared Add-ons site. The add-on installs card JavaScript, CSS, and fonts into the active profile's `collection.media` folder and provides **Create**, **Replace**, and **Delete** actions for kit note types. Create adds missing types. Replace changes an existing type's kit templates and styling only after the user selects the action and confirms; it keeps notes and fields, adds missing kit fields, and may replace custom card templates. Delete is limited to empty types and uncreated custom topics. Add-on updates do not silently change note types already in a collection.
 
 ## Before publishing
 
@@ -12,7 +12,7 @@ This guide covers publishing the Desktop add-on on AnkiWeb's Shared Add-ons site
    ```
 
 2. Install the `addon` folder in a clean Anki Desktop profile and confirm that its assets are copied into `collection.media` automatically when the profile opens.
-3. Choose **Tools > Anki Global Kit Settings...**, open **Note Types**, select a topic and card format, then choose **Update Selected Note Types**.
+3. Choose **Tools > Anki Global Kit Settings...**, open **Note Types**, select a topic and card format, and choose **Create** for missing types or **Replace** for existing types you want to update. Choose **Update Selected Note Types** and confirm the listed changes.
 4. Add a sample note to each type, sync the profile, and confirm the cards render in AnkiWeb and the mobile clients you support.
 5. Decide the minimum Anki Desktop version supported by the release. Enter that version in the AnkiWeb listing and keep it aligned with the add-on APIs used by the code.
 
@@ -27,7 +27,7 @@ npm run build:addon
 npm run package:addon
 ```
 
-The archive is written to `dist/anki-global-kit.ankiaddon` and contains `__init__.py`, `desktop/`, `manifest.json`, `README.md`, `CHANGELOG.md`, `web/`, and `templates/` at its top level. The package script filters out `__pycache__/`, `.pyc`, and `.DS_Store` files. Do not add an enclosing `addon/` directory.
+The archive is written to `dist/anki-global-kit.ankiaddon` and contains `__init__.py`, `desktop/`, `shared/`, `config.json`, `manifest.json`, `README.md`, `ABOUT.md`, `HELP.md`, `CHANGELOG.md`, `web/`, `templates/`, and `user_files/` at its top level. Runtime note type source parts are in `addon/templates/note-types/parts/{html,script,styling}/`; existing types are updated only through the confirmed Replace action. The package script filters out `__pycache__/`, `.pyc`, and `.DS_Store` files. Do not add an enclosing `addon/` directory.
 
 The Anki add-on guide documents the required archive layout and upload process: [Sharing Add-ons](https://addon-docs.ankiweb.net/sharing.html).
 
