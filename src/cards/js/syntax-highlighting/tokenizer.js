@@ -58,15 +58,3 @@ export function highlightCodeText(codeText, language) {
   pieces.push(escapeSyntaxText(codeText.slice(cursor)));
   return pieces.join('');
 }
-
-export function highlightSubmittedCode(container, topicText) {
-  container.querySelectorAll('pre > code').forEach((code) => {
-    if (code.dataset.syntaxHighlighted === 'true') return;
-    const language =
-      getSyntaxLanguage(code.dataset.language) || (code.dataset.language ? null : getSyntaxLanguage(topicText));
-    if (!language) return;
-    code.innerHTML = highlightCodeText(code.textContent, language);
-    code.classList.add('shigeSyntax', `language-${language}`);
-    code.dataset.syntaxHighlighted = 'true';
-  });
-}

@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Aligned repository, issue, help, and listing image URLs with the canonical `anki-global-kit-addon` repository.
 - Corrected the card toolbar help text to describe its position above each question input field.
 - Corrected the agent repository guide's settings folder map to describe `helpers/` and `configs/` instead of the nonexistent `shared/` folder.
+- Removed the unused `highlightSubmittedCode()` helper that duplicated the active submitted-code watcher's highlighting logic.
 
 ## [1.0.0] - 2026-10-05
 
