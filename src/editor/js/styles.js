@@ -9,7 +9,7 @@ function setStyle(root, id, css) {
     style.id = id;
     root.append(style);
   }
-  style.textContent = css;
+  if (style.textContent !== css) style.textContent = css;
 }
 
 function getStoreValue(store) {

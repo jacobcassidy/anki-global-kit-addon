@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated the Lefthook install-script approval pin to `2.1.15`, matching the installed and locked dependency version.
 - Approved the locked `esbuild@0.28.2` install script so npm can prepare and validate the platform-specific build binary.
 - Registered the shared editor font in the document stylesheet instead of field shadow roots, where Chromium ignores `@font-face` declarations. Asset checks now require editor font faces in the document UI bundle.
+- Skipped unchanged editor stylesheet writes during note-load retries, continuing to apply styles to newly created fields and update changed CSS.
 
 ## [1.0.0] - 2026-10-05
 
