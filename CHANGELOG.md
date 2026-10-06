@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Expanded CI to run script, style, and documentation linting, formatting checks, asset validation, and a build freshness check before the test suites.
+
 - Declared the supported Node.js versions in the package metadata and documented the recommended Node.js 24 and Python 3.13 development toolchain.
 
 - Replaced the inherited Desktop inline-code `wrap2` helper with the kit's own selection-run formatting. Selected text and inline media are wrapped in place within their original blocks, preserving surrounding markup and the existing native Undo/Redo transaction. Removed the unused generic wrapper arguments.
