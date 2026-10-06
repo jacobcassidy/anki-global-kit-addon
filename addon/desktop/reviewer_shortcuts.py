@@ -1,5 +1,7 @@
 """Reviewer keyboard handling that must run before Qt menu shortcuts."""
 
+from __future__ import annotations
+
 from weakref import WeakSet
 
 from aqt import gui_hooks, mw

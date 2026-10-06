@@ -1,5 +1,7 @@
 """Compose and manage the Anki Global Kit settings dialog."""
 
+from __future__ import annotations
+
 from aqt import gui_hooks, mw
 from aqt.qt import (
     QAction,

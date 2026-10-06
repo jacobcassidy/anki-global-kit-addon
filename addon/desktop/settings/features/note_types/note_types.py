@@ -1,5 +1,7 @@
 """Settings tab for selecting and maintaining note type rows."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from collections.abc import Callable
 

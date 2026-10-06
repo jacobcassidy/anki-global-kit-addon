@@ -1,5 +1,7 @@
 """Reusable Qt controls and layout helpers for settings pages."""
 
+from __future__ import annotations
+
 from aqt.qt import (
     QApplication,
     QCheckBox,
