@@ -196,7 +196,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                 if exists and note_count > 0:
                     delete_control = HelpIndicator(
                         "Delete",
-                        "You must delete or move all cards to another note type "
+                        "You must delete or move all notes to another note type "
                         "before this note type can be deleted.",
                         table.body,
                     )
