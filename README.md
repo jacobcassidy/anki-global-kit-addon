@@ -26,6 +26,10 @@ Built-in topics include Command Line, CSS, Git, JavaScript, PHP, Python, React, 
 
 Choose **Update Selected Note Types** to apply these actions. **Save** applies settings separately; **Cancel** does not undo confirmed note type changes. Pending action checkboxes are not retained across restarts, while custom topics remain available.
 
+The **Note Types** tab lists the available topics and lets you choose which Advance or Cloze types to create, replace, or delete. Use **+** to add a custom topic.
+
+![Note Types settings tab showing topic rows and Create, Replace, and Delete options for Advance and Cloze note types](docs/reference/screenshots/settings-note-types-tab.png)
+
 ### Add your first note
 
 For an **Advance** note, fill in **Question** and **Answer**. Enter `yes` in **Compare** to highlight differences between your typed answer and the reference; leave it empty to display the answers separately. **Type Hint**, bonus question and answer fields, and **Notes** are optional. **Bonus Compare** enables comparison for the bonus answer.
@@ -54,12 +58,23 @@ Use the optional formatting toolbar above card inputs or configure shortcuts in 
 
 Code blocks use the language written after the opening backticks, such as `python`, or infer a language from the topic. Supported languages and aliases include Python, JavaScript/Node, TypeScript, Java, C, C++, C#, SQL, Bash/shell, JSON, Ruby, Go, Rust, and PHP. Comparison and syntax highlighting are bundled with the kit.
 
+The **Cards** settings tab controls review-time Markdown formatting shortcuts and indentation behavior.
+
+![Cards settings tab showing Markdown and indentation shortcut options](docs/reference/screenshots/settings-cards-tab.png)
+
 ### Card presentation
 
 - Responsive layouts for questions, answers, comparison panels, cloze deletions, hints, bonus sections, and notes.
 - Shared typography and light/dark palettes, including distinct comparison colors.
 - Topic accent colors and customizable card styling through the note type stylesheet.
 - AnkiWeb study menu layout adjustments.
+
+The front shows the question, typed answer fields, formatting toolbar, and optional hint. On the back, the typed answer appears alongside the card's answer; bonus comparison and notes can appear below. These examples use a Python Advance note in light and dark themes.
+
+| Front of card | Back of card |
+| --- | --- |
+| ![Light theme card front with a question, typed answer, and bonus answer input](docs/reference/screenshots/card-front-light.png) | ![Light theme card back with answer comparison, bonus comparison, and notes](docs/reference/screenshots/card-back-light.png) |
+| ![Dark theme card front with a question and typed answer fields](docs/reference/screenshots/card-front-dark.png) | ![Dark theme card back with answer comparison, bonus comparison, and notes](docs/reference/screenshots/card-back-dark.png) |
 
 ### Desktop editor
 
@@ -69,6 +84,10 @@ Code blocks use the language written after the opening backticks, such as `pytho
 - Add or remove a blockquote at the current indentation level with the toolbar button or **Command+/** on macOS (**Control+/** on Windows/Linux).
 - Physical **Control+Shift+C** for Cloze on macOS, leaving the default **Command+Shift+C** shortcut available for inline code.
 - Separate custom stylesheets for editor fields and the surrounding UI. Use **View Stylesheet** in the **Editor** tab to open `user_files/editor-fields.css` or `user_files/editor-ui.css`, then restart Anki after editing. These files are preserved during add-on upgrades.
+
+The **Editor** settings tab controls inline code and indentation shortcuts, paste cleanup, source HTML copying, and custom editor styling.
+
+![Editor settings tab showing shortcut controls, paste formatting options, and the custom stylesheet setting](docs/reference/screenshots/settings-editor-tab.png)
 
 ## Templates
 
@@ -94,6 +113,8 @@ See [publishing instructions](docs/dev/PUBLISHING.md) for packaging and AnkiWeb 
 ## Help and feedback
 
 Read [HELP.md](addon/HELP.md) for settings guidance and common problems, or open the **Help** tab in **Anki Global Kit Settings...**. For an unresolved problem, [report an issue](https://github.com/jacobcassidy/anki-global-kit/issues) with your Anki version, device, and steps to reproduce it. See the [changelog](CHANGELOG.md) for release notes.
+
+![Help tab in Anki Global Kit Settings with setup steps and guidance for the settings panel](docs/reference/screenshots/setting-help-tab.png)
 
 ## License
 
