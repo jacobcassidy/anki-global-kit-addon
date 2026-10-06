@@ -119,6 +119,11 @@ export function toggleInlineCode(begin = '<code>', end = '</code>') {
     return;
   }
 
+  if (begin === '<code>' && end === '</code>' && toggleMixedInlineCodeSelection(field, range, selection)) {
+    changed();
+    return;
+  }
+
   // Handle both selection of the element and selection of its text contents.
   if (!code && range.startContainer === range.endContainer && range.endOffset === range.startOffset + 1) {
     const child = range.startContainer.childNodes[range.startOffset];
@@ -155,6 +160,97 @@ export function toggleInlineCode(begin = '<code>', end = '</code>') {
   // Preserve the existing block-aware wrapping behavior for plain selections.
   wrap2.call(this, begin, end);
   changed();
+}
+
+/** Toggle mixed selections without nesting code or moving surrounding markup. */
+function toggleMixedInlineCodeSelection(field, range, selection) {
+  if (!field || !field.contains(range.endContainer)) return false;
+  const element = (node) => (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement);
+  const segments = [];
+  const walker = document.createTreeWalker(field, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+  let node;
+  while ((node = walker.nextNode())) {
+    const isText = node.nodeType === Node.TEXT_NODE;
+    if (isText ? !node.length : !node.matches('br,img,hr,input,video,audio,iframe,object,embed,svg,canvas')) continue;
+    // Media contents belong to the media element, rather than another text run.
+    if (element(node.parentNode)?.closest('video,audio,iframe,object,embed,svg,canvas')) continue;
+    const selected = document.createRange();
+    if (isText) selected.selectNodeContents(node);
+    else selected.selectNode(node);
+    if (
+      range.compareBoundaryPoints(Range.END_TO_START, selected) >= 0 ||
+      range.compareBoundaryPoints(Range.START_TO_END, selected) <= 0
+    )
+      continue;
+    if (isText && range.startContainer === node) selected.setStart(node, range.startOffset);
+    if (isText && range.endContainer === node) selected.setEnd(node, range.endOffset);
+    if (selected.collapsed) continue;
+    segments.push({ range: selected, code: element(node)?.closest('code') });
+  }
+  const uncoded = segments.filter((segment) => !segment.code);
+  const codes = [...new Set(segments.map((segment) => segment.code).filter(Boolean))];
+  if (!uncoded.length) {
+    // A mixed selection becomes several code elements. A second invocation
+    // removes only their selected portions, preserving code outside the range.
+    if (codes.length < 2) return false;
+    removeCodeFromSelection(codes, range, selection);
+    return true;
+  }
+  if (!(
+    codes.length ||
+    element(range.startContainer)?.closest('code') ||
+    element(range.endContainer)?.closest('code') ||
+    range.cloneContents().querySelector('code')
+  ))
+    return false;
+
+  // Work backwards so splitting a text node does not move later boundaries.
+  for (const segment of uncoded.reverse()) {
+    const code = document.createElement('code');
+    segment.range.surroundContents(code);
+    segment.range.selectNodeContents(code);
+  }
+  const first = segments[0].range;
+  const last = segments[segments.length - 1].range;
+  const restored = document.createRange();
+  restored.setStart(first.startContainer, first.startOffset);
+  restored.setEnd(last.endContainer, last.endOffset);
+  selection.removeAllRanges();
+  selection.addRange(restored);
+  return true;
+}
+
+function removeCodeFromSelection(codes, range, selection) {
+  const replacements = codes
+    .filter((code) => !code.parentElement.closest('code'))
+    .map((code) => {
+      const contents = document.createRange();
+      contents.selectNodeContents(code);
+      const selected = contents.cloneRange();
+      if (code.contains(range.startContainer)) selected.setStart(range.startContainer, range.startOffset);
+      if (code.contains(range.endContainer)) selected.setEnd(range.endContainer, range.endOffset);
+      const before = contents.cloneRange();
+      before.setEnd(selected.startContainer, selected.startOffset);
+      const after = contents.cloneRange();
+      after.setStart(selected.endContainer, selected.endOffset);
+      const left = code.cloneNode(false),
+        right = code.cloneNode(false);
+      left.append(before.cloneContents());
+      right.append(after.cloneContents());
+      const fragment = selected.cloneContents();
+      for (const nested of [...fragment.querySelectorAll('code')].reverse()) nested.replaceWith(...nested.childNodes);
+      return { code, left, right, fragment, first: fragment.firstChild, last: fragment.lastChild };
+    });
+  const hasContent = (node) =>
+    node.textContent || node.querySelector('br,img,hr,input,video,audio,iframe,object,embed,svg,canvas');
+  for (const { code, left, right, fragment } of [...replacements].reverse()) {
+    code.replaceWith(...(hasContent(left) ? [left] : []), fragment, ...(hasContent(right) ? [right] : []));
+  }
+  const restored = document.createRange();
+  restored.setStartBefore(replacements[0].first);
+  restored.setEndAfter(replacements[replacements.length - 1].last);
+  selection.removeAllRanges();
+  selection.addRange(restored);
 }
 
 // Remove only our temporary caret anchor, before Anki saves the first real edit.
