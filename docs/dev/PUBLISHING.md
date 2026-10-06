@@ -29,6 +29,8 @@ npm run package:addon
 
 The archive is written to `dist/anki-global-kit.ankiaddon` and contains `__init__.py`, `desktop/`, `shared/`, `config.json`, `manifest.json`, `README.md`, `ABOUT.md`, `HELP.md`, `CHANGELOG.md`, `web/`, `templates/`, and `user_files/` at its top level. Runtime note type source parts are in `addon/templates/note-types/parts/{html,script,styling}/`; existing types are updated only through the confirmed Replace action. The package script filters out `__pycache__/`, `.pyc`, and `.DS_Store` files. Do not add an enclosing `addon/` directory.
 
+Packaging requires every listed top-level file and folder, plus the canonical changelog. Missing components or paths with the wrong file/folder type stop packaging before the output archive is opened, leaving any existing archive intact. Restore the reported paths before retrying.
+
 The Anki add-on guide documents the required archive layout and upload process: [Sharing Add-ons](https://addon-docs.ankiweb.net/sharing.html).
 
 ## Publish the first listing

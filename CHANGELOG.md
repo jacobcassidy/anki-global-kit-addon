@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed shortcuts containing a literal plus key, preserving the key when saving, matching, checking conflicts, and displaying shortcut labels.
 - Created kit Cloze note types from Anki's stock definition instead of copying a profile's customized type, including profiles with no existing Cloze type. Replacement now validates the existing type's format before confirmation and again before applying changes.
 - Preserved Anki's new-field marker when adding missing kit fields during replacement, using the model manager to add fields and assign their ordinals when saved.
+- Stopped packaging when required top-level files or folders are missing or have the wrong type, reporting the affected paths before opening the output archive.
 
 ## [1.0.0] - 2026-10-05
 
