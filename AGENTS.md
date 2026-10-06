@@ -4,7 +4,7 @@
 
 Anki Global Kit combines Anki Desktop features with card-side JavaScript and CSS. Desktop code runs in the add-on. Card assets are installed into the active profile's `collection.media` folder; card templates load those files and Anki sync carries the media and template changes to AnkiWeb and the mobile clients.
 
-The add-on can create missing topic and format note types in the active profile. It does not modify existing types automatically: users must select **Replace** and confirm before kit templates and styling are applied. Replacement keeps notes and fields, adds missing kit fields, and may replace custom card templates. **Delete** is available only for empty note types or uncreated custom topics.
+The add-on can create missing topic and format note types in the active profile. It does not modify existing types automatically: users must select **Replace** and confirm before kit templates and styling are applied. Replacement keeps notes and fields, adds missing kit fields, and updates the first card template and styling. For standard note types, additional templates and their associated cards are removed; the confirmation must list their names and template and card removal counts, and the service must revalidate this impact before applying changes. **Delete** is available only for empty note types or uncreated custom topics.
 
 ## Repository map
 

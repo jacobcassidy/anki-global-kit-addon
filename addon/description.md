@@ -49,7 +49,7 @@ An optional toolbar and configurable keyboard shortcuts make formatting quicker.
 
 Choose **Advance** for question-and-answer cards or **Cloze** for cloze-deletion cards. Built-in topics include Command Line, CSS, Git, JavaScript, PHP, Python, React, Regex, Ruby, TypeScript, Vocabulary, and WordPress. Add your own topics with **+**.
 
-The **Note Types** tab lets you create missing kit types without assembling templates or copying files manually. Existing note types stay unchanged unless you select **Replace** and confirm. Replacement keeps notes and fields, adds missing kit fields, and may replace custom card templates. **Delete** is available only for empty note types or uncreated custom topics.
+The **Note Types** tab lets you create missing kit types without assembling templates or copying files manually. Existing note types stay unchanged unless you select **Replace** and confirm. Replacement keeps notes and fields, adds missing kit fields, and updates the first card template and styling. For standard note types, additional card templates and their associated cards are removed, including those cards' scheduling. The confirmation lists the affected note types, additional template names, and template and card removal counts. **Delete** is available only for empty note types or uncreated custom topics.
 
 ![Note Types settings tab showing topic rows and Create, Replace, and Delete options for Advance and Cloze formats](https://raw.githubusercontent.com/jacobcassidy/anki-global-kit-addon/main/docs/reference/screenshots/settings-note-types-tab.png)
 

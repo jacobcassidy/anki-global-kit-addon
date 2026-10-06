@@ -11,7 +11,7 @@ The shared MesloLGL Nerd Font uses Nerd Fonts **v3.5.1**. Its official source, W
 Choose **Tools > Anki Global Kit Settings...**, open **Note Types**, and select the topics and card formats you want. Use **+** to add a custom topic. Kit types are named like `CSS (Advance)` and `CSS (Cloze)`.
 
 - **Create** adds a missing note type from the bundled template parts. Existing types are left unchanged.
-- **Replace** updates an existing type's kit templates and styling after explicit selection and confirmation. Notes and fields are kept, missing kit fields are added, and custom card templates may be replaced. The existing type must be standard for **Advance** or Cloze for **Cloze**.
+- **Replace** updates an existing type's first card template and styling after explicit selection and confirmation. Notes and fields are kept, and missing kit fields are added. For standard note types, additional card templates and their associated cards are removed, including those cards' scheduling. The confirmation lists the affected note types, additional template names, and template and card removal counts. The existing type must be standard for **Advance** or Cloze for **Cloze**.
 - **Delete** removes an empty note type after confirmation, or removes an uncreated custom topic row. Types containing notes cannot be deleted here. After a Delete action, a custom topic row is removed if none of its formats remain.
 
 Choose **Update Selected Note Types** and confirm the listed collection changes. These actions apply separately from **Save**, which applies settings. **Cancel** does not undo confirmed note type changes. Sync the collection and media afterward to make the changes available on your other devices.

@@ -27,11 +27,30 @@ class NoteTypeOperation:
 
 
 @dataclass(frozen=True)
+class NoteTypeTemplateRemoval:
+    name: str
+    ordinal: int
+    card_count: int
+
+
+@dataclass(frozen=True)
+class NoteTypeReplacementImpact:
+    name: str
+    notetype_id: int
+    removed_templates: tuple[NoteTypeTemplateRemoval, ...]
+
+    @property
+    def removed_card_count(self) -> int:
+        return sum(template.card_count for template in self.removed_templates)
+
+
+@dataclass(frozen=True)
 class NoteTypeChangePlan:
     creates: tuple[NoteTypeOperation, ...]
     overwrites: tuple[NoteTypeOperation, ...]
     deletions: tuple[NoteTypeOperation, ...]
     skipped: tuple[str, ...]
+    replacement_impacts: tuple[NoteTypeReplacementImpact, ...]
 
 
 @dataclass(frozen=True)
@@ -169,13 +188,39 @@ def _validate_replacement_type(
         )
 
 
-def _validate_replacements(operations: tuple[NoteTypeOperation, ...]) -> None:
+def _replacement_impacts(
+    operations: tuple[NoteTypeOperation, ...],
+) -> tuple[NoteTypeReplacementImpact, ...]:
+    """Validate replacements and count cards belonging to removed standard templates."""
+    impacts: list[NoteTypeReplacementImpact] = []
     for operation in operations:
+        notetype = mw.col.models.by_name(operation.name)
         _validate_replacement_type(
             operation.name,
             FORMATS[operation.card_format],
-            mw.col.models.by_name(operation.name),
+            notetype,
         )
+        # Cloze card ordinals identify deletions, not separate card templates.
+        removed_templates: tuple[NoteTypeTemplateRemoval, ...] = ()
+        if notetype["type"] == MODEL_STD:
+            removed_templates = tuple(
+                NoteTypeTemplateRemoval(
+                    name=template["name"],
+                    ordinal=template["ord"],
+                    card_count=mw.col.models.template_use_count(
+                        notetype["id"], template["ord"],
+                    ),
+                )
+                for template in notetype["tmpls"][1:]
+            )
+        impacts.append(
+            NoteTypeReplacementImpact(
+                name=operation.name,
+                notetype_id=notetype["id"],
+                removed_templates=removed_templates,
+            )
+        )
+    return tuple(impacts)
 
 
 def _create_note_type(
@@ -262,7 +307,7 @@ def plan_note_type_changes(
         if operation.name in existing_names
         and operation.card_format in overwrites.get(operation.topic, set())
     )
-    _validate_replacements(overwrite_operations)
+    replacement_impacts = _replacement_impacts(overwrite_operations)
     skipped = tuple(
         operation.name
         for operation in requested
@@ -307,6 +352,7 @@ def plan_note_type_changes(
         overwrites=overwrite_operations,
         deletions=requested_deletions,
         skipped=skipped,
+        replacement_impacts=replacement_impacts,
     )
 
 
@@ -335,7 +381,11 @@ def apply_note_type_changes(plan: NoteTypeChangePlan) -> NoteTypeChangeResult:
     """Apply a previously confirmed note type change plan."""
     if mw.col is None:
         raise NoActiveCollectionError
-    _validate_replacements(plan.overwrites)
+    if _replacement_impacts(plan.overwrites) != plan.replacement_impacts:
+        raise ReplacementValidationError(
+            "The note types, additional templates, or card counts changed after "
+            "confirmation. Review the selected actions and confirm again."
+        )
     _revalidate_deletions(plan.deletions)
 
     created: list[str] = []

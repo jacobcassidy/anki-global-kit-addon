@@ -77,12 +77,30 @@ def apply_selected_note_type_changes(
         confirmation.append(f"Create these new note types?\n{names}")
     if plan.overwrites:
         names = "\n".join(f"• {operation.name}" for operation in plan.overwrites)
-        confirmation.append(
+        replacement_confirmation = (
             "Replace these existing note types with the kit templates and styling?\n"
             "Their notes and fields will be kept; missing kit fields will be added, "
-            "and custom card templates may be replaced.\n"
+            "and their first card template will be updated.\n"
             f"{names}"
         )
+        removals = []
+        for impact in plan.replacement_impacts:
+            if not impact.removed_templates:
+                continue
+            template_names = ", ".join(template.name for template in impact.removed_templates)
+            removals.append(
+                f"• {impact.name}\n"
+                f"  Additional templates to remove: {len(impact.removed_templates)} "
+                f"({template_names})\n"
+                f"  Cards to remove: {impact.removed_card_count}"
+            )
+        if removals:
+            replacement_confirmation += (
+                "\n\nThese additional card templates and their associated cards "
+                "will be removed. The removed cards' scheduling will be lost.\n"
+                + "\n".join(removals)
+            )
+        confirmation.append(replacement_confirmation)
     if plan.deletions:
         names = "\n".join(f"• {operation.name}" for operation in plan.deletions)
         confirmation.append(

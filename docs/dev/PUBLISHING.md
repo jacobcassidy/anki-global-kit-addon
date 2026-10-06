@@ -1,6 +1,6 @@
 # Publishing the Anki Global Kit add-on
 
-This guide covers publishing the Desktop add-on on AnkiWeb's Shared Add-ons site. The add-on installs card JavaScript, CSS, and fonts into the active profile's `collection.media` folder and provides **Create**, **Replace**, and **Delete** actions for kit note types. Create adds missing types. Replace changes an existing type's kit templates and styling only after the user selects the action and confirms; it keeps notes and fields, adds missing kit fields, and may replace custom card templates. Delete is limited to empty types and uncreated custom topics. Add-on updates do not silently change note types already in a collection.
+This guide covers publishing the Desktop add-on on AnkiWeb's Shared Add-ons site. The add-on installs card JavaScript, CSS, and fonts into the active profile's `collection.media` folder and provides **Create**, **Replace**, and **Delete** actions for kit note types. Create adds missing types. Replace updates an existing type's first card template and styling only after the user selects the action and confirms; it keeps notes and fields and adds missing kit fields. For standard note types, additional card templates and their associated cards are removed, including those cards' scheduling. The confirmation lists the affected note types, additional template names, and template and card removal counts. Delete is limited to empty types and uncreated custom topics. Add-on updates do not silently change note types already in a collection.
 
 ## Before publishing
 
