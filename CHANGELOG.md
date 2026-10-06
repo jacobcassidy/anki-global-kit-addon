@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Restored bundled Diff Match Patch answer comparison with Unicode-safe tokens and fast matching of identical answers and shared ends. Removed the comparison-table size cutoff that marked long answers entirely wrong, and validated comparisons through 10,000 characters per answer. The engine retains a one-second processing budget for difficult differences.
 - Fixed the Desktop answer shortcut to use Command+Enter on macOS and Control+Enter on Windows/Linux, preventing a newline when revealing the answer.
 - Scoped AnkiDroid answer storage and cleanup to kit-specific keys, preserving other card scripts' session data and handling unavailable storage without interrupting answer rendering.
 - Fixed Desktop inline-code formatting for selections spanning existing code and ordinary text, preserving surrounding markup and avoiding nested code elements.

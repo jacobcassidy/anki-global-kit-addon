@@ -1,7 +1,9 @@
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const addonWebAssets = `${root}addon/web/assets`;
+const comparisonLicense = readFileSync(`${addonWebAssets}/js/licenses/diff-match-patch.txt`, 'utf8').trimEnd();
 
 export const cardsJsBuildOptions = {
   entryPoints: [`${root}src/cards/js/index.js`],
@@ -12,7 +14,8 @@ export const cardsJsBuildOptions = {
   target: ['es2018'],
   legalComments: 'none',
   minify: true,
-  banner: { js: 'var hasMyCustomScript = true;' },
+  // Keep the complete dependency notice in the media file that syncs to clients.
+  banner: { js: `/*!\n${comparisonLicense}\n*/\nvar hasMyCustomScript = true;` },
   loader: { '.svg': 'text' },
 };
 

@@ -55,7 +55,7 @@ Custom topic headings now display braces as literal text. For existing kit note 
 
 - Multiline answer inputs, optional bonus questions, type hints, and notes.
 - Typed answers retained for display on the card back, including AnkiDroid's review flow.
-- Character-by-character answer comparison showing matching text, mistakes, and omissions, with Unicode characters kept intact.
+- Character-by-character answer comparison showing matching text, mistakes, and omissions, with Unicode characters kept intact. Comparison is validated with up to 10,000 characters in each answer and preserves shared text without a fixed answer-length cutoff. Difficult comparisons use a one-second processing budget and may show coarser differences.
 - **Alt+Tab** to indent Markdown list items and physical **Control+Tab** to unindent by default. Enable, disable, or customize each under **Cards → Card Fields → Enable indentation shortcuts**. Alt+Tab indents the current or selected rows by four spaces for Python topics and two otherwise; Control+Tab removes leading indentation. **Tab** and **Shift+Tab** retain native focus navigation.
 - Reveal answers with **Control+Enter** on Windows/Linux Desktop and AnkiWeb, or **Command+Enter** on macOS Desktop.
 
@@ -130,5 +130,7 @@ Read [HELP.md](addon/HELP.md) for settings guidance and common problems, or open
 ## License
 
 [MIT](LICENSE)
+
+The card bundle includes Diff Match Patch under the Apache License 2.0. Its [attribution and full license](addon/web/assets/js/licenses/diff-match-patch.txt) are also embedded in the script that syncs to other clients.
 
 The bundled MesloLGL Nerd Font uses Nerd Fonts **v3.5.1** and incorporates upstream works with separate terms. See its [source, conversion instructions, attribution, and license notices](addon/shared/assets/fonts/FONT-LICENSES.md).

@@ -1,3 +1,5 @@
+import DiffMatchPatch from 'diff-match-patch';
+
 /**
  * Render answer text without losing it.
  */
@@ -22,51 +24,68 @@ export function getRenderedAnswerText(answerElement) {
 }
 
 /**
- * Update diff answer characters.
+ * Compare Unicode code points without allocating a quadratic comparison table.
  */
 export function diffAnswerCharacters(cardAnswer, typedAnswer) {
+  if (cardAnswer === typedAnswer) return cardAnswer ? [[0, cardAnswer]] : [];
+
   const expected = Array.from(cardAnswer);
   const actual = Array.from(typedAnswer);
-  const rows = expected.length + 1;
-  const columns = actual.length + 1;
+  let start = 0;
+  while (start < expected.length && start < actual.length && expected[start] === actual[start]) start++;
 
-  // Keep memory bounded for unusually large answers; normal card answers use
-  // the full LCS diff below and retain character-level comparison.
-  if (rows * columns > 1_000_000) {
-    return [
-      [-1, cardAnswer],
-      [1, typedAnswer],
-    ].filter(([, text]) => text);
+  let expectedEnd = expected.length;
+  let actualEnd = actual.length;
+  while (expectedEnd > start && actualEnd > start && expected[expectedEnd - 1] === actual[actualEnd - 1]) {
+    expectedEnd--;
+    actualEnd--;
   }
 
-  const lengths = Array.from({ length: rows }, () => new Uint32Array(columns));
-  for (let i = expected.length - 1; i >= 0; i--) {
-    for (let j = actual.length - 1; j >= 0; j--) {
-      lengths[i][j] =
-        expected[i] === actual[j] ? lengths[i + 1][j + 1] + 1 : Math.max(lengths[i + 1][j], lengths[i][j + 1]);
-    }
-  }
-
+  const before = expected.slice(start, expectedEnd);
+  const after = actual.slice(start, actualEnd);
+  const middle = diffCodePoints(before, after);
   const diffs = [];
-  const append = (operation, character) => {
-    const last = diffs[diffs.length - 1];
-    if (last && last[0] === operation) last[1] += character;
-    else diffs.push([operation, character]);
-  };
-
-  let i = 0;
-  let j = 0;
-  while (i < expected.length && j < actual.length) {
-    if (expected[i] === actual[j]) {
-      append(0, expected[i++]);
-      j++;
-    } else if (lengths[i + 1][j] >= lengths[i][j + 1]) {
-      append(-1, expected[i++]);
-    } else {
-      append(1, actual[j++]);
-    }
-  }
-  while (i < expected.length) append(-1, expected[i++]);
-  while (j < actual.length) append(1, actual[j++]);
+  if (start) diffs.push([0, expected.slice(0, start).join('')]);
+  for (const diff of middle) diffs.push(diff);
+  if (expectedEnd < expected.length) diffs.push([0, expected.slice(expectedEnd).join('')]);
   return diffs;
+}
+
+function diffCodePoints(before, after) {
+  if (!before.length) return after.length ? [[1, after.join('')]] : [];
+  if (!after.length) return [[-1, before.join('')]];
+
+  // The engine works on UTF-16 units. Encode each code point as one BMP token,
+  // excluding surrogates, so emoji cannot be split into separate comparisons.
+  const characters = Array.from(new Set([...before, ...after]));
+  const surrogateStart = 0xd800;
+  const surrogateCount = 0x800;
+  if (characters.length > 0x10000 - surrogateCount) {
+    // This alphabet limit needs over 63,488 distinct characters in the changed
+    // region, well beyond two 10,000-character answers. Shared ends are retained.
+    return [
+      [-1, before.join('')],
+      [1, after.join('')],
+    ];
+  }
+  const tokens = new Map(
+    characters.map((character, index) => [
+      character,
+      String.fromCharCode(index < surrogateStart ? index : index + surrogateCount),
+    ]),
+  );
+  const encode = (text) => text.map((character) => tokens.get(character)).join('');
+  const engine = new DiffMatchPatch();
+  engine.Diff_Timeout = 1;
+
+  // Tokens do not represent actual lines or words, so disable line-mode cleanup.
+  // The engine's linear-space bisect and timeout preserve matches without a
+  // length cutoff; difficult changed regions may receive a coarser diff.
+  return engine.diff_main(encode(before), encode(after), false).map(([operation, text]) => [
+    operation,
+    Array.from(text, (token) => {
+      const index = token.charCodeAt(0);
+      return characters[index < surrogateStart ? index : index - surrogateCount];
+    }).join(''),
+  ]);
 }
