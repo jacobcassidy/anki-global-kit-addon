@@ -56,6 +56,7 @@ export default {
     ],
     'font-weight-notation': 'numeric',
     'function-linear-gradient-no-nonstandard-direction': true,
+    'hue-degree-notation': 'number',
     'number-max-precision': 5,
     'plugin/declaration-block-no-ignored-properties': true,
     'plugin/no-low-performance-animation-properties': [
