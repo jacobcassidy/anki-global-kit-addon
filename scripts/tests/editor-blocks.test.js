@@ -4,6 +4,7 @@ import { JSDOM } from 'jsdom';
 import {
   formatBlockContent,
   installBlockFormatting,
+  indentEditorField,
   toggleEditorBlock,
   unindentEditorField,
 } from '../../src/editor/js/formatting/blocks.js';
@@ -352,6 +353,67 @@ for (const html of [
     assert.equal(field.innerHTML, html);
     assert.equal(selection.focusNode, text);
     assert.equal(selection.focusOffset, offset);
+  });
+}
+
+test('restoring an increased-indent caret keeps the start of inline code inside its formatting', () => {
+  const { field, range } = editor(' <code>word</code>');
+  const word = field.querySelector('code').firstChild;
+  range.setStart(word, 0);
+  range.collapse(true);
+  const selection = window.getSelection();
+  selection.addRange(range);
+  document.execCommand = (command, _, value) => {
+    assert.equal(command, 'insertText');
+    const edit = selection.getRangeAt(0);
+    edit.startContainer.insertData(edit.startOffset, value);
+    edit.setStart(edit.startContainer, value.length);
+    edit.collapse(true);
+    return true;
+  };
+  indentEditorField();
+  assert.equal(field.innerHTML, '     <code>word</code>');
+  assert.equal(selection.focusNode, word);
+  assert.equal(selection.focusOffset, 0);
+  assert.equal(selection.isCollapsed, true);
+});
+
+for (const html of ['', '<br>', '<div><br></div>']) {
+  test(`repeated indentation in an empty field survives native whitespace normalization: ${html}`, () => {
+    const { field, range } = editor(html);
+    range.setStart(field.querySelector('div') || field, 0);
+    range.collapse(true);
+    const selection = window.getSelection();
+    selection.addRange(range);
+    document.execCommand = (command, _, value) => {
+      const edit = selection.getRangeAt(0);
+      if (command === 'delete') {
+        edit.deleteContents();
+      } else {
+        assert.equal(command, 'insertText');
+        const container =
+          edit.startContainer.nodeType === Node.TEXT_NODE ? edit.startContainer.parentElement : edit.startContainer;
+        const text = document.createTextNode(value + container.textContent);
+        const breaks = [...container.children].filter((node) => node.nodeName === 'BR');
+        // Chromium can replace whitespace-only text nodes while editing them.
+        // Live clones of the old caret then fall back to an element boundary.
+        container.replaceChildren(text, ...breaks);
+        edit.setStart(text, value.length);
+        edit.collapse(true);
+      }
+      return true;
+    };
+    for (let presses = 1; presses <= 4; presses++) {
+      indentEditorField();
+      assert.equal(field.textContent, ' '.repeat(presses * 4));
+      assert.equal(selection.isCollapsed, true);
+      assert.equal(selection.focusNode.nodeType, Node.TEXT_NODE);
+      assert.equal(selection.focusOffset, presses * 4);
+    }
+    unindentEditorField();
+    assert.equal(field.textContent, ' '.repeat(12));
+    assert.equal(selection.isCollapsed, true);
+    assert.equal(selection.focusOffset, 12);
   });
 }
 

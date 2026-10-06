@@ -423,6 +423,9 @@ function changeEditorTextIndentation(field, selection, outdent) {
   if (!selection?.rangeCount) return;
   const original = selection.getRangeAt(0).cloneRange();
   if (!field.contains(original.startContainer) || !field.contains(original.endContainer)) return;
+  const caretOffset =
+    !outdent && original.collapsed ? textOffset(field, original.startContainer, original.startOffset) : null;
+  const caretAtTextStart = original.startContainer.nodeType === Node.TEXT_NODE && original.startOffset === 0;
   const rows = editorTextRows(field).filter(({ range }) =>
     original.collapsed
       ? original.compareBoundaryPoints(Range.START_TO_START, range) >= 0 &&
@@ -441,6 +444,8 @@ function changeEditorTextIndentation(field, selection, outdent) {
     edits.push(edit);
   }
   if (!outdent && !edits.length && original.collapsed) edits.push(original.cloneRange());
+  const insertionOffsets =
+    caretOffset === null ? [] : edits.map((edit) => textOffset(field, edit.startContainer, edit.startOffset));
   for (const edit of edits.reverse()) {
     const moveStart = !outdent && original.compareBoundaryPoints(Range.START_TO_START, edit) === 0;
     const moveEnd = !outdent && original.compareBoundaryPoints(Range.END_TO_END, edit) === 0;
@@ -454,9 +459,16 @@ function changeEditorTextIndentation(field, selection, outdent) {
       if (moveStart) original.setStart(inserted.endContainer, inserted.endOffset);
     }
   }
-  // DOM ranges follow native edits and retain the row and inline boundaries.
   selection.removeAllRanges();
-  selection.addRange(original);
+  if (caretOffset !== null) {
+    // Whitespace normalization can replace the old text node and move a live
+    // caret range to its parent. Restore its text offset after the new spaces.
+    const offset = caretOffset + 4 * insertionOffsets.filter((start) => start <= caretOffset).length;
+    selection.addRange(rangeAt(field, offset, offset, [caretAtTextStart, caretAtTextStart]));
+  } else {
+    // Keep range boundaries for selections and native outdent edits.
+    selection.addRange(original);
+  }
 }
 
 function stop(event) {
