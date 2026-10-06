@@ -10,10 +10,10 @@ from aqt.qt import (
 
 from ...configs.constants import (
     ADDON_DIR,
-    JS_ASSET_NAME,
     SECTION_SPACING,
     VERSION,
 )
+from ...configs.asset_manifest import JS_ASSET_NAME
 from ...ui.widgets import add_button_row
 from ...ui.markdown import make_markdown_browser
 

@@ -14,7 +14,7 @@ export function getRenderedAnswerText(answerElement) {
   copy.style.setProperty('opacity', '0', 'important');
   copy.style.setProperty('pointer-events', 'none', 'important');
 
-  // Keep temporary child mutations below the body/#qa nodes watched by initWatchQA.
+  // Keep the temporary measurement copy inside the card's kit container.
   answerElement.closest('.global-kit-container').appendChild(copy);
   try {
     return copy.innerText;

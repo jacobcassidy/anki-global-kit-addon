@@ -7,9 +7,7 @@ from aqt import mw
 from aqt.utils import is_mac, showWarning
 
 from .config import get_settings
-from ..configs.constants import (
-    ASSET_NAMES, ASSET_PATHS, JS_ASSET_NAME,
-)
+from ..configs.asset_manifest import ASSET_NAMES, ASSET_PATHS, JS_ASSET_NAME
 
 
 def update_assets_for_profile() -> None:

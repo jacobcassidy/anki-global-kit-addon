@@ -2,17 +2,8 @@
 
 from aqt.utils import is_mac
 
-from .asset_manifest import (
-    ADDON_DIR,
-    ASSET_DIR,
-    ASSET_NAMES,
-    ASSET_PATHS,
-    CSS_ASSET_NAME,
-    FONT_ASSET_NAME,
-    JS_ASSET_NAME,
-)
+from .asset_manifest import ADDON_DIR
 
-DESKTOP_DIR = ADDON_DIR / "desktop"
 USER_FILES_DIR = ADDON_DIR / "user_files"
 SHARED_ASSET_DIR = ADDON_DIR / "shared" / "assets" / "icons"
 ADDON_PACKAGE_NAME = __package__.split(".", maxsplit=1)[0]

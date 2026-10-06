@@ -307,19 +307,10 @@ class CardShortcutInput(QPushButton):
         # Store Qt's modifier names on every platform: Ctrl is Command on macOS,
         # while Meta is physical Control there.
         modifier_names = (
-            (
-                (Qt.KeyboardModifier.ControlModifier, "Ctrl"),
-                (Qt.KeyboardModifier.AltModifier, "Alt"),
-                (Qt.KeyboardModifier.ShiftModifier, "Shift"),
-                (Qt.KeyboardModifier.MetaModifier, "Meta"),
-            )
-            if is_mac
-            else (
-                (Qt.KeyboardModifier.ControlModifier, "Ctrl"),
-                (Qt.KeyboardModifier.AltModifier, "Alt"),
-                (Qt.KeyboardModifier.ShiftModifier, "Shift"),
-                (Qt.KeyboardModifier.MetaModifier, "Meta"),
-            )
+            (Qt.KeyboardModifier.ControlModifier, "Ctrl"),
+            (Qt.KeyboardModifier.AltModifier, "Alt"),
+            (Qt.KeyboardModifier.ShiftModifier, "Shift"),
+            (Qt.KeyboardModifier.MetaModifier, "Meta"),
         )
         for modifier, name in modifier_names:
             if modifiers & modifier:

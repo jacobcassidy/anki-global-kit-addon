@@ -18,10 +18,6 @@ body {
   text-align: center;
 }
 
-/* li + li {
-	margin-block-start: calc(var(--spacing--default) / 3);
-} */
-
 input,
 pre,
 textarea {
