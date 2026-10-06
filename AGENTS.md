@@ -10,7 +10,7 @@ The add-on can create missing topic and format note types in the active profile.
 
 - `addon/__init__.py` — Required Anki add-on entry point; initializes the Desktop features.
 - `addon/desktop/` — Python code that runs in Anki Desktop.
-  - `settings/features/` contains settings pages; `services/` handles settings persistence, media installation, and note type operations; `ui/` and `shared/` provide common controls and helpers.
+  - `settings/features/` contains settings pages; `services/` handles settings persistence, media installation, and note type operations; `ui/` provides common controls; `helpers/` contains shortcut formatting and validation helpers; `configs/` contains defaults, constants, and the asset manifest.
   - `editor/features/` contains editor integrations such as paste handling and shortcut labels; editor hooks live in `editor/integration.py`.
 - `addon/shared/assets/icons/` — SVG icons shared by the card toolbar, Desktop editor, and settings UI.
 - `addon/shared/assets/fonts/` — Packaged shared card and editor fonts.
@@ -60,7 +60,7 @@ Useful project scripts:
 
 - Use token or variable-based colors throughout the project; do not add static hardcoded colors. Anki Desktop settings and other Qt components must use Anki color tokens, while webview components must use CSS variables.
 - Put review-time behavior in `src/cards/` when it needs to run across Anki clients. Put editor behavior in `src/editor/` and use `addon/desktop/editor/` for its Desktop integration. Do not assume Python add-on code runs outside Anki Desktop.
-- Use the Python add-on for Desktop installation, configuration, and collection operations. Settings modules are grouped under `addon/desktop/settings/{features,services,shared,ui}/`. Connect to Anki through documented hooks and APIs instead of patching internal functions when a supported hook exists.
+- Use the Python add-on for Desktop installation, configuration, and collection operations. Settings modules are grouped under `addon/desktop/settings/{features,services,ui,helpers,configs}/`. Connect to Anki through documented hooks and APIs instead of patching internal functions when a supported hook exists.
 - Keep the setting keys in `addon/config.json` synchronized with the keys inside `addon/meta.json`'s `config` object, including `note_type_selections`, whenever either file changes.
 - Treat media filenames as public interfaces: the installer, templates, and stylesheet imports must use identical names.
 - The add-on refreshes the kit's reserved asset names through Anki's media manager on `profile_did_open`. Keep installation scoped to those managed assets; do not overwrite user templates or unrelated media without an explicit opt-in design.
