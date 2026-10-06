@@ -23,7 +23,6 @@ from aqt.utils import is_mac
 
 from ..configs.constants import (
     COLOR_TRANSPARENT,
-    NESTED_INDENT,
     SHORTCUT_MIN_WIDTH,
     SHORTCUT_MODIFIER_HINT,
     ZERO_MARGINS,

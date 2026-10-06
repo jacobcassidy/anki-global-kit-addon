@@ -8,7 +8,7 @@ from aqt.utils import is_mac, showWarning
 
 from .config import get_settings
 from ..configs.constants import (
-    ADDON_DIR, ASSET_NAMES, ASSET_PATHS, JS_ASSET_NAME,
+    ASSET_NAMES, ASSET_PATHS, JS_ASSET_NAME,
 )
 
 
