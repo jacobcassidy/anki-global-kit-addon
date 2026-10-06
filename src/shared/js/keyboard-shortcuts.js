@@ -1,3 +1,18 @@
+// Qt PortableText names that differ from browser KeyboardEvent.key values.
+const browserKeyAliases = new Map([
+  ['space', ' '],
+  ['return', 'enter'],
+  ['esc', 'escape'],
+  ['ins', 'insert'],
+  ['del', 'delete'],
+  ['left', 'arrowleft'],
+  ['up', 'arrowup'],
+  ['right', 'arrowright'],
+  ['down', 'arrowdown'],
+  ['pgup', 'pageup'],
+  ['pgdown', 'pagedown'],
+]);
+
 /** Split Qt shortcut names while retaining a literal plus as the final key. */
 export function splitKeyboardShortcut(shortcut) {
   if (shortcut === '+') return ['+'];
@@ -14,10 +29,11 @@ export function matchesKeyboardShortcut(event, shortcut, isMac) {
   const modifiers = new Set(parts.map((part) => part.toLowerCase()));
   const codeBlock = modifiers.has('codeblock');
   const eventKey = event.key.toLowerCase();
+  const configuredKey = browserKeyAliases.get(key.toLowerCase()) ?? key.toLowerCase();
   // Use the character the platform reports after keyboard remapping. `code`
   // is a fallback for the code-block shortcut when a keyboard layout maps the
   // physical C key to a different character.
-  const keyMatches = eventKey === key.toLowerCase() || (codeBlock && event.code === `Key${key.toUpperCase()}`);
+  const keyMatches = eventKey === configuredKey || (codeBlock && event.code === `Key${key.toUpperCase()}`);
   if (!keyMatches) return false;
   const qtCtrl = modifiers.has('ctrl');
   const qtMeta = modifiers.has('meta');

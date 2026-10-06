@@ -3,6 +3,21 @@
 from aqt.utils import is_mac
 
 
+SHORTCUT_KEY_ALIASES = {
+    " ": "SPACE",
+    "RETURN": "ENTER",
+    "ESC": "ESCAPE",
+    "INS": "INSERT",
+    "DEL": "DELETE",
+    "LEFT": "ARROWLEFT",
+    "UP": "ARROWUP",
+    "RIGHT": "ARROWRIGHT",
+    "DOWN": "ARROWDOWN",
+    "PGUP": "PAGEUP",
+    "PGDOWN": "PAGEDOWN",
+}
+
+
 def split_shortcut(shortcut: str) -> list[str]:
     """Split Qt shortcut names while retaining a literal plus as the final key."""
     if shortcut == "+":
@@ -37,6 +52,7 @@ def normalize_shortcut(shortcut: str) -> str:
         return ""
     parts = split_shortcut(shortcut)
     key = parts.pop().upper()
+    key = SHORTCUT_KEY_ALIASES.get(key, key)
     if shortcut.startswith("CodeBlock+"):
         modifiers = {"Ctrl", "Meta"} if is_mac else {"Ctrl", "Alt"}
     else:
