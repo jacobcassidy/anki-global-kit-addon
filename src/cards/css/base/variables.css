@@ -23,6 +23,9 @@
   --color--secondary: oklch(calc(var(--brand-color-l) - 10%) calc(var(--brand-color-c) - 0.022) var(--brand-color-h));
   --color--tertiary: oklch(calc(var(--brand-color-l) + 10%) calc(var(--brand-color-c) - 0.018) var(--brand-color-h));
   --color--quaternary: oklch(calc(var(--brand-color-l) + 16%) calc(var(--brand-color-c) - 0.0288) var(--brand-color-h));
+  --color--toolbar-shadow--strong: color-mix(in oklch, var(--bgc--pre) 16%, transparent);
+  --color--toolbar-shadow--medium: color-mix(in oklch, var(--bgc--pre) 8%, transparent);
+  --color--toolbar-shadow--soft: color-mix(in oklch, var(--bgc--pre) 6%, transparent);
   --color--typed: oklch(50% 0 0);
 }
 
@@ -44,5 +47,8 @@
   --color--secondary: oklch(calc(var(--brand-color-l) + 10%) calc(var(--brand-color-c) - 0.018) var(--brand-color-h));
   --color--tertiary: oklch(calc(var(--brand-color-l) + 4%) calc(var(--brand-color-c) - 0.0072) var(--brand-color-h));
   --color--quaternary: oklch(calc(var(--brand-color-l) - 2%) calc(var(--brand-color-c) - 0.0044) var(--brand-color-h));
+  --color--toolbar-shadow--strong: color-mix(in oklch, var(--bgc--pre) 40%, transparent);
+  --color--toolbar-shadow--medium: color-mix(in oklch, var(--bgc--pre) 24%, transparent);
+  --color--toolbar-shadow--soft: color-mix(in oklch, var(--bgc--pre) 16%, transparent);
   --color--typed: oklch(40% 0 0);
 }
