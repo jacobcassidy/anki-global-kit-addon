@@ -1,0 +1,14 @@
+Generation method: built-in image_gen tool
+Asset: anki-global-kit-logo.png
+
+Use case: logo-brand
+Asset type: finished logo for the Anki Global Kit add-on, suitable for documentation headers and an add-on listing.
+Primary request: create a polished, distinctive logo for "Anki Global Kit", a toolkit for flashcards, typed answers, Markdown and code, working across desktop, web and mobile.
+Scene/backdrop: genuinely transparent background.
+Subject: one strong compact emblem combining a rounded flashcard silhouette with a simplified globe. Use a clever, coherent geometric construction: a bold rounded rectangular card outline, with a small number of curved globe meridians and a horizontal latitude line within it, and a subtle offset second card suggesting a reusable kit. Keep the emblem visually unified and recognizable at small sizes.
+Style/medium: precise flat vector-like logo design, confident clean geometric strokes, generous negative space, professional software identity.
+Composition/framing: one horizontal logo lockup, emblem on the left and the exact wordmark on the right, centered on a wide landscape canvas with modest transparent margins. The emblem and type should be balanced in height. All content clearly separated from the canvas edges.
+Color palette: use the project's existing blue link accent, perceptually corresponding to oklch(50% 0.28 264), as the single ink color for both mark and wordmark.
+Text (verbatim): "Anki Global Kit"
+Typography: crisp modern sans-serif, semibold, carefully spaced, one line, strong readability.
+Constraints: deliver only the final logo with actual alpha transparency. No extra text, slogans, presentation boards, mockups, watermarks, gradients, shadows, texture, 3D effects or decorative flourishes. Do not copy Anki's star logo. Use few shapes and avoid a busy globe grid.
