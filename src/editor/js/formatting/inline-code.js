@@ -7,7 +7,7 @@ const ENTRY_ATTRIBUTE = 'data-anki-global-kit-inline-code-entry';
 const entryCodes = new WeakSet();
 
 // Inline code formatting action.
-export function toggleInlineCode(begin = '<code>', end = '</code>') {
+export function toggleInlineCode() {
   const pendingAnchor = toggleInlineCode.cancelEntry?.(false);
   toggleInlineCode.cancelExit?.();
   let selection = getEditorSelection() || getFieldInputSelection();
@@ -44,7 +44,7 @@ export function toggleInlineCode(begin = '<code>', end = '</code>') {
     (clone, stagedSelection, resolveNode) => {
       const anchor = resolveNode(pendingAnchor);
       if (anchor?.data.startsWith('\u200b')) anchor.deleteData(0, 1);
-      formatInlineCodeContent(clone, stagedSelection, begin, end, effects);
+      formatInlineCodeContent(clone, stagedSelection, effects);
       if (effects.entryAnchor) effects.entryAnchor.parentElement.setAttribute(ENTRY_ATTRIBUTE, '');
     },
     restoreInlineCodeEntry,
@@ -89,7 +89,7 @@ function restoreInlineCodeEntry(event, field) {
   }
 }
 
-function formatInlineCodeContent(field, selection, begin, end, effects) {
+function formatInlineCodeContent(field, selection, effects) {
   const range = selection.getRangeAt(0);
   const element = (node) => (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement);
   const codeAt = (node) => element(node)?.closest('code');
@@ -182,9 +182,7 @@ function formatInlineCodeContent(field, selection, begin, end, effects) {
     return;
   }
 
-  if (begin === '<code>' && end === '</code>' && toggleMixedInlineCodeSelection(field, range, selection)) {
-    return;
-  }
+  if (toggleInlineCodeSelection(field, range, selection)) return;
 
   // Handle both selection of the element and selection of its text contents.
   if (!code && range.startContainer === range.endContainer && range.endOffset === range.startOffset + 1) {
@@ -217,21 +215,24 @@ function formatInlineCodeContent(field, selection, begin, end, effects) {
     }
     return;
   }
-
-  // Preserve the existing block-aware wrapping behavior for plain selections.
-  wrap2.call({ node: field }, begin, end, selection);
 }
 
-/** Toggle mixed selections without nesting code or moving surrounding markup. */
-function toggleMixedInlineCodeSelection(field, range, selection) {
-  if (!field || !field.contains(range.endContainer)) return false;
+/**
+ * Kit-specific wrapping works on selected text and inline media runs in place.
+ * Keeping their ancestors intact preserves inline markup and block structure,
+ * including ranges anchored to the detached field itself. The caller applies
+ * the staged result through the existing native Undo transaction.
+ */
+function toggleInlineCodeSelection(field, range, selection) {
+  if (!field?.contains(range.startContainer) || !field.contains(range.endContainer)) return false;
   const element = (node) => (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement);
   const segments = [];
   const walker = document.createTreeWalker(field, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
   let node;
   while ((node = walker.nextNode())) {
     const isText = node.nodeType === Node.TEXT_NODE;
-    if (isText ? !node.length : !node.matches('br,img,hr,input,video,audio,iframe,object,embed,svg,canvas')) continue;
+    // HR is a block separator: leave it outside inline code, like other blocks.
+    if (isText ? !node.length : !node.matches('br,img,input,video,audio,iframe,object,embed,svg,canvas')) continue;
     // Media contents belong to the media element, rather than another text run.
     if (element(node.parentNode)?.closest('video,audio,iframe,object,embed,svg,canvas')) continue;
     const selected = document.createRange();
@@ -250,31 +251,38 @@ function toggleMixedInlineCodeSelection(field, range, selection) {
   const uncoded = segments.filter((segment) => !segment.code);
   const codes = [...new Set(segments.map((segment) => segment.code).filter(Boolean))];
   if (!uncoded.length) {
-    // A mixed selection becomes several code elements. A second invocation
-    // removes only their selected portions, preserving code outside the range.
+    // Selections can contain several code elements. Toggling them removes
+    // only their selected portions, preserving code outside the range.
     if (codes.length < 2) return false;
     removeCodeFromSelection(codes, range, selection);
     return true;
   }
-  if (!(
+  const mixed = Boolean(
     codes.length ||
     element(range.startContainer)?.closest('code') ||
     element(range.endContainer)?.closest('code') ||
-    range.cloneContents().querySelector('code')
-  ))
-    return false;
+    range.cloneContents().querySelector('code'),
+  );
 
   // Work backwards so splitting a text node does not move later boundaries.
   for (const segment of uncoded.reverse()) {
     const code = document.createElement('code');
     segment.range.surroundContents(code);
     segment.range.selectNodeContents(code);
+    segment.wrapper = code;
   }
   const first = segments[0].range;
   const last = segments[segments.length - 1].range;
   const restored = document.createRange();
-  restored.setStart(first.startContainer, first.startOffset);
-  restored.setEnd(last.endContainer, last.endOffset);
+  if (mixed) {
+    restored.setStart(first.startContainer, first.startOffset);
+    restored.setEnd(last.endContainer, last.endOffset);
+  } else {
+    // Plain formatting leaves the caret after the final selected run, inside
+    // its original block. Mixed formatting keeps the selection for toggling.
+    restored.setStartAfter(segments[segments.length - 1].wrapper);
+    restored.collapse(true);
+  }
   selection.removeAllRanges();
   selection.addRange(restored);
   return true;
@@ -535,115 +543,6 @@ function toggleInlineCodeWord(word, code, selection) {
         return;
       }
       remaining -= node.length;
-    }
-  }
-}
-
-// Block-aware wrapping adapted from Wrapper meta-addon and Anki PR #3038.
-function wrap2(begin, end, selection) {
-  const { node: base } = this;
-  const range = selection.getRangeAt(0);
-  if (!range) {
-    return;
-  }
-
-  // Inline code must stay inside the selected block, even at its edges.
-  // Keep the original range instead of expanding it around the parent div.
-  if (begin === '<code>' && end === '</code>' && !range.collapsed) {
-    const preview = range.cloneContents();
-    const blocks = 'div,p,pre,blockquote,ul,ol,li,table,h1,h2,h3,h4,h5,h6';
-    if (!preview.querySelector(blocks)) {
-      const code = document.createElement('code');
-      code.appendChild(range.extractContents());
-      range.insertNode(code);
-      range.setStartAfter(code);
-      range.collapse(true);
-      selection.removeAllRanges();
-      selection.addRange(range);
-      return;
-    }
-  }
-
-  // The staged field is detached. Keep field boundaries inside it and only
-  // expand around ancestors that have a parent to anchor the range to.
-  let startParent = range.startContainer.parentNode;
-  if (
-    range.startContainer !== base &&
-    startParent?.parentNode &&
-    startParent !== base &&
-    startParent.tagName !== 'ANKI-EDITABLE' &&
-    startParent.firstChild === range.startContainer &&
-    range.startOffset === 0
-  ) {
-    range.setStartBefore(startParent);
-  }
-
-  let endParent = range.endContainer.parentNode;
-  if (
-    range.endContainer !== base &&
-    endParent?.parentNode &&
-    endParent !== base &&
-    endParent.tagName !== 'ANKI-EDITABLE' &&
-    endParent.lastChild === range.endContainer &&
-    ((range.endContainer.nodeType !== Node.ELEMENT_NODE &&
-      range.endOffset === range.endContainer.textContent?.length) ||
-      (range.endContainer.nodeType === Node.ELEMENT_NODE && range.endOffset === range.endContainer.childNodes.length))
-  ) {
-    range.setEndAfter(endParent);
-  }
-  let expand;
-  do {
-    expand = false;
-    if (startParent instanceof ShadowRoot || endParent instanceof ShadowRoot) {
-      break;
-    }
-
-    if (
-      startParent?.parentNode &&
-      startParent.parentNode !== base &&
-      startParent.parentNode.tagName !== 'ANKI-EDITABLE' &&
-      startParent.parentNode.firstChild === startParent &&
-      range.isPointInRange(startParent.parentNode, startParent.parentNode.childNodes.length)
-    ) {
-      startParent = startParent.parentNode;
-      range.setStartBefore(startParent);
-      expand = true;
-    }
-    if (
-      endParent?.parentNode &&
-      endParent.parentNode !== base &&
-      endParent.parentNode.tagName !== 'ANKI-EDITABLE' &&
-      endParent.parentNode.lastChild === endParent &&
-      range.isPointInRange(endParent.parentNode, 0)
-    ) {
-      endParent = endParent.parentNode;
-      range.setEndAfter(endParent);
-      expand = true;
-    }
-    if (
-      range.endOffset === 0 &&
-      range.endContainer !== base &&
-      range.endContainer.parentNode &&
-      range.endContainer.tagName !== 'ANKI-EDITABLE'
-    ) {
-      range.setEndBefore(range.endContainer);
-      expand = true;
-    }
-  } while (expand);
-
-  const fragment = range.extractContents();
-  if (fragment.childNodes.length === 0) {
-    const container = document.createElement('div');
-    container.innerHTML = begin + end;
-    range.insertNode(container.firstChild);
-  } else {
-    const div = document.createElement('div');
-    for (const node of Array.from(fragment.childNodes)) {
-      div.appendChild(node);
-    }
-    div.innerHTML = begin + div.innerHTML + end;
-    for (const node of div.childNodes) {
-      range.insertNode(node);
     }
   }
 }

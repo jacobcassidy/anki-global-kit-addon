@@ -1,4 +1,4 @@
-import { getEditorSelection, installSelectionTracking } from './helpers/selection.js';
+import { installSelectionTracking } from './helpers/selection.js';
 import { installCodeSpaceNormalization } from './formatting/code-spaces.js';
 import { toggleInlineCode } from './formatting/inline-code.js';
 import { installCopySource } from './clipboard/copy-source.js';
@@ -21,9 +21,7 @@ if (!globalThis.ankiGlobalKitEditor) {
 
   globalThis.ankiGlobalKitEditor = {
     toggleBlock: toggleEditorBlock,
-    toggleInlineCode() {
-      return toggleInlineCode.call({ node: getEditorSelection()?.focusNode }, '<code>', '</code>');
-    },
+    toggleInlineCode,
     beginPasteLayout,
     finishPasteLayout,
   };

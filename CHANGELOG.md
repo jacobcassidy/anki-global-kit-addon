@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Replaced the inherited Desktop inline-code `wrap2` helper with the kit's own selection-run formatting. Selected text and inline media are wrapped in place within their original blocks, preserving surrounding markup and the existing native Undo/Redo transaction. Removed the unused generic wrapper arguments.
+
 - Raised the minimum supported Anki Desktop version to **26.05**, whose bundled browser supports the kit's current CSS features. Packaged add-ons declare this minimum in their manifest.
 
 ### Fixed
