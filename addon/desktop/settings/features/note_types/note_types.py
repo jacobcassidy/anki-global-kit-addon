@@ -189,8 +189,12 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                     else 0
                 )
                 is_custom_topic = topic in custom_topics
+                custom_topic_has_existing_format = is_custom_topic and any(
+                    f"{topic} ({format_name})" in existing_names
+                    for format_name in FORMATS
+                )
                 can_delete = (exists and note_count == 0) or (
-                    is_custom_topic and not exists
+                    is_custom_topic and not custom_topic_has_existing_format
                 )
                 delete_control: QWidget = delete_checkbox
                 if exists and note_count > 0:
@@ -206,7 +210,11 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                 delete_checkbox.setEnabled(can_delete)
                 if not exists:
                     delete_checkbox.setToolTip(
-                        "Remove this uncreated custom topic"
+                        (
+                            "Delete the existing format first to remove this topic"
+                            if custom_topic_has_existing_format
+                            else "Remove this uncreated custom topic"
+                        )
                         if is_custom_topic
                         else "Available after this note type has been created"
                     )
