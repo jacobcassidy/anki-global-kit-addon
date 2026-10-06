@@ -4,6 +4,8 @@ Requires **Anki Desktop 26.05 or later**.
 
 This add-on installs the generated card JavaScript, CSS, and shared font into the active Anki profile's `collection.media` folder. Anki can then sync those resources to AnkiWeb and the mobile clients.
 
+The shared MesloLGL Nerd Font uses Nerd Fonts **v3.5.1**. Its official source, WOFF2 conversion instructions, attribution, and licenses are recorded in [shared/assets/fonts/FONT-LICENSES.md](shared/assets/fonts/FONT-LICENSES.md) and the adjacent `licenses/` folder. To refresh the font after updating the add-on, reopen your Desktop profile and sync media. Notes containing older Nerd Font icons may need updated characters because v3 changed some icon code points.
+
 ## Create, replace, and delete note types
 
 Choose **Tools > Anki Global Kit Settings...**, open **Note Types**, and select the topics and card formats you want. Use **+** to add a custom topic. Kit types are named like `CSS (Advance)` and `CSS (Cloze)`.

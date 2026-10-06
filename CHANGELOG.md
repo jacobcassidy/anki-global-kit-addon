@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized the npm lockfile with the declared dependencies, removing the unused SCSS lint configuration and its exclusive dependencies without upgrading retained packages.
 - Corrected the Note Types deletion help to refer to notes instead of cards, matching the empty-note-type requirement.
 - Included the canonical project `LICENSE` at the add-on archive root and required it to exist as a file before packaging opens the output archive.
+- Updated the shared MesloLGL Nerd Font to v3.5.1, converting its verified official Regular TTF directly to WOFF2 and recording source and output checksums and conversion instructions. Added packaged attribution and license texts for the font and its glyph sources. Notes containing old Nerd Font icons may need updated code points; reopen the Desktop profile and sync media to refresh the font on other clients.
 
 ## [1.0.0] - 2026-10-05
 

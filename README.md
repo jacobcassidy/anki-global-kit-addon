@@ -126,3 +126,5 @@ Read [HELP.md](addon/HELP.md) for settings guidance and common problems, or open
 ## License
 
 [MIT](LICENSE)
+
+The bundled MesloLGL Nerd Font uses Nerd Fonts **v3.5.1** and incorporates upstream works with separate terms. See its [source, conversion instructions, attribution, and license notices](addon/shared/assets/fonts/FONT-LICENSES.md).
