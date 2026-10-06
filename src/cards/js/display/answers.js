@@ -14,9 +14,8 @@ export function showAnswerContainers() {
   if (answerContainers.length < 1) return;
 
   answerContainers.forEach((answerContainer, answerContainerIndex) => {
-    // Keep the existing result when initialization runs again on the same card.
-    // TODO - FIND WHERE THIS CLASS WAS REMOVED FROM SOURCE
-    if (answerContainer.querySelector('.output-comparison-container')) return;
+    // Appending the comparison triggers the card observer; don't render it twice.
+    if (answerContainer.querySelector('.comparison')) return;
 
     const referenceAnswer = answerContainer.querySelector('.reference-answer .box__content');
     const referenceClozes = referenceAnswer.querySelectorAll('.cloze');
