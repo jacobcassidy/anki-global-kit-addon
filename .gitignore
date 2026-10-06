@@ -1,5 +1,6 @@
 # IGNORE
 .TEMP
 node_modules
+/dist/
 __pycache__
 *.pyc
