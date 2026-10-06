@@ -270,7 +270,7 @@ function addFormattingToolbar(textarea) {
 }
 
 /**
- * Track an answer textarea's value and submit it with `CTRL + ENTER`.
+ * Track an answer textarea's value and submit it with the client's answer shortcut.
  */
 export function handleQuestionInputSubmission(questionInput, inputIndex) {
   questionInput.addEventListener('input', (event) => {
@@ -291,8 +291,12 @@ export function handleQuestionInputSubmission(questionInput, inputIndex) {
 
   // Return data on AnkiPC keypress.
   if (isAnkiPC) {
+    const isMac = navigator.platform.startsWith('Mac');
     questionInput.addEventListener('keydown', (event) => {
-      if (event.ctrlKey && event.key === 'Enter') globalThis.pycmd('ans');
+      if (event.key === 'Enter' && (isMac ? event.metaKey : event.ctrlKey)) {
+        event.preventDefault();
+        globalThis.pycmd('ans');
+      }
     });
 
     // Return data on AnkiWeb keypress.
