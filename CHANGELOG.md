@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed the development watcher's rebuild logging by tracking changed source dependencies per generated output, so every affected CSS bundle reports its successful rebuild.
+
 - Disabled Delete for an uncreated custom topic while either of its note type formats still exists, and explained how to remove the remaining format first.
 
 - Restored bundled Diff Match Patch answer comparison with Unicode-safe tokens and fast matching of identical answers and shared ends. Removed the comparison-table size cutoff that marked long answers entirely wrong, and validated comparisons through 10,000 characters per answer. The engine retains a one-second processing budget for difficult differences.

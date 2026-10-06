@@ -1,6 +1,6 @@
 import { watch } from 'node:fs';
 import { readFile, readdir, writeFile } from 'node:fs/promises';
-import { join, relative } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { context, formatMessages } from 'esbuild';
 import {
@@ -19,8 +19,9 @@ const colors = {
 };
 
 const contentByPath = new Map();
-const pendingChanges = new Map();
-const changedDirectories = new Set();
+const pendingChanges = new Set();
+const inputsByOutput = new Map();
+const changedOutputs = new Set();
 let changeTimer;
 
 function colorize(text, color) {
@@ -46,11 +47,11 @@ for (const sourceDirectory of ['src/cards/js', 'src/cards/css', 'src/editor/js',
   watcher.on('change', (_eventType, filename) => {
     if (!filename) return;
     const path = join(absoluteDirectory, filename.toString());
-    pendingChanges.set(path, sourceDirectory);
+    pendingChanges.add(path);
 
     clearTimeout(changeTimer);
     changeTimer = setTimeout(async () => {
-      for (const [changedPath, directory] of pendingChanges) {
+      for (const changedPath of pendingChanges) {
         const content = await readFile(changedPath).catch(() => null);
         const previousContent = contentByPath.get(changedPath);
         if (content && previousContent?.equals(content)) continue;
@@ -59,11 +60,8 @@ for (const sourceDirectory of ['src/cards/js', 'src/cards/css', 'src/editor/js',
         if (content) contentByPath.set(changedPath, content);
         else contentByPath.delete(changedPath);
 
-        if (directory === 'src/shared/css') {
-          changedDirectories.add('src/cards/css');
-          changedDirectories.add('src/editor/css');
-        } else {
-          changedDirectories.add(directory);
+        for (const [outfile, inputs] of inputsByOutput) {
+          if (inputs.has(resolve(changedPath))) changedOutputs.add(outfile);
         }
         const file = relative(fileURLToPath(new URL('../', import.meta.url)), changedPath);
         console.log(colorize(`Changed: ${file}`, colors.yellow));
@@ -73,7 +71,7 @@ for (const sourceDirectory of ['src/cards/js', 'src/cards/css', 'src/editor/js',
   });
 }
 
-function createWatchPlugin(outfile, sourceDirectory) {
+function createWatchPlugin(outfile) {
   let initialBuild = true;
 
   return {
@@ -83,6 +81,12 @@ function createWatchPlugin(outfile, sourceDirectory) {
         const wasInitialBuild = initialBuild;
         initialBuild = false;
         const hasDiagnostics = result.warnings.length > 0 || result.errors.length > 0;
+        if (result.metafile) {
+          const inputs = Object.values(result.metafile.outputs).flatMap((output) =>
+            Object.keys(output.inputs).map((input) => resolve(input)),
+          );
+          inputsByOutput.set(outfile, new Set(inputs));
+        }
 
         if (!hasDiagnostics) {
           await Promise.all(result.outputFiles.map((outputFile) => writeFile(outputFile.path, outputFile.contents)));
@@ -106,7 +110,7 @@ function createWatchPlugin(outfile, sourceDirectory) {
           console.error(`${colorize('Error:', colors.red)}\n${formatted}`);
         }
 
-        if (!wasInitialBuild && !hasDiagnostics && changedDirectories.delete(sourceDirectory)) {
+        if (!wasInitialBuild && !hasDiagnostics && changedOutputs.delete(outfile)) {
           console.log(colorize(`Rebuilt: ${outfile}`, colors.green));
         }
       });
@@ -116,17 +120,18 @@ function createWatchPlugin(outfile, sourceDirectory) {
 
 const contexts = await Promise.all(
   [
-    [cardsJsBuildOptions, 'src/cards/js'],
-    [cardsCssBuildOptions, 'src/cards/css'],
-    [editorJsBuildOptions, 'src/editor/js'],
-    [editorFieldsCssBuildOptions, 'src/editor/css'],
-    [editorUiCssBuildOptions, 'src/editor/css'],
-  ].map(([options, sourceDirectory]) =>
+    cardsJsBuildOptions,
+    cardsCssBuildOptions,
+    editorJsBuildOptions,
+    editorFieldsCssBuildOptions,
+    editorUiCssBuildOptions,
+  ].map((options) =>
     context({
       ...options,
+      metafile: true,
       write: false,
       logLevel: 'silent',
-      plugins: [createWatchPlugin(options.outfile, sourceDirectory)],
+      plugins: [createWatchPlugin(options.outfile)],
     }),
   ),
 );
