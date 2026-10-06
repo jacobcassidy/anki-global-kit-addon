@@ -2,13 +2,24 @@
 
 from aqt.utils import is_mac
 
+
+def split_shortcut(shortcut: str) -> list[str]:
+    """Split Qt shortcut names while retaining a literal plus as the final key."""
+    if shortcut == "+":
+        return ["+"]
+    parts = shortcut.split("+")
+    if shortcut.endswith("++"):
+        parts[-2:] = ["+"]
+    return parts
+
+
 def format_shortcut(shortcut: str) -> str:
     """Format Qt Ctrl/Meta shortcut names for the current platform."""
     if not shortcut:
         return ""
     if shortcut.startswith("CodeBlock+"):
         return ("⌃⌘" if is_mac else "Ctrl+Alt+") + shortcut.split("+", 1)[1]
-    parts = shortcut.split("+")
+    parts = split_shortcut(shortcut)
     if is_mac:
         symbols = {
             "Ctrl": "⌘",
@@ -24,7 +35,7 @@ def normalize_shortcut(shortcut: str) -> str:
     """Return a comparable shortcut string across platform-specific labels."""
     if not shortcut:
         return ""
-    parts = shortcut.split("+")
+    parts = split_shortcut(shortcut)
     key = parts.pop().upper()
     if shortcut.startswith("CodeBlock+"):
         modifiers = {"Ctrl", "Meta"} if is_mac else {"Ctrl", "Alt"}
@@ -35,7 +46,7 @@ def normalize_shortcut(shortcut: str) -> str:
 
 
 def shortcut_has_required_modifier(shortcut: str) -> bool:
-    modifiers = set(normalize_shortcut(shortcut).split("+")[:-1])
+    modifiers = set(split_shortcut(normalize_shortcut(shortcut))[:-1])
     return bool(modifiers & {"Ctrl", "Alt", "Meta"})
 
 

@@ -1,6 +1,14 @@
+/** Split Qt shortcut names while retaining a literal plus as the final key. */
+export function splitKeyboardShortcut(shortcut) {
+  if (shortcut === '+') return ['+'];
+  const parts = shortcut.split('+');
+  if (shortcut.endsWith('++')) parts.splice(-2, 2, '+');
+  return parts;
+}
+
 /** Match portable Qt modifier names against browser keyboard events. */
 export function matchesKeyboardShortcut(event, shortcut, isMac) {
-  const parts = shortcut.split('+');
+  const parts = splitKeyboardShortcut(shortcut);
   const key = parts.pop();
   if (!key) return false;
   const modifiers = new Set(parts.map((part) => part.toLowerCase()));

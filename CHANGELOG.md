@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Scoped AnkiDroid answer storage and cleanup to kit-specific keys, preserving other card scripts' session data and handling unavailable storage without interrupting answer rendering.
 - Fixed Desktop inline-code formatting for selections spanning existing code and ordinary text, preserving surrounding markup and avoiding nested code elements.
 - Applied Desktop inline-code formatting through native editor transactions so formatting and subsequent typing can be undone and redone independently, including empty code spans.
+- Fixed shortcuts containing a literal plus key, preserving the key when saving, matching, checking conflicts, and displaying shortcut labels.
 
 ## [1.0.0] - 2026-10-05
 

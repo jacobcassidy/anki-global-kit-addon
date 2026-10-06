@@ -35,6 +35,7 @@ from ..helpers.shortcuts import (
     format_shortcut,
     normalize_shortcut,
     reserved_shortcut_warnings,
+    split_shortcut,
 )
 
 
@@ -401,7 +402,7 @@ class CardShortcutInput(QPushButton):
                 modifiers.append(symbols[text[0]])
                 text = text[1:]
         else:
-            pieces = text.split("+")
+            pieces = split_shortcut(text)
             text = pieces.pop() if pieces else ""
             modifiers = [
                 {"Shift": "Shift", "Alt": "Alt"}.get(part, part) for part in pieces

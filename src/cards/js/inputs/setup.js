@@ -10,6 +10,7 @@ import {
 import { handleTabIndentation, changeTextareaIndentation } from './tab-navigation.js';
 import { reportQuestionShortcutFocus } from './shortcut-focus.js';
 import { settings } from '../runtime/settings.js';
+import { splitKeyboardShortcut } from '../../../shared/js/keyboard-shortcuts.js';
 import boldIcon from '../../../../addon/shared/assets/icons/text-bold.svg';
 import italicIcon from '../../../../addon/shared/assets/icons/text-italic.svg';
 import strikethroughIcon from '../../../../addon/shared/assets/icons/text-strikethrough.svg';
@@ -113,18 +114,14 @@ function addFormattingToolbar(textarea) {
   const shortcuts = settings.cardInputMarkdownShortcutsMap;
   const formatShortcut = (shortcut) => {
     if (!shortcut) return '';
+    const parts = splitKeyboardShortcut(shortcut);
     if (shortcut.startsWith('CodeBlock+'))
-      return navigator.platform.startsWith('Mac')
-        ? '⌃⌘' + shortcut.split('+').pop()
-        : 'Ctrl+Alt+' + shortcut.split('+').pop();
+      return navigator.platform.startsWith('Mac') ? '⌃⌘' + parts.pop() : 'Ctrl+Alt+' + parts.pop();
     const isMac = navigator.platform.startsWith('Mac');
     const labels = isMac
       ? { Ctrl: '⌘', Meta: '⌃', Control: '⌃', Alt: '⌥', Shift: '⇧' }
       : { Ctrl: 'Ctrl', Meta: 'Meta', Control: 'Ctrl', Alt: 'Alt', Shift: 'Shift' };
-    return shortcut
-      .split('+')
-      .map((part) => labels[part] ?? part)
-      .join(isMac ? '' : '+');
+    return parts.map((part) => labels[part] ?? part).join(isMac ? '' : '+');
   };
   const actions = [
     {

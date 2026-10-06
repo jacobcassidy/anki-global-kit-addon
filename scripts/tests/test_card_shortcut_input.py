@@ -54,6 +54,11 @@ class CardShortcutInputTests(unittest.TestCase):
         shortcuts.format_shortcut = lambda value: value
         shortcuts.normalize_shortcut = lambda value: value
         shortcuts.reserved_shortcut_warnings = lambda: {}
+        shortcuts.split_shortcut = lambda value: (
+            ["+"] if value == "+" else
+            [*value[:-2].split("+"), "+"] if value.endswith("++") else
+            value.split("+")
+        )
         modules = {"aqt.qt": qt, "aqt.utils": utils,
             "kit.desktop.settings.configs.constants": constants,
             "kit.desktop.settings.ui.theme": theme,
