@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Preserved Anki's new-field marker when adding missing kit fields during replacement, using the model manager to add fields and assign their ordinals when saved.
 - Stopped packaging when required top-level files or folders are missing or have the wrong type, reporting the affected paths before opening the output archive.
 - Expanded asset validation to editor bundles, referenced shared icons, configured note type template parts, and shared font references. Packaging now requires these checks to pass before opening the output archive.
+- Updated the packaged README to describe Create, Replace, and Delete accurately, including confirmation, format compatibility, empty-type deletion, and the complete packaging workflow.
 
 ## [1.0.0] - 2026-10-05
 
