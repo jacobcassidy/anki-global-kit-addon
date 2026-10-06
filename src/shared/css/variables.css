@@ -1,58 +1,58 @@
 :root,
 anki-editable {
-	/* Borders */
-	--border-radius--default: 0.375rem;
+  /* Borders */
+  --border-radius--default: 0.375rem;
 
-	/* Font Family */
-	--font-family--mono: "MesloLGL NF", menlo, monospace;
-	--font-family--primary: arial, sans-serif;
+  /* Font Family */
+  --font-family--mono: "MesloLGL NF", menlo, monospace;
+  --font-family--primary: arial, sans-serif;
 
-	/* Font Size */
-	--font-size--large: 1.125rem;
-	--font-size--medium: 1rem;
-	--font-size--small: 0.75rem;
-	--font-size--x-large: 1.25rem;
-	--font-size--x-small: 0.625rem;
+  /* Font Size */
+  --font-size--large: 1.125rem;
+  --font-size--medium: 1rem;
+  --font-size--small: 0.75rem;
+  --font-size--x-large: 1.25rem;
+  --font-size--x-small: 0.625rem;
 
-	/* Font Weight */
-	--font-weight--normal: 400;
-	--font-weight--strong: 700;
+  /* Font Weight */
+  --font-weight--normal: 400;
+  --font-weight--strong: 700;
 
-	/* Links */
-	--color--link: oklch(50% 0.28 264);
-	--color--link-hover: oklch(60% 0.28 264);
+  /* Links */
+  --color--link: oklch(50% 0.28 264);
+  --color--link-hover: oklch(60% 0.28 264);
 
-	/* Spacing */
-	--spacing--default: 24px;
-	--container-width: 40rem;
+  /* Spacing */
+  --spacing--default: 24px;
+  --container-width: 40rem;
 
-	/* Syntax Highlighting Colors */
-	--syntax-blue: #92c1fd;
-	--syntax-cyan: #89dfdf;
-	--syntax-green: #a2cd8b;
-	--syntax-orange: #eeae7b;
-	--syntax-pink: #fcb7cb;
-	--syntax-purple: #d6aaea;
-	--syntax-purple-deep: #bd84d7;
-	--syntax-red: #ef9182;
-	--syntax-red-deep: #db6656;
-	--syntax-yellow: #efddac;
+  /* Syntax Highlighting Colors */
+  --syntax-blue: #92c1fd;
+  --syntax-cyan: #89dfdf;
+  --syntax-green: #a2cd8b;
+  --syntax-orange: #eeae7b;
+  --syntax-pink: #fcb7cb;
+  --syntax-purple: #d6aaea;
+  --syntax-purple-deep: #bd84d7;
+  --syntax-red: #ef9182;
+  --syntax-red-deep: #db6656;
+  --syntax-yellow: #efddac;
 
-	/* Syntax Highlighting Grayscale */
-	--syntax-gray-fade-black: #242424;
-	--syntax-gray-fade: #383838;
-	--syntax-gray-dark: #636363;
-	--syntax-gray-medium-dark: #7a7a7a;
-	--syntax-gray-medium: #929292;
-	--syntax-gray-light: #c4c4c4;
-	--syntax-gray-white-light: #dedede;
-	--syntax-gray-white-light-extra: #ebebeb;
-	--syntax-gray-white: #f8f8f8;
+  /* Syntax Highlighting Grayscale */
+  --syntax-gray-fade-black: #242424;
+  --syntax-gray-fade: #383838;
+  --syntax-gray-dark: #636363;
+  --syntax-gray-medium-dark: #7a7a7a;
+  --syntax-gray-medium: #929292;
+  --syntax-gray-light: #c4c4c4;
+  --syntax-gray-white-light: #dedede;
+  --syntax-gray-white-light-extra: #ebebeb;
+  --syntax-gray-white: #f8f8f8;
 }
 
 /* NIGHTMODE THEME VARIABLES */
 
 .nightMode {
-	--color--link: oklch(70% 0.2 264 / 0.9);
-	--color--link-hover: oklch(80% 0.2 264 / 0.9);
+  --color--link: oklch(70% 0.2 264 / 0.9);
+  --color--link-hover: oklch(80% 0.2 264 / 0.9);
 }

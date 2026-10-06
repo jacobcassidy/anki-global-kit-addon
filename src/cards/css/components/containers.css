@@ -3,44 +3,44 @@
 .answer-container,
 .notes-container,
 .question-container {
-	display: none;
-	padding-inline: calc(50% - (var(--container-width) / 2));
+  display: none;
+  padding-inline: calc(50% - (var(--container-width) / 2));
 
-	&.active {
-		display: block;
-	}
+  &.active {
+    display: block;
+  }
 
-	@media only screen and (width <= 44rem) {
-		padding: 0 calc(var(--spacing--default) / 1);
-	}
+  @media only screen and (width <= 44rem) {
+    padding: 0 calc(var(--spacing--default) / 1);
+  }
 }
 
 .answer-container,
 .question-container {
-	margin: 0 auto calc(var(--spacing--default) * 2);
+  margin: 0 auto calc(var(--spacing--default) * 2);
 }
 
 .answer-container {
 
-	&.has-comparison {
-		border: none;
+  &.has-comparison {
+    border: none;
 
-		.col {
-			display: none;
-		}
-	}
+    .col {
+      display: none;
+    }
+  }
 
-	&.active {
-		display: block;
+  &.active {
+    display: block;
 
-		@media only screen and (width <= 40rem) {
-			display: block;
-		}
-	}
+    @media only screen and (width <= 40rem) {
+      display: block;
+    }
+  }
 }
 
 .notes-container {
-	.replay-button {
-		margin: calc(var(--spacing--default) / 2);
-	}
+  .replay-button {
+    margin: calc(var(--spacing--default) / 2);
+  }
 }

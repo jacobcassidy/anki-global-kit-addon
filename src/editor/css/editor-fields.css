@@ -14,23 +14,23 @@
 @import url("../../shared/css/syntax-highlighting.css");
 
 code {
-	background-color: var(--syntax-gray-white-light-extra);
-	border-color: var(--syntax-gray-white-light);
-	color: var(--syntax-gray-fade);
-	padding: 2px 4px;
+  background-color: var(--syntax-gray-white-light-extra);
+  border-color: var(--syntax-gray-white-light);
+  color: var(--syntax-gray-fade);
+  padding: 2px 4px;
 
-	.nightMode & {
-		background-color: var(--syntax-gray-medium-dark);
-		color: var(--syntax-gray-white);
-	}
+  .nightMode & {
+    background-color: var(--syntax-gray-medium-dark);
+    color: var(--syntax-gray-white);
+  }
 }
 
 pre {
-	background-color: var(--syntax-gray-fade-black);
-	color: var(--syntax-gray-light);
-	margin: 0 auto;
+  background-color: var(--syntax-gray-fade-black);
+  color: var(--syntax-gray-light);
+  margin: 0 auto;
 
-	code {
-		color: var(--syntax-gray-light);
-	}
+  code {
+    color: var(--syntax-gray-light);
+  }
 }

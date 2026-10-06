@@ -1,16 +1,16 @@
 .type-hint {
-	display: none;
-	color: var(--color--tertiary);
-	margin-block-end: calc(var(--spacing--default) * 0.5);
-	padding-inline: calc(50% - 20rem);
-	font-size: var(--font-size--small);
-	font-style: italic;
+  display: none;
+  color: var(--color--tertiary);
+  margin-block-end: calc(var(--spacing--default) * 0.5);
+  padding-inline: calc(50% - 20rem);
+  font-size: var(--font-size--small);
+  font-style: italic;
 
-	code {
-		font-size: var(--font-size--x-small);
-	}
+  code {
+    font-size: var(--font-size--x-small);
+  }
 
-	&.active {
-		display: block;
-	}
+  &.active {
+    display: block;
+  }
 }

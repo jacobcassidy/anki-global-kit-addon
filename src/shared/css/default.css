@@ -1,20 +1,20 @@
 /* SHARED DEFAULT STYLES */
 
 p {
-	margin: var(--spacing--default) 0;
+  margin: var(--spacing--default) 0;
 }
 
 a {
-	color: var(--color--link);
-	text-decoration: underline;
-	text-decoration-skip-ink: none;
-	text-decoration-thickness: calc(var(--spacing--default) / 12);
-	text-underline-offset: calc(var(--spacing--default) / 12);
-	transition: all 250ms;
+  color: var(--color--link);
+  text-decoration: underline;
+  text-decoration-skip-ink: none;
+  text-decoration-thickness: calc(var(--spacing--default) / 12);
+  text-underline-offset: calc(var(--spacing--default) / 12);
+  transition: all 250ms;
 
-	&:hover {
-		color: var(--color--link-hover);
-	}
+  &:hover {
+    color: var(--color--link-hover);
+  }
 }
 
 h1,
@@ -23,53 +23,53 @@ h3,
 h4,
 h5,
 h6 {
-	margin: 0 0 calc(var(--spacing--default) / 2);
+  margin: 0 0 calc(var(--spacing--default) / 2);
 }
 
 ol,
 ul {
-	margin: 0 0 var(--spacing--default);
-	padding: 0 0 0 calc(var(--spacing--default) / 0.75);
+  margin: 0 0 var(--spacing--default);
+  padding: 0 0 0 calc(var(--spacing--default) / 0.75);
 }
 
 code,
 input,
 pre,
 textarea {
-	border-radius: var(--border-radius--default);
-	font-family: var(--font-family--mono);
-	font-size: var(--font-size--medium);
-	font-style: normal;
+  border-radius: var(--border-radius--default);
+  font-family: var(--font-family--mono);
+  font-size: var(--font-size--medium);
+  font-style: normal;
 }
 
 pre,
 textarea,
 code#typeans {
-	padding: calc(var(--spacing--default) / 1.5) calc(var(--spacing--default) * 0.75);
-	text-align: start;
+  padding: calc(var(--spacing--default) / 1.5) calc(var(--spacing--default) * 0.75);
+  text-align: start;
 }
 
 code {
-	border: calc(var(--spacing--default) / 24) solid transparent;
-	line-height: 1;
+  border: calc(var(--spacing--default) / 24) solid transparent;
+  line-height: 1;
 }
 
 pre {
-	border-width: 0;
-	white-space: pre-wrap;
+  border-width: 0;
+  white-space: pre-wrap;
 
-	code {
-		background: none !important;
-		border: none !important;
-		padding: 0 !important;
-	}
+  code {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
 }
 
 table {
-	inline-size: 100% !important;
-	max-inline-size: 780px;
+  inline-size: 100% !important;
+  max-inline-size: 780px;
 
-	pre {
-		margin: 0;
-	}
+  pre {
+    margin: 0;
+  }
 }

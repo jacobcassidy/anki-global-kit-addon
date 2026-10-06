@@ -5,14 +5,14 @@
 /* span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 15px; padding-right: 15px; } */
 
 .shigeSyntax {
-	padding: 0 !important;
+  padding: 0 !important;
 }
 
 /* BOLD */
 
 pre .ges, /* Generic.EmStrong */
 pre .gs /* Generic.Strong */ {
-	font-weight: 700;
+  font-weight: 700;
 }
 
 /* ITALIC */
@@ -20,7 +20,7 @@ pre .gs /* Generic.Strong */ {
 pre .bp, /* Name.Builtin.Pseudo */
 pre .ge, /* Generic.Em */
 pre .ges /* Generic.EmStrong */ {
-	font-style: italic;
+  font-style: italic;
 }
 
 /* GRAY-DARK */
@@ -33,8 +33,8 @@ pre .cs, /* Comment.Special */
 pre .gh, /* Generic.Heading */
 pre .gu, /* Generic.Subheading */
 pre .sd /* Literal.String.Doc */ {
-	color: var(--syntax-gray-medium-dark);
-	font-style: italic;
+  color: var(--syntax-gray-medium-dark);
+  font-style: italic;
 }
 
 /* GRAY-MEDIUM */
@@ -43,7 +43,7 @@ pre .gp, /* Generic.Prompt */
 pre .p, /* Punctuation */
 pre .si, /* Literal.String.Interpol */
 pre .sx /* Literal.String.Other */ {
-	color: var(--syntax-gray-medium);
+  color: var(--syntax-gray-medium);
 }
 
 /* GRAY-LIGHT */
@@ -51,7 +51,7 @@ pre .sx /* Literal.String.Other */ {
 pre .go, /* Generic.Output */
 pre .gt, /* Generic.Traceback */
 pre .x  /* base source */ {
-	color: var(--syntax-gray-light);
+  color: var(--syntax-gray-light);
 }
 
 /* GRAY-EXTRA-LIGHT */
@@ -63,14 +63,14 @@ pre .nb, /* Name.Builtin */
 pre .nd, /* Name.Decorator */
 pre .ne, /* Name.Exception */
 pre .sa /* Literal.String.Affix, such as an f-string in Python */ {
-	color: var(--syntax-gray-white);
+  color: var(--syntax-gray-white);
 }
 
 /* BLUE */
 
 pre .kd, /* Keyword.Declaration */
 pre .kt /* Keyword.Type */ {
-	color: var(--syntax-blue);
+  color: var(--syntax-blue);
 }
 
 /* CYAN */
@@ -78,7 +78,7 @@ pre .kt /* Keyword.Type */ {
 pre .nc, /* Name.Class */
 pre .nf, /* Name.Function */
 pre .nx /* Name.Other */ {
-	color: var(--syntax-cyan);
+  color: var(--syntax-cyan);
 }
 
 /* GREEN */
@@ -86,7 +86,7 @@ pre .nx /* Name.Other */ {
 pre .gi, /* Generic.Inserted */
 pre .na, /* Name.Attribute */
 pre .nl /* Name.Label */ {
-	color: var(--syntax-green);
+  color: var(--syntax-green);
 }
 
 /* ORANGE */
@@ -94,7 +94,7 @@ pre .nl /* Name.Label */ {
 pre .bp, /* Name.Builtin.Pseudo... such as `self` */
 pre .cp, /* Comment.Preproc */
 pre .cpf /* Comment.PreprocFile */ {
-	color: var(--syntax-orange);
+  color: var(--syntax-orange);
 }
 
 /* PINK */
@@ -105,7 +105,7 @@ pre .vc, /* Name.Variable.Class */
 pre .vg, /* Name.Variable.Global */
 pre .vi, /* Name.Variable.Instance */
 pre .vm /* Name.Variable.Magic */ {
-	color: var(--syntax-pink);
+  color: var(--syntax-pink);
 }
 
 /* PURPLE */
@@ -123,7 +123,7 @@ pre .no, /* Name.Constant */
 pre .se, /* Literal.String.Escape */
 pre .sr, /* Literal.String.Regex */
 pre .ss /* Literal.String.Symbol */ {
-	color: var(--syntax-purple);
+  color: var(--syntax-purple);
 }
 
 /* PURPLE BRIGHT */
@@ -131,7 +131,7 @@ pre .ss /* Literal.String.Symbol */ {
 pre .dl, /* Literal.String.Delimiter */
 pre .il, /* Literal.Number.Integer.Long */
 pre .nn /* Name.Namespace */ {
-	color: var(--syntax-purple-deep);
+  color: var(--syntax-purple-deep);
 }
 
 /* RED */
@@ -144,13 +144,13 @@ pre .kr, /* Keyword.Reserved */
 pre .nt, /* Name.Tag */
 pre .o, /* Operator */
 pre .ow /* Operator.Word */ {
-	color: var(--syntax-red);
+  color: var(--syntax-red);
 }
 
 /* RED BRIGHT - BORDER */
 
 pre .err /* Error */ {
-	border: 1px solid var(--syntax-red-deep);
+  border: 1px solid var(--syntax-red-deep);
 }
 
 /* YELLOW */
@@ -161,5 +161,5 @@ pre .s2, /* Literal.String.Double */
 pre .sb, /* Literal.String.Backtick */
 pre .sc,  /* Literal.String.Char */
 pre .sh /* Literal.String.Heredoc */ {
-	color: var(--syntax-yellow);
+  color: var(--syntax-yellow);
 }

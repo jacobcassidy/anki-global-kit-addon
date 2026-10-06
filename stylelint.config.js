@@ -28,7 +28,7 @@ export default {
     '@stylistic/block-opening-brace-space-before': 'always',
     '@stylistic/declaration-block-semicolon-newline-after': 'always',
     '@stylistic/indentation': [
-      'tab',
+      2,
       {
         ignore: [
           'inside-parens',

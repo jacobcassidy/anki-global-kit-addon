@@ -3,19 +3,19 @@
 *,
 *::before,
 *::after {
-	box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 body {
-	background-color: var(--bgc--primary) !important;
-	color: var(--color--primary) !important;
-	block-size: 100vb;
-	margin: 0;
-	padding: 0;
-	font-family: var(--font-family--primary);
-	font-size: var(--font-size--x-large);
-	line-height: 1.5;
-	text-align: center;
+  background-color: var(--bgc--primary) !important;
+  color: var(--color--primary) !important;
+  block-size: 100vb;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family--primary);
+  font-size: var(--font-size--x-large);
+  line-height: 1.5;
+  text-align: center;
 }
 
 /* div:not(.float-start, .float-end, #ansarea, .justify-content-center, .d-flex > div, .answer-container) {
@@ -30,47 +30,47 @@ body {
 input,
 pre,
 textarea {
-	outline: none;
-	inline-size: 100%;
-	margin: 0 auto calc(var(--spacing--default) * 2);
-	line-height: 1.333;
+  outline: none;
+  inline-size: 100%;
+  margin: 0 auto calc(var(--spacing--default) * 2);
+  line-height: 1.333;
 }
 
 code {
-	background-color: var(--bgc--secondary);
-	border-color: var(--bgc--tertiary);
-	padding: 0 4px;
+  background-color: var(--bgc--secondary);
+  border-color: var(--bgc--tertiary);
+  padding: 0 4px;
 }
 
 pre,
 textarea.is-comparison {
-	background-color: var(--bgc--pre);
-	border: none;
-	color: var(--color--pre);
+  background-color: var(--bgc--pre);
+  border: none;
+  color: var(--color--pre);
 }
 
 input,
 textarea {
-	background-color: var(--bgc--input);
-	border: calc(var(--spacing--default) / 24) solid var(--bgc--tertiary);
-	color: var(--color--secondary);
+  background-color: var(--bgc--input);
+  border: calc(var(--spacing--default) / 24) solid var(--bgc--tertiary);
+  color: var(--color--secondary);
 }
 
 input {
-	padding: calc(var(--spacing--default) / 2);
+  padding: calc(var(--spacing--default) / 2);
 }
 
 textarea {
-	resize: block;
-	display: block;
-	overflow-block: auto;
-	block-size: 9.75rem;
-	max-block-size: 480px;
+  resize: block;
+  display: block;
+  overflow-block: auto;
+  block-size: 9.75rem;
+  max-block-size: 480px;
 }
 
 textarea::placeholder {
-	color: var(--color--tertiary);
-	font-family: var(--font-family--primary);
-	font-size: var(--font-size--large);
-	line-height: 1.5;
+  color: var(--color--tertiary);
+  font-family: var(--font-family--primary);
+  font-size: var(--font-size--large);
+  line-height: 1.5;
 }
