@@ -24,7 +24,7 @@ In **Editor UI**, use **Enable custom Editor UI stylesheet** to turn interface C
 
 ## Build and install for development
 
-With Node.js and Python 3 installed, install the development dependencies and build the assets from the repository root:
+Development supports Node.js 22.22.2 or later in the 22.x series, 24.15.0 or later in the 24.x series, and 26.0.0 or later. Node.js 24.15+ and Python 3.13 are recommended. Install the development dependencies and build the assets from the repository root:
 
 ```sh
 npm install

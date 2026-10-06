@@ -104,7 +104,7 @@ The add-on assembles topic-specific note types from packaged HTML, script, and s
 
 ## Development
 
-With Node.js and Python 3 installed, run these commands from the repository root to install dependencies, build the card and editor assets and combined font notice, check asset paths, and create an installable package:
+Development supports Node.js 22.22.2 or later in the 22.x series, 24.15.0 or later in the 24.x series, and 26.0.0 or later. Node.js 24.15+ and Python 3.13 are the recommended toolchain and match CI. Run these commands from the repository root to install dependencies, build the card and editor assets and combined font notice, check asset paths, and create an installable package:
 
 ```sh
 npm install

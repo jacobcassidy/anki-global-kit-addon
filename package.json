@@ -66,5 +66,8 @@
     "build:addon": "node scripts/build.js",
     "package:addon": "python3 scripts/package_addon.py",
     "watch": "node scripts/watch.js"
+  },
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   }
 }
