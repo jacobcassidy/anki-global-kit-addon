@@ -64,7 +64,7 @@ Useful project scripts:
 - Use token or variable-based colors throughout the project; do not add static hardcoded colors. Anki Desktop settings and other Qt components must use Anki color tokens, while webview components must use CSS variables.
 - Put review-time behavior in `src/cards/` when it needs to run across Anki clients. Put editor behavior in `src/editor/` and use `addon/desktop/editor/` for its Desktop integration. Do not assume Python add-on code runs outside Anki Desktop.
 - Use the Python add-on for Desktop installation, configuration, and collection operations. Settings modules are grouped under `addon/desktop/settings/{features,services,ui,helpers,configs}/`. Connect to Anki through documented hooks and APIs instead of patching internal functions when a supported hook exists.
-- Keep the setting keys in `addon/config.json` synchronized with the keys inside `addon/meta.json`'s `config` object, including `note_type_selections`, whenever either file changes.
+- Keep release defaults in `addon/config.json`, including `note_type_selections`. Anki manages `addon/meta.json` as local installation metadata and saved configuration; leave it untracked and excluded from release archives. Do not copy local selections or platform-specific saved shortcuts into release defaults.
 - Treat media filenames as public interfaces: the installer, templates, and stylesheet imports must use identical names.
 - The add-on refreshes the kit's reserved asset names through Anki's media manager on `profile_did_open`. Keep installation scoped to those managed assets; do not overwrite user templates or unrelated media without an explicit opt-in design.
 - Create, replace, and delete note types through Anki's documented `col.models` APIs. Never replace or delete a user's type without explicit selection and confirmation; deletion is limited to empty types. If a kit type name already exists and Replace was not selected, leave it unchanged and report that to the user.
@@ -87,7 +87,7 @@ Useful project scripts:
 
 ## Anki development references
 
-The minimum supported Anki Desktop version is **26.05** (`min_point_version: 260500` in `addon/manifest.json`). Keep this minimum aligned with the tracked add-on metadata, setup documentation, and AnkiWeb listing.
+The minimum supported Anki Desktop version is **26.05** (`min_point_version: 260500` in `addon/manifest.json`). Keep this minimum aligned with the setup documentation and AnkiWeb listing.
 
 Use the official documentation as the primary API reference for Anki-specific work:
 

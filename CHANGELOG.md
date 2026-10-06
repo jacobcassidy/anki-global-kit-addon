@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Skipped unchanged editor stylesheet writes during note-load retries, continuing to apply styles to newly created fields and update changed CSS.
 - Added root-level file patterns to the Lefthook ESLint, Markdownlint, and Prettier commands, preserving nested-file coverage so root documentation and configuration files are checked on commit.
 - Cleared the kit's AnkiDroid answer storage when binding a fresh question, preventing answers from skipped cards from appearing on later cards while preserving answers during repeated setup of the same question.
+- Stopped tracking Anki's local `addon/meta.json`, preserving the local file and ignoring future saved settings changes. Documented `addon/config.json` as the release defaults and kept local metadata excluded from release archives.
 
 ## [1.0.0] - 2026-10-05
 

@@ -11,7 +11,7 @@ This guide covers publishing the Desktop add-on on AnkiWeb's Shared Add-ons site
    npm run build:addon
    ```
 
-2. Install the `addon` folder in a clean Anki Desktop 26.05 or later profile and confirm that its assets are copied into `collection.media` automatically when the profile opens.
+2. Create the upload archive as described below and install it in a clean Anki Desktop 26.05 or later profile. Confirm that its assets are copied into `collection.media` automatically when the profile opens.
 3. Choose **Tools > Anki Global Kit Settings...**, open **Note Types**, select a topic and card format, and choose **Create** for missing types or **Replace** for existing types you want to update. Choose **Update Selected Note Types** and confirm the listed changes.
 4. Add a sample note to each type, sync the profile, and confirm the cards render in AnkiWeb and the mobile clients you support.
 5. Set the AnkiWeb listing's minimum Anki Desktop version to **26.05**, matching `min_point_version: 260500` in `addon/manifest.json`. Keep the listing and manifest aligned when changing the supported minimum. AnkiWeb supplies version limits for downloaded add-ons; the packaged manifest supplies the minimum for installation from a file.
@@ -28,6 +28,8 @@ npm run package:addon
 ```
 
 The archive is written to `dist/anki-global-kit.ankiaddon` and contains `__init__.py`, `desktop/`, `shared/`, `config.json`, `manifest.json`, `README.md`, `ABOUT.md`, `HELP.md`, `CHANGELOG.md`, `LICENSE`, `web/`, `templates/`, and `user_files/` at its top level. Runtime note type source parts are in `addon/templates/note-types/parts/{html,script,styling}/`; existing types are updated only through the confirmed Replace action. The package script filters out `__pycache__/`, `.pyc`, and `.DS_Store` files. Do not add an enclosing `addon/` directory.
+
+`addon/config.json` contains release defaults. Anki's local `addon/meta.json` contains installation metadata and saved user settings, including selections and platform-specific shortcuts. It is ignored by Git and excluded from the upload archive; preserve it locally, but do not copy it into a clean installation or use it as release configuration.
 
 Packaging requires every listed top-level file and folder, including the repository-root changelog and license. Missing components or paths with the wrong file/folder type stop packaging before the output archive is opened, leaving any existing archive intact. Restore the reported paths before retrying.
 
