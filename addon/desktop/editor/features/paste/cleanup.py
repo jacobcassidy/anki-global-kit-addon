@@ -86,7 +86,7 @@ def clean_paste_html(html):
 def clean_paste_mime(mime, editor_web_view, internal, extended, drop_event):
     """Filter external rich HTML; return a copy so the clipboard is untouched."""
     from aqt.qt import QMimeData
-    from ...settings import get_editor_settings
+    from ....settings import get_editor_settings
 
     if (internal or not extended or not mime.hasHtml()
             or not get_editor_settings()["anki_editor_paste_cleanup"]):
