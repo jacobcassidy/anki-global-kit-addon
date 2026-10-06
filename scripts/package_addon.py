@@ -1,4 +1,4 @@
-"""Create an AnkiWeb archive using the repository changelog as its source."""
+"""Create an AnkiWeb archive with the repository changelog and license."""
 
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -71,6 +71,11 @@ def main() -> None:
     changelog = REPOSITORY_ROOT / "CHANGELOG.md"
     if not changelog.is_file():
         raise FileNotFoundError(f"The canonical changelog is missing: {changelog}")
+    license_path = REPOSITORY_ROOT / "LICENSE"
+    if not license_path.is_file():
+        raise FileNotFoundError(
+            f"The project license is missing or is not a file: {license_path}"
+        )
 
     files = package_files()
     print(validate_assets(files))
@@ -79,6 +84,7 @@ def main() -> None:
         for path in files:
             archive.write(path, path.relative_to(ADDON_ROOT).as_posix())
         archive.write(changelog, "CHANGELOG.md")
+        archive.write(license_path, "LICENSE")
 
     print(f"Created {ARCHIVE_PATH}")
 

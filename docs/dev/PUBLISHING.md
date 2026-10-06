@@ -20,16 +20,16 @@ Anki add-ons run on Anki Desktop. Publishing this add-on does not install it on 
 
 ## Create the upload archive
 
-The repository-root `CHANGELOG.md` is the canonical changelog. From the repository root, build the assets and package the add-on; the packaging script includes that changelog at the archive root:
+The repository-root `CHANGELOG.md` is the canonical changelog, and `LICENSE` contains the project's MIT license. From the repository root, build the assets and package the add-on; the packaging script includes both files at the archive root:
 
 ```sh
 npm run build:addon
 npm run package:addon
 ```
 
-The archive is written to `dist/anki-global-kit.ankiaddon` and contains `__init__.py`, `desktop/`, `shared/`, `config.json`, `manifest.json`, `README.md`, `ABOUT.md`, `HELP.md`, `CHANGELOG.md`, `web/`, `templates/`, and `user_files/` at its top level. Runtime note type source parts are in `addon/templates/note-types/parts/{html,script,styling}/`; existing types are updated only through the confirmed Replace action. The package script filters out `__pycache__/`, `.pyc`, and `.DS_Store` files. Do not add an enclosing `addon/` directory.
+The archive is written to `dist/anki-global-kit.ankiaddon` and contains `__init__.py`, `desktop/`, `shared/`, `config.json`, `manifest.json`, `README.md`, `ABOUT.md`, `HELP.md`, `CHANGELOG.md`, `LICENSE`, `web/`, `templates/`, and `user_files/` at its top level. Runtime note type source parts are in `addon/templates/note-types/parts/{html,script,styling}/`; existing types are updated only through the confirmed Replace action. The package script filters out `__pycache__/`, `.pyc`, and `.DS_Store` files. Do not add an enclosing `addon/` directory.
 
-Packaging requires every listed top-level file and folder, plus the canonical changelog. Missing components or paths with the wrong file/folder type stop packaging before the output archive is opened, leaving any existing archive intact. Restore the reported paths before retrying.
+Packaging requires every listed top-level file and folder, including the repository-root changelog and license. Missing components or paths with the wrong file/folder type stop packaging before the output archive is opened, leaving any existing archive intact. Restore the reported paths before retrying.
 
 Packaging also runs the asset checks available through `npm run check:assets`: card and editor bundles, their source entry points and build outputs, referenced shared icons, configured note type template parts, and shared font references must match the package paths. These checks validate the existing bundles; rebuild them before packaging changes to JavaScript or CSS.
 

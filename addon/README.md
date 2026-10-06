@@ -37,4 +37,4 @@ The **Cards** settings tab controls question-input Markdown shortcuts and indent
 
 After building, run `npm run package:addon` from the repository root. The script checks required files and asset paths before writing `dist/anki-global-kit.ankiaddon`.
 
-The archive contains `__init__.py`, `desktop/`, `shared/`, `web/`, `templates/`, `user_files/`, `config.json`, `manifest.json`, `README.md`, `ABOUT.md`, `HELP.md`, and the canonical repository-root `CHANGELOG.md`. These paths are at the archive root, without an enclosing `addon/` folder.
+The archive contains `__init__.py`, `desktop/`, `shared/`, `web/`, `templates/`, `user_files/`, `config.json`, `manifest.json`, `README.md`, `ABOUT.md`, `HELP.md`, and the canonical repository-root `CHANGELOG.md` and `LICENSE`. These paths are at the archive root, without an enclosing `addon/` folder. Packaging requires both repository-root files to exist as files before opening the output archive.
