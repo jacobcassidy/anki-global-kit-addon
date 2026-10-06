@@ -11,10 +11,10 @@ This guide covers publishing the Desktop add-on on AnkiWeb's Shared Add-ons site
    npm run build:addon
    ```
 
-2. Install the `addon` folder in a clean Anki Desktop profile and confirm that its assets are copied into `collection.media` automatically when the profile opens.
+2. Install the `addon` folder in a clean Anki Desktop 26.05 or later profile and confirm that its assets are copied into `collection.media` automatically when the profile opens.
 3. Choose **Tools > Anki Global Kit Settings...**, open **Note Types**, select a topic and card format, and choose **Create** for missing types or **Replace** for existing types you want to update. Choose **Update Selected Note Types** and confirm the listed changes.
 4. Add a sample note to each type, sync the profile, and confirm the cards render in AnkiWeb and the mobile clients you support.
-5. Decide the minimum Anki Desktop version supported by the release. Enter that version in the AnkiWeb listing and keep it aligned with the add-on APIs used by the code.
+5. Set the AnkiWeb listing's minimum Anki Desktop version to **26.05**, matching `min_point_version: 260500` in `addon/manifest.json`. Keep the listing and manifest aligned when changing the supported minimum. AnkiWeb supplies version limits for downloaded add-ons; the packaged manifest supplies the minimum for installation from a file.
 
 Anki add-ons run on Anki Desktop. Publishing this add-on does not install it on AnkiWeb, AnkiMobile, or AnkiDroid; the installed media and card templates are what sync to those clients.
 

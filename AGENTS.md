@@ -84,6 +84,8 @@ Useful project scripts:
 
 ## Anki development references
 
+The minimum supported Anki Desktop version is **26.05** (`min_point_version: 260500` in `addon/manifest.json`). Keep this minimum aligned with the tracked add-on metadata, setup documentation, and AnkiWeb listing.
+
 Use the official documentation as the primary API reference for Anki-specific work:
 
 - [Writing Anki add-ons](https://addon-docs.ankiweb.net/) — add-on architecture and development overview.

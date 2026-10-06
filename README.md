@@ -2,13 +2,15 @@
 
 Anki Global Kit is an Anki Desktop add-on for creating reusable card templates, formatting typed answers with Markdown, highlighting code, comparing answers, and customizing the Desktop editor.
 
+Requires **Anki Desktop 26.05 or later**.
+
 Install and configure the kit on Desktop, then sync your collection and media to use its card features in AnkiWeb, AnkiMobile, and AnkiDroid. Editor tools and the settings panel run on Desktop.
 
 For setup details, shortcuts, customization, and troubleshooting, read the [user guide (HELP.md)](addon/HELP.md). The same guide is available in the Anki Global Kit Settings panel's **Help** tab.
 
 ## Setup
 
-1. Install [Anki Desktop](https://apps.ankiweb.net/). Install the kit using its AnkiWeb download code through **Tools > Add-ons > Get Add-ons**, or choose **Install from file** for a packaged `.ankiaddon` file. Restart Anki after installation. See the [Anki add-on instructions](https://docs.ankiweb.net/addons.html); to build a package from this repository, see **Development** below.
+1. Install [Anki Desktop 26.05 or later](https://apps.ankiweb.net/). Install the kit using its AnkiWeb download code through **Tools > Add-ons > Get Add-ons**, or choose **Install from file** for a packaged `.ankiaddon` file. Restart Anki after installation. See the [Anki add-on instructions](https://docs.ankiweb.net/addons.html); to build a package from this repository, see **Development** below.
 2. Open **Tools > Anki Global Kit Settings... > Note Types**. Check **Create** for the topics and formats you want: **Advance** for question-and-answer cards or **Cloze** for cloze-deletion cards. Use **+** to add a custom topic.
 3. Choose **Update Selected Note Types** and confirm. Add a note using a new type, such as **Python (Advance)** or **CSS (Cloze)**.
 4. Adjust review tools in **Cards** and Desktop editing tools in **Editor**, then choose **Save**.
@@ -71,10 +73,10 @@ The **Cards** settings tab controls review-time Markdown formatting shortcuts an
 
 The front shows the question, typed answer fields, formatting toolbar, and optional hint. On the back, the typed answer appears alongside the card's answer; bonus comparison and notes can appear below. These examples use a Python Advance note in light and dark themes.
 
-| Front of card | Back of card |
-| --- | --- |
+| Front of card                                                                                                                    | Back of card                                                                                                                 |
+| -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | ![Light theme card front with a question, typed answer, and bonus answer input](docs/reference/screenshots/card-front-light.png) | ![Light theme card back with answer comparison, bonus comparison, and notes](docs/reference/screenshots/card-back-light.png) |
-| ![Dark theme card front with a question and typed answer fields](docs/reference/screenshots/card-front-dark.png) | ![Dark theme card back with answer comparison, bonus comparison, and notes](docs/reference/screenshots/card-back-dark.png) |
+| ![Dark theme card front with a question and typed answer fields](docs/reference/screenshots/card-front-dark.png)                 | ![Dark theme card back with answer comparison, bonus comparison, and notes](docs/reference/screenshots/card-back-dark.png)   |
 
 ### Desktop editor
 

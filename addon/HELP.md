@@ -1,5 +1,7 @@
 # Anki Global Kit Help
 
+Requires **Anki Desktop 26.05 or later**.
+
 Open **Tools > Anki Global Kit Settings...** on Desktop. Use **Cards** for review tools and **Editor** for editing notes. Hover over help icons for individual setting details.
 
 **Save** applies settings; sync to carry card changes to other devices. Editor settings apply on Desktop. **Cancel** discards unsaved settings but does not undo confirmed note type actions.

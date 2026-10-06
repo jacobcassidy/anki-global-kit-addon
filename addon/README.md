@@ -1,5 +1,7 @@
 # Anki Global Kit add-on
 
+Requires **Anki Desktop 26.05 or later**.
+
 This add-on installs the generated JavaScript and CSS into the active Anki profile's `collection.media` folder. Anki can then sync those resources to AnkiWeb and the mobile clients.
 
 Choose **Tools > Anki Global Kit Settings...**, open **Note Types**, and select the topics and card formats you want. Choose **Update Selected Note Types** to create new note types from the bundled card template parts, named like `CSS (Advance)` and `CSS (Cloze)`. Existing note types are left unchanged unless you select the enabled **Overwrite** checkbox beside that format. Overwriting updates the kit templates and styling while preserving existing notes and fields; custom card templates may be replaced.
