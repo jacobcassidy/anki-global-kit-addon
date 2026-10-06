@@ -51,6 +51,9 @@ The packaged shared card and editor font is kept in `addon/shared/assets/fonts/`
 
 Useful project scripts:
 
+- `npm test` — Run the JavaScript and Python test suites.
+- `npm run test:scripts` — Run JavaScript tests with Node's built-in test runner.
+- `npm run test:python` — Run Python tests with unittest and isolated Qt stubs.
 - `npm run lint:scripts` — JavaScript linting.
 - `npm run lint:styles` — CSS linting.
 - `npm run lint:docs` — Markdown linting.

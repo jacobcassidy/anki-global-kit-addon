@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rendered settings help indicators with Anki's `FG_SUBTLE` and `CANVAS` color tokens, refreshing them on theme changes and scaling the SVG for the display's pixel ratio.
 - Split Note Types table widgets and geometry into `table.py`, and confirmation, result, and error dialogs into `actions.py`, leaving checkbox and topic coordination in the main tab module.
 - Ignored generated release archives in the repository-root `dist/` folder.
+- Added npm commands for the existing JavaScript and Python test suites and a GitHub Actions workflow that runs them on pushes, pull requests, and manual runs.
 
 ## [1.0.0] - 2026-10-05
 
