@@ -35,7 +35,7 @@ def render_font_notice() -> bytes:
         "MESLOLGL NERD FONT — SOURCE, ATTRIBUTION, AND LICENSES\n\n"
         "Generated from the add-on's shared/assets/fonts/FONT-LICENSES.md "
         "and licenses/ folder.\n"
-        "Keep this notice with _mesloLGL-NF.woff2 when sharing or syncing the font.\n"
+        "Keep this notice with _meslolgl-nf.woff2 when sharing or syncing the font.\n"
         "Full license texts follow the attribution, labelled by source filename."
     ]
     for path in font_notice_sources():

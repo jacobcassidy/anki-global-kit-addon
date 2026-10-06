@@ -45,6 +45,8 @@ For a **Cloze** note, use **Cloze Question** and Anki's cloze-deletion tools. Th
 
 Restart Anki Desktop so the updated card assets are installed, then sync the collection and media. Existing note templates are not updated automatically. If you want to apply the latest kit templates, select **Replace** for the relevant types in **Note Types** and confirm.
 
+The shared font now installs as `_meslolgl-nf.woff2` to match Anki's media naming. The kit stylesheets use this filename. If custom CSS or templates reference the old `_mesloLGL-NF.woff2` filename directly, update those references to the lowercase filename, then sync the changes.
+
 ## Features
 
 ### Typed answers and comparison

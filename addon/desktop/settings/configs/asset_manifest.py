@@ -8,7 +8,7 @@ ASSET_DIR = ADDON_DIR / "web" / "assets"
 SHARED_ASSET_DIR = ADDON_DIR / "shared" / "assets"
 JS_ASSET_NAME = "_anki-global-kit.min.js"
 CSS_ASSET_NAME = "_anki-global-kit.min.css"
-FONT_ASSET_NAME = "_mesloLGL-NF.woff2"
+FONT_ASSET_NAME = "_meslolgl-nf.woff2"
 FONT_LICENSE_ASSET_NAME = "_meslolgl-nf-license.txt"
 ASSET_PATHS = {
     JS_ASSET_NAME: ASSET_DIR / "js" / JS_ASSET_NAME,

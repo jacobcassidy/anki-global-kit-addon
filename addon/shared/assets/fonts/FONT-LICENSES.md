@@ -1,6 +1,6 @@
 # MesloLGL Nerd Font attribution and licenses
 
-This folder contains the shared card and editor font `_mesloLGL-NF.woff2`. **NF means Nerd Font.** The font incorporates upstream works with separate notices and terms, collected here and in `licenses/`.
+This folder contains the shared card and editor font `_meslolgl-nf.woff2`. **NF means Nerd Font.** The font incorporates upstream works with separate notices and terms, collected here and in `licenses/`.
 
 ## Font identity and provenance
 
@@ -20,7 +20,7 @@ The source is [MesloLGLNerdFont-Regular.ttf](https://github.com/ryanoasis/nerd-f
 | Official source TTF | `6c680892d577e70aa3f2c9a0aa230a0c9990ca08eed3e9c7fe8b3c07ac4f509f` |
 | Bundled WOFF2       | `5174d94cf2df71b1989035d28bfc94fb15cf891c2fe67538b9adb82525b0b3b8` |
 
-The TTF was converted directly with Google's [WOFF2 encoder](https://github.com/google/woff2), version **1.0.2**, using `woff2_compress`. No subsetting or manual glyph edits were applied. The WOFF2 is 1,173,436 bytes. The installed media filename and CSS family alias remain `_mesloLGL-NF.woff2` and `MesloLGL NF`.
+The TTF was converted directly with Google's [WOFF2 encoder](https://github.com/google/woff2), version **1.0.2**, using `woff2_compress`. No subsetting or manual glyph edits were applied. The WOFF2 is 1,173,436 bytes. Its installed media filename is `_meslolgl-nf.woff2`, and its CSS family alias is `MesloLGL NF`.
 
 ### Recreate the bundled WOFF2
 
@@ -32,7 +32,7 @@ curl -fL 'https://raw.githubusercontent.com/ryanoasis/nerd-fonts/b894ea7803af6aa
 echo "6c680892d577e70aa3f2c9a0aa230a0c9990ca08eed3e9c7fe8b3c07ac4f509f  $font_workdir/MesloLGL.ttf" > "$font_workdir/ttf.sha256"
 shasum -a 256 -c "$font_workdir/ttf.sha256" && woff2_compress "$font_workdir/MesloLGL.ttf"
 echo "5174d94cf2df71b1989035d28bfc94fb15cf891c2fe67538b9adb82525b0b3b8  $font_workdir/MesloLGL.woff2" > "$font_workdir/woff2.sha256"
-shasum -a 256 -c "$font_workdir/woff2.sha256" && cp "$font_workdir/MesloLGL.woff2" addon/shared/assets/fonts/_mesloLGL-NF.woff2
+shasum -a 256 -c "$font_workdir/woff2.sha256" && cp "$font_workdir/MesloLGL.woff2" addon/shared/assets/fonts/_meslolgl-nf.woff2
 ```
 
 The checksums stop conversion or replacement if the source or encoder output differs. If intentionally changing the release or encoder, review the result and update these hashes and notices together.
@@ -79,6 +79,8 @@ A separate copy of the common OFL 1.1 text is provided in [OFL-1.1.txt](licenses
 ## Updating and packaging
 
 Nerd Fonts v3 changed some icon code points from v2. Notes containing pasted Nerd Font icons may need their characters updated using the [Nerd Fonts cheat sheet](https://www.nerdfonts.com/cheat-sheet). The add-on refreshes the font on profile open; sync media afterward to update other clients.
+
+The font filename changed from `_mesloLGL-NF.woff2` to `_meslolgl-nf.woff2` to match Anki's lowercase naming for newly written media. Reopen the Desktop profile and sync media to install the lowercase font and refreshed kit stylesheets. If custom CSS or templates reference the old filename directly, update those references to the lowercase filename. Legacy font files may remain in existing profiles.
 
 The packager includes this document and `licenses/` under `shared/assets/fonts/`. Builds and packaging also generate `_meslolgl-nf-license.txt` in this folder by combining this document with every license text. Relative license links are replaced with references to the full texts included in that file. Edit the source documents rather than the generated companion, then rebuild or package to refresh it. `npm run check:assets` rejects a missing or stale companion and checks that its source notices are packaged.
 

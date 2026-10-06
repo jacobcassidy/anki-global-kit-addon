@@ -115,6 +115,8 @@ def validate_assets(package_files: list[Path]) -> str:
             raise ValueError(f"{media_name} must be sourced from {expected_parent.relative_to(ROOT)}/")
         if Path(media_name).name != media_name:
             raise ValueError(f"{media_name} must install at the collection.media root")
+        if media_name != media_name.lower():
+            raise ValueError(f"{media_name} must be lowercase to match Anki's media writer")
         require_packaged(source_path, packaged_paths)
 
     font_notices = load_script_module(ROOT / "scripts/font_notices.py", "anki_global_kit_font_notices")
