@@ -5,71 +5,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-### Changed
-
-- Expanded CI to run script, style, and documentation linting, formatting checks, asset validation, and a build freshness check before the test suites.
-
-- Declared the supported Node.js versions in the package metadata and documented the recommended Node.js 24 and Python 3.13 development toolchain.
-
-- Replaced the inherited Desktop inline-code `wrap2` helper with the kit's own selection-run formatting. Selected text and inline media are wrapped in place within their original blocks, preserving surrounding markup and the existing native Undo/Redo transaction. Removed the unused generic wrapper arguments.
-
-- Raised the minimum supported Anki Desktop version to **26.05**, whose bundled browser supports the kit's current CSS features. Packaged add-ons declare this minimum in their manifest.
-
-### Fixed
-
-- Fixed the development watcher's rebuild logging by tracking changed source dependencies per generated output, so every affected CSS bundle reports its successful rebuild.
-
-- Disabled Delete for an uncreated custom topic while either of its note type formats still exists, and explained how to remove the remaining format first.
-
-- Restored bundled Diff Match Patch answer comparison with Unicode-safe tokens and fast matching of identical answers and shared ends. Removed the comparison-table size cutoff that marked long answers entirely wrong, and validated comparisons through 10,000 characters per answer. The engine retains a one-second processing budget for difficult differences.
-- Fixed the Desktop answer shortcut to use Command+Enter on macOS and Control+Enter on Windows/Linux, preventing a newline when revealing the answer.
-- Scoped AnkiDroid answer storage and cleanup to kit-specific keys, preserving other card scripts' session data and handling unavailable storage without interrupting answer rendering.
-- Fixed Desktop inline-code formatting for selections spanning existing code and ordinary text, preserving surrounding markup and avoiding nested code elements.
-- Applied Desktop inline-code formatting through native editor transactions so formatting and subsequent typing can be undone and redone independently, including empty code spans.
-- Fixed shortcuts containing a literal plus key, preserving the key when saving, matching, checking conflicts, and displaying shortcut labels.
-- Created kit Cloze note types from Anki's stock definition instead of copying a profile's customized type, including profiles with no existing Cloze type. Replacement now validates the existing type's format before confirmation and again before applying changes.
-- Preserved Anki's new-field marker when adding missing kit fields during replacement, using the model manager to add fields and assign their ordinals when saved.
-- Stopped packaging when required top-level files or folders are missing or have the wrong type, reporting the affected paths before opening the output archive.
-- Expanded asset validation to editor bundles, referenced shared icons, configured note type template parts, and shared font references. Packaging now requires these checks to pass before opening the output archive.
-- Updated the packaged README to describe Create, Replace, and Delete accurately, including confirmation, format compatibility, empty-type deletion, and the complete packaging workflow.
-- Aligned repository, issue, help, and listing image URLs with the canonical `anki-global-kit-addon` repository.
-- Corrected the card toolbar help text to describe its position above each question input field.
-- Corrected the agent repository guide's settings folder map to describe `helpers/` and `configs/` instead of the nonexistent `shared/` folder.
-- Removed the unused `highlightSubmittedCode()` helper that duplicated the active submitted-code watcher's highlighting logic.
-- Removed the unreferenced `help.svg` asset from the add-on package; settings help controls use `help-indicator.svg`.
-- Removed obsolete ESLint ignores for deleted legacy files and an inactive override for an old generated-bundle path.
-- Disconnected prior card-rendering and submitted-code observers during repeated initialization, including bundle reloads in the same webview. Observer setup now handles missing targets and disables an existing highlighting observer when highlighting is turned off.
-- Consolidated the About, Help, and Changelog tabs' Markdown browser setup and document spacing into a shared settings UI helper.
-- Removed the legacy theme API compatibility fallback now that Anki Desktop 26.05+ is required; settings resolve color tokens through `theme_manager.var()` directly.
-- Replaced hardcoded card toolbar hover and focus shadow colors with palette-derived CSS variables, using softer shadows in light mode and stronger shadows in dark mode.
-- Rendered settings help indicators with Anki's `FG_SUBTLE` and `CANVAS` color tokens, refreshing them on theme changes and scaling the SVG for the display's pixel ratio.
-- Split Note Types table widgets and geometry into `table.py`, and confirmation, result, and error dialogs into `actions.py`, leaving checkbox and topic coordination in the main tab module.
-- Ignored generated release archives in the repository-root `dist/` folder.
-- Added npm commands for the existing JavaScript and Python test suites and a GitHub Actions workflow that runs them on pushes, pull requests, and manual runs.
-- Synchronized the npm lockfile with the declared dependencies, removing the unused SCSS lint configuration and its exclusive dependencies without upgrading retained packages.
-- Corrected the Note Types deletion help to refer to notes instead of cards, matching the empty-note-type requirement.
-- Included the canonical project `LICENSE` at the add-on archive root and required it to exist as a file before packaging opens the output archive.
-- Updated the shared MesloLGL Nerd Font to v3.5.1, converting its verified official Regular TTF directly to WOFF2 and recording source and output checksums and conversion instructions. Added packaged attribution and license texts for the font and its glyph sources. Notes containing old Nerd Font icons may need updated code points; reopen the Desktop profile and sync media to refresh the font on other clients.
-- Generated a combined `_meslolgl-nf-license.txt` during builds and packaging and added it to managed profile media so the font's attribution and full license notices sync with the font. Asset checks now require its sources and detect a missing or stale companion.
-- Renamed the shared font to `_meslolgl-nf.woff2` and updated source and built stylesheet references to match Anki's lowercase media filenames, preventing installation errors. Asset checks now reject mixed-case managed filenames; custom CSS or templates using the old font filename need their references updated.
-- Removed unused `ADDON_DIR` and `NESTED_INDENT` imports from the media installer and shared settings widgets.
-- Updated the Lefthook install-script approval pin to `2.1.15`, matching the installed and locked dependency version.
-- Approved the locked `esbuild@0.28.2` install script so npm can prepare and validate the platform-specific build binary.
-- Registered the shared editor font in the document stylesheet instead of field shadow roots, where Chromium ignores `@font-face` declarations. Asset checks now require editor font faces in the document UI bundle.
-- Skipped unchanged editor stylesheet writes during note-load retries, continuing to apply styles to newly created fields and update changed CSS.
-- Added root-level file patterns to the Lefthook ESLint, Markdownlint, and Prettier commands, preserving nested-file coverage so root documentation and configuration files are checked on commit.
-- Cleared the kit's AnkiDroid answer storage when binding a fresh question, preventing answers from skipped cards from appearing on later cards while preserving answers during repeated setup of the same question.
-- Stopped tracking Anki's local `addon/meta.json`, preserving the local file and ignoring future saved settings changes. Documented `addon/config.json` as the release defaults and kept local metadata excluded from release archives.
-- Disclosed additional standard card template and card removal during Replace confirmation, listing affected note types, template names, and removal counts, including loss of the removed cards' scheduling. Replacement impact is checked again before applying changes; changed templates or counts require a new confirmation. Updated user and developer documentation to describe this behavior.
-- Fixed Desktop inline-code formatting for selections spanning blocks with boundaries anchored to the editor field, guarding missing parents and keeping staged selection expansion inside the field.
-- Protected Markdown link destinations from emphasis, strikethrough, and inline-code formatting, rendering link labels separately and preserving escaped URLs in submitted answers.
-- Normalized Qt's Space, Return, arrow, page-navigation, Escape, Insert, and Delete key names when matching browser shortcuts, and aligned Desktop conflict and reserved-shortcut checks with these aliases. Rebuilt the card and editor JavaScript bundles.
-- Encoded braces in generated topic headings so custom topic names containing Anki field expressions display literally instead of revealing field contents or invalidating templates. Existing affected kit note types require a confirmed Replace to refresh their headings, followed by syncing the collection and media.
-- Validated saved card and Desktop editor setting types before using them, falling back to each setting's default for invalid values and preventing malformed shortcuts from breaking settings loading or asset installation.
-- Pinned patched development dependencies through npm overrides: `source-map-js` 1.2.2, `smol-toml` 1.9.0, and KaTeX 0.18.2. Documented the remaining unpatched `braces` advisory, its development-tool exposure, and the override review process.
-
 ## [1.0.0] - 2026-10-05
 
 The first major release packages the card scripts, stylesheets, fonts, and new Desktop editor tools as an Anki add-on. Card features use synced templates and media so they remain available across Anki Desktop, AnkiWeb, AnkiMobile, and AnkiDroid.
@@ -103,16 +38,9 @@ The first major release packages the card scripts, stylesheets, fonts, and new D
 - Renamed the Note Types action to **Update Selected Note Types**, grouped actions by card format, and kept table headings visible while scrolling. Existing note types are detected when settings open; pending checkbox selections are cleared across restarts while custom topics are retained.
 - Improved settings colors, spacing, section backgrounds, help indicators, shortcut warning layout, and keyboard navigation. **Save** receives focus when settings open or tabs change, and **Restore Defaults** is disabled when settings already match their defaults.
 - Reorganized card, Desktop editor, shared assets, runtime template parts, and settings modules, with separate build outputs and a single canonical changelog included in the add-on package.
-
-### Fixed
-
-- Fixed Markdown toggle behavior inside formatted text and immediately after closing markers, including caret placement, empty selections, fenced code, and inline-code markers inside emphasis.
-- Fixed macOS reviewer shortcut conflicts so configured Markdown actions, including Command+Comma, can handle their keys while question inputs are focused.
-- Fixed answer comparisons to preserve Unicode code points, rendered line breaks, and normalized nonbreaking spaces, and to avoid duplicate comparison output during repeated initialization.
-- Fixed repeated card initialization to preserve typed answers, active input focus, existing rendered answers, and event bindings.
-- Fixed bonus questions and notes containing images or other media so they remain visible, and prevented duplicate bonus input hints.
-- Fixed duplicate cloze text in answer comparisons and unwanted line breaks in code blocks and list items.
-- Fixed shared font, icon, editor webview, and installed card asset paths after reorganizing the package.
+- Expanded CI to run script, style, and documentation linting, formatting checks, asset validation, and a build freshness check before the test suites.
+- Declared the supported Node.js versions in the package metadata and documented the recommended Node.js 24 and Python 3.13 development toolchain.
+- Raised the minimum supported Anki Desktop version to **26.05**, whose bundled browser supports the kit's current CSS features. Packaged add-ons declare this minimum in their manifest.
 
 ## [0.10.0] - 2025-04-02
 
