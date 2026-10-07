@@ -4,7 +4,11 @@ import { markdownToHtml } from '../../src/cards/js/markdown/render.js';
 
 // Set the Desktop runtime flag before importing the keyboard handler.
 globalThis.pycmd = () => {};
-const { handleTabIndentation } = await import('../../src/cards/js/inputs/tab-navigation.js');
+const { handleTabIndentation: handleTabIndentationWithDefaults } =
+  await import('../../src/cards/js/inputs/tab-navigation.js');
+const legacyShortcuts = { increase: 'Alt+Tab', decrease: 'Control+Tab' };
+const handleTabIndentation = (input, event, shortcuts = legacyShortcuts) =>
+  handleTabIndentationWithDefaults(input, event, shortcuts);
 
 function setup(value, start = value.length, end = start, topic = 'JavaScript', platform = 'MacIntel') {
   Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { platform } });
@@ -174,6 +178,24 @@ test('Control+Tab removes leading spaces from selected plain text and code', () 
   assert.equal(input.selectionStart, 4);
   assert.equal(input.selectionEnd, 12);
 });
+
+for (const [platform, modifier] of [
+  ['MacIntel', 'metaKey'],
+  ['Linux', 'ctrlKey'],
+]) {
+  test(`Anki indent defaults use Shift+Period and Shift+Comma on ${platform}`, () => {
+    const { input } = setup('row', 3, 3, 'JavaScript', platform);
+    const increase = key({ key: '>', code: 'Period', shiftKey: true, [modifier]: true });
+    handleTabIndentationWithDefaults(input, increase);
+    assert.equal(input.value, '  row');
+    assert.equal(increase.prevented, true);
+
+    const decrease = key({ key: '<', code: 'Comma', shiftKey: true, [modifier]: true });
+    handleTabIndentationWithDefaults(input, decrease);
+    assert.equal(input.value, 'row');
+    assert.equal(decrease.prevented, true);
+  });
+}
 
 for (const options of [
   { metaKey: true },

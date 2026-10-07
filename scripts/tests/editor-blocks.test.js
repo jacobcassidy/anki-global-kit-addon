@@ -10,6 +10,10 @@ import {
 } from '../../src/editor/js/formatting/blocks.js';
 
 function editor(html) {
+  globalThis.ankiGlobalKitEditorSettings = {
+    anki_editor_indent_increase_shortcut: 'Alt+Tab',
+    anki_editor_indent_decrease_shortcut: 'Control+Tab',
+  };
   const dom = new JSDOM(`<div contenteditable="true">${html}</div>`);
   for (const name of ['window', 'document', 'Node', 'NodeFilter', 'Range', 'InputEvent', 'navigator']) {
     Object.defineProperty(globalThis, name, { value: dom.window[name], configurable: true });
@@ -173,6 +177,51 @@ test('Alt+Tab and Control+Tab change list levels while Tab retains native naviga
   }
   assert.deepEqual(commands, ['indent', 'outdent']);
 });
+
+for (const [platform, modifier] of [
+  ['MacIntel', 'metaKey'],
+  ['Linux', 'ctrlKey'],
+]) {
+  test(`editor Anki indent defaults use Shift+Period and Shift+Comma on ${platform}`, () => {
+    const { field, range, dom } = editor('<div>row</div>');
+    Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { platform } });
+    globalThis.ankiGlobalKitEditorSettings.anki_editor_indent_increase_shortcut = 'Ctrl+Shift+.';
+    globalThis.ankiGlobalKitEditorSettings.anki_editor_indent_decrease_shortcut = 'Ctrl+Shift+,';
+    range.setStart(field.firstChild.firstChild, 0);
+    range.setEnd(field.firstChild.firstChild, 3);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    document.execCommand = (command, _showUi, text = '') => {
+      const activeRange = window.getSelection().getRangeAt(0);
+      if (command === 'delete') activeRange.deleteContents();
+      else if (command === 'insertText') {
+        activeRange.deleteContents();
+        const node = document.createTextNode(text);
+        activeRange.insertNode(node);
+        activeRange.setStartAfter(node);
+        activeRange.collapse(true);
+      }
+      return true;
+    };
+    installBlockFormatting();
+    const dispatch = (key, code) => {
+      const event = new dom.window.KeyboardEvent('keydown', {
+        key,
+        code,
+        shiftKey: true,
+        [modifier]: true,
+        bubbles: true,
+        cancelable: true,
+      });
+      field.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    assert.equal(dispatch('>', 'Period'), true);
+    assert.equal(field.textContent, '    row');
+    assert.equal(dispatch('<', 'Comma'), true);
+    assert.equal(field.textContent, 'row');
+  });
+}
 
 for (const [platform, modifier] of [
   ['MacIntel', 'ctrlKey'],

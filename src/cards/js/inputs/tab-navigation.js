@@ -4,7 +4,7 @@ import { matchesMarkdownShortcut } from './markdown-shortcuts.js';
 export function handleTabIndentation(textarea, event, shortcuts) {
   if (event.isComposing) return false;
   const isMac = navigator.platform.startsWith('Mac');
-  const configured = shortcuts ?? { increase: 'Alt+Tab', decrease: 'Control+Tab' };
+  const configured = shortcuts ?? { increase: 'Ctrl+Shift+.', decrease: 'Ctrl+Shift+,' };
   for (const [action, shortcut] of Object.entries(configured)) {
     if (!shortcut || !matchesMarkdownShortcut(event, shortcut, isMac)) continue;
     event.preventDefault();
