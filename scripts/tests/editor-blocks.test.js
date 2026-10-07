@@ -11,7 +11,7 @@ import {
 
 function editor(html) {
   const dom = new JSDOM(`<div contenteditable="true">${html}</div>`);
-  for (const name of ['window', 'document', 'Node', 'NodeFilter', 'Range', 'navigator']) {
+  for (const name of ['window', 'document', 'Node', 'NodeFilter', 'Range', 'InputEvent', 'navigator']) {
     Object.defineProperty(globalThis, name, { value: dom.window[name], configurable: true });
   }
   const field = document.querySelector('div');
