@@ -25,6 +25,7 @@ class NoteTypeOperation:
     topic: str
     card_format: str
     name: str
+    notetype_id: int | None = None
 
 
 @dataclass(frozen=True)
@@ -47,6 +48,7 @@ class NoteTypeReplacementImpact:
 
 @dataclass(frozen=True)
 class NoteTypeChangePlan:
+    collection: Collection
     creates: tuple[NoteTypeOperation, ...]
     overwrites: tuple[NoteTypeOperation, ...]
     deletions: tuple[NoteTypeOperation, ...]
@@ -85,6 +87,10 @@ class MissingTemplateFilesError(NoteTypeServiceError):
 
 class ReplacementValidationError(NoteTypeServiceError):
     """An existing type is missing or incompatible with the requested format."""
+
+
+class NoteTypePlanChangedError(NoteTypeServiceError):
+    """The collection or confirmed targets changed before the operation ran."""
 
 
 class NoteTypeApplyError(NoteTypeServiceError):
@@ -290,7 +296,8 @@ def plan_note_type_changes(
     deletions: dict[str, set[str]] | None = None,
 ) -> NoteTypeChangePlan:
     """Plan changes and validate replacement formats, templates, and deletions."""
-    if mw.col is None:
+    col = mw.col
+    if col is None:
         raise NoActiveCollectionError
 
     overwrites = overwrites or {}
@@ -301,7 +308,7 @@ def plan_note_type_changes(
         for card_format in FORMATS
         if card_format in selected_formats
     ]
-    existing_names = {entry.name for entry in mw.col.models.all_names_and_ids()}
+    existing_names = {entry.name for entry in col.models.all_names_and_ids()}
     requested = tuple(
         NoteTypeOperation(topic, card_format, f"{topic} ({card_format})")
         for topic, card_format in selected
@@ -313,7 +320,7 @@ def plan_note_type_changes(
         if operation.name in existing_names
         and operation.card_format in overwrites.get(operation.topic, set())
     )
-    replacement_impacts = _replacement_impacts(overwrite_operations, mw.col)
+    replacement_impacts = _replacement_impacts(overwrite_operations, col)
     skipped = tuple(
         operation.name
         for operation in requested
@@ -325,12 +332,18 @@ def plan_note_type_changes(
         for card_format in FORMATS
         if card_format in selected_formats
     )
+    deletion_operations = []
     for operation in requested_deletions:
-        notetype = mw.col.models.by_name(operation.name)
+        notetype = col.models.by_name(operation.name)
         if notetype is None:
             raise DeletionValidationError(operation.name, missing=True)
-        if mw.col.models.use_count(notetype):
+        if col.models.use_count(notetype):
             raise DeletionValidationError(operation.name, missing=False)
+        deletion_operations.append(
+            NoteTypeOperation(
+                operation.topic, operation.card_format, operation.name, notetype["id"],
+            )
+        )
 
     selected_for_templates = {
         (operation.topic, operation.card_format)
@@ -354,9 +367,10 @@ def plan_note_type_changes(
         raise MissingTemplateFilesError(missing_paths)
 
     return NoteTypeChangePlan(
+        collection=col,
         creates=creates,
         overwrites=overwrite_operations,
-        deletions=requested_deletions,
+        deletions=tuple(deletion_operations),
         skipped=skipped,
         replacement_impacts=replacement_impacts,
     )
@@ -374,6 +388,11 @@ def _revalidate_deletions(
                 missing=True,
                 after_confirmation=True,
             )
+        if notetype["id"] != operation.notetype_id:
+            raise NoteTypePlanChangedError(
+                f"The note type {operation.name} was replaced after confirmation. "
+                "Review the selected actions and confirm again."
+            )
         if col.models.use_count(notetype):
             raise DeletionValidationError(
                 operation.name,
@@ -386,6 +405,17 @@ def apply_note_type_changes(plan: NoteTypeChangePlan, col: Collection) -> NoteTy
     """Apply a previously confirmed note type change plan."""
     if col is None:
         raise NoActiveCollectionError
+    if col is not plan.collection:
+        raise NoteTypePlanChangedError(
+            "The active Anki collection changed after confirmation. "
+            "Reopen settings and confirm the selected actions again."
+        )
+    for operation in plan.creates:
+        if col.models.by_name(operation.name) is not None:
+            raise NoteTypePlanChangedError(
+                f"The note type {operation.name} now exists and was left unchanged. "
+                "Review the selected actions and confirm again."
+            )
     if _replacement_impacts(plan.overwrites, col) != plan.replacement_impacts:
         raise ReplacementValidationError(
             "The note types, additional templates, or card counts changed after "
