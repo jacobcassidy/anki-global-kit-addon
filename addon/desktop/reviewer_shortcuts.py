@@ -125,6 +125,48 @@ def _card_tab_action(event, settings):
     return _indentation_tab_action(event, settings)
 
 
+def _card_indent_shortcut_override(event) -> bool:
+    """Keep native Anki shortcuts from consuming card indentation keys."""
+    if not is_mac:
+        return False
+    focused = QApplication.focusWidget()
+    webviews = list(_live_webviews(_preview_input_webviews))
+    if _active_reviewer is mw.reviewer and mw.state == "review":
+        webviews.append(mw.reviewer.web)
+    if not any(_webview_contains_focus(webview, focused) for webview in webviews):
+        return False
+
+    from .settings import get_settings
+
+    settings = get_settings()
+    if not settings.get("card_input_tab_indentation", True):
+        return False
+    key_values = {",": Qt.Key.Key_Comma, ".": Qt.Key.Key_Period}
+    modifiers = {
+        "Ctrl": Qt.KeyboardModifier.ControlModifier,
+        "Meta": Qt.KeyboardModifier.MetaModifier,
+        "Control": Qt.KeyboardModifier.MetaModifier,
+        "Alt": Qt.KeyboardModifier.AltModifier,
+        "Shift": Qt.KeyboardModifier.ShiftModifier,
+    }
+    for action in ("increase", "decrease"):
+        name = f"card_input_tab_indent_{action}_shortcut"
+        if not settings.get(f"{name}_enabled", True):
+            continue
+        parts = settings.get(name, "Ctrl+Shift+." if action == "increase" else "Ctrl+Shift+,").split("+")
+        key = parts.pop()
+        if key not in key_values or event.key() != key_values[key]:
+            continue
+        if not parts or any(part not in modifiers for part in parts):
+            continue
+        expected = modifiers[parts[0]]
+        for part in parts[1:]:
+            expected |= modifiers[part]
+        if event.modifiers() == expected:
+            return True
+    return False
+
+
 def _tab_shortcut_target(event):
     """Only claim Control+Tab in webviews whose indentation setting is enabled."""
     from .settings import get_editor_settings, get_settings
@@ -157,7 +199,7 @@ def _tab_shortcut_target(event):
 
 
 class _PreferencesShortcutFilter(QObject):
-    """Route native Control+Tab and let the card input handle Command+Comma."""
+    """Route card indentation keys before Qt handles native shortcuts."""
 
     def eventFilter(self, watched, event) -> bool:
         if (
@@ -170,6 +212,15 @@ class _PreferencesShortcutFilter(QObject):
             event.accept()
             if event.type() == QEvent.Type.ShortcutOverride:
                 target[0].eval(target[1])
+            return True
+        if (
+            event.type() == QEvent.Type.ShortcutOverride
+            and event.key() in (Qt.Key.Key_Comma, Qt.Key.Key_Period)
+            and _card_indent_shortcut_override(event)
+        ):
+            # Qt maps Command to ControlModifier on macOS. Accepting the
+            # override lets Chromium deliver the keypress to the textarea.
+            event.accept()
             return True
         if (
             event.type() == QEvent.Type.ShortcutOverride
