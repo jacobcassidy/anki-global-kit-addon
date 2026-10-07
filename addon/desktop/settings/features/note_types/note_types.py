@@ -362,50 +362,63 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             or any(formats for formats in overwrites.values())
             or any(formats for formats in deletions.values())
         )
-        if has_model_changes:
-            if not apply_selected_note_type_changes(selections, overwrites, deletions):
+
+        def finish_changes(applied: bool) -> None:
+            parent.setEnabled(True)
+            if not applied:
+                rebuild_note_types_grid()
+                QTimer.singleShot(0, table.update_height)
                 return
-        elif not pending_custom_topic_removals:
-            apply_selected_note_type_changes(selections, overwrites, deletions)
-            return
 
-        for topic, formats in overwrites.items():
-            for card_format in formats:
-                overwrite_checks[topic][card_format].setChecked(False)
+            for topic, formats in overwrites.items():
+                for card_format in formats:
+                    overwrite_checks[topic][card_format].setChecked(False)
 
-        deleted_types = {
-            (topic, card_format)
-            for topic, formats in checked_deletions.items()
-            for card_format in formats
-        }
-        for topic, card_format in deleted_types:
-            note_type_checks[topic][card_format].setChecked(False)
-            delete_checks[topic][card_format].setChecked(False)
-            if isinstance(saved_selections.get(topic), dict):
-                saved_selections[topic][card_format] = False
+            deleted_types = {
+                (topic, card_format)
+                for topic, formats in checked_deletions.items()
+                for card_format in formats
+            }
+            for topic, card_format in deleted_types:
+                note_type_checks[topic][card_format].setChecked(False)
+                delete_checks[topic][card_format].setChecked(False)
+                if isinstance(saved_selections.get(topic), dict):
+                    saved_selections[topic][card_format] = False
 
-        existing_names = (
-            {item.name for item in mw.col.models.all_names_and_ids()}
-            if mw.col is not None
-            else set()
-        )
-        for topic in list(custom_topics):
-            if (topic, "Advance") not in deleted_types and (
-                topic,
-                "Cloze",
-            ) not in deleted_types:
-                continue
-            if all(
-                f"{topic} ({card_format})" not in existing_names
-                for card_format in FORMATS
-            ):
-                custom_topics.remove(topic)
-                saved_selections.pop(topic, None)
+            existing_names = (
+                {item.name for item in mw.col.models.all_names_and_ids()}
+                if mw.col is not None
+                else set()
+            )
+            for topic in list(custom_topics):
+                if (topic, "Advance") not in deleted_types and (
+                    topic,
+                    "Cloze",
+                ) not in deleted_types:
+                    continue
+                if all(
+                    f"{topic} ({card_format})" not in existing_names
+                    for card_format in FORMATS
+                ):
+                    custom_topics.remove(topic)
+                    saved_selections.pop(topic, None)
 
-        rebuild_note_types_grid()
-        QTimer.singleShot(0, table.update_height)
-        if deleted_types:
-            persist_note_type_selections()
+            rebuild_note_types_grid()
+            QTimer.singleShot(0, table.update_height)
+            if deleted_types:
+                persist_note_type_selections()
+
+        if has_model_changes or not pending_custom_topic_removals:
+            parent.setEnabled(False)
+            apply_selected_note_type_changes(
+                selections,
+                overwrites,
+                deletions,
+                parent=parent,
+                on_complete=finish_changes,
+            )
+        else:
+            finish_changes(True)
 
     note_types_button.clicked.connect(create_note_types_from_panel)
     add_button = QPushButton("+", note_types_tab)

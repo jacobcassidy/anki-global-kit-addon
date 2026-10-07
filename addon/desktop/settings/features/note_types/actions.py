@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from dataclasses import dataclass
+
+from anki.collection import Collection, OpChanges
+from aqt.operations import CollectionOp
+from aqt.qt import QWidget
 from aqt.utils import askUser, showInfo, showWarning
 
 from ...services.note_types import (
@@ -9,10 +15,28 @@ from ...services.note_types import (
     MissingTemplateFilesError,
     NoActiveCollectionError,
     NoteTypeApplyError,
+    NoteTypeChangePlan,
+    NoteTypeChangeResult,
     NoteTypeServiceError,
     apply_note_type_changes,
     plan_note_type_changes,
 )
+
+
+@dataclass(frozen=True)
+class _OperationResult:
+    changes: OpChanges
+    result: NoteTypeChangeResult | None = None
+    error: NoteTypeApplyError | None = None
+
+
+def _apply_plan(col: Collection, plan: NoteTypeChangePlan) -> _OperationResult:
+    # Partial success must still return changes so CollectionOp refreshes Anki.
+    try:
+        result = apply_note_type_changes(plan, col)
+    except NoteTypeApplyError as error:
+        return _OperationResult(changes=error.changes, error=error)
+    return _OperationResult(changes=result.changes, result=result)
 
 
 def _show_note_type_service_error(error: NoteTypeServiceError) -> None:
@@ -53,13 +77,17 @@ def apply_selected_note_type_changes(
     selections: dict[str, set[str]],
     overwrites: dict[str, set[str]],
     deletions: dict[str, set[str]],
-) -> bool:
+    *,
+    parent: QWidget,
+    on_complete: Callable[[bool], None],
+) -> None:
     """Plan and confirm collection changes, then report the applied results."""
     try:
         plan = plan_note_type_changes(selections, overwrites, deletions)
     except NoteTypeServiceError as error:
         _show_note_type_service_error(error)
-        return False
+        on_complete(False)
+        return
 
     if not plan.creates and not plan.overwrites and not plan.deletions:
         if plan.skipped:
@@ -69,7 +97,8 @@ def apply_selected_note_type_changes(
             )
         else:
             showInfo("Select at least one note type action to apply.")
-        return False
+        on_complete(False)
+        return
 
     confirmation = []
     if plan.creates:
@@ -110,14 +139,30 @@ def apply_selected_note_type_changes(
         "Apply the selected note type changes in the active Anki profile?\n\n"
         + "\n\n".join(confirmation)
     ):
-        return False
+        on_complete(False)
+        return
 
-    try:
-        result = apply_note_type_changes(plan)
-    except NoteTypeServiceError as error:
-        _show_note_type_service_error(error)
-        return False
+    def success(outcome: _OperationResult) -> None:
+        if outcome.error is not None:
+            _show_note_type_service_error(outcome.error)
+            on_complete(False)
+            return
+        _show_note_type_result(outcome.result)
+        on_complete(True)
 
+    def failure(error: Exception) -> None:
+        if isinstance(error, NoteTypeServiceError):
+            _show_note_type_service_error(error)
+        else:
+            showWarning(f"Anki Global Kit could not update note types: {error}")
+        on_complete(False)
+
+    CollectionOp(parent=parent, op=lambda col: _apply_plan(col, plan)).success(
+        success
+    ).failure(failure).run_in_background()
+
+
+def _show_note_type_result(result: NoteTypeChangeResult) -> None:
     message_parts = []
     if result.created:
         message_parts.append("Created note types:\n" + "\n".join(result.created))
@@ -134,4 +179,3 @@ def apply_selected_note_type_changes(
             "Sync this profile to make the note type changes available on other devices."
         )
     showInfo("\n\n".join(message_parts))
-    return True
