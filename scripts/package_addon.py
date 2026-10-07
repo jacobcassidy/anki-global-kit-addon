@@ -23,12 +23,17 @@ PACKAGE_DIRECTORIES = (
     "user_files",
 )
 PACKAGE_PATHS = PACKAGE_FILES + PACKAGE_DIRECTORIES
+REQUIRED_USER_FILES = (
+    "user_files/README.txt",
+    "user_files/editor-fields.css",
+    "user_files/editor-ui.css",
+)
 
 
 def validate_package_paths() -> None:
     problems = [
         f"Expected file: addon/{item}"
-        for item in PACKAGE_FILES
+        for item in (*PACKAGE_FILES, *REQUIRED_USER_FILES)
         if not (ADDON_ROOT / item).is_file()
     ]
     problems.extend(
