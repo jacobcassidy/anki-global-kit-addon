@@ -306,6 +306,15 @@ def open_settings() -> None:
     def validate_editor_shortcut_candidate(key, candidate):
         if not editor_shortcut_active(key):
             return None
+        if key == "anki_editor_inline_code_shortcut":
+            fixed_action = anki_editor_format_shortcut_warnings().get(
+                normalize_shortcut(candidate)
+            )
+            if fixed_action in {"Unordered list", "Ordered list", "Blockquote"}:
+                return (
+                    f"{format_shortcut(candidate)} conflicts with Anki Global Kit's "
+                    f"{fixed_action.lower()} shortcut. Choose another."
+                )
         for other_key, label in editor_definitions:
             if other_key == key or not editor_shortcut_active(other_key):
                 continue

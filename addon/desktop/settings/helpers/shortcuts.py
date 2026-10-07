@@ -95,6 +95,7 @@ def anki_editor_format_shortcut_warnings() -> dict[str, str]:
             ("Ctrl+Shift+=", "Superscript"),
             ("Ctrl+,", "Unordered list"),
             ("Ctrl+.", "Ordered list"),
+            ("Ctrl+/", "Blockquote"),
             ("Ctrl+Shift+,", "Outdent list item"),
             ("Ctrl+Shift+.", "Indent list item"),
         )
