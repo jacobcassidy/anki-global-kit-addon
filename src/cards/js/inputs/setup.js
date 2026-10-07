@@ -115,7 +115,7 @@ function addFormattingToolbar(textarea) {
   toolbar.setAttribute('role', 'toolbar');
   toolbar.setAttribute('aria-label', 'Markdown formatting');
 
-  const shortcuts = settings.cardInputMarkdownShortcutsMap;
+  const shortcuts = settings.cardInputMarkdownShortcuts ? settings.cardInputMarkdownShortcutsMap : {};
   const formatShortcut = (shortcut) => {
     if (!shortcut) return '';
     const parts = splitKeyboardShortcut(shortcut);

@@ -34,8 +34,8 @@ test('indent toolbar buttons appear between ordered list and blockquote and pres
     );
     const increase = document.querySelector('.is-indent-increase');
     const decrease = document.querySelector('.is-indent-decrease');
-    assert.equal(increase.title, 'Increase indent (⌥Tab)');
-    assert.equal(decrease.title, 'Decrease indent (⌃Tab)');
+    assert.equal(increase.title, 'Increase indent (⌘⇧.)');
+    assert.equal(decrease.title, 'Decrease indent (⌘⇧,)');
     increase.click();
     assert.equal(input.value, 'one\n    two\nthree');
     assert.equal(input.selectionStart, 9);
@@ -71,6 +71,7 @@ test('custom indentation shortcuts work independently of Markdown shortcuts and 
     card_input_tab_indent_decrease_shortcut: 'Alt+[',
   });
   try {
+    assert.equal(document.querySelector('.is-bold').title, 'Bold');
     assert.equal(document.querySelector('.is-indent-increase').title, 'Increase indent (⌥])');
     assert.equal(document.querySelector('.is-indent-decrease').title, 'Decrease indent (⌥[)');
     for (const [key, expected] of [
