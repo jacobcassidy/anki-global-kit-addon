@@ -2,7 +2,7 @@
 
 Requires **Anki Desktop 26.05 or later**.
 
-This add-on installs the generated card JavaScript, CSS, and shared font into the active Anki profile's `collection.media` folder. Anki can then sync those resources to AnkiWeb and the mobile clients.
+This add-on installs the generated card JavaScript, CSS, shared font, and combined font license notice into the active Anki profile's `collection.media` folder. Anki can then sync those resources to AnkiWeb and the mobile clients.
 
 The shared MesloLGL Nerd Font uses Nerd Fonts **v3.5.1**. Its official source, WOFF2 conversion instructions, attribution, and licenses are recorded in [shared/assets/fonts/FONT-LICENSES.md](shared/assets/fonts/FONT-LICENSES.md) and the adjacent `licenses/` folder. The add-on also installs `_meslolgl-nf-license.txt`, combining the attribution and complete license texts, alongside the font in `collection.media`. To refresh them after updating the add-on, reopen your Desktop profile and sync media. Notes containing older Nerd Font icons may need updated characters because v3 changed some icon code points.
 
