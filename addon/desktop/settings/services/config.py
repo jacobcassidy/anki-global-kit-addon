@@ -37,6 +37,19 @@ def get_editor_settings() -> dict[str, object]:
     return settings
 
 
+def get_card_web_settings() -> dict[str, object]:
+    """Keep Ctrl portable while preserving explicit physical-Control shortcuts."""
+    settings = _read_settings(editor=False)
+    if is_mac:
+        for action in ("increase", "decrease"):
+            key = f"card_input_tab_indent_{action}_shortcut"
+            settings[key] = "+".join(
+                "Control" if part == "Meta" else part
+                for part in settings[key].split("+")
+            )
+    return settings
+
+
 def save_note_type_selections(selections: dict[str, dict[str, bool]]) -> None:
     config = mw.addonManager.getConfig(ADDON_PACKAGE_NAME) or {}
     config["note_type_selections"] = selections
