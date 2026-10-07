@@ -49,6 +49,7 @@ from .widgets import CardShortcutInput
 def open_settings() -> None:
     """Show the settings dialog and coordinate its settings pages."""
     dialog = QDialog(mw)
+    dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
     dialog.setStyleSheet(
         "QTextBrowser { "
         f"background-color: {get_theme_color('CANVAS_ELEVATED')}; "
