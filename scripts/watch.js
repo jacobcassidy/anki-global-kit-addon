@@ -80,7 +80,7 @@ function createWatchPlugin(outfile) {
       build.onEnd(async (result) => {
         const wasInitialBuild = initialBuild;
         initialBuild = false;
-        const hasDiagnostics = result.warnings.length > 0 || result.errors.length > 0;
+        const hasErrors = result.errors.length > 0;
         if (result.metafile) {
           const inputs = Object.values(result.metafile.outputs).flatMap((output) =>
             Object.keys(output.inputs).map((input) => resolve(input)),
@@ -88,7 +88,7 @@ function createWatchPlugin(outfile) {
           inputsByOutput.set(outfile, new Set(inputs));
         }
 
-        if (!hasDiagnostics) {
+        if (!hasErrors) {
           await Promise.all(result.outputFiles.map((outputFile) => writeFile(outputFile.path, outputFile.contents)));
         }
 
@@ -110,7 +110,7 @@ function createWatchPlugin(outfile) {
           console.error(`${colorize('Error:', colors.red)}\n${formatted}`);
         }
 
-        if (!wasInitialBuild && !hasDiagnostics && changedOutputs.delete(outfile)) {
+        if (!wasInitialBuild && !hasErrors && changedOutputs.delete(outfile)) {
           console.log(colorize(`Rebuilt: ${outfile}`, colors.green));
         }
       });
