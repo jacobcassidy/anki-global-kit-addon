@@ -126,6 +126,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
                 row += 1
             row_style = "noteTypesAlternateCell" if index % 2 else "noteTypesNormalCell"
             topic_label = QLabel(topic, table.body)
+            topic_label.setTextFormat(Qt.TextFormat.PlainText)
             table.make_cell(
                 row,
                 0,
