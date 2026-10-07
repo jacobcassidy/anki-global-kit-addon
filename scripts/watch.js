@@ -39,7 +39,14 @@ async function indexDirectory(directory) {
   }
 }
 
-for (const sourceDirectory of ['src/cards/js', 'src/cards/css', 'src/editor/js', 'src/editor/css', 'src/shared/css']) {
+for (const sourceDirectory of [
+  'src/cards/js',
+  'src/cards/css',
+  'src/editor/js',
+  'src/editor/css',
+  'src/shared/js',
+  'src/shared/css',
+]) {
   const absoluteDirectory = fileURLToPath(new URL(`../${sourceDirectory}`, import.meta.url));
   await indexDirectory(absoluteDirectory);
 
@@ -138,5 +145,5 @@ const contexts = await Promise.all(
 
 await Promise.all(contexts.map((buildContext) => buildContext.watch()));
 console.log(
-  'Watching src/cards/js, src/cards/css, src/editor/js, src/editor/css, and src/shared/css. Press Ctrl+C to stop.',
+  'Watching src/cards/js, src/cards/css, src/editor/js, src/editor/css, src/shared/js, and src/shared/css. Press Ctrl+C to stop.',
 );
