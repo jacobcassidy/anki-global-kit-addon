@@ -49,7 +49,7 @@ An optional toolbar and configurable keyboard shortcuts make formatting quicker.
 
 Choose **Advance** for question-and-answer cards or **Cloze** for cloze-deletion cards. Built-in topics include Command Line, CSS, Git, JavaScript, PHP, Python, React, Regex, Ruby, TypeScript, Vocabulary, and WordPress. Add your own topics with **+**.
 
-The **Note Types** tab lets you create missing kit types without assembling templates or copying files manually. Existing note types stay unchanged unless you select **Replace** and confirm. Replacement keeps notes and fields, adds missing kit fields, and updates the first card template and styling. For standard note types, additional card templates and their associated cards are removed, including those cards' scheduling. The confirmation lists the affected note types, additional template names, and template and card removal counts. **Delete** is available only for empty note types or uncreated custom topics.
+The **Note Types** tab lets you create missing kit types without assembling templates or copying files manually. Existing note types stay unchanged unless you select **Replace** and confirm. Replacement keeps notes and fields, adds missing kit fields, and updates the first card template and styling. For standard note types, additional card templates and their associated cards are removed, including those cards' scheduling. The confirmation lists the affected note types, additional template names, and template and card removal counts. **Delete** is available for empty note types. You can remove an uncreated custom topic when neither its Advance nor Cloze type exists.
 
 ![Note Types settings tab showing topic rows and Create, Replace, and Delete options for Advance and Cloze formats](https://raw.githubusercontent.com/jacobcassidy/anki-global-kit-addon/main/docs/reference/screenshots/settings-note-types-tab.png)
 
@@ -81,4 +81,4 @@ Open the **Help** tab in Anki Global Kit Settings for setup guidance, or read th
 
 ![Help tab in Anki Global Kit Settings with setup guidance and troubleshooting information](https://raw.githubusercontent.com/jacobcassidy/anki-global-kit-addon/main/docs/reference/screenshots/setting-help-tab.png)
 
-For a problem or suggestion, [open an issue](https://github.com/jacobcassidy/anki-global-kit-addon/issues) with your Anki version, device, and steps to reproduce it. You can also browse the [source code and setup guide](https://github.com/jacobcassidy/anki-global-kit-addon) or the [changelog](https://github.com/jacobcassidy/anki-global-kit-addon/blob/main/CHANGELOG.md).
+For help, bug reports, or suggestions, [open an issue](https://github.com/jacobcassidy/anki-global-kit-addon/issues) with your Anki version, operating system, affected client, and steps to reproduce the problem. You can review the [source repository](https://github.com/jacobcassidy/anki-global-kit-addon) and [changelog](https://github.com/jacobcassidy/anki-global-kit-addon/blob/main/CHANGELOG.md).
