@@ -30,6 +30,7 @@ from .theme import get_theme_color
 from ..helpers.shortcuts import (
     anki_editor_format_shortcut_warnings,
     anki_shortcut_warnings,
+    editor_fixed_shortcut_action,
     format_shortcut,
     normalize_shortcut,
     reserved_shortcut_warnings,
@@ -239,6 +240,13 @@ def open_settings() -> None:
                     f"{format_shortcut(shortcut)} is reserved for {reserved_action}. Choose another shortcut."
                 )
                 validation_state["reserved"].append(f"Anki editor {label}")
+            fixed_action = editor_fixed_shortcut_action(shortcut)
+            if fixed_action:
+                editor_messages[key].append(
+                    f"{format_shortcut(shortcut)} conflicts with Anki Global Kit's "
+                    f"{fixed_action} shortcut. Choose another."
+                )
+                validation_state["reserved"].append(f"Anki editor {label}")
 
         editor_seen = {}
         editor_conflicts = set()
@@ -306,15 +314,12 @@ def open_settings() -> None:
     def validate_editor_shortcut_candidate(key, candidate):
         if not editor_shortcut_active(key):
             return None
-        if key == "anki_editor_inline_code_shortcut":
-            fixed_action = anki_editor_format_shortcut_warnings().get(
-                normalize_shortcut(candidate)
+        fixed_action = editor_fixed_shortcut_action(candidate)
+        if fixed_action:
+            return (
+                f"{format_shortcut(candidate)} conflicts with Anki Global Kit's "
+                f"{fixed_action} shortcut. Choose another."
             )
-            if fixed_action in {"Unordered list", "Ordered list", "Blockquote"}:
-                return (
-                    f"{format_shortcut(candidate)} conflicts with Anki Global Kit's "
-                    f"{fixed_action.lower()} shortcut. Choose another."
-                )
         for other_key, label in editor_definitions:
             if other_key == key or not editor_shortcut_active(other_key):
                 continue

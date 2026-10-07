@@ -3,6 +3,13 @@
 from aqt.utils import is_mac
 
 
+EDITOR_BLOCK_SHORTCUTS = {
+    "unordered-list": "Ctrl+,",
+    "ordered-list": "Ctrl+.",
+    "blockquote": "Ctrl+/",
+}
+
+
 SHORTCUT_KEY_ALIASES = {
     " ": "SPACE",
     "RETURN": "ENTER",
@@ -64,6 +71,15 @@ def normalize_shortcut(shortcut: str) -> str:
 def shortcut_has_required_modifier(shortcut: str) -> bool:
     modifiers = set(split_shortcut(normalize_shortcut(shortcut))[:-1])
     return bool(modifiers & {"Ctrl", "Alt", "Meta"})
+
+
+def editor_fixed_shortcut_action(shortcut: str) -> str | None:
+    """Identify a kit action whose editor shortcut cannot be reassigned."""
+    normalized = normalize_shortcut(shortcut)
+    for action, keys in EDITOR_BLOCK_SHORTCUTS.items():
+        if normalized == normalize_shortcut(keys):
+            return action.replace("-", " ")
+    return None
 
 
 def anki_shortcut_warnings() -> dict[str, str]:

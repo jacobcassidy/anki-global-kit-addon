@@ -31,3 +31,33 @@ def load_settings_services(*, mac=False, config=None):
         settings = load_module(f"{SETTINGS_PACKAGE}.services.config", "addon/desktop/settings/services/config.py")
         assets = load_module(f"{SETTINGS_PACKAGE}.services.assets", "addon/desktop/settings/services/assets.py")
     return SimpleNamespace(config=settings, assets=assets, mw=aqt.mw, warning=utils.showWarning)
+
+
+def load_shortcut_helpers(*, mac=False):
+    utils = ModuleType("aqt.utils")
+    utils.is_mac = mac
+    with patch.dict(sys.modules, {"aqt.utils": utils}):
+        return load_module(f"{SETTINGS_PACKAGE}.helpers.shortcuts", "addon/desktop/settings/helpers/shortcuts.py")
+
+
+def load_editor_integration(settings, *, mac=False):
+    aqt = ModuleType("aqt")
+    aqt.gui_hooks = SimpleNamespace()
+    editor = ModuleType("aqt.editor")
+    editor.Editor = object
+    settings_package = ModuleType(SETTINGS_PACKAGE)
+    settings_package.get_editor_settings = lambda: settings
+    constants = ModuleType(f"{SETTINGS_PACKAGE}.configs.constants")
+    constants.USER_FILES_DIR = ROOT / "addon/user_files"
+    paste = ModuleType("kit.desktop.editor.features.paste.cleanup")
+    paste.clean_paste_mime = Mock()
+    paste.finish_paste_layout = Mock()
+    labels = ModuleType("kit.desktop.editor.features.shortcuts.labels")
+    labels.shortcut_label = lambda keys: keys
+    helpers = load_shortcut_helpers(mac=mac)
+    with patch.dict(sys.modules, {
+        "aqt": aqt, "aqt.editor": editor, SETTINGS_PACKAGE: settings_package,
+        constants.__name__: constants, paste.__name__: paste, labels.__name__: labels,
+        helpers.__name__: helpers,
+    }):
+        return load_module("kit.desktop.editor.integration", "addon/desktop/editor/integration.py")

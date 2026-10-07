@@ -9,6 +9,11 @@ from aqt.editor import Editor
 
 from ..settings import get_editor_settings
 from ..settings.configs.constants import USER_FILES_DIR
+from ..settings.helpers.shortcuts import (
+    EDITOR_BLOCK_SHORTCUTS as BLOCK_SHORTCUTS,
+    editor_fixed_shortcut_action,
+    normalize_shortcut,
+)
 from .features.paste.cleanup import clean_paste_mime, finish_paste_layout
 from .features.shortcuts.labels import shortcut_label
 
@@ -17,11 +22,6 @@ EDITOR_ASSET = ADDON_DIR / "desktop" / "editor" / "assets" / "js" / "editor.min.
 EDITOR_STYLES_DIR = ADDON_DIR / "desktop" / "editor" / "assets" / "css"
 ICON_ASSET = ADDON_DIR / "shared" / "assets" / "icons" / "code-inline.svg"
 BLOCKQUOTE_ICON = ICON_ASSET.with_name("blockquote.svg")
-BLOCK_SHORTCUTS = {
-    "unordered-list": "Ctrl+,",
-    "ordered-list": "Ctrl+.",
-    "blockquote": "Ctrl+/",
-}
 
 
 def _inject_features(editor: Editor) -> None:
@@ -119,8 +119,9 @@ def _add_shortcut(shortcuts: list, editor: Editor) -> None:
     for name, keys in BLOCK_SHORTCUTS.items():
         shortcuts.append((keys, partial(_toggle_block, editor, name)))
     settings = get_editor_settings()
+    configurable = []
     if settings["anki_editor_inline_code_shortcut_enabled"]:
-        shortcuts.append((
+        configurable.append((
             settings["anki_editor_inline_code_shortcut"],
             partial(_toggle_inline_code, editor),
         ))
@@ -128,8 +129,17 @@ def _add_shortcut(shortcuts: list, editor: Editor) -> None:
         for action in ("increase", "decrease"):
             key = f"anki_editor_indent_{action}_shortcut"
             if settings[f"{key}_enabled"] and settings[key]:
-                shortcuts[:] = [entry for entry in shortcuts if entry[0] != settings[key]]
-                shortcuts.append((settings[key], partial(_change_indentation, editor, action)))
+                configurable.append((settings[key], partial(_change_indentation, editor, action)))
+    registered = set()
+    for keys, callback in configurable:
+        normalized = normalize_shortcut(keys)
+        # Saved configuration may predate UI validation or be edited directly.
+        # Preserve fixed actions and register each configurable key only once.
+        if not keys or editor_fixed_shortcut_action(keys) or normalized in registered:
+            continue
+        registered.add(normalized)
+        shortcuts[:] = [entry for entry in shortcuts if normalize_shortcut(entry[0]) != normalized]
+        shortcuts.append((keys, callback))
 
 
 def initialize() -> None:
