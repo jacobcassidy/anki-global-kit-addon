@@ -38,8 +38,9 @@ export function highlightCodeText(codeText, language) {
     else if (match[2]) tokenClass = 's';
     else if (match[3]) tokenClass = 'm';
     else if (match[4]) {
-      if (keywords.has(token)) tokenClass = 'k';
-      else if (builtins.has(token)) tokenClass = 'nb';
+      const identifier = language === 'sql' ? token.toLowerCase() : token;
+      if (keywords.has(identifier)) tokenClass = 'k';
+      else if (builtins.has(identifier)) tokenClass = 'nb';
       else if (/^\s*class\s+$/.test(codeText.slice(Math.max(0, match.index - 12), match.index))) {
         tokenClass = 'nc';
       } else if (/^\s*(?:async\s+)?def\s+$/.test(codeText.slice(Math.max(0, match.index - 16), match.index))) {
