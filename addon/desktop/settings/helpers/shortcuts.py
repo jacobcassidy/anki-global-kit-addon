@@ -122,6 +122,22 @@ def anki_editor_format_shortcut_warnings() -> dict[str, str]:
     }
 
 
+def anki_editor_shortcut_warning(setting: str, shortcut: str) -> str | None:
+    """Warn about native actions except the indentation action we extend."""
+    native_indent_shortcuts = {
+        "anki_editor_indent_increase_shortcut": "Ctrl+Shift+.",
+        "anki_editor_indent_decrease_shortcut": "Ctrl+Shift+,",
+    }
+    normalized = normalize_shortcut(shortcut)
+    intended = native_indent_shortcuts.get(setting)
+    if intended and normalized == normalize_shortcut(intended):
+        return None
+    return {
+        **anki_shortcut_warnings(),
+        **anki_editor_format_shortcut_warnings(),
+    }.get(normalized)
+
+
 def reserved_shortcut_warnings() -> dict[str, str]:
     """Shortcuts reserved for common text editing actions."""
     return {

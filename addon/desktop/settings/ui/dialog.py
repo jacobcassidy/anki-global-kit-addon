@@ -28,7 +28,7 @@ from ..configs.constants import (
 )
 from .theme import get_theme_color
 from ..helpers.shortcuts import (
-    anki_editor_format_shortcut_warnings,
+    anki_editor_shortcut_warning,
     anki_shortcut_warnings,
     editor_fixed_shortcut_action,
     format_shortcut,
@@ -267,10 +267,6 @@ def open_settings() -> None:
             style_shortcut_option(checkbox, inactive=not all_controls["anki_editor_tab_indentation"].isChecked())
 
         built_in_shortcuts = anki_shortcut_warnings()
-        editor_built_in_shortcuts = {
-            **built_in_shortcuts,
-            **anki_editor_format_shortcut_warnings(),
-        }
         for shortcut, key, _label in active_shortcuts:
             description = built_in_shortcuts.get(normalize_shortcut(shortcut))
             if description:
@@ -279,7 +275,7 @@ def open_settings() -> None:
                     f"conflict with Anki's {description} shortcut."
                 )
         for shortcut, key, _label in editor_active_shortcuts:
-            description = editor_built_in_shortcuts.get(normalize_shortcut(shortcut))
+            description = anki_editor_shortcut_warning(key, shortcut)
             if description:
                 editor_messages[key].append(
                     f"The {format_shortcut(shortcut)} shortcut may conflict with Anki's {description} shortcut."
