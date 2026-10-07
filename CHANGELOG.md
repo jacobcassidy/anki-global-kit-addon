@@ -1,22 +1,58 @@
-# Changelog - Anki Global Features
+# Anki Global Kit Changelog
 
-All notable changes to this project are documented in this file.
+All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-- Full instructions on how to set up and use Anki Global Features.
+## [1.0.0] - 2026-10-05
 
-## [0.6.1] - 2025-04-02
+The first major release packages the card scripts, stylesheets, fonts, and new Desktop editor tools as an Anki add-on. Card features use synced templates and media so they remain available across Anki Desktop, AnkiWeb, AnkiMobile, and AnkiDroid.
+
+### Added
+
+- Added automatic installation and refresh of the kit's managed card JavaScript, CSS, and font files when an Anki Desktop profile opens or switches. Card settings are included in the installed media for syncing to other devices.
+- Added a **Tools > Anki Global Kit Settings...** panel with separate **Cards**, **Editor**, and **Note Types** controls, plus **About**, **Help**, and **Changelog** tabs.
+- Added independent settings for card input shortcuts, indentation, answer Markdown rendering, syntax highlighting, and the formatting toolbar, along with Desktop editor formatting and appearance options.
+- Added card-side Markdown rendering for headings, paragraphs, line breaks, nested ordered and unordered lists, blockquotes, fenced code blocks, inline code, bold, italics, strikethrough, and HTTP(S) links.
+- Added a configurable formatting toolbar above card question inputs, with shared SVG icons and shortcut tooltips for bold, italics, strikethrough, inline code, code blocks, lists, and blockquotes.
+- Added configurable Markdown shortcuts with individual enable switches, shortcut capture, per-shortcut reset links, inline conflict warnings, and Escape to cancel capture. Formatting applies to the selection or the word at the caret and can be toggled off again.
+- Added Markdown list indentation with **Tab**, unindentation with **Shift+Tab**, and forward focus navigation with physical **Control+Tab**. Ordinary card text uses four-space indentation for Python topics and two spaces for other topics.
+- Added bundled code syntax highlighting that recognizes fenced-code language names and aliases, falls back to the card topic, and highlights newly rendered answers.
+- Added topic-specific **Advance** and **Cloze** note type creation for Command Line, CSS, Git, JavaScript, PHP, Python, React, Regex, Ruby, TypeScript, Vocabulary, and WordPress, plus alphabetically sorted custom topics.
+- Added **Create**, **Replace**, and **Delete** controls for each note type format. Replacement requires an explicit selection and confirmation, keeps existing notes and fields, and adds missing kit fields. Deletion is available only for empty note types; uncreated custom topic rows can also be removed.
+- Added a Desktop editor inline-code button and configurable shortcut for formatting selections or words, toggling existing code formatting, and starting an empty code span.
+- Added Desktop editor indentation, inline-code space normalization, source HTML copying, and external rich-text paste cleanup, each controlled through settings.
+- Added physical Control shortcuts for the Desktop editor's Cloze buttons on macOS, leaving Command+Shift+C available for inline code.
+- Added separate customizable Desktop editor field and UI stylesheets in `user_files`, with enable switches and **View Stylesheet** buttons.
+- Added hover help for settings, Markdown help and About content, a rendered changelog, and buttons linking to the GitHub help, repository, and changelog.
+- Added the shared MesloLGL NF font, bundled card and editor assets, an add-on packaging script, and asset path checks.
+
+### Changed
+
+- Renamed the project from `Anki Global Extension` to `Anki Global Kit`.
+- Updated card and editor typography, responsive layouts, light and dark palettes, toolbar styling, code blocks, and comparison panels using shared styles and color variables.
+- Bundled answer comparison and syntax highlighting with the kit's card assets, removing the need for a separate `_diff_match_patch.js` file or external syntax-highlighting script.
+- Updated ordered and unordered list conversion to change only the outermost selected list level while preserving child indentation and list styles. Formatting plain indented text preserves indentation and starts ordered numbering at one for each nested list.
+- Standardized macOS shortcut labels and modifier handling, including support for remapped keys and configurable list and blockquote shortcuts.
+- Renamed the Note Types action to **Update Selected Note Types**, grouped actions by card format, and kept table headings visible while scrolling. Existing note types are detected when settings open; pending checkbox selections are cleared across restarts while custom topics are retained.
+- Improved settings colors, spacing, section backgrounds, help indicators, shortcut warning layout, and keyboard navigation. **Save** receives focus when settings open or tabs change, and **Restore Defaults** is disabled when settings already match their defaults.
+- Reorganized card, Desktop editor, shared assets, runtime template parts, and settings modules, with separate build outputs and a single canonical changelog included in the add-on package.
+- Expanded CI to run script, style, and documentation linting, formatting checks, asset validation, and a build freshness check before the test suites.
+- Declared the supported Node.js versions in the package metadata and documented the recommended Node.js 24 and Python 3.13 development toolchain.
+- Raised the minimum supported Anki Desktop version to **26.05**, whose bundled browser supports the kit's current CSS features. Packaged add-ons declare this minimum in their manifest.
+
+## [0.10.0] - 2025-04-02
 
 ### Changed
 
 - Changed project name from `Anki Global Features` to `Anki Global Extension`
 
-## [0.6.0] - 2025-01-23
+## [0.9.0] - 2025-01-23
 
 ### Added
 
-- Added screenshots and more details to README.
+- Added screenshots and more details to `README.md`.
 
 ### Changed
 
@@ -24,23 +60,37 @@ All notable changes to this project are documented in this file.
 - Refactored `balanceQuestionLines()` function.
 - Updated CSS margins and paddings for card styles.
 
-## [0.5.0] - 2024-12-10
+## [0.8.0] - 2024-12-10
 
-- Simplified `pre` and `code` colors
+### Changed
 
-## [0.4.0] - 2024-12-09
+- Simplified `pre` and `code` colors.
 
-- Fixed DOM div creation for comparison answers.
+## [0.7.0] - 2024-12-09
+
+### Changed
+
 - Updated global style link color.
 - Updated global style max widths.
 
-## [0.3.0] - 2024-12-04
+### Fixed
+
+- Fixed DOM div creation for comparison answers.
+
+## [0.6.0] - 2024-12-04
+
+### Added
 
 - Added bonus question title and type hint to card back.
 
-## [0.2.0] - 2024-12-01
+## [0.5.0] - 2024-12-01
+
+### Added
 
 - Added note-types stylings CSS.
+
+### Changed
+
 - Updated HTML/JS to create side-by-side answer comparisons.
 - Updated CSS design system to use a simple hue value to change colors between programming languages:
 
@@ -60,42 +110,42 @@ All notable changes to this project are documented in this file.
 | PHP          | 273       |
 | CSS          | 299       |
 
-## [0.1.3] - 2024-08-10
+## [0.4.0] - 2024-08-10
 
 ### Added
 
-- Moved Move Syntax Highlighting Addon styles to their own stylesheet.
 - Added `@import url('_styles_for_syntax_highlighting.css')` to card stylesheets.
+
+### Changed
+
+- Moved Move Syntax Highlighting Addon styles to their own stylesheet.
 - Updated `.gitignore` to allow all `/assets` files to be committed.
-
-### Updated
-
 - Updated `CHANGELOG.md` title
 - Updated `README.md` content.
 - Updated `_global.js` main function as an IIFE.
 
-## [0.1.2] - 2024-05-08
+## [0.3.0] - 2024-05-08
 
 ### Added
 
-- Merged Anki Advanced Types Cards and Anki Global Card Styles into one repo for all Anki Global Features:
+- Merged Anki Advanced Types Cards and Anki Global Card Styles into one repo for all **Anki Global Features**:
   - Added `assets/screenshots/download-file-button.png`
   - Added `assets/card-styles/*.css` files
   - Added `collection.media/_global.css` file
   - Added `collection.media/_inconsolata*` files
 
-### Updated
+### Changed
 
 - Formatted JS and CSS files.
 - Updated global CSS topic header to remove spacing and rounding.
 
-## [0.1.1] - 2023-08-14
+## [0.2.0] - 2023-08-14
 
 ### Added
 
 - MIT License
 
-## [>0.1.1]
+## [0.1.0]
 
 ### Added
 

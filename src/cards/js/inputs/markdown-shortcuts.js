@@ -1,0 +1,393 @@
+import { matchesKeyboardShortcut as matchesMarkdownShortcut } from '../../../shared/js/keyboard-shortcuts.js';
+
+export { matchesMarkdownShortcut };
+
+/**
+ * Toggle Markdown block formatting while preserving selected list hierarchies.
+ */
+export function toggleMarkdownBlock(textarea, format) {
+  const value = textarea.value;
+  const selectionStart = textarea.selectionStart;
+  const selectionEnd = textarea.selectionEnd;
+  const blockStart = selectionStart === 0 ? 0 : value.lastIndexOf('\n', selectionStart - 1) + 1;
+  const selectionIncludesLineBreak = selectionEnd > selectionStart && value[selectionEnd - 1] === '\n';
+  const nextLineStart = value.indexOf('\n', selectionEnd);
+  const blockEnd = selectionIncludesLineBreak ? selectionEnd - 1 : nextLineStart === -1 ? value.length : nextLineStart;
+  const lines = value.slice(blockStart, blockEnd).split('\n');
+  const patterns = {
+    'unordered-list': /^([-*+])\s+/,
+    'ordered-list': /^\d+\.\s+/,
+    blockquote: /^>\s?/,
+  };
+  const pattern = patterns[format];
+  if (!pattern) return;
+
+  const prefixPatterns = [
+    ['unordered-list', /^[-*+]\s+/],
+    ['ordered-list', /^\d+\.\s+/],
+    ['blockquote', /^>\s?/],
+  ];
+  const getPrefixMarkers = (line) => {
+    const markers = [];
+    let offset = line.match(/^[ \t]*/)[0].length;
+    while (offset < line.length) {
+      const remaining = line.slice(offset);
+      const match = prefixPatterns
+        .map(([type, markerPattern]) => ({ type, match: remaining.match(markerPattern) }))
+        .find(({ match: markerMatch }) => markerMatch);
+      if (!match) break;
+      markers.push({ type: match.type, start: offset, end: offset + match.match[0].length });
+      offset += match.match[0].length;
+    }
+    return markers;
+  };
+  const removeMarker = (line, type) => {
+    const marker = getPrefixMarkers(line).find((candidate) => candidate.type === type);
+    return marker ? line.slice(0, marker.start) + line.slice(marker.end) : line;
+  };
+  const isListFormat = format === 'unordered-list' || format === 'ordered-list';
+  const lineInfo = lines.map((line) => {
+    const indentation = line.match(/^[ \t]*/)[0];
+    const markers = getPrefixMarkers(line);
+    return {
+      indentation,
+      depth: indentation.replace(/\t/g, '    ').length,
+      markers,
+      isListItem: markers.some((marker) => marker.type === 'unordered-list' || marker.type === 'ordered-list'),
+    };
+  });
+  const hasListItems = lineInfo.some((info) => info.isListItem);
+  const selectedListDepth = hasListItems
+    ? Math.min(...lineInfo.filter((info) => info.isListItem).map((info) => info.depth))
+    : 0;
+  const eligible = lines.map(
+    (line, index) =>
+      !isListFormat ||
+      ((line.trim().length > 0 || (lines.length === 1 && selectionStart === selectionEnd)) &&
+        (!hasListItems || lineInfo[index].depth === selectedListDepth)),
+  );
+  const shouldRemove = lines.every(
+    (line, index) => !eligible[index] || lineInfo[index].markers.some((marker) => marker.type === format),
+  );
+  const listIndexes = new Map();
+  const formattedLines = lines.map((line, index) => {
+    if (!eligible[index]) return line;
+    const { indentation, depth, markers } = lineInfo[index];
+    const hasMarker = markers.some((marker) => marker.type === format);
+    if (shouldRemove) return removeMarker(line, format);
+    if (format === 'unordered-list') {
+      return hasMarker ? line : `${indentation}- ${removeMarker(line, 'ordered-list').slice(indentation.length)}`;
+    }
+    if (format === 'ordered-list') {
+      // Start each nested list at one, then resume its parent's numbering.
+      for (const previousDepth of listIndexes.keys()) {
+        if (previousDepth > depth) listIndexes.delete(previousDepth);
+      }
+      const listIndex = (listIndexes.get(depth) || 0) + 1;
+      listIndexes.set(depth, listIndex);
+      const withoutExistingList = removeMarker(removeMarker(line, 'unordered-list'), 'ordered-list');
+      return `${indentation}${listIndex}. ${withoutExistingList.slice(indentation.length)}`;
+    }
+    return hasMarker ? line : `${indentation}> ${line.slice(indentation.length)}`;
+  });
+  const replacement = formattedLines.join('\n');
+  textarea.setRangeText(replacement, blockStart, blockEnd, 'end');
+  textarea.selectionStart = blockStart + replacement.length;
+  textarea.selectionEnd = textarea.selectionStart;
+  textarea.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+/** Continue or exit a Markdown list when Enter is pressed at the line end. */
+export function handleMarkdownListEnter(textarea, event) {
+  if (
+    event.key !== 'Enter' ||
+    event.shiftKey ||
+    event.ctrlKey ||
+    event.metaKey ||
+    event.altKey ||
+    event.isComposing ||
+    textarea.selectionStart !== textarea.selectionEnd
+  ) {
+    return false;
+  }
+
+  const value = textarea.value;
+  const caret = textarea.selectionStart;
+  const lineStart = value.lastIndexOf('\n', caret - 1) + 1;
+  const lineEndIndex = value.indexOf('\n', caret);
+  const lineEnd = lineEndIndex === -1 ? value.length : lineEndIndex;
+  if (caret !== lineEnd) return false;
+
+  const line = value.slice(lineStart, lineEnd);
+  const unorderedMatch = line.match(/^(\s*)([-*+])\s+(.*)$/);
+  const orderedMatch = line.match(/^(\s*)(\d+)\.\s+(.*)$/);
+  const match = unorderedMatch || orderedMatch;
+  if (!match) return false;
+
+  const [, indentation, marker, content] = match;
+  if (!content.trim()) {
+    textarea.setRangeText('\n', lineStart, lineEnd, 'end');
+  } else {
+    const nextMarker = unorderedMatch ? marker : `${Number(marker) + 1}.`;
+    textarea.setRangeText(`\n${indentation}${nextMarker} `, caret, caret, 'end');
+  }
+  textarea.dispatchEvent(new Event('input', { bubbles: true }));
+  event.preventDefault();
+  return true;
+}
+
+/**
+ * Toggle Markdown markers around the current textarea selection.
+ */
+export function toggleMarkdownFormatting(textarea, prefix, suffix) {
+  let start = textarea.selectionStart;
+  let end = textarea.selectionEnd;
+  const value = textarea.value;
+  const isAsteriskStyle = prefix === suffix && (prefix === '*' || prefix === '**');
+  const countStarsBefore = (position) => {
+    let count = 0;
+    while (value[position - count - 1] === '*') count++;
+    return count;
+  };
+  const countStarsAfter = (position) => {
+    let count = 0;
+    while (value[position + count] === '*') count++;
+    return count;
+  };
+  const matchingAsteriskWrapper = (rangeStart, rangeEnd) => {
+    const before = countStarsBefore(rangeStart);
+    const after = countStarsAfter(rangeEnd);
+    return before === after && (prefix === '**' ? before >= 2 : before === 1 || before >= 3);
+  };
+
+  // Formatting leaves the caret after the closing markers. Resolve that
+  // boundary to the contents so the next invocation can remove the wrapper.
+  if (start === end && value.slice(start - suffix.length, start) === suffix) {
+    if (isAsteriskStyle) {
+      const closingLength = countStarsBefore(start);
+      const closingStart = start - closingLength;
+      const openingEnd = closingStart > 0 ? value.lastIndexOf('*', closingStart - 1) + 1 : 0;
+      if (openingEnd > 0 && matchingAsteriskWrapper(openingEnd, closingStart)) {
+        start = end = closingStart;
+      } else if (openingEnd === 0 && closingLength === prefix.length + suffix.length) {
+        // An empty pair has no separate opening and closing runs.
+        start = end = start - suffix.length;
+      }
+    } else {
+      const closingStart = start - suffix.length;
+      const openingStart = value.lastIndexOf(prefix, closingStart - prefix.length);
+      if (
+        openingStart >= 0 &&
+        openingStart + prefix.length <= closingStart &&
+        !value.slice(openingStart + prefix.length, closingStart).includes(prefix)
+      ) {
+        start = end = closingStart;
+      }
+    }
+  }
+
+  // First recognize an empty pair at the caret. This must happen before word
+  // detection, otherwise the marker characters can be mistaken for a word.
+  let isEmptyAsteriskSyntax = false;
+  if (start === end) {
+    let emptyWrapperStart = -1;
+    let emptyWrapperEnd = -1;
+
+    if (isAsteriskStyle) {
+      const before = countStarsBefore(start);
+      const after = countStarsAfter(end);
+      isEmptyAsteriskSyntax = before > 0 && before === after;
+      if (before > 0 && before === after && matchingAsteriskWrapper(start, end)) {
+        emptyWrapperStart = start - prefix.length;
+        emptyWrapperEnd = end + suffix.length;
+      }
+    } else if (
+      value.slice(start - prefix.length, start) === prefix &&
+      value.slice(end, end + suffix.length) === suffix
+    ) {
+      emptyWrapperStart = start - prefix.length;
+      emptyWrapperEnd = end + suffix.length;
+    } else {
+      // Also tolerate a webview placing the caret just outside a new empty pair.
+      const emptySyntax = `${prefix}${suffix}`;
+      if (value.slice(start - emptySyntax.length, start) === emptySyntax) {
+        emptyWrapperStart = start - emptySyntax.length;
+        emptyWrapperEnd = start;
+      } else if (value.slice(start, start + emptySyntax.length) === emptySyntax) {
+        emptyWrapperStart = start;
+        emptyWrapperEnd = start + emptySyntax.length;
+      }
+    }
+
+    if (emptyWrapperStart >= 0) {
+      textarea.setRangeText('', emptyWrapperStart, emptyWrapperEnd, 'end');
+      textarea.selectionStart = textarea.selectionEnd = emptyWrapperStart;
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      return;
+    }
+  }
+
+  // A selection may include the markers themselves; treat that like selecting
+  // the formatted text inside them.
+  const selectedText = value.slice(start, end);
+  const selectedHasMarkers = end > start && selectedText.startsWith(prefix) && selectedText.endsWith(suffix);
+  let contentStart = selectedHasMarkers ? start + prefix.length : start;
+  let contentEnd = selectedHasMarkers ? end - suffix.length : end;
+  let hasMarkers = selectedHasMarkers;
+  let markerCheckStart = contentStart;
+  let markerCheckEnd = contentEnd;
+  let enclosedAsteriskWrapper = false;
+
+  // A caret anywhere inside an asterisk-wrapped span should operate on that
+  // span, not mistake its surrounding markers for part of the current word.
+  if (isAsteriskStyle && start === end && !selectedHasMarkers) {
+    const lastOpeningStar = value.lastIndexOf('*', start - 1);
+    const firstClosingStar = value.indexOf('*', start);
+    if (lastOpeningStar >= 0 && firstClosingStar >= 0) {
+      let openingStart = lastOpeningStar;
+      let closingEnd = firstClosingStar + 1;
+      while (value[openingStart - 1] === '*') openingStart--;
+      while (value[closingEnd] === '*') closingEnd++;
+
+      const openingLength = lastOpeningStar - openingStart + 1;
+      const closingLength = closingEnd - firstClosingStar;
+      const wrapperContentStart = openingStart + openingLength;
+      const wrapperContentEnd = firstClosingStar;
+      const content = value.slice(wrapperContentStart, wrapperContentEnd);
+
+      if (
+        openingLength === closingLength &&
+        wrapperContentStart <= start &&
+        wrapperContentEnd >= start &&
+        !content.includes('*')
+      ) {
+        enclosedAsteriskWrapper = true;
+        contentStart = wrapperContentStart;
+        contentEnd = wrapperContentEnd;
+        markerCheckStart = contentStart;
+        markerCheckEnd = contentEnd;
+        hasMarkers = prefix === '**' ? openingLength >= 2 : openingLength === 1 || openingLength >= 3;
+      }
+    }
+  }
+
+  // Recognize a code span or fenced block even when the caret or selection is
+  // somewhere inside its contents rather than directly beside its markers.
+  if (!isAsteriskStyle && !selectedHasMarkers) {
+    const openingStart = value.lastIndexOf(prefix, start - prefix.length);
+    const openingEnd = openingStart + prefix.length;
+    const closingStart = value.indexOf(suffix, Math.max(end, openingEnd));
+
+    if (
+      openingStart >= 0 &&
+      openingEnd <= start &&
+      closingStart >= end &&
+      !value.slice(openingEnd, closingStart).includes(prefix)
+    ) {
+      contentStart = openingEnd;
+      contentEnd = closingStart;
+      markerCheckStart = contentStart;
+      markerCheckEnd = contentEnd;
+      hasMarkers = true;
+    }
+  }
+
+  // With no selection, resolve the word before checking its surrounding syntax.
+  if (start === end && !selectedHasMarkers && !hasMarkers && !isEmptyAsteriskSyntax && !enclosedAsteriskWrapper) {
+    const wordBoundary = /[\s,.]/;
+    let wordStart = start;
+    let wordEnd = end;
+
+    while (wordStart > 0 && !wordBoundary.test(value[wordStart - 1])) wordStart--;
+    while (wordEnd < value.length && !wordBoundary.test(value[wordEnd])) wordEnd++;
+
+    if (wordStart !== wordEnd) {
+      contentStart = wordStart;
+      contentEnd = wordEnd;
+      markerCheckStart = wordStart;
+      markerCheckEnd = wordEnd;
+    }
+  }
+
+  if (!hasMarkers) {
+    if (isAsteriskStyle) {
+      hasMarkers = matchingAsteriskWrapper(markerCheckStart, markerCheckEnd);
+    } else {
+      hasMarkers =
+        markerCheckStart >= prefix.length &&
+        value.slice(markerCheckStart - prefix.length, markerCheckStart) === prefix &&
+        value.slice(markerCheckEnd, markerCheckEnd + suffix.length) === suffix;
+    }
+  }
+
+  const rangeStart = hasMarkers ? markerCheckStart - prefix.length : contentStart;
+  const rangeEnd = hasMarkers ? markerCheckEnd + suffix.length : contentEnd;
+  const textToKeep = value.slice(contentStart, contentEnd);
+
+  textarea.setRangeText(hasMarkers ? textToKeep : `${prefix}${textToKeep}${suffix}`, rangeStart, rangeEnd, 'end');
+
+  const isEmptyFormatting = !hasMarkers && start === end && textToKeep.length === 0;
+  const selectionStart = hasMarkers
+    ? rangeStart
+    : isEmptyFormatting
+      ? rangeStart + prefix.length
+      : rangeStart + prefix.length + textToKeep.length + suffix.length;
+  const selectionEnd = hasMarkers ? selectionStart + textToKeep.length : selectionStart;
+  textarea.selectionStart = selectionStart;
+  textarea.selectionEnd = selectionEnd;
+  textarea.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+/**
+ * Handle Markdown formatting shortcuts on a question textarea.
+ */
+export function handleMarkdownShortcuts(textarea, event, options = {}) {
+  const { markdownEnabled = true, shortcuts: configuredShortcuts = {} } =
+    typeof options === 'boolean' ? { markdownEnabled: options } : options;
+  if (!markdownEnabled || event.isComposing) return false;
+
+  const isMac = navigator.platform.startsWith('Mac');
+  const shortcuts = {
+    bold: ['Ctrl+B', '**', '**'],
+    italic: ['Ctrl+I', '*', '*'],
+    strikethrough: ['Ctrl+Shift+X', '~~', '~~'],
+    inlineCode: ['Ctrl+Shift+C', '`', '`'],
+    codeBlock: ['CodeBlock+C', '```\n', '\n```'],
+    unorderedList: ['', 'unordered-list'],
+    orderedList: ['', 'ordered-list'],
+    blockquote: ['Ctrl+/', 'blockquote'],
+  };
+  const configured = {
+    ...Object.fromEntries(Object.entries(shortcuts).map(([name, value]) => [name, value[0]])),
+    ...configuredShortcuts,
+  };
+  for (const [name, definition] of Object.entries(shortcuts)) {
+    const [defaultShortcut, prefix, suffix] = definition;
+    const shortcut = configured[name] ?? defaultShortcut;
+    if (!shortcut || !matchesMarkdownShortcut(event, shortcut, isMac)) continue;
+    event.preventDefault();
+    event.stopPropagation();
+    if (name === 'unorderedList' || name === 'orderedList' || name === 'blockquote') {
+      toggleMarkdownBlock(textarea, prefix);
+    } else {
+      toggleMarkdownFormatting(textarea, prefix, suffix);
+    }
+    return true;
+  }
+  return false;
+}
+
+/** Return whether a configured Markdown shortcut will handle macOS Command+Comma. */
+export function hasMacCommandCommaHandler(markdownEnabled, configuredShortcuts) {
+  if (!markdownEnabled) return false;
+  const commandComma = {
+    key: ',',
+    ctrlKey: false,
+    metaKey: true,
+    altKey: false,
+    shiftKey: false,
+  };
+  return Object.values(configuredShortcuts).some(
+    (shortcut) => Boolean(shortcut) && matchesMarkdownShortcut(commandComma, shortcut, true),
+  );
+}

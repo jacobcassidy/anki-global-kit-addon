@@ -1,0 +1,67 @@
+# Publishing the Anki Global Kit add-on
+
+This guide covers publishing the Desktop add-on on AnkiWeb's Shared Add-ons site. The add-on installs card JavaScript, CSS, and fonts into the active profile's `collection.media` folder and provides **Create**, **Replace**, and **Delete** actions for kit note types. Create adds missing types. Replace updates an existing type's first card template and styling only after the user selects the action and confirms; it keeps notes and fields and adds missing kit fields. For standard note types, additional card templates and their associated cards are removed, including those cards' scheduling. The confirmation lists the affected note types, additional template names, and template and card removal counts. Delete is limited to empty types and uncreated custom topics. Add-on updates do not silently change note types already in a collection.
+
+## Before publishing
+
+1. Build the JavaScript and CSS assets from the repository root:
+
+   ```sh
+   npm install
+   npm run build:addon
+   ```
+
+2. Create the upload archive as described below and install it in a clean Anki Desktop 26.05 or later profile. Confirm that its assets are copied into `collection.media` automatically when the profile opens.
+3. Choose **Tools > Anki Global Kit Settings...**, open **Note Types**, select a topic and card format, and choose **Create** for missing types or **Replace** for existing types you want to update. Choose **Update Selected Note Types** and confirm the listed changes.
+4. Add a sample note to each type, sync the profile, and confirm the cards render in AnkiWeb and the mobile clients you support.
+5. Set the AnkiWeb listing's minimum Anki Desktop version to **26.05**, matching `min_point_version: 260500` in `addon/manifest.json`. Keep the listing and manifest aligned when changing the supported minimum. AnkiWeb supplies version limits for downloaded add-ons; the packaged manifest supplies the minimum for installation from a file.
+
+Anki add-ons run on Anki Desktop. Publishing this add-on does not install it on AnkiWeb, AnkiMobile, or AnkiDroid; the installed media and card templates are what sync to those clients.
+
+## Create the upload archive
+
+The repository-root `CHANGELOG.md` is the canonical changelog, and `LICENSE` contains the project's MIT license. From the repository root, build the assets and package the add-on; the packaging script includes both files at the archive root:
+
+```sh
+npm run build:addon
+npm run package:addon
+```
+
+The archive is written to `dist/anki-global-kit.ankiaddon` and contains `__init__.py`, `desktop/`, `shared/`, `config.json`, `manifest.json`, `README.md`, `ABOUT.md`, `HELP.md`, `CHANGELOG.md`, `LICENSE`, `web/`, `templates/`, and `user_files/` at its top level. Runtime note type source parts are in `addon/templates/note-types/parts/{html,script,styling}/`; existing types are updated only through the confirmed Replace action. The package script filters out `__pycache__/`, `.pyc`, and `.DS_Store` files. Do not add an enclosing `addon/` directory.
+
+`addon/config.json` contains release defaults. Anki's local `addon/meta.json` contains installation metadata and saved user settings, including selections and platform-specific shortcuts. It is ignored by Git and excluded from the upload archive; preserve it locally, but do not copy it into a clean installation or use it as release configuration.
+
+Packaging requires every listed top-level file and folder, including the repository-root changelog and license. Missing components or paths with the wrong file/folder type stop packaging before the output archive is opened, leaving any existing archive intact. Restore the reported paths before retrying.
+
+Builds and packaging generate `addon/shared/assets/fonts/_meslolgl-nf-license.txt` from `FONT-LICENSES.md` and all adjacent `licenses/*.txt` files. Python 3 is required for notice generation. The add-on installs this combined attribution and license notice into `collection.media` with the font so the notices sync to other clients. Edit the source notices and regenerate rather than editing the combined file.
+
+Packaging also runs the asset checks available through `npm run check:assets`: card and editor bundles, their source entry points and build outputs, referenced shared icons, configured note type template parts, shared font references, and the font notice and its sources must match the package paths. The combined notice must match its current sources. These checks validate the existing bundles; rebuild them before packaging changes to JavaScript or CSS.
+
+The Anki add-on guide documents the required archive layout and upload process: [Sharing Add-ons](https://addon-docs.ankiweb.net/sharing.html).
+
+## Publish the first listing
+
+1. Sign in to [AnkiWeb](https://ankiweb.net/).
+2. Open [Shared Add-ons](https://ankiweb.net/shared/addons/) and choose the upload option.
+3. Enter the add-on title, description, tags, support link, and minimum/maximum Anki version information requested by the form.
+4. Upload `anki-global-kit.ankiaddon` and submit the listing.
+5. After publication, install the add-on from its AnkiWeb listing in a clean profile and verify the listed download code.
+
+Keep the source repository linked from the listing so users can review the code and find the setup instructions.
+
+## Publish an update
+
+1. Make and review the code changes, then update the repository-root `CHANGELOG.md` and supported Anki version information as needed.
+2. Rebuild the assets with `npm run build:addon`.
+3. Test the built add-on in Anki Desktop. For changes to card behavior, also check a synced collection in the supported web and mobile clients.
+4. Recreate the `.ankiaddon` archive with `npm run package:addon`.
+5. Sign in to the AnkiWeb account that owns the existing listing, open that listing, and use its update option to upload the new archive. Updating the existing listing preserves its identity and download code.
+6. Verify the updated listing and download/install the update in a clean profile.
+
+An add-on update replaces the add-on files for users who update it; it does not automatically update note types that were created previously. If a release changes required template markup or styling, document migration steps and provide a deliberate update action or explain how users can create a fresh note type. Do not silently overwrite a user's edited templates.
+
+## References
+
+- [Anki add-on sharing guide](https://addon-docs.ankiweb.net/sharing.html)
+- [Anki add-on folders](https://addon-docs.ankiweb.net/addon-folders.html)
+- [Anki manual: Add-ons](https://docs.ankiweb.net/addons.html)

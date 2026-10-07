@@ -1,0 +1,21 @@
+{
+  "[css]": {
+    "editor.formatOnSave": false
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.fixAll.stylelint": "explicit"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "prettier.configPath": "prettier.config.js",
+  "search.exclude": {
+    "**.min.css": true,
+    "**.min.js": true
+  },
+  "stylelint.reportDescriptionlessDisables": true,
+  "stylelint.reportInvalidScopeDisables": true,
+  "stylelint.reportNeedlessDisables": true
+}

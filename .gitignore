@@ -1,19 +1,7 @@
-# EXCLUDE EVERYTHING EXCEPT ASSETS LISTED BELOW
-*
-
-# KEEP THE FOLLOWING ROOT COLLECTION.MEDIA FILES
-!README.md
-!CHANGELOG.md
-!LICENSE
-!.gitignore
-!assets/
-!assets/**
-!collection.media/
-!collection.media/_*.css
-!collection.media/_*.woff
-!collection.media/_*.woff2
-!collection.media/_*.js
-
-# EXCLUDE THE FOLLOWING FILES IN ALLOWED DIRECTORIES
-.DS_Store
-assets/audio
+# IGNORE
+.TEMP
+node_modules
+/dist/
+/addon/meta.json
+__pycache__
+*.pyc

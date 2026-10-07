@@ -1,0 +1,8 @@
+{
+  "name": "Anki Global Kit",
+  "package": "anki_global_kit",
+  "author": "Jacob Cassidy",
+  "version": "1.0.0",
+  "min_point_version": 260500,
+  "homepage": "https://github.com/jacobcassidy/anki-global-kit-addon"
+}

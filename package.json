@@ -1,0 +1,73 @@
+{
+  "name": "anki-global-kit",
+  "displayName": "Anki Global Kit",
+  "version": "1.0.0",
+  "description": "A global kit for Anki with features that work across all Anki apps.",
+  "publisher": "jacobcassidy",
+  "author": {
+    "name": "Jacob Cassidy",
+    "email": "hello@jacobcassidy.com",
+    "url": "https://jacobcassidy.com"
+  },
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jacobcassidy/anki-global-kit-addon"
+  },
+  "bugs": {
+    "url": "https://github.com/jacobcassidy/anki-global-kit-addon/issues"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@cassidydc/stylelint-config-w3c-order": "^1.3.1",
+    "@eslint/js": "^10.0.1",
+    "@stylistic/stylelint-config": "^5.0.0",
+    "diff-match-patch": "1.0.5",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.12.0",
+    "eslint-plugin-import-x": "^4.17.1",
+    "globals": "^17.13.0",
+    "jsdom": "^30.1.2",
+    "lefthook": "^2.1.17",
+    "markdownlint-cli2": "^0.23.3",
+    "prettier": "^3.9.9",
+    "prettier-plugin-multiline-arrays": "^4.1.11",
+    "stylelint": "^17.16.0",
+    "stylelint-config-standard": "^40.0.0",
+    "stylelint-declaration-block-no-ignored-properties": "^3.0.0",
+    "stylelint-high-performance-animation": "^2.0.0",
+    "stylelint-order": "^8.1.1",
+    "stylelint-plugin-logical-css": "^2.1.0"
+  },
+  "overrides": {
+    "katex": "0.18.2",
+    "smol-toml": "1.9.0",
+    "source-map-js": "1.2.2"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "lefthook@2.1.17": true,
+    "unrs-resolver@1.12.2": true
+  },
+  "scripts": {
+    "test": "npm run test:scripts && npm run test:python",
+    "test:scripts": "node --test \"scripts/tests/*.test.js\"",
+    "test:python": "python3 -m unittest discover -s scripts/tests -p \"test_*.py\"",
+    "check": "npx prettier . --check",
+    "format": "npx prettier . --write",
+    "lint:docs": "npx markdownlint-cli2 \"**/*.md\"",
+    "lint:docs:fix": "npx markdownlint-cli2 \"**/*.md\" --fix",
+    "lint:scripts": "npx eslint",
+    "lint:scripts:fix": "npx eslint --fix",
+    "lint:styles": "npx stylelint \"**/*.{css,scss}\" --ignore-path .gitignore",
+    "lint:styles:fix": "npx stylelint \"**/*.{css,scss}\" --ignore-path .gitignore --fix",
+    "check:assets": "python3 scripts/check_assets.py",
+    "build": "node scripts/build.js",
+    "build:addon": "node scripts/build.js",
+    "package:addon": "python3 scripts/package_addon.py",
+    "watch": "node scripts/watch.js"
+  },
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
+  }
+}

@@ -1,0 +1,40 @@
+<main class="global-kit-container card-back">
+  <h1 class="topic">Topic</h1>
+
+  <section class="answer-container is-primary">
+    <div class="question">{{cloze:Cloze Question}}</div>
+    <div class="type-hint">{{Type Hint}}</div>
+    <div class="columns answers">
+      <div class="col box user-answer">
+        <div class="box__header">Your Answer</div>
+        <div class="box__content" data-compare="true"></div>
+      </div>
+      <div class="col box reference-answer">
+        <div class="box__header">Card's Answer</div>
+        <div class="box__content">{{cloze:Cloze Question}}</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="answer-container is-bonus">
+    <div class="question">{{Bonus Question}}</div>
+    <div class="type-hint">{{Bonus Type Hint}}</div>
+    <div class="columns answers">
+      <div class="col box user-answer">
+        <div class="box__header">Your Bonus Answer</div>
+        <div class="box__content" data-compare="{{Bonus Compare}}"></div>
+      </div>
+      <div class="col box reference-answer">
+        <div class="box__header">Card's Bonus Answer</div>
+        <div class="box__content">{{Bonus Answer}}</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="notes-container">
+    <div class="box">
+      <div class="box__header">Notes</div>
+      <div class="box__content">{{Notes}}</div>
+    </div>
+  </section>
+</main>

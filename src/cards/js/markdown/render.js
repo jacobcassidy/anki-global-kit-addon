@@ -1,0 +1,138 @@
+/**
+ * Convert common Markdown syntax to safe HTML for the submitted answer.
+ */
+export function markdownToHtml(markdown) {
+  const escapeHtml = (text) =>
+    text.replace(/[&<>"']/g, (character) => {
+      const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+      return entities[character];
+    });
+
+  const renderInline = (text) => {
+    const fragments = [];
+    // Protect code and complete links before formatting surrounding text.
+    // Render link labels separately so Markdown never rewrites the URL.
+    let html = escapeHtml(
+      text.replace(/`([^`]+)`|\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, code, label, url) => {
+        const token = `\u0000${fragments.length}\u0000`;
+        fragments.push(
+          code !== undefined
+            ? `<code>${escapeHtml(code)}</code>`
+            : `<a href="${escapeHtml(url)}">${renderInline(label)}</a>`,
+        );
+        return token;
+      }),
+    );
+
+    html = html
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+      .replace(/\*([^*\n]+)\*/g, '<em>$1</em>')
+      .replace(/_([^_\n]+)_/g, '<em>$1</em>')
+      .replace(/~~([^~]+)~~/g, '<del>$1</del>');
+
+    // Restore protected HTML after formatting the surrounding text.
+    // eslint-disable-next-line no-control-regex
+    html = html.replace(/\u0000(\d+)\u0000/g, (_, index) => fragments[Number(index)]);
+
+    return html;
+  };
+
+  const lines = markdown.replace(/\r\n?/g, '\n').split('\n');
+  const blocks = [];
+  let paragraph = [];
+  let code = [];
+  let inCodeBlock = false;
+  let codeLanguage = '';
+
+  const renderCodeBlock = () => {
+    const languageAttribute = codeLanguage ? ` data-language="${escapeHtml(codeLanguage)}"` : '';
+    blocks.push(`<pre><code${languageAttribute}>${escapeHtml(code.join('\n'))}</code></pre>`);
+    code = [];
+    codeLanguage = '';
+  };
+  const listStack = [];
+
+  const flushParagraph = () => {
+    if (paragraph.length) {
+      blocks.push(`<p>${renderInline(paragraph.join('\n')).replace(/\n/g, '<br>')}</p>`);
+      paragraph = [];
+    }
+  };
+  const closeTopList = () => {
+    const list = listStack.pop();
+    if (list) blocks.push(`</li></${list.type}>`);
+  };
+  const closeLists = () => {
+    while (listStack.length) closeTopList();
+  };
+  const openList = (type, indent) => {
+    blocks.push(`<${type}><li>`);
+    listStack.push({ type, indent });
+  };
+
+  for (const line of lines) {
+    const fence = line.match(/^\s*```(.*)$/);
+    if (fence) {
+      flushParagraph();
+      closeLists();
+      if (inCodeBlock) {
+        renderCodeBlock();
+      } else {
+        codeLanguage = fence[1].trim().split(/\s+/, 1)[0] || '';
+      }
+      inCodeBlock = !inCodeBlock;
+      continue;
+    }
+    if (inCodeBlock) {
+      code.push(line);
+      continue;
+    }
+
+    const heading = line.match(/^\s{0,3}(#{1,6})\s+(.+)$/);
+    const listItem = line.match(/^([ \t]*)(?:([-+*])\s+|(\d+)\.\s+)(.*)$/);
+    const quote = line.match(/^\s*>\s?(.*)$/);
+    if (!line.trim() || heading || listItem || quote) flushParagraph();
+
+    if (!line.trim()) {
+      closeLists();
+    } else if (heading) {
+      closeLists();
+      const level = heading[1].length;
+      blocks.push(`<h${level}>${renderInline(heading[2])}</h${level}>`);
+    } else if (listItem) {
+      const indent = listItem[1].replace(/\t/g, '    ').length;
+      const nextListType = listItem[3] ? 'ol' : 'ul';
+
+      while (listStack.length && indent < listStack[listStack.length - 1].indent) {
+        closeTopList();
+      }
+
+      const currentList = listStack[listStack.length - 1];
+      if (!currentList) {
+        openList(nextListType, indent);
+      } else if (indent > currentList.indent) {
+        // A more-indented item is nested inside the preceding list item.
+        openList(nextListType, indent);
+      } else if (indent === currentList.indent && currentList.type !== nextListType) {
+        closeTopList();
+        openList(nextListType, indent);
+      } else {
+        // Continue the current list at the same indentation.
+        blocks.push('</li><li>');
+      }
+      blocks.push(renderInline(listItem[4]));
+    } else if (quote) {
+      closeLists();
+      blocks.push(`<blockquote><p>${renderInline(quote[1])}</p></blockquote>`);
+    } else {
+      closeLists();
+      paragraph.push(line);
+    }
+  }
+
+  flushParagraph();
+  closeLists();
+  if (inCodeBlock) renderCodeBlock();
+  return blocks.join('\n').replace(/<li>\n/g, '<li>');
+}

@@ -1,228 +1,138 @@
-<!-- TODO: Update README with new design system of using --brand-color-h: xxx; or --brand-color-c: 0; -->
+# Anki Global Kit README
 
-# Anki Global Extension
+![Anki Global Kit logo](docs/branding/anki-global-kit-logo.png)
 
-This project adds advanced features to your [Anki](https://apps.ankiweb.net/) cards that sync across all devices (PC, Web, and Mobile). Hence, the name **Anki Global Extension**.
+Anki Global Kit is an Anki Desktop add-on for creating reusable card templates, formatting typed answers with Markdown, highlighting code, comparing answers, and customizing the Desktop editor.
 
-| Table of Contents             |
-| ----------------------------- |
-| [Screenshots](#screenshots)   |
-| [Features](#features)         |
-| [Installation](#installation) |
-| [Usage](#usage)               |
-| [FAQ](#faq)                   |
-| [Changelog](#changelog)       |
-| [Issues](#issues)             |
+Requires **Anki Desktop 26.05 or later**.
 
-## Screenshots
+Install and configure the kit on Desktop, then sync your collection and media to use its card features in AnkiWeb, AnkiMobile, and AnkiDroid. Editor tools and the settings panel run on Desktop.
 
-### AnkiPC (_in dark mode_)
+For setup details, shortcuts, customization, and troubleshooting, read the [user guide (HELP.md)](addon/HELP.md). The same guide is available in the Anki Global Kit Settings panel's **Help** tab.
 
-![AnkiPC Screenshot](/assets/screenshots/screenshot-ankipc.png)
+## Setup
 
-### AnkiWeb (_in light mode_)
+1. Install [Anki Desktop 26.05 or later](https://apps.ankiweb.net/). Install the kit using its AnkiWeb download code through **Tools > Add-ons > Get Add-ons**, or choose **Install from file** for a packaged `.ankiaddon` file. Restart Anki after installation. See the [Anki add-on instructions](https://docs.ankiweb.net/addons.html); to build a package from this repository, see **Development** below.
+2. Open **Tools > Anki Global Kit Settings... > Note Types**. Check **Create** for the topics and formats you want: **Advance** for question-and-answer cards or **Cloze** for cloze-deletion cards. Use **+** to add a custom topic.
+3. Choose **Update Selected Note Types** and confirm. Add a note using a new type, such as **Python (Advance)** or **CSS (Cloze)**.
+4. Adjust review tools in **Cards** and Desktop editing tools in **Editor**, then choose **Save**.
+5. Sync the collection and media from Desktop, then sync your other devices before reviewing there.
 
-![AnkiWeb Screenshot](/assets/screenshots/screenshot-ankiweb.png)
+The add-on automatically installs or refreshes its managed card scripts, stylesheets, font, and combined font license notice in the active profile when it opens, when you switch profiles, and when you save settings. You do not need to copy media files or card templates manually for newly created kit note types.
+
+### Create and update note types
+
+Built-in topics include Command Line, CSS, Git, JavaScript, PHP, Python, React, Regex, Ruby, TypeScript, Vocabulary, and WordPress. Custom topics use the kit's default styling.
+
+- **Create** adds a missing note type. Existing types are detected and checked automatically.
+- **Replace** updates an existing type's first card template and styling after explicit selection and confirmation. Notes and fields are kept, and missing kit fields are added. For standard note types, additional card templates and their associated cards are removed, including those cards' scheduling. The confirmation lists the affected note types, additional template names, and template and card removal counts.
+- Replacement requires the existing type to match the selected format: a standard note type for **Advance**, or a Cloze note type for **Cloze**. A type's name alone does not determine its format.
+- **Delete** removes an empty note type or an uncreated custom topic. Types containing notes cannot be deleted through this panel.
+
+Choose **Update Selected Note Types** to apply these actions. **Save** applies settings separately; **Cancel** does not undo confirmed note type changes. Pending action checkboxes are not retained across restarts, while custom topics remain available.
+
+The **Note Types** tab lists the available topics and lets you choose which Advance or Cloze types to create, replace, or delete. Use **+** to add a custom topic.
+
+![Note Types settings tab showing topic rows and Create, Replace, and Delete options for Advance and Cloze note types](docs/reference/screenshots/settings-note-types-tab.png)
+
+### Add your first note
+
+For an **Advance** note, fill in **Question** and **Answer**. Enter `yes` in **Compare** to highlight differences between your typed answer and the reference; leave it empty to display the answers separately. **Type Hint**, bonus question and answer fields, and **Notes** are optional. **Bonus Compare** enables comparison for the bonus answer.
+
+For a **Cloze** note, use **Cloze Question** and Anki's cloze-deletion tools. The primary typed answer is compared automatically; bonus fields and notes are optional.
+
+### After an add-on update
+
+Restart Anki Desktop so the updated card assets are installed, then sync the collection and media. Existing note templates are not updated automatically. If you want to apply the latest kit templates, select **Replace** for the relevant types in **Note Types** and confirm.
+
+The shared font now installs as `_meslolgl-nf.woff2` to match Anki's media naming. The kit stylesheets use this filename. If custom CSS or templates reference the old `_mesloLGL-NF.woff2` filename directly, update those references to the lowercase filename, then sync the changes.
+
+Custom topic headings now display braces as literal text. For existing kit note types whose topic names contain `{{…}}`, select **Replace** for the relevant types and confirm to refresh their headings, then sync the collection and media.
 
 ## Features
 
-### Advanced Typed Inputs
+### Typed answers and comparison
 
-Anki has a default input field you can use on the AnkiPC app to type an answer to a card's question. However, it has many limitations and is not available across all apps. Adding the _Advanced Typed Inputs_ setup improves on the default and allows you to use typed answers on all devices. I initially developed this setup specifically for programming reviews, but it can be used for any topic you study.
+- Multiline answer inputs, optional bonus questions, type hints, and notes.
+- Typed answers retained for display on the card back, including AnkiDroid's review flow.
+- Character-by-character answer comparison showing matching text, mistakes, and omissions, with Unicode characters kept intact. Comparison is validated with up to 10,000 characters in each answer and preserves shared text without a fixed answer-length cutoff. Difficult comparisons use a one-second processing budget and may show coarser differences.
+- **Alt+Tab** to indent Markdown list items and physical **Control+Tab** to unindent by default. Enable, disable, or customize each under **Cards → Card Fields → Enable indentation shortcuts**. Alt+Tab indents the current or selected rows by four spaces for Python topics and two otherwise; Control+Tab removes leading indentation. **Tab** and **Shift+Tab** retain native focus navigation.
+- Reveal answers with **Control+Enter** on Windows/Linux Desktop and AnkiWeb, or **Command+Enter** on macOS Desktop.
 
-Advanced Typed Inputs features included:
+### Markdown and code
 
-- **Multiline Typed Inputs** - Anki's default input field only allows a single input line. Advanced Typed Inputs allow you the freedom of adding multiple lines (perfect for code blocks).
+Submitted answers can render headings, paragraphs, line breaks, nested lists, blockquotes, fenced code blocks, inline code, bold, italics, strikethrough, and HTTP(S) links.
 
-<!-- [ADD GIF SCREENSHOT EXAMPLE] -->
+Use the optional formatting toolbar above card inputs or configure shortcuts in **Cards**. Increase indent and decrease indent buttons appear after the ordered list button and before blockquote; they work independently of their shortcut enable switches. Each shortcut and toolbar button can be enabled individually. Word formatting applies to selected text or the word at the caret; applying it again removes the markers. List conversion preserves nested items' indentation and list styles.
 
-- **Infinity Typed Inputs** - Anki's default input field can only be used once per card. Advanced Typed Inputs allow you the freedom to add additional input fields (perfect for when you have a 2-part question).
+Code blocks use the language written after the opening backticks, such as `python`, or infer a language from the topic. Supported languages and aliases include Python, JavaScript/Node, TypeScript, Java, C, C++, C#, SQL, Bash/shell, JSON, Ruby, Go, Rust, and PHP. Comparison and syntax highlighting are bundled with the kit.
 
-> [!NOTE]
-> While the _Infinity Typed Inputs_ feature gives you the ability to add as many inputs as you want on a single card, you'll get the most benefit from your reviews by keeping your cards simple. For me, that means having only one extra optional input per card which can be used for a quick follow-up question or typed code example.
+The **Cards** settings tab controls review-time Markdown formatting shortcuts and indentation behavior.
 
-<!-- [ADD GIF SCREENSHOT EXAMPLE] -->
+![Cards settings tab showing Markdown and indentation shortcut options](docs/reference/screenshots/settings-cards-tab.png)
 
-- **Streamlined Comparison Answers** - Anki currently uses different comparison algorithms for its different Anki apps. This gives you different results depending on which device you're using. _Advanced Typed Inputs_ streamlines this by using a single comparison algorithm, synced across all Anki apps to produce the same comparison results no matter which device you are using.
+### Card presentation
 
-<!-- [ADD GIF SCREENSHOT EXAMPLE] -->
+- Responsive layouts for questions, answers, comparison panels, cloze deletions, hints, bonus sections, and notes.
+- Shared typography and light/dark palettes, including distinct comparison colors.
+- Topic accent colors and customizable card styling through the note type stylesheet.
+- AnkiWeb study menu layout adjustments.
 
-- **Unlimited Comparison Answers** - Like the input fields themselves, Anki limits the comparison answers to just one per card, even if you have multiple inputs for which you would like comparison answers. _Advanced Typed Inputs_ allow you to have unlimited comparison answers per card so you can compare all your multiline typed inputs.
+The front shows the question, typed answer fields, formatting toolbar, and optional hint. On the back, the typed answer appears alongside the card's answer; bonus comparison and notes can appear below. These examples use a Python Advance note in light and dark themes.
 
-<!-- [ADD GIF SCREENSHOT EXAMPLE] -->
+| Front of card                                                                                                                    | Back of card                                                                                                                 |
+| -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| ![Light theme card front with a question, typed answer, and bonus answer input](docs/reference/screenshots/card-front-light.png) | ![Light theme card back with answer comparison, bonus comparison, and notes](docs/reference/screenshots/card-back-light.png) |
+| ![Dark theme card front with a question and typed answer fields](docs/reference/screenshots/card-front-dark.png)                 | ![Dark theme card back with answer comparison, bonus comparison, and notes](docs/reference/screenshots/card-back-dark.png)   |
 
-### Global Card Styles
+### Desktop editor
 
-Anki cards are plain vanilla without any customization. Global Card Styles allows you to set custom default styles for all your cards and then have CSS variable overrides to change specific styles (such as the color) for different card topics.
+- Inline-code formatting through a configurable shortcut and optional toolbar button.
+- Indentation, inline-code space normalization, source HTML copying, and rich-text paste cleanup.
+- List buttons and shortcuts change only the outermost selected list level, preserving child styles and indentation. Plain indented rows become nested lists. **Alt+Tab** and physical **Control+Tab** indent and unindent list items by default. Under **Editor → Editor Fields → Enable indentation shortcuts**, enable, disable, or customize the increase indent and decrease indent shortcuts separately. In plain text, Alt+Tab adds four leading spaces to the current or selected rows and Control+Tab removes leading indentation. The caret stays with the original text. **Tab** and **Shift+Tab** retain native focus navigation.
+- Add or remove a blockquote at the current indentation level with the toolbar button or **Command+/** on macOS (**Control+/** on Windows/Linux).
+- Physical **Control+Shift+C** for Cloze on macOS, leaving the default **Command+Shift+C** shortcut available for inline code.
+- Separate custom stylesheets for editor fields and the surrounding UI. Use **View Stylesheet** in the **Editor** tab to open `user_files/editor-fields.css` or `user_files/editor-ui.css`, then restart Anki after editing. These files are preserved during add-on upgrades.
 
-## Installation
+The **Editor** settings tab controls inline code and indentation shortcuts, paste cleanup, source HTML copying, and custom editor styling.
 
-The initial setup for Anki Global Extension requires the use of the free [AnkiPC](https://apps.ankiweb.net/) app. This means you'll need to use a device running Windows, macOS, or Linux. Once set up, you can use the features on any Anki app.
+![Editor settings tab showing shortcut controls, paste formatting options, and the custom stylesheet setting](docs/reference/screenshots/settings-editor-tab.png)
 
-<!--
-> __Note__: If you only want to add a specific feature, follow the instructions for that feature:
-> - [Advanced Typed Inputs - Installation Instructions]()
-> - [Global Card Styles - Installation Instructions]()
->
-> Otherwise, continue for the complete installation...
--->
+## Templates
 
-### Step 1: Install AnkiPC
+The add-on assembles topic-specific note types from packaged HTML, script, and styling parts. See the [template guide](addon/templates/README.md) and [template parts](addon/templates/note-types/parts/) to inspect or adapt them. Use the settings panel to create note types without assembling templates manually.
 
-- If you don't already have AnkiPC installed, install it now by visiting [Anki](https://apps.ankiweb.net/) and clicking the download button (_available for macOS, Windows, and Linux_).
+## Development
 
-### Step 2: Download the _Anki Global Extension_ files
+Development supports Node.js 22.22.2 or later in the 22.x series, 24.15.0 or later in the 24.x series, and 26.0.0 or later. Node.js 24.15+ and Python 3.13 are the recommended toolchain and match CI. Run these commands from the repository root to install dependencies, build the card and editor assets and combined font notice, check asset paths, and create an installable package:
 
-You have three options for downloading the files:
+```sh
+npm install
+npm run build:addon
+npm run check:assets
+npm run package:addon
+```
 
-1. You can download the files you want individually (see below).
-2. You can download the entire repository as a zip file: [Download Zip](https://github.com/jacobcassidy/anki-global-features/archive/refs/heads/main.zip)
-3. You can clone the repository to your local computer with: `git clone git@github.com:jacobcassidy/anki-global-features.git`
+Install `dist/anki-global-kit.ankiaddon` through Anki Desktop's **Tools > Add-ons > Install from file**, then restart Anki. Use `npm run watch` to rebuild assets while editing; rebuild the package when reinstalling changes.
 
-#### Downloading Individual Files
+Run `npm test` for the JavaScript and Python suites, or `npm run test:scripts` and `npm run test:python` separately. GitHub Actions runs both suites on pushes, pull requests, and manual workflow runs using Node.js 24 and Python 3.13. The suites use Node/jsdom and isolated Qt stubs; live Anki and cross-client release checks are described in the publishing guide.
 
-You can download individual files by going to the file's GitHub page and clicking the small download button...
+Desktop Python code lives under `addon/desktop`, card sources under `src/cards`, editor sources under `src/editor`, and shared sources under `src/shared`. Runtime note type parts live under `addon/templates/note-types/parts`.
 
-![Download Button Screenshot](/assets/screenshots/download-file-button.png)
+See [publishing instructions](docs/dev/PUBLISHING.md) for packaging and AnkiWeb release steps.
 
-The only files required are in the [collection.media](https://github.com/jacobcassidy/anki-global-features/tree/main/collection.media) directory:
+See [development dependency notes](docs/dev/DEPENDENCIES.md) for patched transitive dependency overrides and the remaining `braces` advisory.
 
-| File                                                                                                                                                        | Purpose                                                                                                  |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| [\_global.js](https://github.com/jacobcassidy/anki-global-features/blob/main/collection.media/_global.js)                                                   | Creates the Advanced Typed Inputs feature and shows/hides card details based on individual card data.    |
-| [\_global.css](https://github.com/jacobcassidy/anki-global-features/blob/main/collection.media/_global.css)                                                 | Sets the card styles shared between all cards. Can be overridden with specific card styles.              |
-| [\_diff_match_patch.js](https://github.com/jacobcassidy/anki-global-features/blob/main/collection.media/_diff_match_patch.js)                               | Provides the global answer comparison algorithm                                                          |
-| [\_styles_for_syntax_highlighting.css](https://github.com/jacobcassidy/anki-global-features/blob/main/collection.media/_styles_for_syntax_highlighting.css) | **Optional**: Styles for the [Syntax Highlighting (NG) addon](https://ankiweb.net/shared/info/566351439) |
-| [\_mesloLGL-NF.woff2](https://github.com/jacobcassidy/anki-global-features/blob/main/collection.media/_mesloLGL-NF.woff2)                                   | **Optional**: Mono font file for code display.                                                           |
+## Help and feedback
 
-### Step 3: Move the files to your local _collection.media_ directory
+Read [HELP.md](addon/HELP.md) for settings guidance and common problems, or open the **Help** tab in **Anki Global Kit Settings...**. For an unresolved problem, [report an issue](https://github.com/jacobcassidy/anki-global-kit-addon/issues) with your Anki version, device, and steps to reproduce it. See the [changelog](CHANGELOG.md) for release notes.
 
-After you download the above files, you will need to move them to your local Anki `collection.media` directory [[ref](https://docs.ankiweb.net/files.html#file-locations)]:
+![Help tab in Anki Global Kit Settings with setup steps and guidance for the settings panel](docs/reference/screenshots/setting-help-tab.png)
 
-| OS          | Location                                                           |
-| ----------- | ------------------------------------------------------------------ |
-| **macOS**   | `~/Library/Application Support/Anki2/[username]/collection.media/` |
-| **Windows** | `APPDATA\Anki2\[username]\collection.media\`                       |
-| **Linux**   | `~/.local/share/Anki2/[username]/collection.media/`                |
+## License
 
-> _Note: `[username]` is your Anki profile name. The default profile name is `User 1`._
+[MIT](LICENSE)
 
-<!--
-### Step 4: Sync the files to use on all devices
--->
+The card bundle includes Diff Match Patch under the Apache License 2.0. Its [attribution and full license](addon/web/assets/js/licenses/diff-match-patch.txt) are also embedded in the script that syncs to other clients.
 
-## Usage
-
-### Advanced Typed Inputs
-
-For the Advanced Typed Inputs to work, you must add two things inside the Anki app:
-
-1. You must add the card **fields** you want to use. For example, I use the following fields:
-
-   ```markdown
-   Question
-   Answer
-   Type Hint
-   Compare
-   Bonus Question
-   Bonus Type Hint
-   Bonus Compare
-   Notes
-   ```
-
-2. You need to add HTML (templates provided) to your **Note Types** created under the `Anki > Tools > Manage Note Types` menu. The field names must match what you created above and you must include the script to calls the `_global.js` file.
-
-You can use the default template files found below if you are using the fields above. Otherwise, you will need to make modifications to those templates.
-
-| HTML Template Files                                                                                            | Purpose                                                                |
-| -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| [/assets/note-types/\*.html](https://github.com/jacobcassidy/anki-global-features/tree/main/assets/note-types) | Use in the Anki app under the `Anki > Tools > Manage Note Types` menu. |
-
-### Global Card Styles
-
-For the Global Card Styles to work, you must add two things inside the Anki app:
-
-1. In the card's styling section, you need to the stylesheet imports for the global files.
-2. In the same section, you need to add any overrides you want for that specific card type (aka note type).
-
-You can use the default CSS templates I use and customize them however you see fit...
-
-TO BE UPDATED
-
-<!-- | CSS Template Files | Purpose |
-| -- | -- |
-| [/assets/card-styles/*.css](https://github.com/jacobcassidy/anki-global-features/tree/main/assets/card-styles) | Use for card styling Note Types. | -->
-
-<!-- TODO: ADD...
-
-- Advance type [PHP Example]
-- Cloze type [JavaScript Example]
-
-### How to Use The Advance Typed Inputs
-
-### How to Use the Advance Comparison Answers
-
- ### How to Use The Global Card Designs
-
-- CSS, Git, HTML, JavaScript, NodeJS, PHP, Python, React, Ruby, WordPress
-
-- Using nightmode? Here's how to style your cards
--->
-
-## FAQ
-
-### What is Anki?
-
-If you're unfamiliar with [Anki](https://apps.ankiweb.net/), in a nutshell, it's an open-source digital flashcard system that uses [spaced repetition](https://en.wikipedia.org/wiki/Spaced_repetition) to help you retain knowledge in your long-term memory.
-
-Anki apps are available for the following:
-
-| Device                                                                          | OS                     | Type   |
-| ------------------------------------------------------------------------------- | ---------------------- | ------ |
-| [AnkiPC](https://apps.ankiweb.net/)                                             | Windows, Mac, or Linux | _Free_ |
-| [AnkiWeb](https://ankiweb.net)                                                  | Web                    | _Free_ |
-| [AnkiMobile](https://itunes.apple.com/us/app/ankimobile-flashcards/id373493387) | iOS & iPadOS           | _Paid_ |
-| [AnkiDroid](https://play.google.com/store/apps/details?id=com.ichi2.anki)       | Android                | _Free_ |
-
-### Why not create an Anki plugin to release the Anki Global Extension?
-
-Anki plugins only work with the AnkiPC app and are incompatible across other devices. If that changes, please let me know by opening an [issue](https://github.com/jacobcassidy/anki-global-features/issues).
-
-### Why are the files in the collection.media directory prefixed with an underscore?
-
-Anki has a [Check Media](https://docs.ankiweb.net/media.html#checking-media) feature, which can delete unused media files not contained in any cards. Adding the leading underscore, such as `_global.js`, makes Anki ignore that file so it won't be deleted when using the Check Media feature.
-
-## Changelog
-
-View the [Changelog](https://github.com/jacobcassidy/anki-global-features/blob/main/CHANGELOG.md) to see the latest updates. Currently, you will need to manually copy/paste any changes you want to your local Anki files, then sync the changes through your AnkiPC app.
-
-## Issues
-
-If you come across any issues, please report them [here](https://github.com/jacobcassidy/anki-global-features/issues).
-
-## UNRELEASED
-
-| Language     | Hue Value |
-| ------------ | --------- |
-| RUBY         | 25        |
-| GIT          | 30        |
-| SWIFT        | 35        |
-| HTML         | 40        |
-| RUST         | 45        |
-| SQL          | 50        |
-| JAVASCRIPT   | 100       |
-| COMMAND LINE | 130       |
-| NODE         | 140       |
-| GSAP         | 145       |
-| REACT        | 215       |
-| GO           | 225       |
-| PERL         | 235       |
-| PYTHON       | 245       |
-| C            | 250       |
-| C++          | 255       |
-| TYPESCRIPT   | 260       |
-| WORDPRESS    | 270       |
-| PHP          | 275       |
-| C#           | 280       |
-| CSS          | 300       |
-| REGEX        | 315       |
+The bundled MesloLGL Nerd Font uses Nerd Fonts **v3.5.1** and incorporates upstream works with separate terms. See its [source, conversion instructions, attribution, and license notices](addon/shared/assets/fonts/FONT-LICENSES.md).
