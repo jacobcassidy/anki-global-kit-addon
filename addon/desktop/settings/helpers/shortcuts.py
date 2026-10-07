@@ -64,6 +64,10 @@ def normalize_shortcut(shortcut: str) -> str:
         modifiers = {"Ctrl", "Meta"} if is_mac else {"Ctrl", "Alt"}
     else:
         modifiers = set(parts)
+    # Qt recorders can store the shifted glyph while Anki's default names use
+    # the underlying punctuation key. Both match the same browser key event.
+    if "Shift" in modifiers:
+        key = {"<": ",", ">": "."}.get(key, key)
     order = ("Ctrl", "Meta", "Alt", "Shift")
     return "+".join([*(part for part in order if part in modifiers), key])
 

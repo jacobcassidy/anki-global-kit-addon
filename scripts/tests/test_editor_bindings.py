@@ -43,6 +43,12 @@ class EditorBindingsTests(unittest.TestCase):
         self.assertEqual(len(matches), 1)
         self.assertIs(matches[0].func, integration._change_indentation)
 
+    def test_shifted_glyph_alias_does_not_create_a_second_native_handler(self):
+        integration, bindings = self.bindings({"anki_editor_inline_code_shortcut": "Ctrl+Shift+>"})
+        matches = [callback for keys, callback in bindings
+                   if integration.normalize_shortcut(keys) == "Ctrl+Shift+."]
+        self.assertEqual(len(matches), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
