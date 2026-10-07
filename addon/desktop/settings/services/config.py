@@ -32,6 +32,14 @@ def get_settings() -> dict[str, object]:
 
 def get_editor_settings() -> dict[str, object]:
     settings = _read_settings(editor=True)
+    for name in (
+        "anki_editor_inline_code_shortcut",
+        "anki_editor_indent_increase_shortcut",
+        "anki_editor_indent_decrease_shortcut",
+    ):
+        if settings[name].startswith("CodeBlock+"):
+            modifiers = "Ctrl+Meta" if is_mac else "Ctrl+Alt"
+            settings[name] = f"{modifiers}+{settings[name].split('+', 1)[1]}"
     for name in ("anki_editor_indent_increase_shortcut", "anki_editor_indent_decrease_shortcut"):
         settings[name] = settings[name].replace("Control+", "Meta+" if is_mac else "Ctrl+")
     return settings

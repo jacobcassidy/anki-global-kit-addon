@@ -67,6 +67,7 @@ class CardShortcutInputTests(unittest.TestCase):
             spec = importlib.util.spec_from_file_location("kit.desktop.settings.ui.widgets", path)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
+        self.module = module
         self.input = module.CardShortcutInput.__new__(module.CardShortcutInput)
         self.input.label = ""
         self.input._capturing = True
@@ -103,6 +104,24 @@ class CardShortcutInputTests(unittest.TestCase):
         for label, expected in (("⌥Tab", "Alt+Tab"), ("⌃Tab", "Meta+Tab")):
             self.input.label = label
             self.assertEqual(self.input.stored_shortcut(), expected)
+
+    def test_editor_combinations_remain_native_qt_shortcuts(self):
+        for mac, label, expected in (
+            (True, "⌃⌘C", "Ctrl+Meta+C"),
+            (False, "Ctrl+Alt+C", "Ctrl+Alt+C"),
+        ):
+            with self.subTest(mac=mac):
+                self.module.is_mac = mac
+                self.input.label = label
+                self.assertEqual(self.input.stored_shortcut(), expected)
+
+    def test_only_card_code_block_field_uses_portable_alias(self):
+        self.input._code_block_alias = True
+        for mac, label in ((True, "⌃⌘C"), (False, "Ctrl+Alt+C")):
+            with self.subTest(mac=mac):
+                self.module.is_mac = mac
+                self.input.label = label
+                self.assertEqual(self.input.stored_shortcut(), "CodeBlock+C")
 
 
 if __name__ == "__main__":
