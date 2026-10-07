@@ -31,7 +31,7 @@ The archive is written to `dist/anki-global-kit.ankiaddon` and contains `__init_
 
 `addon/config.json` contains release defaults. Anki's local `addon/meta.json` contains installation metadata and saved user settings, including selections and platform-specific shortcuts. It is ignored by Git and excluded from the upload archive; preserve it locally, but do not copy it into a clean installation or use it as release configuration.
 
-Packaging requires every listed top-level file and folder, including the repository-root changelog and license. Missing components or paths with the wrong file/folder type stop packaging before the output archive is opened, leaving any existing archive intact. Restore the reported paths before retrying.
+Packaging requires every listed top-level file and folder, including the repository-root changelog and license, plus `user_files/README.txt`, `user_files/editor-fields.css`, and `user_files/editor-ui.css`. Missing components or paths with the wrong file/folder type stop packaging before the output archive is opened, leaving any existing archive intact. Restore the reported paths before retrying.
 
 Builds and packaging generate `addon/shared/assets/fonts/_meslolgl-nf-license.txt` from `FONT-LICENSES.md` and all adjacent `licenses/*.txt` files. Python 3 is required for notice generation. The add-on installs this combined attribution and license notice into `collection.media` with the font so the notices sync to other clients. Edit the source notices and regenerate rather than editing the combined file.
 

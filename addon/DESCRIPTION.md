@@ -55,7 +55,8 @@ The **Note Types** tab lets you create missing kit types without assembling temp
 
 ## Make Desktop editing easier
 
-- Format inline code, lists, and blockquotes with toolbar buttons or configurable shortcuts.
+- Format inline code, lists, and blockquotes with toolbar buttons.
+- Customize inline-code and indentation shortcuts. List and blockquote shortcuts use fixed keys.
 - Adjust indentation and clean up rich-text pastes.
 - Copy source HTML and normalize spaces in inline code.
 - Customize editor field and interface styles with your own stylesheets.
