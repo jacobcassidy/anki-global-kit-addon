@@ -1,5 +1,7 @@
 """Shared settings defaults, paths, and Qt styling constants."""
 
+import json
+
 from aqt.utils import is_mac
 
 from .asset_manifest import ADDON_DIR
@@ -7,7 +9,7 @@ from .asset_manifest import ADDON_DIR
 USER_FILES_DIR = ADDON_DIR / "user_files"
 SHARED_ASSET_DIR = ADDON_DIR / "shared" / "assets" / "icons"
 ADDON_PACKAGE_NAME = __package__.split(".", maxsplit=1)[0]
-VERSION = "1.0.0"
+VERSION = json.loads((ADDON_DIR / "manifest.json").read_text(encoding="utf-8"))["version"]
 SECTION_SPACING = 24
 MARKDOWN_BLOCK_SPACING = 12
 TAB_SECTION_TITLE_TOP_PADDING = 12
