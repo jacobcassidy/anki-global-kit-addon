@@ -1,21 +1,12 @@
 import { matchesKeyboardShortcut } from '../../../shared/js/keyboard-shortcuts.js';
 import { getEditorSelection, getFieldInputSelection } from '../helpers/selection.js';
 import { getEditorSettings } from '../settings.js';
+import { editWithNativeUndo } from '../helpers/edit-transaction.js';
 
 const FIELD = 'anki-editable,[contenteditable="true"]';
 const BLOCK = 'li,div,p,pre,h1,h2,h3,h4,h5,h6,blockquote';
 const isList = (node) => node?.matches?.('ul,ol');
 const elementOf = (node) => (node?.nodeType === 1 ? node : node?.parentElement);
-const BOUNDARY = '[data-anki-global-kit-edit-boundary]';
-const trackedFields = new WeakSet();
-
-function clonePoint(field, clone, node, offset) {
-  const path = [];
-  for (let current = node; current !== field; current = current.parentNode) {
-    path.unshift([...current.parentNode.childNodes].indexOf(current));
-  }
-  return [path.reduce((current, index) => current.childNodes[index], clone), offset];
-}
 
 function textOffset(root, node, offset) {
   const range = document.createRange();
@@ -262,77 +253,47 @@ export function toggleEditorBlock(format) {
   if (!field || field.closest('.cm-editor') || !field.contains(range.endContainer)) return false;
   const start = textOffset(field, range.startContainer, range.startOffset);
   const end = textOffset(field, range.endContainer, range.endOffset);
-  const clone = field.cloneNode(true);
-  const startPoint = clonePoint(field, clone, range.startContainer, range.startOffset);
-  const endPoint = clonePoint(field, clone, range.endContainer, range.endOffset);
-  normalizeRows(clone);
-  normalizeLists(clone);
-  const cloneRange = document.createRange();
-  const resolvePoint = (point, offset) =>
-    point[0] !== clone && clone.contains(point[0])
-      ? [
-          point[0],
-          Math.min(point[1], point[0].nodeType === Node.TEXT_NODE ? point[0].length : point[0].childNodes.length),
-        ]
-      : boundaryAt(clone, offset);
-  cloneRange.setStart(...resolvePoint(startPoint, start));
-  cloneRange.setEnd(...resolvePoint(endPoint, end));
-  const points = [cloneRange.startContainer, cloneRange.endContainer].map((node, index) => ({
-    node,
-    offset: index ? cloneRange.endOffset : cloneRange.startOffset,
-    length: node.nodeType === Node.TEXT_NODE ? node.length : 0,
-  }));
-  if (!formatBlockContent(clone, cloneRange, format)) return false;
-  const offsets = points.map(({ node, offset, length }) =>
-    clone.contains(node)
-      ? textOffset(
+  return Boolean(
+    editWithNativeUndo(field, selection, (clone, stagedSelection) => {
+      const stagedRange = stagedSelection.getRangeAt(0);
+      const startPoint = [stagedRange.startContainer, stagedRange.startOffset];
+      const endPoint = [stagedRange.endContainer, stagedRange.endOffset];
+      normalizeRows(clone);
+      normalizeLists(clone);
+      const cloneRange = document.createRange();
+      const resolvePoint = (point, offset) =>
+        point[0] !== clone && clone.contains(point[0])
+          ? [
+              point[0],
+              Math.min(point[1], point[0].nodeType === Node.TEXT_NODE ? point[0].length : point[0].childNodes.length),
+            ]
+          : boundaryAt(clone, offset);
+      cloneRange.setStart(...resolvePoint(startPoint, start));
+      cloneRange.setEnd(...resolvePoint(endPoint, end));
+      const points = [cloneRange.startContainer, cloneRange.endContainer].map((node, index) => ({
+        node,
+        offset: index ? cloneRange.endOffset : cloneRange.startOffset,
+        length: node.nodeType === Node.TEXT_NODE ? node.length : 0,
+      }));
+      if (!formatBlockContent(clone, cloneRange, format)) return false;
+      const offsets = points.map(({ node, offset, length }) =>
+        clone.contains(node)
+          ? textOffset(
+              clone,
+              node,
+              node.nodeType === Node.TEXT_NODE ? Math.max(0, offset - (length - node.length)) : offset,
+            )
+          : start,
+      );
+      stagedSelection.addRange(
+        rangeAt(
           clone,
-          node,
-          node.nodeType === Node.TEXT_NODE ? Math.max(0, offset - (length - node.length)) : offset,
-        )
-      : start,
+          ...offsets,
+          points.map(({ offset }) => offset === 0),
+        ),
+      );
+    }),
   );
-  field.focus();
-  // Blink otherwise keeps the old outer UL/OL when replacing an entire list.
-  // Invisible inline boundaries force replacement to include that container.
-  // Native undo restores the boundaries too, so remove them before Anki's input
-  // listener reads the field. Redo still uses the browser's original transaction.
-  if (!trackedFields.has(field)) {
-    trackedFields.add(field);
-    field.addEventListener(
-      'input',
-      () => {
-        for (const boundary of field.querySelectorAll(BOUNDARY)) boundary.remove();
-      },
-      true,
-    );
-  }
-  const firstBoundary = document.createElement('span');
-  firstBoundary.setAttribute('data-anki-global-kit-edit-boundary', '');
-  firstBoundary.textContent = '\u2060';
-  field.prepend(firstBoundary);
-  field.append(firstBoundary.cloneNode(true));
-  const replacement = document.createRange();
-  replacement.selectNodeContents(field);
-  selection.removeAllRanges();
-  selection.addRange(replacement);
-  // execCommand is the editor's native editing primitive. Direct DOM replacement
-  // would bypass its undo history and input notification.
-  if (!document.execCommand('insertHTML', false, clone.innerHTML)) {
-    for (const boundary of field.querySelectorAll(BOUNDARY)) boundary.remove();
-    selection.removeAllRanges();
-    selection.addRange(range);
-    return false;
-  }
-  selection.removeAllRanges();
-  selection.addRange(
-    rangeAt(
-      field,
-      ...offsets,
-      points.map(({ offset }) => offset === 0),
-    ),
-  );
-  return true;
 }
 
 /** Native shortcuts share the same row actions as browser keyboard events. */
