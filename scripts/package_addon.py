@@ -53,7 +53,11 @@ def package_files() -> list[Path]:
     files = []
     for item in PACKAGE_PATHS:
         path = ADDON_ROOT / item
-        if path.is_file():
+        if item == "user_files":
+            # A development link shares this directory with the live add-on.
+            # Ship the supplied templates without collecting local user data.
+            files.extend(ADDON_ROOT / name for name in REQUIRED_USER_FILES)
+        elif path.is_file():
             files.append(path)
         elif path.is_dir():
             files.extend(

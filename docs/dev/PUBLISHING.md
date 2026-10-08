@@ -27,7 +27,7 @@ npm run build:addon
 npm run package:addon
 ```
 
-The archive is written to `dist/anki-global-kit.ankiaddon` and contains `__init__.py`, `desktop/`, `shared/`, `config.json`, `manifest.json`, `README.md`, `ABOUT.md`, `HELP.md`, `CHANGELOG.md`, `LICENSE`, `web/`, `templates/`, and `user_files/` at its top level. Runtime note type source parts are in `addon/templates/note-types/parts/{html,script,styling}/`; existing types are updated only through the confirmed Replace action. The package script filters out `__pycache__/`, `.pyc`, and `.DS_Store` files. Do not add an enclosing `addon/` directory.
+The archive is written to `dist/anki-global-kit.ankiaddon` and contains `__init__.py`, `desktop/`, `shared/`, `config.json`, `manifest.json`, `README.md`, `ABOUT.md`, `HELP.md`, `CHANGELOG.md`, `LICENSE`, `web/`, `templates/`, and `user_files/` at its top level. Runtime note type source parts are in `addon/templates/note-types/parts/{html,script,styling}/`; existing types are updated only through the confirmed Replace action. The package script filters out `__pycache__/`, `.pyc`, and `.DS_Store` files. From `user_files/`, it includes only `README.txt`, `editor-fields.css`, and `editor-ui.css`; additional local files and backups are excluded. Do not add an enclosing `addon/` directory.
 
 `addon/config.json` contains release defaults. Anki's local `addon/meta.json` contains installation metadata and saved user settings, including selections and platform-specific shortcuts. It is ignored by Git and excluded from the upload archive; preserve it locally, but do not copy it into a clean installation or use it as release configuration.
 
