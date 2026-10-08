@@ -118,6 +118,14 @@ export function handleMarkdownListEnter(textarea, event) {
   const lineEnd = lineEndIndex === -1 ? value.length : lineEndIndex;
   if (caret !== lineEnd) return false;
 
+  // Match the backtick fences supported by the submitted-answer renderer.
+  // List-like rows inside code must retain literal Enter behavior.
+  let inCodeBlock = false;
+  for (const previousLine of value.slice(0, lineStart).split('\n')) {
+    if (/^\s*```/.test(previousLine)) inCodeBlock = !inCodeBlock;
+  }
+  if (inCodeBlock) return false;
+
   const line = value.slice(lineStart, lineEnd);
   const unorderedMatch = line.match(/^(\s*)([-*+])\s+(.*)$/);
   const orderedMatch = line.match(/^(\s*)(\d+)\.\s+(.*)$/);

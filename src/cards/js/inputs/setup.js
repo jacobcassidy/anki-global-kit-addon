@@ -83,7 +83,7 @@ export function watchQuestionInputs() {
     questionInput.addEventListener(
       'keydown',
       (event) => {
-        if (handleMarkdownListEnter(questionInput, event)) return;
+        if (settings.cardInputMarkdownShortcuts && handleMarkdownListEnter(questionInput, event)) return;
         if (
           handleMarkdownShortcuts(questionInput, event, {
             markdownEnabled: settings.cardInputMarkdownShortcuts,

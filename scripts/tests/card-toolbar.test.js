@@ -109,3 +109,17 @@ test('individual shortcut and toolbar switches are independent', () => {
     dom.window.close();
   }
 });
+
+test('disabling Markdown shortcuts leaves Enter in list-like text to the textarea', () => {
+  const { dom, input } = card({ card_input_markdown_shortcuts: false });
+  try {
+    input.value = '1. literal text';
+    input.setSelectionRange(input.value.length, input.value.length);
+    const event = new dom.window.KeyboardEvent('keydown', { key: 'Enter', cancelable: true });
+    input.dispatchEvent(event);
+    assert.equal(event.defaultPrevented, false);
+    assert.equal(input.value, '1. literal text');
+  } finally {
+    dom.window.close();
+  }
+});

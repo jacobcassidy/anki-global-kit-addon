@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { toggleMarkdownBlock, toggleMarkdownFormatting } from '../../src/cards/js/inputs/markdown-shortcuts.js';
+import {
+  handleMarkdownListEnter,
+  toggleMarkdownBlock,
+  toggleMarkdownFormatting,
+} from '../../src/cards/js/inputs/markdown-shortcuts.js';
 
 function textarea(value, start, end = start) {
   return {
@@ -220,4 +224,26 @@ test('adding blockquotes preserves existing indented quotes', () => {
   const input = textarea(value, 0, value.length);
   toggleMarkdownBlock(input, 'blockquote');
   assert.equal(input.value, '  > quoted\n    > plain');
+});
+
+for (const value of ['```markdown\n1. literal code', '```\n- literal code', 'text\n  ```markdown\n1. literal code']) {
+  test(`Enter retains literal behavior inside fenced code: ${JSON.stringify(value)}`, () => {
+    const input = textarea(value, value.length);
+    const event = { key: 'Enter', preventDefault: () => assert.fail('Code Enter must remain native') };
+    assert.equal(handleMarkdownListEnter(input, event), false);
+    assert.equal(input.value, value);
+    assert.equal(input.inputEvents, 0);
+  });
+}
+
+test('list continuation resumes after a closed code fence and exits an empty item', () => {
+  const value = '```markdown\n1. literal code\n```\n5. real item';
+  const input = textarea(value, value.length);
+  let prevented = 0;
+  const event = { key: 'Enter', preventDefault: () => prevented++ };
+  assert.equal(handleMarkdownListEnter(input, event), true);
+  assert.equal(input.value, `${value}\n6. `);
+  assert.equal(handleMarkdownListEnter(input, event), true);
+  assert.equal(input.value, `${value}\n\n`);
+  assert.equal(prevented, 2);
 });
