@@ -3,9 +3,11 @@
 import json
 from functools import partial
 from pathlib import Path
+from weakref import WeakSet, ref
 
 from aqt import gui_hooks
 from aqt.editor import Editor
+from aqt.qt import QKeySequence, QShortcut, sip
 
 from ..settings import get_editor_settings
 from ..settings.configs.constants import USER_FILES_DIR
@@ -22,6 +24,7 @@ EDITOR_ASSET = ADDON_DIR / "desktop" / "editor" / "assets" / "js" / "editor.min.
 EDITOR_STYLES_DIR = ADDON_DIR / "desktop" / "editor" / "assets" / "css"
 ICON_ASSET = ADDON_DIR / "shared" / "assets" / "icons" / "code-inline.svg"
 BLOCKQUOTE_ICON = ICON_ASSET.with_name("blockquote.svg")
+_open_editors = WeakSet()
 
 
 def _inject_features(editor: Editor) -> None:
@@ -56,6 +59,9 @@ def _inject_features(editor: Editor) -> None:
         f"{settings});\n"
         f"globalThis.ankiGlobalKitEditorStyles = {styles_json};\n{script}"
         f"\nglobalThis.ankiGlobalKitEditorListLabels = {list_labels};"
+        "\nfor (const button of document.querySelectorAll('[data-command=\"anki_global_kit_inline_code\"]')) {"
+        f"button.title = {json.dumps(_inline_code_tip(editor_settings))};"
+        "}"
     )
 
 
@@ -101,15 +107,19 @@ def _add_button(buttons: list, editor: Editor) -> None:
     settings = get_editor_settings()
     if not settings["anki_editor_inline_code_button"]:
         return
-    tip = "Inline Code"
-    if settings["anki_editor_inline_code_shortcut_enabled"]:
-        tip += f" ({shortcut_label(settings['anki_editor_inline_code_shortcut'])})"
     buttons.append(editor.addButton(
         icon=str(ICON_ASSET),
         cmd="anki_global_kit_inline_code",
         func=_toggle_inline_code,
-        tip=tip,
+        tip=_inline_code_tip(settings),
     ))
+
+
+def _inline_code_tip(settings: dict) -> str:
+    tip = "Inline Code"
+    if settings["anki_editor_inline_code_shortcut_enabled"] and settings["anki_editor_inline_code_shortcut"]:
+        tip += f" ({shortcut_label(settings['anki_editor_inline_code_shortcut'])})"
+    return tip
 
 
 def _add_shortcut(shortcuts: list, editor: Editor) -> None:
@@ -119,27 +129,80 @@ def _add_shortcut(shortcuts: list, editor: Editor) -> None:
     for name, keys in BLOCK_SHORTCUTS.items():
         shortcuts.append((keys, partial(_toggle_block, editor, name)))
     settings = get_editor_settings()
-    configurable = []
+    for keys in _configured_editor_shortcuts(settings).values():
+        normalized = normalize_shortcut(keys)
+        shortcuts[:] = [entry for entry in shortcuts if normalize_shortcut(entry[0]) != normalized]
+    _open_editors.add(editor)
+    if not isinstance(getattr(editor, "_anki_global_kit_shortcuts", None), dict):
+        editor._anki_global_kit_shortcuts = {}
+    _refresh_editor_shortcuts(editor, settings)
+
+
+def _configured_editor_shortcuts(settings: dict) -> dict[str, str]:
+    """Validate saved bindings before registering or refreshing native keys."""
+    configurable = {}
     if settings["anki_editor_inline_code_shortcut_enabled"]:
-        configurable.append((
-            settings["anki_editor_inline_code_shortcut"],
-            partial(_toggle_inline_code, editor),
-        ))
+        configurable["anki_editor_inline_code_shortcut"] = settings["anki_editor_inline_code_shortcut"]
     if settings["anki_editor_tab_indentation"]:
         for action in ("increase", "decrease"):
             key = f"anki_editor_indent_{action}_shortcut"
             if settings[f"{key}_enabled"] and settings[key]:
-                configurable.append((settings[key], partial(_change_indentation, editor, action)))
+                configurable[key] = settings[key]
     registered = set()
-    for keys, callback in configurable:
+    active = {}
+    for name, keys in configurable.items():
         normalized = normalize_shortcut(keys)
         # Saved configuration may predate UI validation or be edited directly.
         # Preserve fixed actions and register each configurable key only once.
         if not keys or editor_fixed_shortcut_action(keys) or normalized in registered:
             continue
         registered.add(normalized)
-        shortcuts[:] = [entry for entry in shortcuts if normalize_shortcut(entry[0]) != normalized]
-        shortcuts.append((keys, callback))
+        active[name] = keys
+    return active
+
+
+def _activate_editor_shortcut(editor_ref, name: str) -> None:
+    editor = editor_ref()
+    if editor is None or sip.isdeleted(editor.widget) or editor.currentField is None:
+        return
+    configured = _configured_editor_shortcuts(get_editor_settings()).get(name)
+    shortcut, registered = editor._anki_global_kit_shortcuts[name]
+    if not shortcut.isEnabled() or not configured or normalize_shortcut(configured) != normalize_shortcut(registered):
+        return
+    if name == "anki_editor_inline_code_shortcut":
+        _toggle_inline_code(editor)
+    else:
+        _change_indentation(editor, "decrease" if "decrease" in name else "increase")
+
+
+def _refresh_editor_shortcuts(editor: Editor, settings: dict) -> None:
+    # Keep references to the kit's own shortcuts, so a settings save can rebind
+    # them without touching other add-ons' shortcuts or rebuilding the editor.
+    shortcuts = editor._anki_global_kit_shortcuts
+    for shortcut, _keys in shortcuts.values():
+        shortcut.setEnabled(False)
+    for name, keys in _configured_editor_shortcuts(settings).items():
+        if name in shortcuts:
+            shortcut = shortcuts[name][0]
+            shortcut.setKey(QKeySequence(keys))
+        else:
+            shortcut = QShortcut(
+                QKeySequence(keys), editor.widget,
+                activated=partial(_activate_editor_shortcut, ref(editor), name),
+            )
+        shortcuts[name] = (shortcut, keys)
+        shortcut.setEnabled(True)
+
+
+def refresh_open_editors() -> None:
+    """Apply saved settings to native bindings and existing editor webviews."""
+    settings = get_editor_settings()
+    for editor in list(_open_editors):
+        if sip.isdeleted(editor.widget) or sip.isdeleted(editor.web):
+            _open_editors.discard(editor)
+            continue
+        _refresh_editor_shortcuts(editor, settings)
+        _inject_features(editor)
 
 
 def initialize() -> None:

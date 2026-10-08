@@ -46,6 +46,27 @@ def load_editor_integration(settings, *, mac=False):
     aqt.gui_hooks = SimpleNamespace()
     editor = ModuleType("aqt.editor")
     editor.Editor = object
+    qt = ModuleType("aqt.qt")
+    qt.QKeySequence = str
+    qt.sip = SimpleNamespace(isdeleted=lambda _widget: False)
+
+    class Shortcut:
+        def __init__(self, key, parent, *, activated):
+            self.key = key
+            self.parent = parent
+            self.callback = activated
+            self.enabled = True
+
+        def setKey(self, key):
+            self.key = key
+
+        def setEnabled(self, enabled):
+            self.enabled = enabled
+
+        def isEnabled(self):
+            return self.enabled
+
+    qt.QShortcut = Shortcut
     settings_package = ModuleType(SETTINGS_PACKAGE)
     settings_package.get_editor_settings = lambda: settings
     constants = ModuleType(f"{SETTINGS_PACKAGE}.configs.constants")
@@ -57,7 +78,7 @@ def load_editor_integration(settings, *, mac=False):
     labels.shortcut_label = lambda keys: keys
     helpers = load_shortcut_helpers(mac=mac)
     with patch.dict(sys.modules, {
-        "aqt": aqt, "aqt.editor": editor, SETTINGS_PACKAGE: settings_package,
+        "aqt": aqt, "aqt.editor": editor, "aqt.qt": qt, SETTINGS_PACKAGE: settings_package,
         constants.__name__: constants, paste.__name__: paste, labels.__name__: labels,
         helpers.__name__: helpers,
     }):

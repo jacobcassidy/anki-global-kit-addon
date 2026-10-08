@@ -94,7 +94,7 @@ The front shows the question, typed answer fields, formatting toolbar, and optio
 - Physical **Control+Shift+C** for Cloze on macOS, leaving the default **Command+Shift+C** shortcut available for inline code.
 - Separate custom stylesheets for editor fields and the surrounding UI. Use **View Stylesheet** in the **Editor** tab to open `user_files/editor-fields.css` or `user_files/editor-ui.css`, then restart Anki after editing. These files are preserved during add-on upgrades.
 
-The **Editor** settings tab controls inline code and indentation shortcuts, paste cleanup, source HTML copying, and custom editor styling.
+The **Editor** settings tab controls inline code and indentation shortcuts, paste cleanup, source HTML copying, and custom editor styling. Saving settings refreshes shortcuts in open editors.
 
 ![Editor settings tab showing shortcut controls, paste formatting options, and the custom stylesheet setting](docs/reference/screenshots/settings-editor-tab.png)
 

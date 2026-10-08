@@ -369,8 +369,11 @@ def open_settings() -> None:
 
 
 def save_settings(dialog: QDialog, settings: dict[str, object]) -> None:
+    from ...editor.integration import refresh_open_editors
+
     write_settings(settings)
     update_assets_for_profile()
+    refresh_open_editors()
     dialog.accept()
 
 
