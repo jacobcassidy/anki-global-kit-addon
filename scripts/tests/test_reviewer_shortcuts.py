@@ -55,7 +55,7 @@ class ReviewerShortcutTests(unittest.TestCase):
     def test_native_control_tab_routes_to_card_before_browser_keydown(self):
         self.integration._active_reviewer = self.mw.reviewer
         self.integration.QEvent.Type = SimpleNamespace(ShortcutOverride=1, KeyPress=2)
-        self.integration.Qt.Key = SimpleNamespace(Key_Tab=9, Key_Backtab=10, Key_Comma=44)
+        self.integration.Qt.Key = SimpleNamespace(Key_Tab=9, Key_Backtab=10, Key_Comma=44, Key_Period=46)
         self.integration.Qt.KeyboardModifier = SimpleNamespace(MetaModifier=4, ControlModifier=8, AltModifier=16, ShiftModifier=32)
         settings = ModuleType("kit.desktop.settings")
         settings.get_settings = lambda: {"card_input_tab_indentation": True}
@@ -79,7 +79,7 @@ class ReviewerShortcutTests(unittest.TestCase):
 
     def test_native_control_tab_routes_to_editor_and_respects_disabled_setting(self):
         self.integration.QEvent.Type = SimpleNamespace(ShortcutOverride=1, KeyPress=2)
-        self.integration.Qt.Key = SimpleNamespace(Key_Tab=9, Key_Backtab=10, Key_Comma=44)
+        self.integration.Qt.Key = SimpleNamespace(Key_Tab=9, Key_Backtab=10, Key_Comma=44, Key_Period=46)
         self.integration.Qt.KeyboardModifier = SimpleNamespace(MetaModifier=4, ControlModifier=8, AltModifier=16, ShiftModifier=32)
         web = Mock()
         self.application.focusWidget.return_value = web
@@ -103,7 +103,7 @@ class ReviewerShortcutTests(unittest.TestCase):
     def test_preview_inputs_route_control_tab_without_an_active_study_session(self):
         self.mw.state = "deckBrowser"
         self.integration.QEvent.Type = SimpleNamespace(ShortcutOverride=1, KeyPress=2)
-        self.integration.Qt.Key = SimpleNamespace(Key_Tab=9, Key_Backtab=10, Key_Comma=44)
+        self.integration.Qt.Key = SimpleNamespace(Key_Tab=9, Key_Backtab=10, Key_Comma=44, Key_Period=46)
         self.integration.Qt.KeyboardModifier = SimpleNamespace(MetaModifier=4, ControlModifier=8, AltModifier=16, ShiftModifier=32)
         settings = ModuleType("kit.desktop.settings")
         settings.get_settings = lambda: {"card_input_tab_indentation": True}
