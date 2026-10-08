@@ -61,7 +61,7 @@ Custom topic headings now display braces as literal text. For existing kit note 
 
 ### Markdown and code
 
-Submitted answers can render headings, paragraphs, line breaks, nested lists, blockquotes, fenced code blocks, inline code, bold, italics, strikethrough, and HTTP(S) links.
+Submitted answers can render headings, paragraphs, line breaks, nested lists, blockquotes, fenced code blocks, inline code, bold, italics, strikethrough, and HTTP(S) links. Ordered lists preserve their starting number, including nested lists.
 
 Use the optional formatting toolbar above card inputs or configure shortcuts in **Cards**. Increase indent and decrease indent buttons appear after the ordered list button and before blockquote; they work independently of their shortcut enable switches. Each shortcut and toolbar button can be enabled individually. Press **Shift+Tab** from an input to reach its toolbar, use **Left/Right**, **Home**, or **End** to choose a button, then **Enter** or **Space** to apply it. **Escape** returns to the input. Word formatting applies to selected text or the word at the caret; applying it again removes the markers. List conversion preserves nested items' indentation and list styles. With Markdown shortcuts enabled, **Enter** continues list items; inside fenced code blocks, it inserts a normal newline.
 
