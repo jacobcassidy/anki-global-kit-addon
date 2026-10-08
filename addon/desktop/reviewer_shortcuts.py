@@ -142,6 +142,12 @@ def _card_indent_shortcut_override(event) -> bool:
     if not settings.get("card_input_tab_indentation", True):
         return False
     key_values = {",": Qt.Key.Key_Comma, ".": Qt.Key.Key_Period}
+    event_key = event.key()
+    if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
+        event_key = {
+            Qt.Key.Key_Less: Qt.Key.Key_Comma,
+            Qt.Key.Key_Greater: Qt.Key.Key_Period,
+        }.get(event_key, event_key)
     modifiers = {
         "Ctrl": Qt.KeyboardModifier.ControlModifier,
         "Meta": Qt.KeyboardModifier.MetaModifier,
@@ -155,7 +161,9 @@ def _card_indent_shortcut_override(event) -> bool:
             continue
         parts = settings.get(name, "Ctrl+Shift+." if action == "increase" else "Ctrl+Shift+,").split("+")
         key = parts.pop()
-        if key not in key_values or event.key() != key_values[key]:
+        if "Shift" in parts:
+            key = {"<": ",", ">": "."}.get(key, key)
+        if key not in key_values or event_key != key_values[key]:
             continue
         if not parts or any(part not in modifiers for part in parts):
             continue
@@ -215,7 +223,7 @@ class _PreferencesShortcutFilter(QObject):
             return True
         if (
             event.type() == QEvent.Type.ShortcutOverride
-            and event.key() in (Qt.Key.Key_Comma, Qt.Key.Key_Period)
+            and event.key() in (Qt.Key.Key_Comma, Qt.Key.Key_Period, Qt.Key.Key_Less, Qt.Key.Key_Greater)
             and _card_indent_shortcut_override(event)
         ):
             # Qt maps Command to ControlModifier on macOS. Accepting the

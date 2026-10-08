@@ -52,10 +52,43 @@ class ReviewerShortcutTests(unittest.TestCase):
             self.integration = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(self.integration)
 
+    def test_card_indent_override_accepts_base_keys_and_shifted_glyph_aliases(self):
+        self.integration._active_reviewer = self.mw.reviewer
+        self.integration.QEvent.Type = SimpleNamespace(ShortcutOverride=1, KeyPress=2)
+        self.integration.Qt.Key = SimpleNamespace(Key_Tab=9, Key_Backtab=10, Key_Comma=44, Key_Period=46, Key_Less=60, Key_Greater=62)
+        self.integration.Qt.KeyboardModifier = SimpleNamespace(MetaModifier=4, ControlModifier=8, AltModifier=16, ShiftModifier=32)
+        settings = ModuleType("kit.desktop.settings")
+        config = {"card_input_tab_indentation": True}
+        settings.get_settings = lambda: config
+        event = Mock()
+        event.type.return_value = 1
+        event.modifiers.return_value = 8 | 32
+        filter = self.integration._PreferencesShortcutFilter()
+        with patch.dict(sys.modules, {"kit.desktop.settings": settings}):
+            for action, base, shifted in (("increase", ".", ">"), ("decrease", ",", "<")):
+                name = f"card_input_tab_indent_{action}_shortcut"
+                for configured in (base, shifted):
+                    config[name] = f"Ctrl+Shift+{configured}"
+                    for key in (base, shifted):
+                        with self.subTest(action=action, configured=configured, key=key):
+                            event.key.return_value = ord(key)
+                            self.assertTrue(filter.eventFilter(self.mw.reviewer.web, event))
+                    config[f"{name}_enabled"] = False
+                    self.assertFalse(filter.eventFilter(self.mw.reviewer.web, event))
+                    config[f"{name}_enabled"] = True
+            config["card_input_tab_indentation"] = False
+            self.assertFalse(filter.eventFilter(self.mw.reviewer.web, event))
+            config["card_input_tab_indentation"] = True
+            event.modifiers.return_value = 4 | 32
+            self.assertFalse(filter.eventFilter(self.mw.reviewer.web, event))
+            event.modifiers.return_value = 8 | 32
+            self.integration._active_reviewer = None
+            self.assertFalse(filter.eventFilter(self.mw.reviewer.web, event))
+
     def test_native_control_tab_routes_to_card_before_browser_keydown(self):
         self.integration._active_reviewer = self.mw.reviewer
         self.integration.QEvent.Type = SimpleNamespace(ShortcutOverride=1, KeyPress=2)
-        self.integration.Qt.Key = SimpleNamespace(Key_Tab=9, Key_Backtab=10, Key_Comma=44, Key_Period=46)
+        self.integration.Qt.Key = SimpleNamespace(Key_Tab=9, Key_Backtab=10, Key_Comma=44, Key_Period=46, Key_Less=60, Key_Greater=62)
         self.integration.Qt.KeyboardModifier = SimpleNamespace(MetaModifier=4, ControlModifier=8, AltModifier=16, ShiftModifier=32)
         settings = ModuleType("kit.desktop.settings")
         settings.get_settings = lambda: {"card_input_tab_indentation": True}
@@ -79,7 +112,7 @@ class ReviewerShortcutTests(unittest.TestCase):
 
     def test_native_control_tab_routes_to_editor_and_respects_disabled_setting(self):
         self.integration.QEvent.Type = SimpleNamespace(ShortcutOverride=1, KeyPress=2)
-        self.integration.Qt.Key = SimpleNamespace(Key_Tab=9, Key_Backtab=10, Key_Comma=44, Key_Period=46)
+        self.integration.Qt.Key = SimpleNamespace(Key_Tab=9, Key_Backtab=10, Key_Comma=44, Key_Period=46, Key_Less=60, Key_Greater=62)
         self.integration.Qt.KeyboardModifier = SimpleNamespace(MetaModifier=4, ControlModifier=8, AltModifier=16, ShiftModifier=32)
         web = Mock()
         self.application.focusWidget.return_value = web
@@ -103,7 +136,7 @@ class ReviewerShortcutTests(unittest.TestCase):
     def test_preview_inputs_route_control_tab_without_an_active_study_session(self):
         self.mw.state = "deckBrowser"
         self.integration.QEvent.Type = SimpleNamespace(ShortcutOverride=1, KeyPress=2)
-        self.integration.Qt.Key = SimpleNamespace(Key_Tab=9, Key_Backtab=10, Key_Comma=44, Key_Period=46)
+        self.integration.Qt.Key = SimpleNamespace(Key_Tab=9, Key_Backtab=10, Key_Comma=44, Key_Period=46, Key_Less=60, Key_Greater=62)
         self.integration.Qt.KeyboardModifier = SimpleNamespace(MetaModifier=4, ControlModifier=8, AltModifier=16, ShiftModifier=32)
         settings = ModuleType("kit.desktop.settings")
         settings.get_settings = lambda: {"card_input_tab_indentation": True}
