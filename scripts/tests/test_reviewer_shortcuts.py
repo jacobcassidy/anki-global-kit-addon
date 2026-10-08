@@ -85,6 +85,39 @@ class ReviewerShortcutTests(unittest.TestCase):
             self.integration._active_reviewer = None
             self.assertFalse(filter.eventFilter(self.mw.reviewer.web, event))
 
+    def test_toolbar_focus_keeps_activation_and_navigation_out_of_native_review_actions(self):
+        self.integration.QEvent.Type = SimpleNamespace(ShortcutOverride=1, KeyPress=2)
+        self.integration.Qt.Key = SimpleNamespace(
+            Key_Tab=9, Key_Backtab=10, Key_Comma=44, Key_Period=46, Key_Less=60, Key_Greater=62,
+            Key_Space=32, Key_Return=13, Key_Enter=14, Key_Escape=27,
+            Key_Left=101, Key_Right=102, Key_Home=103, Key_End=104,
+        )
+        self.integration.Qt.KeyboardModifier = SimpleNamespace(NoModifier=0, ControlModifier=8)
+        event = Mock()
+        event.type.return_value = 1
+        event.modifiers.return_value = 0
+        filter = self.integration._PreferencesShortcutFilter()
+        for context in (self.mw.reviewer, SimpleNamespace(_web=self.mw.reviewer.web)):
+            with self.subTest(context=context):
+                self.integration._on_webview_message(
+                    (False, None), "anki-global-kit:question-toolbar-focus", context,
+                )
+                for key in (32, 13, 14, 27, 101, 102, 103, 104):
+                    event.key.return_value = key
+                    self.assertTrue(filter.eventFilter(self.mw.reviewer.web, event))
+                self.mw.reviewer.web.eval.assert_not_called()
+                self.assertTrue(self.mw.form.actionPreferences.isEnabled())
+                event.modifiers.return_value = 8
+                self.assertFalse(self.integration._toolbar_owns_navigation(event))
+                event.modifiers.return_value = 0
+                self.application.focusWidget.return_value = object()
+                self.assertFalse(self.integration._toolbar_owns_navigation(event))
+                self.application.focusWidget.return_value = self.mw.reviewer.web
+                self.integration._on_webview_message(
+                    (False, None), "anki-global-kit:question-input-blur", context,
+                )
+                self.assertFalse(filter.eventFilter(self.mw.reviewer.web, event))
+
     def test_native_control_tab_routes_to_card_before_browser_keydown(self):
         self.integration._active_reviewer = self.mw.reviewer
         self.integration.QEvent.Type = SimpleNamespace(ShortcutOverride=1, KeyPress=2)

@@ -73,9 +73,7 @@ export function watchQuestionInputs() {
       if (document.activeElement === questionInput) reportFocus();
       questionInput.addEventListener('blur', () => {
         queueMicrotask(() => {
-          if (!document.activeElement?.matches('.question-input')) {
-            globalThis.pycmd('anki-global-kit:question-input-blur');
-          }
+          globalThis.ankiGlobalKitReportQuestionFocus();
         });
       });
     }
@@ -268,7 +266,40 @@ function addFormattingToolbar(textarea) {
     if (group) toolbar.append(group);
   });
 
-  if (toolbar.childElementCount) textarea.insertAdjacentElement('beforebegin', toolbar);
+  if (toolbar.childElementCount) {
+    const buttons = [...toolbar.querySelectorAll('button')];
+    const setTabStop = (selected) => {
+      for (const button of buttons) button.tabIndex = button === selected ? 0 : -1;
+    };
+    setTabStop(buttons[0]);
+    toolbar.addEventListener('focusin', (event) => {
+      if (buttons.includes(event.target)) setTabStop(event.target);
+      if (isAnkiPC) globalThis.ankiGlobalKitReportQuestionFocus();
+    });
+    if (isAnkiPC) {
+      toolbar.addEventListener('focusout', () => {
+        queueMicrotask(() => globalThis.ankiGlobalKitReportQuestionFocus());
+      });
+    }
+    toolbar.addEventListener('keydown', (event) => {
+      const index = buttons.indexOf(event.target);
+      if (index < 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing) return;
+      let next;
+      if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+        const rtl = getComputedStyle(toolbar).direction === 'rtl';
+        const step = (event.key === 'ArrowRight') !== rtl ? 1 : -1;
+        next = buttons[(index + step + buttons.length) % buttons.length];
+      } else if (event.key === 'Home') next = buttons[0];
+      else if (event.key === 'End') next = buttons[buttons.length - 1];
+      else if (event.key === 'Enter' || event.key === ' ') event.target.click();
+      else if (event.key === 'Escape') textarea.focus();
+      else return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (next) next.focus();
+    });
+    textarea.insertAdjacentElement('beforebegin', toolbar);
+  }
 }
 
 /**

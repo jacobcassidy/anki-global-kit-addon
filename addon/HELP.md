@@ -28,7 +28,7 @@ After deleting a note type, Anki may require a full sync. Upload from the device
 Type in the card's input field, then reveal the answer to see your response and the reference.
 
 - Select text and use a formatting toolbar button or shortcut. With no selection, word formatting applies to the word at the caret. Apply it again to remove the formatting.
-- The toolbar appears above each input. Enable **Cards > Card Toolbar > Show formatting toolbar** if it is hidden. Hover over a button to see its shortcut.
+- The toolbar appears above each input. Enable **Cards > Card Toolbar > Show formatting toolbar** if it is hidden. Hover over a button to see its shortcut. Use **Shift+Tab** from the input to reach the toolbar, **Left/Right**, **Home**, or **End** to choose a button, and **Enter** or **Space** to apply it. **Escape** returns to the input.
 - With **Enable indentation shortcuts** on, **⌘+Shift+.** increases indent and **⌘+Shift+,** decreases indent on macOS; use **Ctrl+Shift+.** and **Ctrl+Shift+,** on Windows and Linux. Customize or disable each shortcut beneath this option. Indentation applies to the current or selected rows, using four spaces for Python topics and two otherwise. **Tab** and **Shift+Tab** move focus. The **Increase indent** and **Decrease indent** toolbar buttons use the same row actions. With Markdown shortcuts enabled, **Enter** continues list items; inside fenced code blocks, it inserts a normal newline.
 
 Enable **Markdown rendering** under **Card Reviews** to format submitted answers: `**bold**`, `*italic*`, and `` `inline code` ``. Surround code blocks with lines of three backticks. Add a language after the opening backticks, such as `python`, to choose highlighting; otherwise, the topic is used when possible.

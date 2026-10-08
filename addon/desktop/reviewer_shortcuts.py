@@ -16,6 +16,7 @@ _message_hook_installed = False
 _preferences_was_enabled: bool | None = None
 _editor_webviews = WeakSet()
 _preview_input_webviews = WeakSet()
+_toolbar_webviews = WeakSet()
 
 
 def _live_webviews(webviews):
@@ -71,7 +72,11 @@ def _refresh_question_focus(*_args) -> None:
     """Ask the DOM again after Qt focus returns without a textarea focus event."""
     _sync_preferences_action()
     focused_widget = QApplication.focusWidget()
-    for webview in _live_webviews(_preview_input_webviews):
+    webviews = set(_live_webviews(_preview_input_webviews))
+    webviews.update(_live_webviews(_toolbar_webviews))
+    for webview in webviews:
+        if mw.state == "review" and webview is mw.reviewer.web:
+            continue
         if _webview_contains_focus(webview, focused_widget):
             webview.eval("globalThis.ankiGlobalKitReportQuestionFocus?.();")
     if mw.state != "review":
@@ -210,6 +215,11 @@ class _PreferencesShortcutFilter(QObject):
     """Route card indentation keys before Qt handles native shortcuts."""
 
     def eventFilter(self, watched, event) -> bool:
+        if event.type() == QEvent.Type.ShortcutOverride and _toolbar_owns_navigation(event):
+            # Let the focused HTML button receive activation/navigation instead
+            # of Anki's native Show Answer or Escape shortcuts.
+            event.accept()
+            return True
         if (
             event.type() in (QEvent.Type.ShortcutOverride, QEvent.Type.KeyPress)
             and event.key() in (Qt.Key.Key_Tab, Qt.Key.Key_Backtab)
@@ -245,29 +255,48 @@ class _PreferencesShortcutFilter(QObject):
         return False
 
 
+def _toolbar_owns_navigation(event) -> bool:
+    focused = QApplication.focusWidget()
+    if not any(_webview_contains_focus(webview, focused) for webview in _live_webviews(_toolbar_webviews)):
+        return False
+    return event.modifiers() == Qt.KeyboardModifier.NoModifier and event.key() in (
+        Qt.Key.Key_Space, Qt.Key.Key_Return, Qt.Key.Key_Enter, Qt.Key.Key_Escape,
+        Qt.Key.Key_Left, Qt.Key.Key_Right, Qt.Key.Key_Home, Qt.Key.Key_End,
+    )
+
+
 def _on_webview_message(handled: tuple[bool, object], message: str, context):
     global _active_reviewer, _command_comma_handled
     if message not in {
         "anki-global-kit:question-input-focus:handled",
         "anki-global-kit:question-input-focus:unhandled",
         "anki-global-kit:question-input-blur",
+        "anki-global-kit:question-toolbar-focus",
     }:
         return handled
     is_focus = message != "anki-global-kit:question-input-blur"
+    is_toolbar = message == "anki-global-kit:question-toolbar-focus"
     if not isinstance(context, Reviewer):
         # The JS-message hook supplies the window owning the card webview.
         # Browse previewers expose _web; template previews expose preview_web.
         webview = getattr(context, "preview_web", None) or getattr(context, "_web", None)
         if webview is None or sip.isdeleted(webview):
             return handled
-        if is_focus:
+        _toolbar_webviews.discard(webview)
+        if is_toolbar:
+            _toolbar_webviews.add(webview)
+            _preview_input_webviews.discard(webview)
+        elif is_focus:
             _preview_input_webviews.add(webview)
         else:
             _preview_input_webviews.discard(webview)
         return (True, None)
     if context is not mw.reviewer:
         return handled
-    _active_reviewer = context if is_focus else None
+    _toolbar_webviews.discard(context.web)
+    if is_toolbar:
+        _toolbar_webviews.add(context.web)
+    _active_reviewer = context if is_focus and not is_toolbar else None
     _command_comma_handled = message.endswith(":handled") if is_focus else False
     _sync_preferences_action()
     return (True, None)
@@ -279,6 +308,7 @@ def _on_card_will_show(html: str, card, kind: str) -> str:
         # Replacing a card's DOM does not reliably blur its old textarea.
         _active_reviewer = None
         _command_comma_handled = False
+        _toolbar_webviews.discard(mw.reviewer.web)
         _sync_preferences_action()
     if kind in {
         "reviewQuestion", "reviewAnswer", "previewQuestion", "previewAnswer",
