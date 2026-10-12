@@ -133,7 +133,9 @@ Run `npm test` for the JavaScript and Python suites, or `npm run test:scripts` a
 
 Desktop Python code lives under `addon/desktop`, card sources under `src/cards`, editor sources under `src/editor`, and shared sources under `src/shared`. Runtime note type parts live under `addon/templates/note-types/parts`.
 
-Merging a new version from `dev` into `main` automatically publishes a GitHub release after CI passes, using that version's changelog notes and attaching the add-on archive. See [publishing instructions](docs/dev/PUBLISHING.md) for version preparation, packaging, and AnkiWeb release steps.
+Merging a new version from `dev` into `main` automatically publishes a GitHub release after CI passes. The workflow reads the newest dated version section in `CHANGELOG.md`, excluding **Unreleased** and older sections, and checks that the manifest and package versions match. If that version already has a published release, publication is skipped.
+
+GitHub Actions builds the installable archive from the merged repository code by running `npm ci`, `npm run build:addon`, and `npm run package:addon`. The packaging script creates `dist/anki-global-kit.ankiaddon` from the `addon/` files, including the freshly built card and editor assets, plus the root changelog and license. The workflow attaches this archive to the GitHub release, uses the changelog section as its notes, and creates a `vX.Y.Z` tag at the exact merged commit. GitHub builds and uploads the archive automatically; updating the AnkiWeb listing still requires a manual upload. See [publishing instructions](docs/dev/PUBLISHING.md) for version preparation, packaging, and AnkiWeb release steps.
 
 See [development dependency notes](docs/dev/DEPENDENCIES.md) for patched transitive dependency overrides and the remaining `braces` advisory.
 
