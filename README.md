@@ -21,10 +21,16 @@ For setup details, shortcuts, customization, and troubleshooting, read the [user
 
 The front shows the question, typed answer fields, formatting toolbar, and optional hint. On the back, the typed answer appears alongside the card's answer; bonus comparison and notes can appear below. These examples use a Python Advance note in light and dark themes.
 
-| Front of card                                                                                                                    | Back of card                                                                                                                 |
-| -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| ![Light theme card front with a question, typed answer, and bonus answer input](docs/reference/screenshots/card-front-light.png) | ![Light theme card back with answer comparison, bonus comparison, and notes](docs/reference/screenshots/card-back-light.png) |
-| ![Dark theme card front with a question and typed answer fields](docs/reference/screenshots/card-front-dark.png)                 | ![Dark theme card back with answer comparison, bonus comparison, and notes](docs/reference/screenshots/card-back-dark.png)   |
+| Card preview                                                                                                                     |
+| -------------------------------------------------------------------------------------------------------------------------------- |
+| **Light theme — front of card**                                                                                                  |
+| ![Light theme card front with a question, typed answer, and bonus answer input](docs/reference/screenshots/card-front-light.png) |
+| **Light theme — back of card**                                                                                                   |
+| ![Light theme card back with answer comparison, bonus comparison, and notes](docs/reference/screenshots/card-back-light.png)     |
+| **Dark theme — front of card**                                                                                                   |
+| ![Dark theme card front with a question and typed answer fields](docs/reference/screenshots/card-front-dark.png)                 |
+| **Dark theme — back of card**                                                                                                    |
+| ![Dark theme card back with answer comparison, bonus comparison, and notes](docs/reference/screenshots/card-back-dark.png)       |
 
 ### Typed answers and comparison
 
