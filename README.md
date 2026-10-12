@@ -46,7 +46,7 @@ Submitted answers can render headings, paragraphs, line breaks, nested lists, bl
 
 Use the optional formatting toolbar above card inputs or configure shortcuts in **Cards**. Increase indent and decrease indent buttons appear after the ordered list button and before blockquote; they work independently of their shortcut enable switches. Each shortcut and toolbar button can be enabled individually. Press **Shift+Tab** from an input to reach its toolbar, use **Left/Right**, **Home**, or **End** to choose a button, then **Enter** or **Space** to apply it. **Escape** returns to the input. Word formatting applies to selected text or the word at the caret; applying it again removes the markers. List conversion preserves nested items' indentation and list styles. With Markdown shortcuts enabled, **Enter** continues list items; inside fenced code blocks, it inserts a normal newline.
 
-Code blocks use the language written after the opening backticks, such as `python`, or infer a language from the topic. Supported languages and aliases include Python, JavaScript/Node, TypeScript, Java, C, C++, C#, SQL, Bash/shell, JSON, Ruby, Go, Rust, and PHP. Comparison and syntax highlighting are bundled with the kit.
+Code blocks use the language written after the opening backticks, such as `python`, or infer a language from the topic. Supported languages and aliases include Python, JavaScript/Node, TypeScript, Java, C, C++, C#, SQL, Bash/shell, JSON, Ruby, Go, Rust, and PHP. SQL keywords and built-in names are highlighted regardless of letter case. Comparison and syntax highlighting are bundled with the kit.
 
 The **Cards** settings tab controls review-time Markdown formatting shortcuts and indentation behavior.
 
@@ -54,14 +54,14 @@ The **Cards** settings tab controls review-time Markdown formatting shortcuts an
 
 ### Desktop editor
 
-- Inline-code formatting through a configurable shortcut and optional toolbar button.
+- Inline-code formatting through a configurable shortcut and optional toolbar button. Toggling a selected part of a code span removes formatting only from that selection.
 - Indentation, inline-code space normalization, source HTML copying, and rich-text paste cleanup.
 - List buttons and shortcuts change only the outermost selected list level, preserving child styles and indentation. Plain indented rows become nested lists. **⌘+Shift+.** and **⌘+Shift+,** indent and unindent list items by default on macOS; use **Ctrl+Shift+.** and **Ctrl+Shift+,** on Windows and Linux. Under **Editor → Editor Fields → Enable indentation shortcuts**, enable, disable, or customize these shortcuts separately. In plain text, increase indent adds four leading spaces to the current or selected rows and decrease indent removes leading indentation. The caret stays with the original text. **Tab** and **Shift+Tab** retain native focus navigation.
-- Add or remove a blockquote at the current indentation level with the toolbar button or **Command+/** on macOS (**Control+/** on Windows/Linux).
+- Fixed shortcuts for unordered lists (**Command+,** on macOS; **Control+,** on Windows/Linux), ordered lists (**Command+.** / **Control+.**), and blockquotes (**Command+/** / **Control+/**). The blockquote action adds or removes a quote at the current indentation level. Configurable inline-code and indentation shortcuts cannot reuse these keys.
 - Physical **Control+Shift+C** for Cloze on macOS, leaving the default **Command+Shift+C** shortcut available for inline code.
 - Separate custom stylesheets for editor fields and the surrounding UI. Use **View Stylesheet** in the **Editor** tab to open `user_files/editor-fields.css` or `user_files/editor-ui.css`, then restart Anki after editing. These files are preserved during add-on upgrades.
 
-The **Editor** settings tab controls inline code and indentation shortcuts, paste cleanup, source HTML copying, and custom editor styling. Saving settings refreshes shortcuts in open editors.
+The **Editor** settings tab controls inline code and indentation shortcuts, paste cleanup, source HTML copying, and custom editor styling. Saving settings refreshes shortcuts and inline-code shortcut tooltips in open editors. List, blockquote, and inline-code formatting support native undo and redo.
 
 ![Editor settings tab showing shortcut controls, paste formatting options, and the custom stylesheet setting](docs/reference/screenshots/settings-editor-tab.png)
 
@@ -84,11 +84,13 @@ Built-in topics include Command Line, CSS, Git, JavaScript, PHP, Python, React, 
 - Replacement requires the existing type to match the selected format: a standard note type for **Advance**, or a Cloze note type for **Cloze**. A type's name alone does not determine its format.
 - **Delete** removes an empty note type or an uncreated custom topic. Types containing notes cannot be deleted through this panel.
 
-Choose **Update Selected Note Types** to apply these actions. **Save** applies settings separately; **Cancel** does not undo confirmed note type changes. Pending action checkboxes are not retained across restarts, while custom topics remain available.
+Choose **Update Selected Note Types** to apply these actions. The kit rechecks the active collection, selected note types, and template and card removal counts after confirmation. If they have changed, it stops and asks you to review and confirm again. Anki refreshes after applied note type changes. **Save** applies settings separately; **Cancel** does not undo confirmed note type changes. Pending action checkboxes are not retained across restarts, while custom topics remain available.
 
 The **Note Types** tab lists the available topics and lets you choose which Advance or Cloze types to create, replace, or delete. Use **+** to add a custom topic.
 
 ![Note Types settings tab showing topic rows and Create, Replace, and Delete options for Advance and Cloze note types](docs/reference/screenshots/settings-note-types-tab.png)
+
+Sync all devices before replacing or deleting note types. If Anki requests a full sync afterward, choose **Upload** on the Desktop where you applied the changes, then **Download** on your other devices. See [Anki's sync conflict guidance](https://docs.ankiweb.net/manual/syncing#conflicts) for details.
 
 ### Add your first note
 
@@ -99,6 +101,8 @@ For a **Cloze** note, use **Cloze Question** and Anki's cloze-deletion tools. Th
 ### After an add-on update
 
 Restart Anki Desktop so the updated card assets are installed, then sync the collection and media. Existing note templates are not updated automatically. If you want to apply the latest kit templates, select **Replace** for the relevant types in **Note Types** and confirm.
+
+Updates keep your saved shortcuts. To adopt the new **Command+Shift+.** / **Command+Shift+,** indentation defaults on macOS (**Ctrl+Shift+.** / **Ctrl+Shift+,** on Windows/Linux), use the individual **RESET** links under **Cards → Card Fields** and **Editor → Editor Fields**, then choose **Save**. **Restore Defaults** resets all card and editor settings in the panel. Sync after saving card settings.
 
 The shared font now installs as `_meslolgl-nf.woff2` to match Anki's media naming. The kit stylesheets use this filename. If custom CSS or templates reference the old `_mesloLGL-NF.woff2` filename directly, update those references to the lowercase filename, then sync the changes.
 
@@ -134,6 +138,8 @@ See [publishing instructions](docs/dev/PUBLISHING.md) for packaging and AnkiWeb 
 See [development dependency notes](docs/dev/DEPENDENCIES.md) for patched transitive dependency overrides and the remaining `braces` advisory.
 
 ## Help and feedback
+
+If a shortcut does nothing, check both its group and individual enable switches and resolve any conflicts in settings. Click a shortcut field to capture a new key combination; **Escape** cancels capture. If submitted answers remain plain text, select **Enable Markdown rendering** and **Enable syntax highlighting for submitted answers** under **Cards → Card Reviews** and check that code fences have matching opening and closing lines.
 
 Read [HELP.md](addon/HELP.md) for settings guidance and common problems, or open the **Help** tab in **Anki Global Kit Settings...**. For an unresolved problem, [report an issue](https://github.com/jacobcassidy/anki-global-kit-addon/issues) with your Anki version, device, and steps to reproduce it. See the [changelog](CHANGELOG.md) for release notes.
 

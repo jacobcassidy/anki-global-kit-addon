@@ -7,10 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-12
+
+### Added
+
+- Added keyboard navigation to card formatting toolbars: **Shift+Tab** from an input reaches its toolbar; **Left/Right**, **Home**, and **End** select buttons; **Enter** or **Space** applies formatting; **Escape** returns to the input. Desktop review and preview windows let these keys reach the toolbar without triggering Anki's answer or navigation actions.
+- Added `npm run link:addon` to link a development checkout into Anki's add-ons folder on macOS, Windows, and Linux, with support for custom paths and safeguards against overwriting existing folders or links.
+- Added asset checks that require matching versions in `package.json`, `package-lock.json`, and `addon/manifest.json`.
+- Expanded isolated tests for note type creation, replacement, deletion, confirmation changes, partial success, managed media installation and failed-write recovery, shortcut validation and routing, toolbar navigation, Markdown rendering, and package contents. Updated DOM and Qt test stand-ins for input events and punctuation keys.
+
 ### Changed
 
 - Changed the default increase and decrease indent shortcuts to **Command+Shift+.** and **Command+Shift+,** on macOS, and **Ctrl+Shift+.** and **Ctrl+Shift+,** on Windows and Linux. These extend Anki's native list indentation to plain text. **Tab** and **Shift+Tab** continue to move focus. Existing saved shortcuts are retained; use **Restore Defaults** or the individual **RESET** links in settings to adopt the new defaults.
-- Refreshed the Cards and Editor settings screenshots to show the new indentation defaults.
+- Consolidated Desktop editor list, blockquote, and inline-code formatting around shared native editing transactions, preserving selection, undo/redo, and Anki's input notifications.
+- Read the version shown in settings from the add-on manifest instead of a separate hardcoded value.
+- Moved **Features** ahead of **Setup** in the README and made **Card presentation** its first subsection. Stacked light and dark card screenshots in one column, with each front followed by its back, and refreshed the Cards and Editor settings screenshots with presentation-style images showing the new defaults.
+- Updated the AnkiWeb listing, setup and shortcut guidance, development and publishing instructions, and bundled font notice documentation. Clarified that card settings sync through media while editor settings apply on Desktop.
+
+### Fixed
+
+- Fixed stale Anki views by running note type changes through Anki's background collection operations and reporting collection changes so Anki refreshes after successful actions, including actions completed before a later failure.
+- Strengthened note type confirmation checks by revalidating the active collection, note type identities, replacement impacts, and deletion eligibility after confirmation. Operations stop if a requested new type now exists, a selected type has been replaced, or the confirmed templates or card counts have changed.
+- Fixed custom topic labels to display as plain text in settings instead of interpreting names containing HTML-like markup.
+- Fixed settings dialogs remaining allocated after they close.
+- Fixed toggling inline-code formatting off for a partial selection within a single code span while keeping the surrounding text formatted.
+- Protected fixed Desktop editor list and blockquote shortcuts from configurable shortcut conflicts during capture, validation, and registration, including older or manually edited settings, and prevented duplicate configurable bindings.
+- Fixed native editor bindings by keeping card-specific code-block shortcut aliases out and normalizing older saved aliases into valid editor key combinations.
+- Fixed synced card settings to preserve portable indentation modifiers while retaining explicitly configured physical Control shortcuts.
+- Fixed inconsistent handling of shifted comma and period aliases across shortcut matching, validation, and Qt handling. On macOS, card indentation keys now reach focused review and preview inputs before native Anki shortcuts consume them.
+- Removed misleading conflict warnings for the intended native editor indent and outdent defaults, and hid disabled Markdown shortcuts from card toolbar tooltips.
+- Fixed stale configurable shortcuts and inline-code shortcut tooltips by refreshing them in open Desktop editors when settings are saved.
+- Fixed list continuation with **Enter** to respect the Markdown shortcut enable switch and insert ordinary newlines inside fenced code blocks instead of extending list-like code rows.
+- Fixed Markdown rendering to preserve ordered list starting numbers, including nested lists and lists following a different list type.
+- Fixed SQL highlighting to recognize keywords and built-in names regardless of letter case.
+- Fixed watch builds to write and report successful output even when esbuild emits warnings, and to track shared JavaScript changes in rebuild logs.
+- Fixed package validation to require the supplied user stylesheet files and their README, leaving an existing archive intact if required files are missing.
+- Corrected the 1.0.0 release date to 2026-10-07.
+
+### Removed
+
+- Excluded additional local files and backups in `user_files/` from release archives; only the supplied `README.txt`, `editor-fields.css`, and `editor-ui.css` are packaged from that directory.
+- Removed the empty developer TODO document and ignored its path for local use.
+- Removed an unused settings spacing constant and duplicated editor formatting transaction code.
 
 ## [1.0.0] - 2026-10-07
 
