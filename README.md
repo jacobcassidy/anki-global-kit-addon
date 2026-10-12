@@ -10,6 +10,20 @@ Install and configure the kit on Desktop, then sync your collection and media to
 
 For setup details, shortcuts, customization, and troubleshooting, read the [user guide (HELP.md)](addon/HELP.md). The same guide is available in the Anki Global Kit Settings panel's **Help** tab.
 
+## Card presentation
+
+- Responsive layouts for questions, answers, comparison panels, cloze deletions, hints, bonus sections, and notes.
+- Shared typography and light/dark palettes, including distinct comparison colors.
+- Topic accent colors and customizable card styling through the note type stylesheet.
+- AnkiWeb study menu layout adjustments.
+
+The front shows the question, typed answer fields, formatting toolbar, and optional hint. On the back, the typed answer appears alongside the card's answer; bonus comparison and notes can appear below. These examples use a Python Advance note in light and dark themes.
+
+| Front of card                                                                                                                    | Back of card                                                                                                                 |
+| -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| ![Light theme card front with a question, typed answer, and bonus answer input](docs/reference/screenshots/card-front-light.png) | ![Light theme card back with answer comparison, bonus comparison, and notes](docs/reference/screenshots/card-back-light.png) |
+| ![Dark theme card front with a question and typed answer fields](docs/reference/screenshots/card-front-dark.png)                 | ![Dark theme card back with answer comparison, bonus comparison, and notes](docs/reference/screenshots/card-back-dark.png)   |
+
 ## Setup
 
 1. Install [Anki Desktop 26.05 or later](https://apps.ankiweb.net/). Install the kit using its AnkiWeb download code through **Tools > Add-ons > Get Add-ons**, or choose **Install from file** for a packaged `.ankiaddon` file. Restart Anki after installation. See the [Anki add-on instructions](https://docs.ankiweb.net/addons.html); to build a package from this repository, see **Development** below.
@@ -70,20 +84,6 @@ Code blocks use the language written after the opening backticks, such as `pytho
 The **Cards** settings tab controls review-time Markdown formatting shortcuts and indentation behavior.
 
 ![Cards settings tab showing Markdown and indentation shortcut options](docs/reference/screenshots/settings-cards-tab.png)
-
-### Card presentation
-
-- Responsive layouts for questions, answers, comparison panels, cloze deletions, hints, bonus sections, and notes.
-- Shared typography and light/dark palettes, including distinct comparison colors.
-- Topic accent colors and customizable card styling through the note type stylesheet.
-- AnkiWeb study menu layout adjustments.
-
-The front shows the question, typed answer fields, formatting toolbar, and optional hint. On the back, the typed answer appears alongside the card's answer; bonus comparison and notes can appear below. These examples use a Python Advance note in light and dark themes.
-
-| Front of card                                                                                                                    | Back of card                                                                                                                 |
-| -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| ![Light theme card front with a question, typed answer, and bonus answer input](docs/reference/screenshots/card-front-light.png) | ![Light theme card back with answer comparison, bonus comparison, and notes](docs/reference/screenshots/card-back-light.png) |
-| ![Dark theme card front with a question and typed answer fields](docs/reference/screenshots/card-front-dark.png)                 | ![Dark theme card back with answer comparison, bonus comparison, and notes](docs/reference/screenshots/card-back-dark.png)   |
 
 ### Desktop editor
 
