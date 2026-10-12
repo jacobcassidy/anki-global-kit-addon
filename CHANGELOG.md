@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added automatic GitHub releases after checks pass on `main`, using the latest dated changelog section for the version and notes and attaching the installable add-on archive. Release validation requires matching changelog and package versions; retries skip published releases and can complete interrupted drafts.
+
 ## [1.1.0] - 2026-10-12
 
 ### Added

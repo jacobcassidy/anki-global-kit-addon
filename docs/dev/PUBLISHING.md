@@ -1,6 +1,24 @@
 # Publishing the Anki Global Kit add-on
 
-This guide covers publishing the Desktop add-on on AnkiWeb's Shared Add-ons site. The add-on installs card JavaScript, CSS, and fonts into the active profile's `collection.media` folder and provides **Create**, **Replace**, and **Delete** actions for kit note types. Create adds missing types. Replace updates an existing type's first card template and styling only after the user selects the action and confirms; it keeps notes and fields and adds missing kit fields. For standard note types, additional card templates and their associated cards are removed, including those cards' scheduling. The confirmation lists the affected note types, additional template names, and template and card removal counts. Delete is limited to empty types and uncreated custom topics. Add-on updates do not silently change note types already in a collection.
+This guide covers automatic GitHub releases and publishing the Desktop add-on on AnkiWeb's Shared Add-ons site. The add-on installs card JavaScript, CSS, and fonts into the active profile's `collection.media` folder and provides **Create**, **Replace**, and **Delete** actions for kit note types. Create adds missing types. Replace updates an existing type's first card template and styling only after the user selects the action and confirms; it keeps notes and fields and adds missing kit fields. For standard note types, additional card templates and their associated cards are removed, including those cards' scheduling. The confirmation lists the affected note types, additional template names, and template and card removal counts. Delete is limited to empty types and uncreated custom topics. Add-on updates do not silently change note types already in a collection.
+
+## Automatic GitHub releases
+
+For each new version, prepare the release on `dev`:
+
+1. Add a dated `## [X.Y.Z] - YYYY-MM-DD` section immediately below **Unreleased** in the root `CHANGELOG.md`. Write the release notes under **Added**, **Changed**, **Fixed**, and **Removed** as applicable. The first dated version section supplies the GitHub release notes; **Unreleased** and older sections are excluded.
+2. Set the same version in `addon/manifest.json`, `package.json`, and both the top-level and root-package version fields in `package-lock.json`. CI rejects missing or empty release notes, invalid versions or dates, and version mismatches.
+3. Merge `dev` into `main`. After the **Tests** workflow passes on the pushed commit, its release job creates the `vX.Y.Z` tag at that exact commit and publishes a GitHub release with the changelog notes and `anki-global-kit.ankiaddon` attached.
+
+The job uses GitHub's built-in `GITHUB_TOKEN` with `contents: write`; no personal access token is required. Pull requests and pushes to `dev` run checks without publishing. Existing published releases are skipped, so later pushes with the same version do not create duplicates or replace their notes or assets. An existing tag for an unpublished version must point to the commit being released. A draft left by an interrupted publication is completed on retry.
+
+To retry a failed release, rerun the failed workflow or manually run **Tests** on `main`. The checks must pass before publication. To inspect the notes locally without publishing:
+
+```sh
+python3 scripts/release_notes.py --output dist/release-notes.md
+```
+
+GitHub releases provide downloadable archives. Updating the AnkiWeb listing still uses the upload steps below. See the [GitHub CLI release documentation](https://cli.github.com/manual/gh_release_create) for tag, notes, and asset behavior.
 
 ## Before publishing
 
@@ -51,7 +69,7 @@ Keep the source repository linked from the listing so users can review the code 
 
 ## Publish an update
 
-1. Make and review the code changes, then update the repository-root `CHANGELOG.md` and supported Anki version information as needed.
+1. Make and review the code changes, then update the repository-root `CHANGELOG.md`, matching package versions, and supported Anki version information as needed. Follow **Automatic GitHub releases** above to publish the GitHub release when merging into `main`.
 2. Rebuild the assets with `npm run build:addon`.
 3. Test the built add-on in Anki Desktop. For changes to card behavior, also check a synced collection in the supported web and mobile clients.
 4. Recreate the `.ankiaddon` archive with `npm run package:addon`.

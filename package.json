@@ -1,7 +1,7 @@
 {
   "name": "anki-global-kit",
   "displayName": "Anki Global Kit",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A global kit for Anki with features that work across all Anki apps.",
   "publisher": "jacobcassidy",
   "author": {

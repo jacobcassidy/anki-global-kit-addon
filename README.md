@@ -67,7 +67,7 @@ The **Editor** settings tab controls inline code and indentation shortcuts, past
 
 ## Setup
 
-1. Install [Anki Desktop 26.05 or later](https://apps.ankiweb.net/). Install the kit using its AnkiWeb download code through **Tools > Add-ons > Get Add-ons**, or choose **Install from file** for a packaged `.ankiaddon` file. Restart Anki after installation. See the [Anki add-on instructions](https://docs.ankiweb.net/addons.html); to build a package from this repository, see **Development** below.
+1. Install [Anki Desktop 26.05 or later](https://apps.ankiweb.net/). Install the kit using its AnkiWeb download code through **Tools > Add-ons > Get Add-ons**, or download `anki-global-kit.ankiaddon` from [GitHub Releases](https://github.com/jacobcassidy/anki-global-kit-addon/releases) and choose **Install from file**. Restart Anki after installation. See the [Anki add-on instructions](https://docs.ankiweb.net/addons.html); to build a package from this repository, see **Development** below.
 2. Open **Tools > Anki Global Kit Settings... > Note Types**. Check **Create** for the topics and formats you want: **Advance** for question-and-answer cards or **Cloze** for cloze-deletion cards. Use **+** to add a custom topic.
 3. Choose **Update Selected Note Types** and confirm. Add a note using a new type, such as **Python (Advance)** or **CSS (Cloze)**.
 4. Adjust review tools in **Cards** and Desktop editing tools in **Editor**, then choose **Save**.
@@ -133,7 +133,7 @@ Run `npm test` for the JavaScript and Python suites, or `npm run test:scripts` a
 
 Desktop Python code lives under `addon/desktop`, card sources under `src/cards`, editor sources under `src/editor`, and shared sources under `src/shared`. Runtime note type parts live under `addon/templates/note-types/parts`.
 
-See [publishing instructions](docs/dev/PUBLISHING.md) for packaging and AnkiWeb release steps.
+Merging a new version from `dev` into `main` automatically publishes a GitHub release after CI passes, using that version's changelog notes and attaching the add-on archive. See [publishing instructions](docs/dev/PUBLISHING.md) for version preparation, packaging, and AnkiWeb release steps.
 
 See [development dependency notes](docs/dev/DEPENDENCIES.md) for patched transitive dependency overrides and the remaining `braces` advisory.
 
