@@ -75,6 +75,10 @@ Useful project scripts:
 
 ## Git commits
 
+- Never create or amend commits on `main`. Check the current branch immediately
+  before committing. If a commit is requested while `main` is checked out,
+  including an explicit request to commit to `main`, ask the user whether to
+  switch to `dev` or another branch and wait for their choice before committing.
 - Create a Git commit for each completed new feature, fix, refactor, or other
   logical change after appropriate validation.
 - Use a concise, descriptive commit message explaining the change.
