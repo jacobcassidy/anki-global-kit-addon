@@ -33,7 +33,11 @@ export function matchesKeyboardShortcut(event, shortcut, isMac) {
   // Use the character the platform reports after keyboard remapping. `code`
   // is a fallback for the code-block shortcut when a keyboard layout maps the
   // physical C key to a different character.
-  const keyMatches = eventKey === configuredKey || (codeBlock && event.code === `Key${key.toUpperCase()}`);
+  const ankiIndentKey = modifiers.has('shift') && (configuredKey === ',' || configuredKey === '.');
+  const keyMatches =
+    eventKey === configuredKey ||
+    (codeBlock && event.code === `Key${key.toUpperCase()}`) ||
+    (ankiIndentKey && event.code === (configuredKey === ',' ? 'Comma' : 'Period'));
   if (!keyMatches) return false;
   const qtCtrl = modifiers.has('ctrl');
   const qtMeta = modifiers.has('meta');

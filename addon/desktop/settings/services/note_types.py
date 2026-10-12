@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from html import escape
 from pathlib import Path
 
+from anki.collection import Collection, OpChanges
 from anki.consts import MODEL_CLOZE, MODEL_STD
 from anki.stdmodels import get_stock_notetypes
 from aqt import mw
@@ -24,6 +25,7 @@ class NoteTypeOperation:
     topic: str
     card_format: str
     name: str
+    notetype_id: int | None = None
 
 
 @dataclass(frozen=True)
@@ -46,6 +48,7 @@ class NoteTypeReplacementImpact:
 
 @dataclass(frozen=True)
 class NoteTypeChangePlan:
+    collection: Collection
     creates: tuple[NoteTypeOperation, ...]
     overwrites: tuple[NoteTypeOperation, ...]
     deletions: tuple[NoteTypeOperation, ...]
@@ -59,6 +62,7 @@ class NoteTypeChangeResult:
     overwritten: tuple[str, ...]
     deleted: tuple[str, ...]
     skipped: tuple[str, ...]
+    changes: OpChanges
 
 
 class NoteTypeServiceError(Exception):
@@ -85,10 +89,15 @@ class ReplacementValidationError(NoteTypeServiceError):
     """An existing type is missing or incompatible with the requested format."""
 
 
+class NoteTypePlanChangedError(NoteTypeServiceError):
+    """The collection or confirmed targets changed before the operation ran."""
+
+
 class NoteTypeApplyError(NoteTypeServiceError):
-    def __init__(self, applied_names: tuple[str, ...], cause: Exception):
+    def __init__(self, applied_names: tuple[str, ...], cause: Exception, changes: OpChanges):
         self.applied_names = applied_names
         self.cause = cause
+        self.changes = changes
 
 
 TOPICS = (
@@ -161,11 +170,11 @@ def _card_template(filename: str, topic: str, script: str) -> str:
     return f"{html.rstrip()}\n\n<script>\n{script.rstrip()}\n</script>\n"
 
 
-def _stock_cloze_note_type() -> dict[str, object]:
+def _stock_cloze_note_type(col: Collection) -> dict[str, object]:
     # Stock definitions come from Anki, independently of the profile's types.
     # Copy the factory result before customizing its fields and templates.
-    for _name, factory in get_stock_notetypes(mw.col):
-        notetype = factory(mw.col)
+    for _name, factory in get_stock_notetypes(col):
+        notetype = factory(col)
         if notetype["type"] == MODEL_CLOZE:
             return deepcopy(notetype)
     raise NoteTypeServiceError("Anki's stock Cloze definition is unavailable.")
@@ -192,11 +201,12 @@ def _validate_replacement_type(
 
 def _replacement_impacts(
     operations: tuple[NoteTypeOperation, ...],
+    col: Collection,
 ) -> tuple[NoteTypeReplacementImpact, ...]:
     """Validate replacements and count cards belonging to removed standard templates."""
     impacts: list[NoteTypeReplacementImpact] = []
     for operation in operations:
-        notetype = mw.col.models.by_name(operation.name)
+        notetype = col.models.by_name(operation.name)
         _validate_replacement_type(
             operation.name,
             FORMATS[operation.card_format],
@@ -209,7 +219,7 @@ def _replacement_impacts(
                 NoteTypeTemplateRemoval(
                     name=template["name"],
                     ordinal=template["ord"],
-                    card_count=mw.col.models.template_use_count(
+                    card_count=col.models.template_use_count(
                         notetype["id"], template["ord"],
                     ),
                 )
@@ -229,9 +239,10 @@ def _create_note_type(
     name: str,
     topic: str,
     spec: dict[str, object],
+    col: Collection,
     existing_notetype: dict[str, object] | None = None,
-) -> None:
-    models = mw.col.models
+) -> OpChanges:
+    models = col.models
     if existing_notetype is not None:
         _validate_replacement_type(name, spec, existing_notetype)
         notetype = deepcopy(existing_notetype)
@@ -250,7 +261,7 @@ def _create_note_type(
         template["ord"] = 0
         template["name"] = "Cloze" if spec["cloze"] else "Card 1"
     elif spec["cloze"]:
-        notetype = _stock_cloze_note_type()
+        notetype = _stock_cloze_note_type(col)
         notetype["id"] = 0
         notetype["name"] = name
         notetype["flds"] = []
@@ -275,9 +286,8 @@ def _create_note_type(
     notetype["css"] = f"{imports.rstrip()}\n\n{topic_style.rstrip()}\n"
     if existing_notetype is None:
         notetype["sortf"] = 0
-        models.add(notetype)
-    else:
-        models.update_dict(notetype)
+        return models.add_dict(notetype).changes
+    return models.update_dict(notetype)
 
 
 def plan_note_type_changes(
@@ -286,7 +296,8 @@ def plan_note_type_changes(
     deletions: dict[str, set[str]] | None = None,
 ) -> NoteTypeChangePlan:
     """Plan changes and validate replacement formats, templates, and deletions."""
-    if mw.col is None:
+    col = mw.col
+    if col is None:
         raise NoActiveCollectionError
 
     overwrites = overwrites or {}
@@ -297,7 +308,7 @@ def plan_note_type_changes(
         for card_format in FORMATS
         if card_format in selected_formats
     ]
-    existing_names = {entry.name for entry in mw.col.models.all_names_and_ids()}
+    existing_names = {entry.name for entry in col.models.all_names_and_ids()}
     requested = tuple(
         NoteTypeOperation(topic, card_format, f"{topic} ({card_format})")
         for topic, card_format in selected
@@ -309,7 +320,7 @@ def plan_note_type_changes(
         if operation.name in existing_names
         and operation.card_format in overwrites.get(operation.topic, set())
     )
-    replacement_impacts = _replacement_impacts(overwrite_operations)
+    replacement_impacts = _replacement_impacts(overwrite_operations, col)
     skipped = tuple(
         operation.name
         for operation in requested
@@ -321,12 +332,18 @@ def plan_note_type_changes(
         for card_format in FORMATS
         if card_format in selected_formats
     )
+    deletion_operations = []
     for operation in requested_deletions:
-        notetype = mw.col.models.by_name(operation.name)
+        notetype = col.models.by_name(operation.name)
         if notetype is None:
             raise DeletionValidationError(operation.name, missing=True)
-        if mw.col.models.use_count(notetype):
+        if col.models.use_count(notetype):
             raise DeletionValidationError(operation.name, missing=False)
+        deletion_operations.append(
+            NoteTypeOperation(
+                operation.topic, operation.card_format, operation.name, notetype["id"],
+            )
+        )
 
     selected_for_templates = {
         (operation.topic, operation.card_format)
@@ -350,9 +367,10 @@ def plan_note_type_changes(
         raise MissingTemplateFilesError(missing_paths)
 
     return NoteTypeChangePlan(
+        collection=col,
         creates=creates,
         overwrites=overwrite_operations,
-        deletions=requested_deletions,
+        deletions=tuple(deletion_operations),
         skipped=skipped,
         replacement_impacts=replacement_impacts,
     )
@@ -360,18 +378,22 @@ def plan_note_type_changes(
 
 def _revalidate_deletions(
     operations: tuple[NoteTypeOperation, ...],
+    col: Collection,
 ) -> None:
-    if mw.col is None:
-        raise NoActiveCollectionError
     for operation in operations:
-        notetype = mw.col.models.by_name(operation.name)
+        notetype = col.models.by_name(operation.name)
         if notetype is None:
             raise DeletionValidationError(
                 operation.name,
                 missing=True,
                 after_confirmation=True,
             )
-        if mw.col.models.use_count(notetype):
+        if notetype["id"] != operation.notetype_id:
+            raise NoteTypePlanChangedError(
+                f"The note type {operation.name} was replaced after confirmation. "
+                "Review the selected actions and confirm again."
+            )
+        if col.models.use_count(notetype):
             raise DeletionValidationError(
                 operation.name,
                 missing=False,
@@ -379,56 +401,73 @@ def _revalidate_deletions(
             )
 
 
-def apply_note_type_changes(plan: NoteTypeChangePlan) -> NoteTypeChangeResult:
+def apply_note_type_changes(plan: NoteTypeChangePlan, col: Collection) -> NoteTypeChangeResult:
     """Apply a previously confirmed note type change plan."""
-    if mw.col is None:
+    if col is None:
         raise NoActiveCollectionError
-    if _replacement_impacts(plan.overwrites) != plan.replacement_impacts:
+    if col is not plan.collection:
+        raise NoteTypePlanChangedError(
+            "The active Anki collection changed after confirmation. "
+            "Reopen settings and confirm the selected actions again."
+        )
+    for operation in plan.creates:
+        if col.models.by_name(operation.name) is not None:
+            raise NoteTypePlanChangedError(
+                f"The note type {operation.name} now exists and was left unchanged. "
+                "Review the selected actions and confirm again."
+            )
+    if _replacement_impacts(plan.overwrites, col) != plan.replacement_impacts:
         raise ReplacementValidationError(
             "The note types, additional templates, or card counts changed after "
             "confirmation. Review the selected actions and confirm again."
         )
-    _revalidate_deletions(plan.deletions)
+    _revalidate_deletions(plan.deletions, col)
 
     created: list[str] = []
     overwritten: list[str] = []
     deleted: list[str] = []
+    changes = OpChanges()
     try:
         for operation in plan.creates:
-            _create_note_type(
+            operation_changes = _create_note_type(
                 operation.name,
                 operation.topic,
                 FORMATS[operation.card_format],
+                col,
             )
+            changes.MergeFrom(operation_changes)
             created.append(operation.name)
         for operation in plan.overwrites:
-            existing_notetype = mw.col.models.by_name(operation.name)
+            existing_notetype = col.models.by_name(operation.name)
             if existing_notetype is None:
                 raise RuntimeError(
                     f"The existing note type {operation.name} could not be loaded."
                 )
-            _create_note_type(
+            operation_changes = _create_note_type(
                 operation.name,
                 operation.topic,
                 FORMATS[operation.card_format],
+                col,
                 existing_notetype,
             )
+            changes.MergeFrom(operation_changes)
             overwritten.append(operation.name)
         for operation in plan.deletions:
-            notetype = mw.col.models.by_name(operation.name)
+            notetype = col.models.by_name(operation.name)
             if notetype is None:
                 raise RuntimeError(
                     f"The note type {operation.name} could not be loaded."
                 )
-            mw.col.models.remove(notetype["id"])
+            changes.MergeFrom(col.models.remove(notetype["id"]))
             deleted.append(operation.name)
     except Exception as error:
         applied_names = tuple(created + overwritten + deleted)
-        raise NoteTypeApplyError(applied_names, error) from error
+        raise NoteTypeApplyError(applied_names, error, changes) from error
 
     return NoteTypeChangeResult(
         created=tuple(created),
         overwritten=tuple(overwritten),
         deleted=tuple(deleted),
         skipped=plan.skipped,
+        changes=changes,
     )

@@ -23,3 +23,11 @@ test('disabled shortcuts and other configured keys do not claim Preferences', ()
 test('refreshing after leaving question inputs releases Command+Comma', () => {
   assert.deepEqual(report(false), ['anki-global-kit:question-input-blur']);
 });
+
+test('toolbar focus reports native ownership independently of formatting shortcuts', () => {
+  const messages = [];
+  globalThis.document = { activeElement: { closest: () => ({}), matches: () => false } };
+  globalThis.pycmd = (message) => messages.push(message);
+  reportQuestionShortcutFocus(false, {});
+  assert.deepEqual(messages, ['anki-global-kit:question-toolbar-focus']);
+});

@@ -16,6 +16,7 @@ _message_hook_installed = False
 _preferences_was_enabled: bool | None = None
 _editor_webviews = WeakSet()
 _preview_input_webviews = WeakSet()
+_toolbar_webviews = WeakSet()
 
 
 def _live_webviews(webviews):
@@ -71,7 +72,11 @@ def _refresh_question_focus(*_args) -> None:
     """Ask the DOM again after Qt focus returns without a textarea focus event."""
     _sync_preferences_action()
     focused_widget = QApplication.focusWidget()
-    for webview in _live_webviews(_preview_input_webviews):
+    webviews = set(_live_webviews(_preview_input_webviews))
+    webviews.update(_live_webviews(_toolbar_webviews))
+    for webview in webviews:
+        if mw.state == "review" and webview is mw.reviewer.web:
+            continue
         if _webview_contains_focus(webview, focused_widget):
             webview.eval("globalThis.ankiGlobalKitReportQuestionFocus?.();")
     if mw.state != "review":
@@ -125,6 +130,56 @@ def _card_tab_action(event, settings):
     return _indentation_tab_action(event, settings)
 
 
+def _card_indent_shortcut_override(event) -> bool:
+    """Keep native Anki shortcuts from consuming card indentation keys."""
+    if not is_mac:
+        return False
+    focused = QApplication.focusWidget()
+    webviews = list(_live_webviews(_preview_input_webviews))
+    if _active_reviewer is mw.reviewer and mw.state == "review":
+        webviews.append(mw.reviewer.web)
+    if not any(_webview_contains_focus(webview, focused) for webview in webviews):
+        return False
+
+    from .settings import get_settings
+
+    settings = get_settings()
+    if not settings.get("card_input_tab_indentation", True):
+        return False
+    key_values = {",": Qt.Key.Key_Comma, ".": Qt.Key.Key_Period}
+    event_key = event.key()
+    if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
+        event_key = {
+            Qt.Key.Key_Less: Qt.Key.Key_Comma,
+            Qt.Key.Key_Greater: Qt.Key.Key_Period,
+        }.get(event_key, event_key)
+    modifiers = {
+        "Ctrl": Qt.KeyboardModifier.ControlModifier,
+        "Meta": Qt.KeyboardModifier.MetaModifier,
+        "Control": Qt.KeyboardModifier.MetaModifier,
+        "Alt": Qt.KeyboardModifier.AltModifier,
+        "Shift": Qt.KeyboardModifier.ShiftModifier,
+    }
+    for action in ("increase", "decrease"):
+        name = f"card_input_tab_indent_{action}_shortcut"
+        if not settings.get(f"{name}_enabled", True):
+            continue
+        parts = settings.get(name, "Ctrl+Shift+." if action == "increase" else "Ctrl+Shift+,").split("+")
+        key = parts.pop()
+        if "Shift" in parts:
+            key = {"<": ",", ">": "."}.get(key, key)
+        if key not in key_values or event_key != key_values[key]:
+            continue
+        if not parts or any(part not in modifiers for part in parts):
+            continue
+        expected = modifiers[parts[0]]
+        for part in parts[1:]:
+            expected |= modifiers[part]
+        if event.modifiers() == expected:
+            return True
+    return False
+
+
 def _tab_shortcut_target(event):
     """Only claim Control+Tab in webviews whose indentation setting is enabled."""
     from .settings import get_editor_settings, get_settings
@@ -157,9 +212,14 @@ def _tab_shortcut_target(event):
 
 
 class _PreferencesShortcutFilter(QObject):
-    """Route native Control+Tab and let the card input handle Command+Comma."""
+    """Route card indentation keys before Qt handles native shortcuts."""
 
     def eventFilter(self, watched, event) -> bool:
+        if event.type() == QEvent.Type.ShortcutOverride and _toolbar_owns_navigation(event):
+            # Let the focused HTML button receive activation/navigation instead
+            # of Anki's native Show Answer or Escape shortcuts.
+            event.accept()
+            return True
         if (
             event.type() in (QEvent.Type.ShortcutOverride, QEvent.Type.KeyPress)
             and event.key() in (Qt.Key.Key_Tab, Qt.Key.Key_Backtab)
@@ -170,6 +230,15 @@ class _PreferencesShortcutFilter(QObject):
             event.accept()
             if event.type() == QEvent.Type.ShortcutOverride:
                 target[0].eval(target[1])
+            return True
+        if (
+            event.type() == QEvent.Type.ShortcutOverride
+            and event.key() in (Qt.Key.Key_Comma, Qt.Key.Key_Period, Qt.Key.Key_Less, Qt.Key.Key_Greater)
+            and _card_indent_shortcut_override(event)
+        ):
+            # Qt maps Command to ControlModifier on macOS. Accepting the
+            # override lets Chromium deliver the keypress to the textarea.
+            event.accept()
             return True
         if (
             event.type() == QEvent.Type.ShortcutOverride
@@ -186,29 +255,48 @@ class _PreferencesShortcutFilter(QObject):
         return False
 
 
+def _toolbar_owns_navigation(event) -> bool:
+    focused = QApplication.focusWidget()
+    if not any(_webview_contains_focus(webview, focused) for webview in _live_webviews(_toolbar_webviews)):
+        return False
+    return event.modifiers() == Qt.KeyboardModifier.NoModifier and event.key() in (
+        Qt.Key.Key_Space, Qt.Key.Key_Return, Qt.Key.Key_Enter, Qt.Key.Key_Escape,
+        Qt.Key.Key_Left, Qt.Key.Key_Right, Qt.Key.Key_Home, Qt.Key.Key_End,
+    )
+
+
 def _on_webview_message(handled: tuple[bool, object], message: str, context):
     global _active_reviewer, _command_comma_handled
     if message not in {
         "anki-global-kit:question-input-focus:handled",
         "anki-global-kit:question-input-focus:unhandled",
         "anki-global-kit:question-input-blur",
+        "anki-global-kit:question-toolbar-focus",
     }:
         return handled
     is_focus = message != "anki-global-kit:question-input-blur"
+    is_toolbar = message == "anki-global-kit:question-toolbar-focus"
     if not isinstance(context, Reviewer):
         # The JS-message hook supplies the window owning the card webview.
         # Browse previewers expose _web; template previews expose preview_web.
         webview = getattr(context, "preview_web", None) or getattr(context, "_web", None)
         if webview is None or sip.isdeleted(webview):
             return handled
-        if is_focus:
+        _toolbar_webviews.discard(webview)
+        if is_toolbar:
+            _toolbar_webviews.add(webview)
+            _preview_input_webviews.discard(webview)
+        elif is_focus:
             _preview_input_webviews.add(webview)
         else:
             _preview_input_webviews.discard(webview)
         return (True, None)
     if context is not mw.reviewer:
         return handled
-    _active_reviewer = context if is_focus else None
+    _toolbar_webviews.discard(context.web)
+    if is_toolbar:
+        _toolbar_webviews.add(context.web)
+    _active_reviewer = context if is_focus and not is_toolbar else None
     _command_comma_handled = message.endswith(":handled") if is_focus else False
     _sync_preferences_action()
     return (True, None)
@@ -220,6 +308,7 @@ def _on_card_will_show(html: str, card, kind: str) -> str:
         # Replacing a card's DOM does not reliably blur its old textarea.
         _active_reviewer = None
         _command_comma_handled = False
+        _toolbar_webviews.discard(mw.reviewer.web)
         _sync_preferences_action()
     if kind in {
         "reviewQuestion", "reviewAnswer", "previewQuestion", "previewAnswer",

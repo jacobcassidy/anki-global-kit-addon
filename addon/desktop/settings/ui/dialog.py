@@ -28,8 +28,9 @@ from ..configs.constants import (
 )
 from .theme import get_theme_color
 from ..helpers.shortcuts import (
-    anki_editor_format_shortcut_warnings,
+    anki_editor_shortcut_warning,
     anki_shortcut_warnings,
+    editor_fixed_shortcut_action,
     format_shortcut,
     normalize_shortcut,
     reserved_shortcut_warnings,
@@ -49,6 +50,7 @@ from .widgets import CardShortcutInput
 def open_settings() -> None:
     """Show the settings dialog and coordinate its settings pages."""
     dialog = QDialog(mw)
+    dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
     dialog.setStyleSheet(
         "QTextBrowser { "
         f"background-color: {get_theme_color('CANVAS_ELEVATED')}; "
@@ -238,6 +240,13 @@ def open_settings() -> None:
                     f"{format_shortcut(shortcut)} is reserved for {reserved_action}. Choose another shortcut."
                 )
                 validation_state["reserved"].append(f"Anki editor {label}")
+            fixed_action = editor_fixed_shortcut_action(shortcut)
+            if fixed_action:
+                editor_messages[key].append(
+                    f"{format_shortcut(shortcut)} conflicts with Anki Global Kit's "
+                    f"{fixed_action} shortcut. Choose another."
+                )
+                validation_state["reserved"].append(f"Anki editor {label}")
 
         editor_seen = {}
         editor_conflicts = set()
@@ -258,10 +267,6 @@ def open_settings() -> None:
             style_shortcut_option(checkbox, inactive=not all_controls["anki_editor_tab_indentation"].isChecked())
 
         built_in_shortcuts = anki_shortcut_warnings()
-        editor_built_in_shortcuts = {
-            **built_in_shortcuts,
-            **anki_editor_format_shortcut_warnings(),
-        }
         for shortcut, key, _label in active_shortcuts:
             description = built_in_shortcuts.get(normalize_shortcut(shortcut))
             if description:
@@ -270,7 +275,7 @@ def open_settings() -> None:
                     f"conflict with Anki's {description} shortcut."
                 )
         for shortcut, key, _label in editor_active_shortcuts:
-            description = editor_built_in_shortcuts.get(normalize_shortcut(shortcut))
+            description = anki_editor_shortcut_warning(key, shortcut)
             if description:
                 editor_messages[key].append(
                     f"The {format_shortcut(shortcut)} shortcut may conflict with Anki's {description} shortcut."
@@ -305,6 +310,12 @@ def open_settings() -> None:
     def validate_editor_shortcut_candidate(key, candidate):
         if not editor_shortcut_active(key):
             return None
+        fixed_action = editor_fixed_shortcut_action(candidate)
+        if fixed_action:
+            return (
+                f"{format_shortcut(candidate)} conflicts with Anki Global Kit's "
+                f"{fixed_action} shortcut. Choose another."
+            )
         for other_key, label in editor_definitions:
             if other_key == key or not editor_shortcut_active(other_key):
                 continue
@@ -358,8 +369,11 @@ def open_settings() -> None:
 
 
 def save_settings(dialog: QDialog, settings: dict[str, object]) -> None:
+    from ...editor.integration import refresh_open_editors
+
     write_settings(settings)
     update_assets_for_profile()
+    refresh_open_editors()
     dialog.accept()
 
 

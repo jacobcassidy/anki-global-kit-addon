@@ -109,8 +109,9 @@ class CardShortcutInput(QPushButton):
 
     _change_sequence = 0
 
-    def __init__(self, shortcut: str, parent: QWidget) -> None:
+    def __init__(self, shortcut: str, parent: QWidget, *, code_block_alias: bool = False) -> None:
         super().__init__(format_shortcut(shortcut) or "none", parent)
+        self._code_block_alias = code_block_alias
         self._capturing = False
         self._captured_tab = False
         self._capture_generation = 0
@@ -397,8 +398,9 @@ class CardShortcutInput(QPushButton):
             ]
         key = "Tab" if text.lower() == "tab" else text.upper()
         modifier_set = set(modifiers)
-        if (is_mac and modifier_set == {"Ctrl", "Meta"}) or (
-            not is_mac and modifier_set == {"Ctrl", "Alt"}
+        if getattr(self, "_code_block_alias", False) and (
+            (is_mac and modifier_set == {"Ctrl", "Meta"})
+            or (not is_mac and modifier_set == {"Ctrl", "Alt"})
         ):
             if key == "C":
                 return "CodeBlock+C"

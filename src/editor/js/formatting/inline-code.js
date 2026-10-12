@@ -251,9 +251,9 @@ function toggleInlineCodeSelection(field, range, selection) {
   const uncoded = segments.filter((segment) => !segment.code);
   const codes = [...new Set(segments.map((segment) => segment.code).filter(Boolean))];
   if (!uncoded.length) {
-    // Selections can contain several code elements. Toggling them removes
-    // only their selected portions, preserving code outside the range.
-    if (codes.length < 2) return false;
+    // Remove selected portions from one or several code elements, preserving
+    // any code outside the range.
+    if (!codes.length) return false;
     removeCodeFromSelection(codes, range, selection);
     return true;
   }

@@ -66,7 +66,8 @@ def build_shortcut_rows(section: QWidget, master: QCheckBox, definitions, curren
         row.addStretch()
 
         shortcut_input = CardShortcutInput(
-            current_settings.get(key, DEFAULT_SETTINGS[key]), row_widget
+            current_settings.get(key, DEFAULT_SETTINGS[key]), row_widget,
+            code_block_alias=key == "card_input_markdown_code_block_shortcut",
         )
         reset_link = make_reset_link(row_widget, shortcut_input, DEFAULT_SETTINGS[key])
         row.addWidget(reset_link)

@@ -34,8 +34,8 @@ test('indent toolbar buttons appear between ordered list and blockquote and pres
     );
     const increase = document.querySelector('.is-indent-increase');
     const decrease = document.querySelector('.is-indent-decrease');
-    assert.equal(increase.title, 'Increase indent (⌥Tab)');
-    assert.equal(decrease.title, 'Decrease indent (⌃Tab)');
+    assert.equal(increase.title, 'Increase indent (⌘⇧.)');
+    assert.equal(decrease.title, 'Decrease indent (⌘⇧,)');
     increase.click();
     assert.equal(input.value, 'one\n    two\nthree');
     assert.equal(input.selectionStart, 9);
@@ -71,6 +71,7 @@ test('custom indentation shortcuts work independently of Markdown shortcuts and 
     card_input_tab_indent_decrease_shortcut: 'Alt+[',
   });
   try {
+    assert.equal(document.querySelector('.is-bold').title, 'Bold');
     assert.equal(document.querySelector('.is-indent-increase').title, 'Increase indent (⌥])');
     assert.equal(document.querySelector('.is-indent-decrease').title, 'Decrease indent (⌥[)');
     for (const [key, expected] of [
@@ -104,6 +105,91 @@ test('individual shortcut and toolbar switches are independent', () => {
     assert.equal(event.defaultPrevented, false);
     increase.click();
     assert.equal(input.value, 'one\n    two\nthree');
+  } finally {
+    dom.window.close();
+  }
+});
+
+test('disabling Markdown shortcuts leaves Enter in list-like text to the textarea', () => {
+  const { dom, input } = card({ card_input_markdown_shortcuts: false });
+  try {
+    input.value = '1. literal text';
+    input.setSelectionRange(input.value.length, input.value.length);
+    const event = new dom.window.KeyboardEvent('keydown', { key: 'Enter', cancelable: true });
+    input.dispatchEvent(event);
+    assert.equal(event.defaultPrevented, false);
+    assert.equal(input.value, '1. literal text');
+  } finally {
+    dom.window.close();
+  }
+});
+
+function toolbarKey(dom, target, key, modifiers = {}) {
+  const event = new dom.window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...modifiers });
+  target.dispatchEvent(event);
+  return event;
+}
+
+test('the toolbar has one tab stop and supports wrapping arrows, Home, End, and Escape', () => {
+  const { dom, input, document } = card();
+  try {
+    const buttons = [...document.querySelectorAll('[role="toolbar"] button')];
+    assert.deepEqual(
+      buttons.map((button) => button.tabIndex),
+      [0, ...buttons.slice(1).map(() => -1)],
+    );
+    buttons[0].focus();
+    assert.equal(toolbarKey(dom, buttons[0], 'ArrowLeft').defaultPrevented, true);
+    assert.equal(document.activeElement, buttons.at(-1));
+    toolbarKey(dom, buttons.at(-1), 'ArrowRight');
+    assert.equal(document.activeElement, buttons[0]);
+    toolbarKey(dom, buttons[0], 'End');
+    assert.equal(document.activeElement, buttons.at(-1));
+    toolbarKey(dom, buttons.at(-1), 'Home');
+    assert.equal(document.activeElement, buttons[0]);
+    assert.equal(buttons.filter((button) => button.tabIndex === 0).length, 1);
+    assert.equal(toolbarKey(dom, buttons[0], 'Tab').defaultPrevented, false);
+    assert.equal(toolbarKey(dom, buttons[0], 'ArrowRight', { altKey: true }).defaultPrevented, false);
+    toolbarKey(dom, buttons[0], 'Escape');
+    assert.equal(document.activeElement, input);
+    assert.equal(input.selectionStart, 5);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test('Enter and Space activate toolbar indentation with shortcuts disabled and preserve the input selection', () => {
+  const { dom, input, document } = card({ card_input_tab_indentation: false });
+  try {
+    const increase = document.querySelector('.is-indent-increase');
+    increase.focus();
+    assert.equal(increase.tabIndex, 0);
+    assert.equal(toolbarKey(dom, increase, 'Enter').defaultPrevented, true);
+    assert.equal(input.value, 'one\n    two\nthree');
+    assert.equal(input.selectionStart, 9);
+    assert.equal(document.activeElement, input);
+    const decrease = document.querySelector('.is-indent-decrease');
+    decrease.focus();
+    toolbarKey(dom, decrease, ' ');
+    assert.equal(input.value, 'one\ntwo\nthree');
+    assert.equal(input.selectionStart, 5);
+    assert.equal(document.activeElement, input);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test('toolbar arrow navigation follows right-to-left layout direction', () => {
+  const { dom, document } = card();
+  try {
+    const toolbar = document.querySelector('[role="toolbar"]');
+    toolbar.style.direction = 'rtl';
+    const buttons = [...toolbar.querySelectorAll('button')];
+    buttons[0].focus();
+    toolbarKey(dom, buttons[0], 'ArrowRight');
+    assert.equal(document.activeElement, buttons.at(-1));
+    toolbarKey(dom, buttons.at(-1), 'ArrowLeft');
+    assert.equal(document.activeElement, buttons[0]);
   } finally {
     dom.window.close();
   }

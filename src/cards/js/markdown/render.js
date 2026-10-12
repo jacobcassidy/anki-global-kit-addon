@@ -66,8 +66,9 @@ export function markdownToHtml(markdown) {
   const closeLists = () => {
     while (listStack.length) closeTopList();
   };
-  const openList = (type, indent) => {
-    blocks.push(`<${type}><li>`);
+  const openList = (type, indent, start = '1') => {
+    const startAttribute = type === 'ol' && start !== '1' ? ` start="${start}"` : '';
+    blocks.push(`<${type}${startAttribute}><li>`);
     listStack.push({ type, indent });
   };
 
@@ -110,13 +111,13 @@ export function markdownToHtml(markdown) {
 
       const currentList = listStack[listStack.length - 1];
       if (!currentList) {
-        openList(nextListType, indent);
+        openList(nextListType, indent, listItem[3]);
       } else if (indent > currentList.indent) {
         // A more-indented item is nested inside the preceding list item.
-        openList(nextListType, indent);
+        openList(nextListType, indent, listItem[3]);
       } else if (indent === currentList.indent && currentList.type !== nextListType) {
         closeTopList();
-        openList(nextListType, indent);
+        openList(nextListType, indent, listItem[3]);
       } else {
         // Continue the current list at the same indentation.
         blocks.push('</li><li>');

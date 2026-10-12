@@ -3,6 +3,13 @@
 from aqt.utils import is_mac
 
 
+EDITOR_BLOCK_SHORTCUTS = {
+    "unordered-list": "Ctrl+,",
+    "ordered-list": "Ctrl+.",
+    "blockquote": "Ctrl+/",
+}
+
+
 SHORTCUT_KEY_ALIASES = {
     " ": "SPACE",
     "RETURN": "ENTER",
@@ -57,6 +64,10 @@ def normalize_shortcut(shortcut: str) -> str:
         modifiers = {"Ctrl", "Meta"} if is_mac else {"Ctrl", "Alt"}
     else:
         modifiers = set(parts)
+    # Qt recorders can store the shifted glyph while Anki's default names use
+    # the underlying punctuation key. Both match the same browser key event.
+    if "Shift" in modifiers:
+        key = {"<": ",", ">": "."}.get(key, key)
     order = ("Ctrl", "Meta", "Alt", "Shift")
     return "+".join([*(part for part in order if part in modifiers), key])
 
@@ -64,6 +75,15 @@ def normalize_shortcut(shortcut: str) -> str:
 def shortcut_has_required_modifier(shortcut: str) -> bool:
     modifiers = set(split_shortcut(normalize_shortcut(shortcut))[:-1])
     return bool(modifiers & {"Ctrl", "Alt", "Meta"})
+
+
+def editor_fixed_shortcut_action(shortcut: str) -> str | None:
+    """Identify a kit action whose editor shortcut cannot be reassigned."""
+    normalized = normalize_shortcut(shortcut)
+    for action, keys in EDITOR_BLOCK_SHORTCUTS.items():
+        if normalized == normalize_shortcut(keys):
+            return action.replace("-", " ")
+    return None
 
 
 def anki_shortcut_warnings() -> dict[str, str]:
@@ -95,10 +115,27 @@ def anki_editor_format_shortcut_warnings() -> dict[str, str]:
             ("Ctrl+Shift+=", "Superscript"),
             ("Ctrl+,", "Unordered list"),
             ("Ctrl+.", "Ordered list"),
+            ("Ctrl+/", "Blockquote"),
             ("Ctrl+Shift+,", "Outdent list item"),
             ("Ctrl+Shift+.", "Indent list item"),
         )
     }
+
+
+def anki_editor_shortcut_warning(setting: str, shortcut: str) -> str | None:
+    """Warn about native actions except the indentation action we extend."""
+    native_indent_shortcuts = {
+        "anki_editor_indent_increase_shortcut": "Ctrl+Shift+.",
+        "anki_editor_indent_decrease_shortcut": "Ctrl+Shift+,",
+    }
+    normalized = normalize_shortcut(shortcut)
+    intended = native_indent_shortcuts.get(setting)
+    if intended and normalized == normalize_shortcut(intended):
+        return None
+    return {
+        **anki_shortcut_warnings(),
+        **anki_editor_format_shortcut_warnings(),
+    }.get(normalized)
 
 
 def reserved_shortcut_warnings() -> dict[str, str]:

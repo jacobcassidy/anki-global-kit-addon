@@ -2,6 +2,7 @@
 
 import ast
 import importlib.util
+import json
 import re
 import sys
 from pathlib import Path
@@ -96,6 +97,15 @@ def validate_templates(packaged_paths: set[Path]) -> int:
 
 def validate_assets(package_files: list[Path]) -> str:
     """Validate existing build artifacts without importing Anki or creating an archive."""
+    versions = {
+        "package.json": json.loads(read_source(ROOT / "package.json"))["version"],
+        "package-lock.json": json.loads(read_source(ROOT / "package-lock.json"))["packages"][""]["version"],
+        "addon/manifest.json": json.loads(read_source(ROOT / "addon/manifest.json"))["version"],
+    }
+    if len(set(versions.values())) != 1:
+        details = ", ".join(f"{path}: {version}" for path, version in versions.items())
+        raise ValueError(f"Project versions must match across package metadata: {details}")
+
     manifest = load_script_module(
         ROOT / "addon/desktop/settings/configs/asset_manifest.py",
         "anki_global_kit_asset_manifest",

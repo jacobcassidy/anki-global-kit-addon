@@ -98,7 +98,7 @@ def build_editor_fields_section(
     add_checkbox_row(
         layout,
         tab_indentation,
-        "Alt+Tab indents list items or adds four leading spaces to the current or selected rows. Control+Tab removes indentation (physical Control on macOS). Tab and Shift+Tab move focus.",
+        "⌘+Shift+. indents and ⌘+Shift+, outdents on macOS; use Ctrl+Shift+. and Ctrl+Shift+, on Windows and Linux. These shortcuts indent list items or change leading spaces in the current or selected rows. Tab and Shift+Tab move focus.",
     )
     indentation_rows = build_shortcut_rows(
         section, tab_indentation, INDENTATION_SHORTCUT_DEFINITIONS, current_settings

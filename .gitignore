@@ -5,3 +5,4 @@ node_modules
 /addon/meta.json
 __pycache__
 *.pyc
+docs/dev/TODO.md

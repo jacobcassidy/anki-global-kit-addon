@@ -40,11 +40,11 @@ export const settings = {
   cardInputTabShortcutsMap: {
     increase:
       savedSettings.card_input_tab_indent_increase_shortcut_enabled !== false
-        ? (savedSettings.card_input_tab_indent_increase_shortcut ?? 'Alt+Tab')
+        ? (savedSettings.card_input_tab_indent_increase_shortcut ?? 'Ctrl+Shift+.')
         : '',
     decrease:
       savedSettings.card_input_tab_indent_decrease_shortcut_enabled !== false
-        ? (savedSettings.card_input_tab_indent_decrease_shortcut ?? 'Control+Tab')
+        ? (savedSettings.card_input_tab_indent_decrease_shortcut ?? 'Ctrl+Shift+,')
         : '',
   },
   cardReviewMarkdownRendering: savedSettings.card_review_markdown_rendering !== false,

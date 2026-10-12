@@ -65,6 +65,7 @@
     "build": "node scripts/build.js",
     "build:addon": "node scripts/build.js",
     "package:addon": "python3 scripts/package_addon.py",
+    "link:addon": "node scripts/link_addon.js",
     "watch": "node scripts/watch.js"
   },
   "engines": {

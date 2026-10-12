@@ -54,7 +54,10 @@ export function editWithNativeUndo(field, selection, edit, onInput) {
       plannedRange = range;
     },
   };
-  edit(clone, stagedSelection, (node) => (node && field.contains(node) ? nodeAt(clone, nodePath(field, node)) : null));
+  const edited = edit(clone, stagedSelection, (node) =>
+    node && field.contains(node) ? nodeAt(clone, nodePath(field, node)) : null,
+  );
+  if (edited === false) return null;
   if (!clone.contains(plannedRange.startContainer) || !clone.contains(plannedRange.endContainer)) return null;
   if (clone.innerHTML === field.innerHTML) {
     selectRange(selection, copyRange(clone, field, plannedRange));
@@ -88,7 +91,7 @@ export function editWithNativeUndo(field, selection, edit, onInput) {
   field.focus();
 
   // Include boundaries outside the old formatting so insertHTML can remove
-  // a CODE wrapper as well as add one. Undo restores these boundaries too.
+  // an outer CODE, UL, or OL wrapper. Undo restores these boundaries too.
   const boundary = document.createElement('span');
   boundary.setAttribute(BOUNDARY_ATTRIBUTE, '');
   boundary.textContent = '\u2060';

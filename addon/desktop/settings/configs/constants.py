@@ -1,5 +1,7 @@
 """Shared settings defaults, paths, and Qt styling constants."""
 
+import json
+
 from aqt.utils import is_mac
 
 from .asset_manifest import ADDON_DIR
@@ -7,10 +9,9 @@ from .asset_manifest import ADDON_DIR
 USER_FILES_DIR = ADDON_DIR / "user_files"
 SHARED_ASSET_DIR = ADDON_DIR / "shared" / "assets" / "icons"
 ADDON_PACKAGE_NAME = __package__.split(".", maxsplit=1)[0]
-VERSION = "1.0.0"
+VERSION = json.loads((ADDON_DIR / "manifest.json").read_text(encoding="utf-8"))["version"]
 SECTION_SPACING = 24
 MARKDOWN_BLOCK_SPACING = 12
-TAB_SECTION_TITLE_TOP_PADDING = 12
 NOTE_TYPES_ROW_PADDING = 4
 NESTED_INDENT = 20
 SHORTCUT_MIN_WIDTH = 80
@@ -38,9 +39,9 @@ DEFAULT_SETTINGS = {
     "card_input_markdown_blockquote_shortcut": "Ctrl+/",
     "card_input_markdown_blockquote_shortcut_enabled": True,
     "card_input_tab_indentation": True,
-    "card_input_tab_indent_increase_shortcut": "Alt+Tab",
+    "card_input_tab_indent_increase_shortcut": "Ctrl+Shift+.",
     "card_input_tab_indent_increase_shortcut_enabled": True,
-    "card_input_tab_indent_decrease_shortcut": "Meta+Tab" if is_mac else "Ctrl+Tab",
+    "card_input_tab_indent_decrease_shortcut": "Ctrl+Shift+,",
     "card_input_tab_indent_decrease_shortcut_enabled": True,
     "card_review_markdown_rendering": True,
     "card_review_syntax_highlighting": True,
@@ -58,9 +59,9 @@ DEFAULT_SETTINGS = {
     "anki_editor_inline_code_shortcut_enabled": True,
     "anki_editor_inline_code_shortcut": "Ctrl+Shift+C",
     "anki_editor_tab_indentation": True,
-    "anki_editor_indent_increase_shortcut": "Alt+Tab",
+    "anki_editor_indent_increase_shortcut": "Ctrl+Shift+.",
     "anki_editor_indent_increase_shortcut_enabled": True,
-    "anki_editor_indent_decrease_shortcut": "Meta+Tab" if is_mac else "Ctrl+Tab",
+    "anki_editor_indent_decrease_shortcut": "Ctrl+Shift+,",
     "anki_editor_indent_decrease_shortcut_enabled": True,
     "anki_editor_custom_fields_styles": True,
     "anki_editor_custom_ui_styles": True,

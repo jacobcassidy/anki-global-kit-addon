@@ -39,7 +39,14 @@ async function indexDirectory(directory) {
   }
 }
 
-for (const sourceDirectory of ['src/cards/js', 'src/cards/css', 'src/editor/js', 'src/editor/css', 'src/shared/css']) {
+for (const sourceDirectory of [
+  'src/cards/js',
+  'src/cards/css',
+  'src/editor/js',
+  'src/editor/css',
+  'src/shared/js',
+  'src/shared/css',
+]) {
   const absoluteDirectory = fileURLToPath(new URL(`../${sourceDirectory}`, import.meta.url));
   await indexDirectory(absoluteDirectory);
 
@@ -80,7 +87,7 @@ function createWatchPlugin(outfile) {
       build.onEnd(async (result) => {
         const wasInitialBuild = initialBuild;
         initialBuild = false;
-        const hasDiagnostics = result.warnings.length > 0 || result.errors.length > 0;
+        const hasErrors = result.errors.length > 0;
         if (result.metafile) {
           const inputs = Object.values(result.metafile.outputs).flatMap((output) =>
             Object.keys(output.inputs).map((input) => resolve(input)),
@@ -88,7 +95,7 @@ function createWatchPlugin(outfile) {
           inputsByOutput.set(outfile, new Set(inputs));
         }
 
-        if (!hasDiagnostics) {
+        if (!hasErrors) {
           await Promise.all(result.outputFiles.map((outputFile) => writeFile(outputFile.path, outputFile.contents)));
         }
 
@@ -110,7 +117,7 @@ function createWatchPlugin(outfile) {
           console.error(`${colorize('Error:', colors.red)}\n${formatted}`);
         }
 
-        if (!wasInitialBuild && !hasDiagnostics && changedOutputs.delete(outfile)) {
+        if (!wasInitialBuild && !hasErrors && changedOutputs.delete(outfile)) {
           console.log(colorize(`Rebuilt: ${outfile}`, colors.green));
         }
       });
@@ -138,5 +145,5 @@ const contexts = await Promise.all(
 
 await Promise.all(contexts.map((buildContext) => buildContext.watch()));
 console.log(
-  'Watching src/cards/js, src/cards/css, src/editor/js, src/editor/css, and src/shared/css. Press Ctrl+C to stop.',
+  'Watching src/cards/js, src/cards/css, src/editor/js, src/editor/css, src/shared/js, and src/shared/css. Press Ctrl+C to stop.',
 );
