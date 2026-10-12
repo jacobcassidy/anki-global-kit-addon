@@ -35,7 +35,81 @@ jobs:
         run: npm run build:addon
       - name: Check asset paths
         run: npm run check:assets
+      - name: Validate release metadata and changelog notes
+        run: python3 scripts/release_notes.py --output dist/release-notes.md
       - name: Verify generated assets are current
         run: git diff --exit-code -- addon/web/assets addon/desktop/editor/assets addon/shared/assets/fonts/_meslolgl-nf-license.txt
       - name: Run JavaScript and Python tests
         run: npm test
+
+  release:
+    name: Publish GitHub release
+    needs: tests
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    concurrency:
+      group: github-release
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Prepare changelog release notes
+        id: metadata
+        run: python3 scripts/release_notes.py --output dist/release-notes.md --github-output "$GITHUB_OUTPUT"
+      - name: Check for an existing release
+        id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.metadata.outputs.tag }}
+        run: |
+          gh api --paginate "repos/$GITHUB_REPOSITORY/releases" \
+            --jq ".[] | select(.tag_name == \"$RELEASE_TAG\") | if .draft then \"draft\" else \"published\" end" \
+            > "$RUNNER_TEMP/release-state.txt"
+          if grep -Fxq published "$RUNNER_TEMP/release-state.txt"; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release $RELEASE_TAG already exists; skipping."
+          else
+            if git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"; then
+              test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$GITHUB_SHA" || {
+                echo "Tag $RELEASE_TAG points to a different commit; refusing to publish."
+                exit 1
+              }
+            fi
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            if grep -Fxq draft "$RUNNER_TEMP/release-state.txt"; then
+              echo "draft=true" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+      - uses: actions/setup-node@v7
+        if: steps.existing.outputs.exists == 'false'
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Build release archive
+        if: steps.existing.outputs.exists == 'false'
+        run: |
+          npm ci
+          npm run build:addon
+          npm run package:addon
+      - name: Publish release with changelog notes and add-on archive
+        if: steps.existing.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.metadata.outputs.tag }}
+          EXISTING_DRAFT: ${{ steps.existing.outputs.draft }}
+        run: |
+          if [ "$EXISTING_DRAFT" = "true" ]; then
+            gh release upload "$RELEASE_TAG" dist/anki-global-kit.ankiaddon --clobber
+            gh release edit "$RELEASE_TAG" --draft=false --target "$GITHUB_SHA" \
+              --title "$RELEASE_TAG" --notes-file dist/release-notes.md
+          else
+            gh release create "$RELEASE_TAG" dist/anki-global-kit.ankiaddon \
+              --target "$GITHUB_SHA" --title "$RELEASE_TAG" --notes-file dist/release-notes.md
+          fi
