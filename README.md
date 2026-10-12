@@ -10,7 +10,9 @@ Install and configure the kit on Desktop, then sync your collection and media to
 
 For setup details, shortcuts, customization, and troubleshooting, read the [user guide (HELP.md)](addon/HELP.md). The same guide is available in the Anki Global Kit Settings panel's **Help** tab.
 
-## Card presentation
+## Features
+
+### Card presentation
 
 - Responsive layouts for questions, answers, comparison panels, cloze deletions, hints, bonus sections, and notes.
 - Shared typography and light/dark palettes, including distinct comparison colors.
@@ -23,6 +25,39 @@ The front shows the question, typed answer fields, formatting toolbar, and optio
 | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | ![Light theme card front with a question, typed answer, and bonus answer input](docs/reference/screenshots/card-front-light.png) | ![Light theme card back with answer comparison, bonus comparison, and notes](docs/reference/screenshots/card-back-light.png) |
 | ![Dark theme card front with a question and typed answer fields](docs/reference/screenshots/card-front-dark.png)                 | ![Dark theme card back with answer comparison, bonus comparison, and notes](docs/reference/screenshots/card-back-dark.png)   |
+
+### Typed answers and comparison
+
+- Multiline answer inputs, optional bonus questions, type hints, and notes.
+- Typed answers retained for display on the card back, including AnkiDroid's review flow.
+- Character-by-character answer comparison showing matching text, mistakes, and omissions, with Unicode characters kept intact. Comparison is validated with up to 10,000 characters in each answer and preserves shared text without a fixed answer-length cutoff. Difficult comparisons use a one-second processing budget and may show coarser differences.
+- **⌘+Shift+.** to indent Markdown list items and **⌘+Shift+,** to unindent on macOS; use **Ctrl+Shift+.** and **Ctrl+Shift+,** on Windows and Linux. Customize or disable each under **Cards → Card Fields → Enable indentation shortcuts**. Increase indent adds four spaces for Python topics and two otherwise; decrease indent removes leading indentation. **Tab** and **Shift+Tab** retain native focus navigation.
+- Reveal answers with **Control+Enter** on Windows/Linux Desktop and AnkiWeb, or **Command+Enter** on macOS Desktop.
+
+### Markdown and code
+
+Submitted answers can render headings, paragraphs, line breaks, nested lists, blockquotes, fenced code blocks, inline code, bold, italics, strikethrough, and HTTP(S) links. Ordered lists preserve their starting number, including nested lists.
+
+Use the optional formatting toolbar above card inputs or configure shortcuts in **Cards**. Increase indent and decrease indent buttons appear after the ordered list button and before blockquote; they work independently of their shortcut enable switches. Each shortcut and toolbar button can be enabled individually. Press **Shift+Tab** from an input to reach its toolbar, use **Left/Right**, **Home**, or **End** to choose a button, then **Enter** or **Space** to apply it. **Escape** returns to the input. Word formatting applies to selected text or the word at the caret; applying it again removes the markers. List conversion preserves nested items' indentation and list styles. With Markdown shortcuts enabled, **Enter** continues list items; inside fenced code blocks, it inserts a normal newline.
+
+Code blocks use the language written after the opening backticks, such as `python`, or infer a language from the topic. Supported languages and aliases include Python, JavaScript/Node, TypeScript, Java, C, C++, C#, SQL, Bash/shell, JSON, Ruby, Go, Rust, and PHP. Comparison and syntax highlighting are bundled with the kit.
+
+The **Cards** settings tab controls review-time Markdown formatting shortcuts and indentation behavior.
+
+![Cards settings tab showing Markdown and indentation shortcut options](docs/reference/screenshots/settings-cards-tab.png)
+
+### Desktop editor
+
+- Inline-code formatting through a configurable shortcut and optional toolbar button.
+- Indentation, inline-code space normalization, source HTML copying, and rich-text paste cleanup.
+- List buttons and shortcuts change only the outermost selected list level, preserving child styles and indentation. Plain indented rows become nested lists. **⌘+Shift+.** and **⌘+Shift+,** indent and unindent list items by default on macOS; use **Ctrl+Shift+.** and **Ctrl+Shift+,** on Windows and Linux. Under **Editor → Editor Fields → Enable indentation shortcuts**, enable, disable, or customize these shortcuts separately. In plain text, increase indent adds four leading spaces to the current or selected rows and decrease indent removes leading indentation. The caret stays with the original text. **Tab** and **Shift+Tab** retain native focus navigation.
+- Add or remove a blockquote at the current indentation level with the toolbar button or **Command+/** on macOS (**Control+/** on Windows/Linux).
+- Physical **Control+Shift+C** for Cloze on macOS, leaving the default **Command+Shift+C** shortcut available for inline code.
+- Separate custom stylesheets for editor fields and the surrounding UI. Use **View Stylesheet** in the **Editor** tab to open `user_files/editor-fields.css` or `user_files/editor-ui.css`, then restart Anki after editing. These files are preserved during add-on upgrades.
+
+The **Editor** settings tab controls inline code and indentation shortcuts, paste cleanup, source HTML copying, and custom editor styling. Saving settings refreshes shortcuts in open editors.
+
+![Editor settings tab showing shortcut controls, paste formatting options, and the custom stylesheet setting](docs/reference/screenshots/settings-editor-tab.png)
 
 ## Setup
 
@@ -62,41 +97,6 @@ Restart Anki Desktop so the updated card assets are installed, then sync the col
 The shared font now installs as `_meslolgl-nf.woff2` to match Anki's media naming. The kit stylesheets use this filename. If custom CSS or templates reference the old `_mesloLGL-NF.woff2` filename directly, update those references to the lowercase filename, then sync the changes.
 
 Custom topic headings now display braces as literal text. For existing kit note types whose topic names contain `{{…}}`, select **Replace** for the relevant types and confirm to refresh their headings, then sync the collection and media.
-
-## Features
-
-### Typed answers and comparison
-
-- Multiline answer inputs, optional bonus questions, type hints, and notes.
-- Typed answers retained for display on the card back, including AnkiDroid's review flow.
-- Character-by-character answer comparison showing matching text, mistakes, and omissions, with Unicode characters kept intact. Comparison is validated with up to 10,000 characters in each answer and preserves shared text without a fixed answer-length cutoff. Difficult comparisons use a one-second processing budget and may show coarser differences.
-- **⌘+Shift+.** to indent Markdown list items and **⌘+Shift+,** to unindent on macOS; use **Ctrl+Shift+.** and **Ctrl+Shift+,** on Windows and Linux. Customize or disable each under **Cards → Card Fields → Enable indentation shortcuts**. Increase indent adds four spaces for Python topics and two otherwise; decrease indent removes leading indentation. **Tab** and **Shift+Tab** retain native focus navigation.
-- Reveal answers with **Control+Enter** on Windows/Linux Desktop and AnkiWeb, or **Command+Enter** on macOS Desktop.
-
-### Markdown and code
-
-Submitted answers can render headings, paragraphs, line breaks, nested lists, blockquotes, fenced code blocks, inline code, bold, italics, strikethrough, and HTTP(S) links. Ordered lists preserve their starting number, including nested lists.
-
-Use the optional formatting toolbar above card inputs or configure shortcuts in **Cards**. Increase indent and decrease indent buttons appear after the ordered list button and before blockquote; they work independently of their shortcut enable switches. Each shortcut and toolbar button can be enabled individually. Press **Shift+Tab** from an input to reach its toolbar, use **Left/Right**, **Home**, or **End** to choose a button, then **Enter** or **Space** to apply it. **Escape** returns to the input. Word formatting applies to selected text or the word at the caret; applying it again removes the markers. List conversion preserves nested items' indentation and list styles. With Markdown shortcuts enabled, **Enter** continues list items; inside fenced code blocks, it inserts a normal newline.
-
-Code blocks use the language written after the opening backticks, such as `python`, or infer a language from the topic. Supported languages and aliases include Python, JavaScript/Node, TypeScript, Java, C, C++, C#, SQL, Bash/shell, JSON, Ruby, Go, Rust, and PHP. Comparison and syntax highlighting are bundled with the kit.
-
-The **Cards** settings tab controls review-time Markdown formatting shortcuts and indentation behavior.
-
-![Cards settings tab showing Markdown and indentation shortcut options](docs/reference/screenshots/settings-cards-tab.png)
-
-### Desktop editor
-
-- Inline-code formatting through a configurable shortcut and optional toolbar button.
-- Indentation, inline-code space normalization, source HTML copying, and rich-text paste cleanup.
-- List buttons and shortcuts change only the outermost selected list level, preserving child styles and indentation. Plain indented rows become nested lists. **⌘+Shift+.** and **⌘+Shift+,** indent and unindent list items by default on macOS; use **Ctrl+Shift+.** and **Ctrl+Shift+,** on Windows and Linux. Under **Editor → Editor Fields → Enable indentation shortcuts**, enable, disable, or customize these shortcuts separately. In plain text, increase indent adds four leading spaces to the current or selected rows and decrease indent removes leading indentation. The caret stays with the original text. **Tab** and **Shift+Tab** retain native focus navigation.
-- Add or remove a blockquote at the current indentation level with the toolbar button or **Command+/** on macOS (**Control+/** on Windows/Linux).
-- Physical **Control+Shift+C** for Cloze on macOS, leaving the default **Command+Shift+C** shortcut available for inline code.
-- Separate custom stylesheets for editor fields and the surrounding UI. Use **View Stylesheet** in the **Editor** tab to open `user_files/editor-fields.css` or `user_files/editor-ui.css`, then restart Anki after editing. These files are preserved during add-on upgrades.
-
-The **Editor** settings tab controls inline code and indentation shortcuts, paste cleanup, source HTML copying, and custom editor styling. Saving settings refreshes shortcuts in open editors.
-
-![Editor settings tab showing shortcut controls, paste formatting options, and the custom stylesheet setting](docs/reference/screenshots/settings-editor-tab.png)
 
 ## Templates
 
