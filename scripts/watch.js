@@ -3,6 +3,7 @@ import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { context, formatMessages } from 'esbuild';
+import { updateDevAddonName } from './dev_metadata.js';
 import {
   cardsCssBuildOptions,
   cardsJsBuildOptions,
@@ -23,6 +24,18 @@ const pendingChanges = new Set();
 const inputsByOutput = new Map();
 const changedOutputs = new Set();
 let changeTimer;
+
+await updateDevAddonName();
+// Watch the directory so replacing manifest.json during a save remains visible.
+let metadataRefresh = Promise.resolve();
+watch(fileURLToPath(new URL('../addon/', import.meta.url)), (_eventType, filename) => {
+  if (filename && filename.toString() !== 'manifest.json') return;
+  metadataRefresh = metadataRefresh
+    .then(() => updateDevAddonName())
+    .catch((error) => {
+      console.error(`Could not refresh the development add-on name: ${error.message}`);
+    });
+});
 
 function colorize(text, color) {
   return `${color}${text}${colors.reset}`;

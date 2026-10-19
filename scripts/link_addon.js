@@ -3,6 +3,7 @@ import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { updateDevAddonName } from './dev_metadata.js';
 
 const addon = fileURLToPath(new URL('../addon/', import.meta.url));
 
@@ -40,6 +41,7 @@ async function main() {
 
   if (existing) {
     if (existing.isSymbolicLink() && (await realpath(destination)) === source) {
+      await updateDevAddonName({ create: true });
       console.log(`Already linked: ${destination} -> ${source}`);
       return;
     }
@@ -48,6 +50,7 @@ async function main() {
 
   await mkdir(addonsFolder, { recursive: true });
   await symlink(source, destination, process.platform === 'win32' ? 'junction' : 'dir');
+  await updateDevAddonName({ create: true });
   console.log(`Linked: ${destination} -> ${source}`);
   console.log('Build assets with npm run build:addon or npm run watch, then restart Anki to load Python changes.');
 }

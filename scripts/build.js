@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
+import { updateDevAddonName } from './dev_metadata.js';
 import {
   cardsCssBuildOptions,
   cardsJsBuildOptions,
@@ -17,4 +18,5 @@ await Promise.all([
   build(editorUiCssBuildOptions),
 ]);
 execFileSync('python3', [fileURLToPath(new URL('./font_notices.py', import.meta.url))], { stdio: 'inherit' });
+await updateDevAddonName();
 console.log('Built card and editor assets.');
