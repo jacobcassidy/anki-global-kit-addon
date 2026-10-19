@@ -164,7 +164,7 @@ def _card_indent_shortcut_override(event) -> bool:
         name = f"card_input_tab_indent_{action}_shortcut"
         if not settings.get(f"{name}_enabled", True):
             continue
-        parts = settings.get(name, "Ctrl+Shift+." if action == "increase" else "Ctrl+Shift+,").split("+")
+        parts = settings.get(name, "Ctrl+Alt+." if action == "increase" else "Ctrl+Alt+,").split("+")
         key = parts.pop()
         if "Shift" in parts:
             key = {"<": ",", ">": "."}.get(key, key)

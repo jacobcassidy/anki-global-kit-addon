@@ -34,8 +34,8 @@ test('indent toolbar buttons appear between ordered list and blockquote and pres
     );
     const increase = document.querySelector('.is-indent-increase');
     const decrease = document.querySelector('.is-indent-decrease');
-    assert.equal(increase.title, 'Increase indent (⌘⇧.)');
-    assert.equal(decrease.title, 'Decrease indent (⌘⇧,)');
+    assert.equal(increase.title, 'Increase indent (⌘⌥.)');
+    assert.equal(decrease.title, 'Decrease indent (⌘⌥,)');
     increase.click();
     assert.equal(input.value, 'one\n    two\nthree');
     assert.equal(input.selectionStart, 9);

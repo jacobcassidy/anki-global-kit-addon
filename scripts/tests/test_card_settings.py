@@ -53,8 +53,8 @@ class CardSettingsTests(unittest.TestCase):
         for mac in (False, True):
             with self.subTest(mac=mac):
                 installed, _ = self.installed_settings(mac=mac)
-                self.assertEqual(installed["card_input_tab_indent_increase_shortcut"], "Ctrl+Shift+.")
-                self.assertEqual(installed["card_input_tab_indent_decrease_shortcut"], "Ctrl+Shift+,")
+                self.assertEqual(installed["card_input_tab_indent_increase_shortcut"], "Ctrl+Alt+.")
+                self.assertEqual(installed["card_input_tab_indent_decrease_shortcut"], "Ctrl+Alt+,")
 
     def test_legacy_physical_control_remains_physical_without_changing_qt_settings(self):
         key = "card_input_tab_indent_decrease_shortcut"

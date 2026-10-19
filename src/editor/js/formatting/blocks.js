@@ -457,6 +457,7 @@ function stop(event) {
 export function installBlockFormatting() {
   const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
   const nativeShortcuts = { 'unordered-list': 'Control+,', 'ordered-list': 'Control+.' };
+  const nativeIndentShortcuts = { increase: 'Control+Shift+.', decrease: 'Control+Shift+,' };
   let shortcuts;
   try {
     shortcuts = globalThis.require?.('anki/shortcuts');
@@ -465,6 +466,7 @@ export function installBlockFormatting() {
   }
   const updateListButtons = () => {
     const labels = globalThis.ankiGlobalKitEditorListLabels || {};
+    const indentLabels = globalThis.ankiGlobalKitEditorIndentLabels || {};
     for (const button of document.querySelectorAll('button[title]')) {
       const format =
         button.dataset.ankiGlobalKitList ||
@@ -475,7 +477,24 @@ export function installBlockFormatting() {
             button.title.endsWith(`(${nativeLabel})`) || (labels[key] && button.title.endsWith(`(${labels[key]})`))
           );
         });
-      if (!format) continue;
+      if (!format) {
+        const action =
+          button.dataset.ankiGlobalKitIndent ||
+          Object.keys(nativeIndentShortcuts).find((key) => {
+            const command = nativeIndentShortcuts[key];
+            const nativeLabel =
+              shortcuts?.getPlatformString?.(command) || `${isMac ? '⌘⇧' : 'Ctrl+Shift+'}${command.at(-1)}`;
+            return button.title.endsWith(`(${nativeLabel})`);
+          });
+        if (action && action in indentLabels) {
+          button.dataset.ankiGlobalKitIndent = action;
+          const title = button.title.replace(/\s*\([^()]*\)\s*$/, '');
+          const updated = title + (indentLabels[action] ? ` (${indentLabels[action]})` : '');
+          if (button.title !== updated) button.title = updated;
+          button.setAttribute('aria-label', updated);
+        }
+        continue;
+      }
       button.dataset.ankiGlobalKitList = format;
       if (labels[format]) {
         const title = { 'unordered-list': 'Bullet List', 'ordered-list': 'Numbered List' }[format];
@@ -485,6 +504,7 @@ export function installBlockFormatting() {
       }
     }
   };
+  globalThis.ankiGlobalKitEditorRefreshFormattingTooltips = updateListButtons;
   const observer = new document.defaultView.MutationObserver(updateListButtons);
   observer.observe(document.documentElement, {
     childList: true,

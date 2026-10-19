@@ -33,7 +33,11 @@ export function matchesKeyboardShortcut(event, shortcut, isMac) {
   // Use the character the platform reports after keyboard remapping. `code`
   // is a fallback for the code-block shortcut when a keyboard layout maps the
   // physical C key to a different character.
-  const ankiIndentKey = modifiers.has('shift') && (configuredKey === ',' || configuredKey === '.');
+  // Indentation targets the punctuation keys even when Shift or macOS Option
+  // changes their reported character (for example, Option+Comma produces ≤).
+  const ankiIndentKey =
+    (modifiers.has('shift') || (isMac && modifiers.has('ctrl') && modifiers.has('alt'))) &&
+    (configuredKey === ',' || configuredKey === '.');
   // These Command+Option number shortcuts target the number keys: macOS
   // layouts can report Option's symbol (such as •) instead of the digit.
   const optionNumber = isMac && modifiers.has('ctrl') && modifiers.has('alt') && /^[089]$/.test(configuredKey);

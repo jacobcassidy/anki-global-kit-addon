@@ -183,14 +183,14 @@ for (const [platform, modifier] of [
   ['MacIntel', 'metaKey'],
   ['Linux', 'ctrlKey'],
 ]) {
-  test(`Anki indent defaults use Shift+Period and Shift+Comma on ${platform}`, () => {
+  test(`indent defaults use primary+Alt+Period and primary+Alt+Comma on ${platform}`, () => {
     const { input } = setup('row', 3, 3, 'JavaScript', platform);
-    const increase = key({ key: '>', code: 'Period', shiftKey: true, [modifier]: true });
+    const increase = key({ key: platform === 'MacIntel' ? '≥' : '.', code: 'Period', altKey: true, [modifier]: true });
     handleTabIndentationWithDefaults(input, increase);
     assert.equal(input.value, '  row');
     assert.equal(increase.prevented, true);
 
-    const decrease = key({ key: '<', code: 'Comma', shiftKey: true, [modifier]: true });
+    const decrease = key({ key: platform === 'MacIntel' ? '≤' : ',', code: 'Comma', altKey: true, [modifier]: true });
     handleTabIndentationWithDefaults(input, decrease);
     assert.equal(input.value, 'row');
     assert.equal(decrease.prevented, true);

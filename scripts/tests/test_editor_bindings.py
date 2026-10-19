@@ -40,17 +40,20 @@ class EditorBindingsTests(unittest.TestCase):
     def test_configured_indent_replaces_native_binding_for_the_same_action(self):
         settings = load_settings_services().config.get_editor_settings()
         integration = load_editor_integration(settings)
-        bindings = [("Ctrl+Shift+.", lambda: None)]
+        bindings = [("Ctrl+Alt+.", lambda: None)]
         editor = Mock(currentField=0)
         integration._add_shortcut(bindings, editor)
-        self.assertFalse(any(keys == "Ctrl+Shift+." for keys, _ in bindings))
+        self.assertFalse(any(keys == "Ctrl+Alt+." for keys, _ in bindings))
         shortcut, keys = editor._anki_global_kit_shortcuts["anki_editor_indent_increase_shortcut"]
-        self.assertEqual(keys, "Ctrl+Shift+.")
+        self.assertEqual(keys, "Ctrl+Alt+.")
         shortcut.callback()
         editor.web.eval.assert_called_once_with("globalThis.ankiGlobalKitEditor?.indent();")
 
     def test_shifted_glyph_alias_does_not_create_a_second_native_handler(self):
-        integration, bindings, editor = self.bindings({"anki_editor_inline_code_shortcut": "Ctrl+Shift+>"})
+        integration, bindings, editor = self.bindings({
+            "anki_editor_inline_code_shortcut": "Ctrl+Shift+>",
+            "anki_editor_indent_increase_shortcut": "Ctrl+Shift+.",
+        })
         matches = [shortcut for shortcut, keys in editor._anki_global_kit_shortcuts.values()
                    if shortcut.isEnabled() and integration.normalize_shortcut(keys) == "Ctrl+Shift+."]
         self.assertEqual(len(matches), 1)

@@ -247,11 +247,11 @@ for (const [platform, modifier] of [
   ['MacIntel', 'metaKey'],
   ['Linux', 'ctrlKey'],
 ]) {
-  test(`editor Anki indent defaults use Shift+Period and Shift+Comma on ${platform}`, () => {
+  test(`editor indent defaults use primary+Alt+Period and primary+Alt+Comma on ${platform}`, () => {
     const { field, range, dom } = editor('<div>row</div>');
     Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { platform } });
-    globalThis.ankiGlobalKitEditorSettings.anki_editor_indent_increase_shortcut = 'Ctrl+Shift+.';
-    globalThis.ankiGlobalKitEditorSettings.anki_editor_indent_decrease_shortcut = 'Ctrl+Shift+,';
+    globalThis.ankiGlobalKitEditorSettings.anki_editor_indent_increase_shortcut = 'Ctrl+Alt+.';
+    globalThis.ankiGlobalKitEditorSettings.anki_editor_indent_decrease_shortcut = 'Ctrl+Alt+,';
     range.setStart(field.firstChild.firstChild, 0);
     range.setEnd(field.firstChild.firstChild, 3);
     window.getSelection().removeAllRanges();
@@ -273,7 +273,7 @@ for (const [platform, modifier] of [
       const event = new dom.window.KeyboardEvent('keydown', {
         key,
         code,
-        shiftKey: true,
+        altKey: true,
         [modifier]: true,
         bubbles: true,
         cancelable: true,
@@ -281,9 +281,9 @@ for (const [platform, modifier] of [
       field.dispatchEvent(event);
       return event.defaultPrevented;
     };
-    assert.equal(dispatch('>', 'Period'), true);
+    assert.equal(dispatch(platform === 'MacIntel' ? '≥' : '.', 'Period'), true);
     assert.equal(field.textContent, '    row');
-    assert.equal(dispatch('<', 'Comma'), true);
+    assert.equal(dispatch(platform === 'MacIntel' ? '≤' : ',', 'Comma'), true);
     assert.equal(field.textContent, 'row');
   });
 }
@@ -591,6 +591,20 @@ test('the existing list button and shortcut route to the same formatter', () => 
   );
   assert.equal(field.innerHTML, '<ul><li>A<ul><li>B</li></ul></li></ul>');
   assert.deepEqual(commands, ['insertHTML', 'insertHTML']);
+});
+
+test('native editor indentation tooltips follow configured shortcuts and disabled actions', () => {
+  editor('<div>row</div>');
+  globalThis.ankiGlobalKitEditorIndentLabels = { increase: 'Ctrl+Alt+.', decrease: 'Ctrl+Alt+,' };
+  const button = document.createElement('button');
+  button.title = 'Indent (Ctrl+Shift+.)';
+  document.body.append(button);
+  installBlockFormatting();
+  assert.equal(button.title, 'Indent (Ctrl+Alt+.)');
+  assert.equal(button.getAttribute('aria-label'), button.title);
+  globalThis.ankiGlobalKitEditorIndentLabels.increase = '';
+  globalThis.ankiGlobalKitEditorRefreshFormattingTooltips();
+  assert.equal(button.title, 'Indent');
 });
 
 test('a caret at the start of a child converts that child and stays there', () => {

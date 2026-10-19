@@ -38,6 +38,12 @@ def _inject_features(editor: Editor) -> None:
         for name, keys in BLOCK_SHORTCUTS.items()
         if name in ("unordered-list", "ordered-list")
     })
+    indent_labels = json.dumps({
+        action: shortcut_label(editor_settings[f"anki_editor_indent_{action}_shortcut"])
+        if editor_settings["anki_editor_tab_indentation"] and editor_settings[f"anki_editor_indent_{action}_shortcut_enabled"]
+        else ""
+        for action in ("increase", "decrease")
+    })
     styles = {
         "ui": _read_editor_styles(
             "editor-ui.min.css",
@@ -58,7 +64,9 @@ def _inject_features(editor: Editor) -> None:
         "globalThis.ankiGlobalKitEditorSettings || {}, "
         f"{settings});\n"
         f"globalThis.ankiGlobalKitEditorListLabels = {list_labels};\n"
+        f"globalThis.ankiGlobalKitEditorIndentLabels = {indent_labels};\n"
         f"globalThis.ankiGlobalKitEditorStyles = {styles_json};\n{script}"
+        "\nglobalThis.ankiGlobalKitEditorRefreshFormattingTooltips?.();"
         "\nfor (const button of document.querySelectorAll('[data-command=\"anki_global_kit_inline_code\"]')) {"
         f"button.title = {json.dumps(_inline_code_tip(editor_settings))};"
         "}"
