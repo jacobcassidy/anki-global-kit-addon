@@ -87,6 +87,71 @@ test('toggling the current style removes the selected parent markers and preserv
   assert.equal(field.innerHTML, '<div>A<ol><li>B</li></ol></div><div>C</div>');
 });
 
+test('no list removes mixed selected list styles and retains unselected numbered siblings', () => {
+  const field = apply(
+    '<ol start="4"><li>A</li><li><b>B</b></li><li>C</li></ol><ul><li>D</li></ul>',
+    'no-list',
+    (field, range) => {
+      range.setStart(field.querySelector('b').firstChild, 0);
+      range.setEnd(field.querySelector('ul li').firstChild, 1);
+    },
+  );
+  assert.equal(field.innerHTML, '<ol start="4"><li>A</li></ol><div><b>B</b></div><div>C</div><div>D</div>');
+});
+
+test('no list removes every selected nested level', () => {
+  const field = apply('<ul><li><b>A</b><ol><li><i>B</i></li></ol></li></ul>', 'no-list');
+  assert.equal(field.innerHTML, '<div><b>A</b><div><i>B</i></div></div>');
+});
+
+test('no list at a parent caret keeps unselected child lists', () => {
+  const field = apply('<ul><li>A<ol><li>B</li></ol></li><li>C</li></ul>', 'no-list', (field, range) => {
+    range.setStart(field.querySelector('li').firstChild, 1);
+    range.collapse(true);
+  });
+  assert.equal(field.innerHTML, '<div>A<ol><li>B</li></ol></div><ul><li>C</li></ul>');
+});
+
+for (const [platform, primary] of [
+  ['MacIntel', 'metaKey'],
+  ['Linux', 'ctrlKey'],
+]) {
+  test(`${platform} list shortcuts format and remove lists through native undo`, () => {
+    const { field, range, dom } = editor('<div><b>row</b></div>');
+    Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { platform } });
+    const commands = nativeInsertion(field);
+    window.getSelection().addRange(range);
+    installBlockFormatting();
+    for (const [key, expected] of [
+      ['8', '<ul><li><b>row</b></li></ul>'],
+      ['9', '<ol><li><b>row</b></li></ol>'],
+      ['0', '<div><b>row</b></div>'],
+    ]) {
+      const event = new dom.window.KeyboardEvent('keydown', {
+        key: platform === 'MacIntel' && key === '8' ? '•' : key,
+        code: `Digit${key}`,
+        [primary]: true,
+        altKey: true,
+        bubbles: true,
+        cancelable: true,
+      });
+      field.dispatchEvent(event);
+      assert.equal(event.defaultPrevented, true);
+      assert.equal(field.innerHTML, expected);
+    }
+    assert.deepEqual(commands, ['insertHTML', 'insertHTML', 'insertHTML']);
+    const oldKey = new dom.window.KeyboardEvent('keydown', {
+      key: ',',
+      [primary]: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    field.dispatchEvent(oldKey);
+    assert.equal(oldKey.defaultPrevented, false);
+    assert.equal(field.innerHTML, '<div><b>row</b></div>');
+  });
+}
+
 for (const [format, tag] of [
   ['unordered-list', 'ul'],
   ['ordered-list', 'ol'],
@@ -513,15 +578,16 @@ test('the existing list button and shortcut route to the same formatter', () => 
   range.selectNodeContents(field);
   window.getSelection().removeAllRanges();
   window.getSelection().addRange(range);
-  globalThis.ankiGlobalKitEditorListLabels = { 'ordered-list': 'Ctrl+.' };
+  globalThis.ankiGlobalKitEditorListLabels = { 'ordered-list': 'Ctrl+Alt+9' };
   const button = document.createElement('button');
   button.title = 'Ordered list (Ctrl+.)';
   document.body.append(button);
   installBlockFormatting();
+  assert.equal(button.title, 'Ordered list (Ctrl+Alt+9)');
   button.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }));
   assert.equal(field.innerHTML, '<ol><li>A<ul><li>B</li></ul></li></ol>');
   field.dispatchEvent(
-    new dom.window.KeyboardEvent('keydown', { key: ',', ctrlKey: true, bubbles: true, cancelable: true }),
+    new dom.window.KeyboardEvent('keydown', { key: '8', ctrlKey: true, altKey: true, bubbles: true, cancelable: true }),
   );
   assert.equal(field.innerHTML, '<ul><li>A<ul><li>B</li></ul></li></ul>');
   assert.deepEqual(commands, ['insertHTML', 'insertHTML']);

@@ -21,6 +21,7 @@ MARKDOWN_SHORTCUT_DEFINITIONS = (
     ("card_input_markdown_strikethrough_shortcut", "strikethrough"),
     ("card_input_markdown_unordered_list_shortcut", "unordered list"),
     ("card_input_markdown_ordered_list_shortcut", "ordered list"),
+    ("card_input_markdown_no_list_shortcut", "no list"),
     ("card_input_markdown_blockquote_shortcut", "blockquote"),
     ("card_input_markdown_code_block_shortcut", "code block"),
     ("card_input_markdown_inline_code_shortcut", "inline code"),

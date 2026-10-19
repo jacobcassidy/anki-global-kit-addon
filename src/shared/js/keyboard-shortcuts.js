@@ -34,10 +34,14 @@ export function matchesKeyboardShortcut(event, shortcut, isMac) {
   // is a fallback for the code-block shortcut when a keyboard layout maps the
   // physical C key to a different character.
   const ankiIndentKey = modifiers.has('shift') && (configuredKey === ',' || configuredKey === '.');
+  // These Command+Option number shortcuts target the number keys: macOS
+  // layouts can report Option's symbol (such as •) instead of the digit.
+  const optionNumber = isMac && modifiers.has('ctrl') && modifiers.has('alt') && /^[089]$/.test(configuredKey);
   const keyMatches =
     eventKey === configuredKey ||
     (codeBlock && event.code === `Key${key.toUpperCase()}`) ||
-    (ankiIndentKey && event.code === (configuredKey === ',' ? 'Comma' : 'Period'));
+    (ankiIndentKey && event.code === (configuredKey === ',' ? 'Comma' : 'Period')) ||
+    (optionNumber && event.code === `Digit${configuredKey}`);
   if (!keyMatches) return false;
   const qtCtrl = modifiers.has('ctrl');
   const qtMeta = modifiers.has('meta');

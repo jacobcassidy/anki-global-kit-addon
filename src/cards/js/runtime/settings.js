@@ -24,12 +24,16 @@ export const settings = {
         ? (savedSettings.card_input_markdown_code_block_shortcut ?? 'CodeBlock+C')
         : '',
     unorderedList:
-      savedSettings.card_input_markdown_unordered_list_shortcut_enabled === true
-        ? (savedSettings.card_input_markdown_unordered_list_shortcut ?? 'Ctrl+,')
+      savedSettings.card_input_markdown_unordered_list_shortcut_enabled !== false
+        ? (savedSettings.card_input_markdown_unordered_list_shortcut ?? 'Ctrl+Alt+8')
         : '',
     orderedList:
-      savedSettings.card_input_markdown_ordered_list_shortcut_enabled === true
-        ? (savedSettings.card_input_markdown_ordered_list_shortcut ?? 'Ctrl+.')
+      savedSettings.card_input_markdown_ordered_list_shortcut_enabled !== false
+        ? (savedSettings.card_input_markdown_ordered_list_shortcut ?? 'Ctrl+Alt+9')
+        : '',
+    noList:
+      savedSettings.card_input_markdown_no_list_shortcut_enabled !== false
+        ? (savedSettings.card_input_markdown_no_list_shortcut ?? 'Ctrl+Alt+0')
         : '',
     blockquote:
       savedSettings.card_input_markdown_blockquote_shortcut_enabled === true

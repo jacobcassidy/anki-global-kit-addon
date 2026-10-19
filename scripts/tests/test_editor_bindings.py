@@ -21,7 +21,7 @@ class EditorBindingsTests(unittest.TestCase):
             "anki_editor_indent_increase_shortcut",
             "anki_editor_indent_decrease_shortcut",
         ):
-            for keys, action in (("Ctrl+,", "unordered-list"), ("Ctrl+.", "ordered-list"), ("Ctrl+/", "blockquote")):
+            for keys, action in (("Ctrl+Alt+8", "unordered-list"), ("Ctrl+Alt+9", "ordered-list"), ("Ctrl+Alt+0", "no-list"), ("Ctrl+/", "blockquote")):
                 with self.subTest(setting=key, shortcut=keys):
                     integration, bindings, editor = self.bindings({key: keys})
                     matches = [callback for shortcut, callback in bindings if shortcut == keys]
@@ -85,7 +85,7 @@ class EditorBindingsTests(unittest.TestCase):
         integration = load_editor_integration(settings)
         editor = Mock(currentField=0)
         integration._add_shortcut([], editor)
-        settings["anki_editor_inline_code_shortcut"] = "Ctrl+,"
+        settings["anki_editor_inline_code_shortcut"] = "Ctrl+Alt+8"
         integration.refresh_open_editors()
         self.assertFalse(editor._anki_global_kit_shortcuts["anki_editor_inline_code_shortcut"][0].isEnabled())
         editor.web.eval.reset_mock()
@@ -93,6 +93,17 @@ class EditorBindingsTests(unittest.TestCase):
         integration.refresh_open_editors()
         editor.web.eval.assert_not_called()
         self.assertNotIn(editor, integration._open_editors)
+
+    def test_native_list_keys_are_removed_and_new_keys_registered_once(self):
+        settings = load_settings_services().config.get_editor_settings()
+        integration = load_editor_integration(settings)
+        bindings = [(key, lambda: None) for key in ("Ctrl+,", "Ctrl+.", "Ctrl+Alt+8")]
+        integration._add_shortcut(bindings, Mock(currentField=0))
+        keys = [key for key, _ in bindings]
+        self.assertNotIn("Ctrl+,", keys)
+        self.assertNotIn("Ctrl+.", keys)
+        for key in ("Ctrl+Alt+8", "Ctrl+Alt+9", "Ctrl+Alt+0"):
+            self.assertEqual(keys.count(key), 1)
 
 
 if __name__ == "__main__":

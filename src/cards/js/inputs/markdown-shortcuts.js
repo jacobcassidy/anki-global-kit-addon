@@ -17,6 +17,7 @@ export function toggleMarkdownBlock(textarea, format) {
   const patterns = {
     'unordered-list': /^([-*+])\s+/,
     'ordered-list': /^\d+\.\s+/,
+    'no-list': /^(?:[-*+]|\d+\.)\s+/,
     blockquote: /^>\s?/,
   };
   const pattern = patterns[format];
@@ -71,6 +72,13 @@ export function toggleMarkdownBlock(textarea, format) {
   );
   const listIndexes = new Map();
   const formattedLines = lines.map((line, index) => {
+    if (format === 'no-list') {
+      // Remove only selected list markers, retaining indentation and quotes.
+      for (const marker of [...lineInfo[index].markers].reverse()) {
+        if (marker.type !== 'blockquote') line = line.slice(0, marker.start) + line.slice(marker.end);
+      }
+      return line;
+    }
     if (!eligible[index]) return line;
     const { indentation, depth, markers } = lineInfo[index];
     const hasMarker = markers.some((marker) => marker.type === format);
@@ -361,8 +369,9 @@ export function handleMarkdownShortcuts(textarea, event, options = {}) {
     strikethrough: ['Ctrl+Shift+X', '~~', '~~'],
     inlineCode: ['Ctrl+Shift+C', '`', '`'],
     codeBlock: ['CodeBlock+C', '```\n', '\n```'],
-    unorderedList: ['', 'unordered-list'],
-    orderedList: ['', 'ordered-list'],
+    unorderedList: ['Ctrl+Alt+8', 'unordered-list'],
+    orderedList: ['Ctrl+Alt+9', 'ordered-list'],
+    noList: ['Ctrl+Alt+0', 'no-list'],
     blockquote: ['Ctrl+/', 'blockquote'],
   };
   const configured = {
@@ -375,7 +384,7 @@ export function handleMarkdownShortcuts(textarea, event, options = {}) {
     if (!shortcut || !matchesMarkdownShortcut(event, shortcut, isMac)) continue;
     event.preventDefault();
     event.stopPropagation();
-    if (name === 'unorderedList' || name === 'orderedList' || name === 'blockquote') {
+    if (name === 'unorderedList' || name === 'orderedList' || name === 'noList' || name === 'blockquote') {
       toggleMarkdownBlock(textarea, prefix);
     } else {
       toggleMarkdownFormatting(textarea, prefix, suffix);

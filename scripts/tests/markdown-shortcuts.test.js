@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   handleMarkdownListEnter,
+  handleMarkdownShortcuts,
   toggleMarkdownBlock,
   toggleMarkdownFormatting,
 } from '../../src/cards/js/inputs/markdown-shortcuts.js';
@@ -31,6 +32,64 @@ const formats = [
   ['inline code', '`', '`'],
   ['code block', '```\n', '\n```'],
 ];
+
+test('no list removes every selected level and preserves quotes, indentation, and unselected rows', () => {
+  const value = '- keep\n> - **parent**\n  3. `child`\nplain\n+ keep';
+  const input = textarea(value, 7, value.lastIndexOf('\n') + 1);
+  toggleMarkdownBlock(input, 'no-list');
+  assert.equal(input.value, '- keep\n> **parent**\n  `child`\nplain\n+ keep');
+  toggleMarkdownBlock(input, 'no-list');
+  assert.equal(input.value, '- keep\n> **parent**\n  `child`\nplain\n+ keep');
+});
+
+for (const [platform, primary] of [
+  ['MacIntel', 'metaKey'],
+  ['Linux', 'ctrlKey'],
+]) {
+  for (const [key, value, expected] of [
+    ['8', 'row', '- row'],
+    ['9', 'row', '1. row'],
+    ['0', '- row', 'row'],
+  ]) {
+    test(`${platform} primary+Alt+${key} applies the list action`, () => {
+      Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { platform } });
+      const input = textarea(value, 0, value.length);
+      const event = {
+        key,
+        code: `Digit${key}`,
+        ctrlKey: false,
+        metaKey: false,
+        shiftKey: false,
+        altKey: true,
+        [primary]: true,
+        preventDefault() {},
+        stopPropagation() {},
+      };
+      assert.equal(handleMarkdownShortcuts(input, event), true);
+      assert.equal(input.value, expected);
+      assert.equal(handleMarkdownShortcuts(input, event, { markdownEnabled: false }), false);
+    });
+  }
+}
+
+test('macOS Option symbols still match the requested number keys', () => {
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { platform: 'MacIntel' } });
+  const input = textarea('row', 0, 3);
+  assert.equal(
+    handleMarkdownShortcuts(input, {
+      key: '•',
+      code: 'Digit8',
+      ctrlKey: false,
+      metaKey: true,
+      altKey: true,
+      shiftKey: false,
+      preventDefault() {},
+      stopPropagation() {},
+    }),
+    true,
+  );
+  assert.equal(input.value, '- row');
+});
 
 for (const [name, prefix, suffix] of formats) {
   test(`${name} toggles repeatedly from the cursor left after formatting a word`, () => {

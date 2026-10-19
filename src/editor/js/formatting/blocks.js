@@ -7,6 +7,12 @@ const FIELD = 'anki-editable,[contenteditable="true"]';
 const BLOCK = 'li,div,p,pre,h1,h2,h3,h4,h5,h6,blockquote';
 const isList = (node) => node?.matches?.('ul,ol');
 const elementOf = (node) => (node?.nodeType === 1 ? node : node?.parentElement);
+const BLOCK_SHORTCUTS = {
+  'unordered-list': 'Ctrl+Alt+8',
+  'ordered-list': 'Ctrl+Alt+9',
+  'no-list': 'Ctrl+Alt+0',
+  blockquote: 'Ctrl+/',
+};
 
 function textOffset(root, node, offset) {
   const range = document.createRange();
@@ -127,7 +133,7 @@ function listShell(list, tag, index = 0) {
 
 function convertItems(items, tag) {
   const chosen = new Set(items);
-  const remove = items.every((item) => item.parentElement.localName === tag);
+  const remove = tag === null || items.every((item) => item.parentElement.localName === tag);
   for (const list of new Set(items.map((item) => item.parentElement))) {
     const fragment = document.createDocumentFragment();
     let run;
@@ -236,7 +242,18 @@ export function formatBlockContent(root, range, format) {
   normalizeLists(root);
   const blocks = selectedBlocks(root, range);
   if (!blocks.length) return false;
-  if (format === 'blockquote') quoteBlocks(blocks);
+  if (format === 'no-list') {
+    const items = blocks.filter((block) => block.matches('li'));
+    if (!items.length) return false;
+    // Work from children to parents so every selected level loses its list
+    // formatting while unselected descendants keep their lists and content.
+    const depths = [...new Set(items.map(listDepth))].sort((a, b) => b - a);
+    for (const depth of depths)
+      convertItems(
+        items.filter((item) => root.contains(item) && listDepth(item) === depth),
+        null,
+      );
+  } else if (format === 'blockquote') quoteBlocks(blocks);
   else {
     const selected = selectedLevel(blocks);
     if (selected[0]?.matches('li')) convertItems(selected, format === 'ordered-list' ? 'ol' : 'ul');
@@ -438,23 +455,50 @@ function stop(event) {
 }
 
 export function installBlockFormatting() {
+  const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
+  const nativeShortcuts = { 'unordered-list': 'Control+,', 'ordered-list': 'Control+.' };
+  let shortcuts;
+  try {
+    shortcuts = globalThis.require?.('anki/shortcuts');
+  } catch {
+    // Older editor builds use the platform labels below.
+  }
+  const updateListButtons = () => {
+    const labels = globalThis.ankiGlobalKitEditorListLabels || {};
+    for (const button of document.querySelectorAll('button[title]')) {
+      const format =
+        button.dataset.ankiGlobalKitList ||
+        Object.keys(nativeShortcuts).find((key) => {
+          const command = nativeShortcuts[key];
+          const nativeLabel = shortcuts?.getPlatformString?.(command) || `${isMac ? '⌘' : 'Ctrl+'}${command.at(-1)}`;
+          return (
+            button.title.endsWith(`(${nativeLabel})`) || (labels[key] && button.title.endsWith(`(${labels[key]})`))
+          );
+        });
+      if (!format) continue;
+      button.dataset.ankiGlobalKitList = format;
+      if (labels[format]) {
+        const title = button.title.replace(/\s*\([^()]*\)\s*$/, '');
+        const updated = `${title} (${labels[format]})`;
+        if (button.title !== updated) button.title = updated;
+      }
+    }
+  };
+  const observer = new document.defaultView.MutationObserver(updateListButtons);
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['title'],
+  });
+  updateListButtons();
   document.addEventListener(
     'click',
     (event) => {
       const button = event.composedPath().find((node) => node?.matches?.('button'));
       if (!button || button.disabled) return;
-      const labels = globalThis.ankiGlobalKitEditorListLabels || {};
-      let shortcuts;
-      try {
-        shortcuts = globalThis.require?.('anki/shortcuts');
-      } catch {
-        // Older editor builds can use the Qt shortcut labels supplied by Python.
-      }
-      const format = Object.keys(labels).find((key) => {
-        const command = key === 'unordered-list' ? 'Control+,' : 'Control+.';
-        const label = shortcuts?.getPlatformString?.(command) || labels[key];
-        return button.title.endsWith(`(${label})`);
-      });
+      updateListButtons();
+      const format = button.dataset.ankiGlobalKitList;
       if (format && toggleEditorBlock(format)) stop(event);
     },
     true,
@@ -465,11 +509,19 @@ export function installBlockFormatting() {
       if (event.isComposing) return;
       const field = event.composedPath().find((node) => node?.matches?.(FIELD));
       if (!field) return;
-      const primary = /Mac|iPhone|iPad/.test(navigator.platform) ? event.metaKey : event.ctrlKey;
-      if (primary && !event.altKey && !event.shiftKey && [',', '.', '/'].includes(event.key)) {
-        const format = { ',': 'unordered-list', '.': 'ordered-list', '/': 'blockquote' }[event.key];
+      const format = Object.keys(BLOCK_SHORTCUTS).find((key) =>
+        matchesKeyboardShortcut(event, BLOCK_SHORTCUTS[key], isMac),
+      );
+      if (format) {
         if (toggleEditorBlock(format)) stop(event);
       } else {
+        // Suppress Anki's old web list handlers. Leave the native Preferences
+        // menu and browser defaults available for Command+Comma.
+        const primary = isMac ? event.metaKey : event.ctrlKey;
+        if (primary && !event.altKey && !event.shiftKey && [',', '.'].includes(event.key)) {
+          event.stopImmediatePropagation();
+          return;
+        }
         handleEditorIndentation(field, event);
       }
     },

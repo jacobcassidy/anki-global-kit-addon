@@ -36,7 +36,7 @@ def _inject_features(editor: Editor) -> None:
     list_labels = json.dumps({
         name: shortcut_label(keys)
         for name, keys in BLOCK_SHORTCUTS.items()
-        if name != "blockquote"
+        if name in ("unordered-list", "ordered-list")
     })
     styles = {
         "ui": _read_editor_styles(
@@ -57,8 +57,8 @@ def _inject_features(editor: Editor) -> None:
         "globalThis.ankiGlobalKitEditorSettings = Object.assign("
         "globalThis.ankiGlobalKitEditorSettings || {}, "
         f"{settings});\n"
+        f"globalThis.ankiGlobalKitEditorListLabels = {list_labels};\n"
         f"globalThis.ankiGlobalKitEditorStyles = {styles_json};\n{script}"
-        f"\nglobalThis.ankiGlobalKitEditorListLabels = {list_labels};"
         "\nfor (const button of document.querySelectorAll('[data-command=\"anki_global_kit_inline_code\"]')) {"
         f"button.title = {json.dumps(_inline_code_tip(editor_settings))};"
         "}"
@@ -123,9 +123,9 @@ def _inline_code_tip(settings: dict) -> str:
 
 
 def _add_shortcut(shortcuts: list, editor: Editor) -> None:
-    # The editor hook owns these keys locally, so Command+Comma reaches the
-    # focused editor instead of the application's Preferences menu on macOS.
-    shortcuts[:] = [entry for entry in shortcuts if entry[0] not in BLOCK_SHORTCUTS.values()]
+    # Replace Anki's native list bindings, leaving Command+Comma to Preferences.
+    replaced = {normalize_shortcut(keys) for keys in (*BLOCK_SHORTCUTS.values(), "Ctrl+,", "Ctrl+.")}
+    shortcuts[:] = [entry for entry in shortcuts if normalize_shortcut(entry[0]) not in replaced]
     for name, keys in BLOCK_SHORTCUTS.items():
         shortcuts.append((keys, partial(_toggle_block, editor, name)))
     settings = get_editor_settings()

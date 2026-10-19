@@ -4,8 +4,9 @@ from aqt.utils import is_mac
 
 
 EDITOR_BLOCK_SHORTCUTS = {
-    "unordered-list": "Ctrl+,",
-    "ordered-list": "Ctrl+.",
+    "unordered-list": "Ctrl+Alt+8",
+    "ordered-list": "Ctrl+Alt+9",
+    "no-list": "Ctrl+Alt+0",
     "blockquote": "Ctrl+/",
 }
 
