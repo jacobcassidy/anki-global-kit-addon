@@ -583,7 +583,7 @@ test('the existing list button and shortcut route to the same formatter', () => 
   button.title = 'Ordered list (Ctrl+.)';
   document.body.append(button);
   installBlockFormatting();
-  assert.equal(button.title, 'Ordered list (Ctrl+Alt+9)');
+  assert.equal(button.title, 'Numbered List (Ctrl+Alt+9)');
   button.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }));
   assert.equal(field.innerHTML, '<ol><li>A<ul><li>B</li></ul></li></ol>');
   field.dispatchEvent(

@@ -178,7 +178,7 @@ function addFormattingToolbar(textarea) {
     },
     {
       enabled: settings.cardToolbarUnorderedList,
-      name: 'Unordered list',
+      name: 'Bullet List',
       icon: unorderedListIcon,
       shortcut: formatShortcut(shortcuts.unorderedList),
       blockMarker: 'unordered-list',
@@ -187,7 +187,7 @@ function addFormattingToolbar(textarea) {
     },
     {
       enabled: settings.cardToolbarOrderedList,
-      name: 'Ordered list',
+      name: 'Numbered List',
       icon: orderedListIcon,
       shortcut: formatShortcut(shortcuts.orderedList),
       blockMarker: 'ordered-list',

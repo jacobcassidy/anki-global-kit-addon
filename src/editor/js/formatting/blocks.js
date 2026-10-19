@@ -478,9 +478,10 @@ export function installBlockFormatting() {
       if (!format) continue;
       button.dataset.ankiGlobalKitList = format;
       if (labels[format]) {
-        const title = button.title.replace(/\s*\([^()]*\)\s*$/, '');
+        const title = { 'unordered-list': 'Bullet List', 'ordered-list': 'Numbered List' }[format];
         const updated = `${title} (${labels[format]})`;
         if (button.title !== updated) button.title = updated;
+        button.setAttribute('aria-label', updated);
       }
     }
   };

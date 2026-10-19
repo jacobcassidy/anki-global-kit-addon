@@ -83,7 +83,12 @@ def editor_fixed_shortcut_action(shortcut: str) -> str | None:
     normalized = normalize_shortcut(shortcut)
     for action, keys in EDITOR_BLOCK_SHORTCUTS.items():
         if normalized == normalize_shortcut(keys):
-            return action.replace("-", " ")
+            return {
+                "unordered-list": "Bullet List",
+                "ordered-list": "Numbered List",
+                "no-list": "No List",
+                "blockquote": "blockquote",
+            }[action]
     return None
 
 
@@ -114,8 +119,8 @@ def anki_editor_format_shortcut_warnings() -> dict[str, str]:
             ("Ctrl+Shift+X", "Strikethrough"),
             ("Ctrl+=", "Subscript"),
             ("Ctrl+Shift+=", "Superscript"),
-            ("Ctrl+,", "Unordered list"),
-            ("Ctrl+.", "Ordered list"),
+            ("Ctrl+,", "Bullet List"),
+            ("Ctrl+.", "Numbered List"),
             ("Ctrl+/", "Blockquote"),
             ("Ctrl+Shift+,", "Outdent list item"),
             ("Ctrl+Shift+.", "Indent list item"),
