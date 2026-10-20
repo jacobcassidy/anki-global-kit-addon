@@ -8,14 +8,14 @@ from aqt.qt import (
     QWidget,
 )
 
+from ...configs.asset_manifest import JS_ASSET_NAME
 from ...configs.constants import (
     ADDON_DIR,
     SECTION_SPACING,
     VERSION,
 )
-from ...configs.asset_manifest import JS_ASSET_NAME
-from ...ui.widgets import add_button_row
 from ...ui.markdown import make_markdown_browser
+from ...ui.widgets import add_button_row
 
 
 def build_about_tab(parent: QWidget) -> QWidget:

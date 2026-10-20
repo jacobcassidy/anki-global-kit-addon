@@ -5,7 +5,6 @@ from aqt.qt import QCheckBox, QGroupBox, QVBoxLayout, QWidget
 from ...configs.constants import NESTED_INDENT
 from ...ui.widgets import add_checkbox_row
 
-
 BUTTON_SETTINGS = (
     ("card_toolbar_bold", "Show bold button"),
     ("card_toolbar_italic", "Show italic button"),

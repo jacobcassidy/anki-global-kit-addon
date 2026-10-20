@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-
 ADDON_DIR = Path(__file__).resolve().parents[3]
 ASSET_DIR = ADDON_DIR / "web" / "assets"
 SHARED_ASSET_DIR = ADDON_DIR / "shared" / "assets"

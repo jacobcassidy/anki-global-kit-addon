@@ -6,8 +6,8 @@ from pathlib import Path
 from aqt import mw
 from aqt.utils import showWarning
 
-from .config import get_card_web_settings
 from ..configs.asset_manifest import ASSET_NAMES, ASSET_PATHS, JS_ASSET_NAME
+from .config import get_card_web_settings
 
 
 def update_assets_for_profile() -> None:

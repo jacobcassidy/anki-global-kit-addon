@@ -21,14 +21,14 @@ from aqt.qt import (
 )
 from aqt.utils import showWarning
 
-from ...services.config import save_note_type_selections
-from ...services.note_types import FORMATS, TOPICS
-from ...ui.widgets import HelpIndicator
 from ...configs.constants import (
     ADDON_PACKAGE_NAME,
     NOTE_TYPES_ROW_PADDING,
     ZERO_MARGINS,
 )
+from ...services.config import save_note_type_selections
+from ...services.note_types import FORMATS, TOPICS
+from ...ui.widgets import HelpIndicator
 from .actions import apply_selected_note_type_changes
 from .table import NoteTypesTable
 

@@ -1,8 +1,7 @@
 """Combine font attribution and license texts into a synced media companion."""
 
-from pathlib import Path
 import re
-
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 FONT_DIR = ROOT / "addon/shared/assets/fonts"

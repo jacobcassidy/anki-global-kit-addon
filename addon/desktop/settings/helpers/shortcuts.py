@@ -2,7 +2,6 @@
 
 from aqt.utils import is_mac
 
-
 EDITOR_BLOCK_SHORTCUTS = {
     "unordered-list": "Ctrl+Alt+8",
     "ordered-list": "Ctrl+Alt+9",

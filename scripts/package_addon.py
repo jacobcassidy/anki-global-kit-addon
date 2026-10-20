@@ -3,7 +3,6 @@
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
 ADDON_ROOT = REPOSITORY_ROOT / "addon"
 ARCHIVE_PATH = REPOSITORY_ROOT / "dist" / "anki-global-kit.ankiaddon"

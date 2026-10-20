@@ -9,8 +9,8 @@ from aqt.qt import (
 )
 
 from ...configs.constants import ADDON_DIR, SECTION_SPACING
-from ...ui.widgets import add_button_row
 from ...ui.markdown import make_markdown_browser
+from ...ui.widgets import add_button_row
 
 
 def build_changelog_tab(parent: QWidget) -> QWidget:

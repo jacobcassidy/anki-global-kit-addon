@@ -2,5 +2,4 @@
 
 from .desktop import initialize
 
-
 initialize()

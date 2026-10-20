@@ -15,15 +15,14 @@ from aqt.qt import (
 from aqt.utils import openFolder
 
 from ...configs.constants import DEFAULT_SETTINGS, USER_FILES_DIR, ZERO_MARGINS
-from ...ui.theme import get_theme_color
 from ...ui.shortcut_rows import ShortcutRows, build_shortcut_rows
+from ...ui.theme import get_theme_color
 from ...ui.widgets import (
     CardShortcutInput,
     HelpIndicator,
     add_checkbox_row,
     make_reset_link,
 )
-
 
 INDENTATION_SHORTCUT_DEFINITIONS = (
     ("anki_editor_indent_increase_shortcut", "increase indent"),
