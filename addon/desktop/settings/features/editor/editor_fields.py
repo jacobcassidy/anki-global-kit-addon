@@ -1,4 +1,4 @@
-"""Settings section for Anki editor fields and the inline-code shortcut."""
+"""Settings section for Anki editor fields and formatting shortcuts."""
 
 from dataclasses import dataclass
 
@@ -39,6 +39,7 @@ class EditorFieldsSection:
     reset_link: QWidget
     warning_label: QLabel
     indentation_rows: ShortcutRows
+    action_shortcuts: dict[str, tuple[QCheckBox, CardShortcutInput]]
 
 
 def build_editor_fields_section(
@@ -90,6 +91,53 @@ def build_editor_fields_section(
     )
     shortcut_enabled.toggled.connect(set_shortcut_enabled)
 
+    action_shortcuts = {}
+    for key, label in (
+        ("anki_editor_paste_html_shortcut", "Paste as HTML"),
+        ("anki_editor_blockquote_shortcut", "Blockquote"),
+    ):
+        enabled_key = f"{key}_enabled"
+        enabled = QCheckBox(f"Enable {label} shortcut", section)
+        enabled.setChecked(current_settings[enabled_key])
+        input_widget = CardShortcutInput(current_settings[key], section)
+        controls_widget = QWidget(section)
+        controls_layout = QHBoxLayout(controls_widget)
+        controls_layout.setContentsMargins(*ZERO_MARGINS)
+        reset = make_reset_link(controls_widget, input_widget, DEFAULT_SETTINGS[key])
+        controls_layout.addWidget(reset)
+        controls_layout.addWidget(input_widget)
+        validation = QLabel(section)
+        validation.setWordWrap(True)
+        validation.setStyleSheet(
+            f"color: {get_theme_color('ACCENT_DANGER', 'FLAG_1', 'FG')};"
+        )
+        validation.hide()
+        input_widget.set_validation_label(validation)
+
+        def set_action_enabled(
+            value,
+            *,
+            controls=controls_widget,
+            field=input_widget,
+            reset_link=reset,
+            setting=key,
+        ):
+            controls.setEnabled(value)
+            field.set_text_dimmed(not value)
+            reset_link.setEnabled(
+                value and field.stored_shortcut() != DEFAULT_SETTINGS[setting]
+            )
+
+        set_action_enabled(enabled.isChecked())
+        enabled.toggled.connect(set_action_enabled)
+        add_checkbox_row(
+            layout,
+            enabled,
+            trailing_widget=controls_widget,
+            validation_label=validation,
+        )
+        action_shortcuts[key] = (enabled, input_widget)
+
     tab_indentation = QCheckBox("Enable indentation shortcuts", section)
     tab_indentation.setChecked(
         current_settings.get("anki_editor_tab_indentation", True)
@@ -136,6 +184,8 @@ def build_editor_fields_section(
         {
             "anki_editor_inline_code_shortcut_enabled": shortcut_enabled,
             "anki_editor_inline_code_shortcut": shortcut_input,
+            **{f"{key}_enabled": pair[0] for key, pair in action_shortcuts.items()},
+            **{key: pair[1] for key, pair in action_shortcuts.items()},
             "anki_editor_tab_indentation": tab_indentation,
             "anki_editor_custom_fields_styles": custom_styles,
             **indentation_rows.shortcut_inputs,
@@ -146,4 +196,5 @@ def build_editor_fields_section(
         reset_link,
         warning_label,
         indentation_rows,
+        action_shortcuts,
     )

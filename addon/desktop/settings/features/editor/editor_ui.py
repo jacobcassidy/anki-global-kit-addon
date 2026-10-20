@@ -17,6 +17,14 @@ def build_editor_ui_section(parent: QWidget, current_settings: dict):
         inline_code_button,
         "Add an inline code button to the Desktop editor toolbar for formatting selected text or starting an inline code span.",
     )
+    paste_html_button = QCheckBox(
+        "Show Paste as HTML button in editor toolbar", section
+    )
+    paste_html_button.setChecked(current_settings["anki_editor_paste_html_button"])
+    add_checkbox_row(layout, paste_html_button)
+    blockquote_button = QCheckBox("Show Blockquote button in editor toolbar", section)
+    blockquote_button.setChecked(current_settings["anki_editor_blockquote_button"])
+    add_checkbox_row(layout, blockquote_button)
     custom_styles = QCheckBox("Enable custom editor UI stylesheet", section)
     custom_styles.setChecked(
         current_settings.get(
@@ -47,5 +55,7 @@ def build_editor_ui_section(parent: QWidget, current_settings: dict):
     add_checkbox_row(layout, custom_styles, trailing_widget=stylesheet_controls)
     return section, {
         "anki_editor_inline_code_button": inline_code_button,
+        "anki_editor_paste_html_button": paste_html_button,
+        "anki_editor_blockquote_button": blockquote_button,
         "anki_editor_custom_ui_styles": custom_styles,
     }

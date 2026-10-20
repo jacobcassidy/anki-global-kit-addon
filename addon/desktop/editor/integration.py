@@ -15,7 +15,6 @@ from ..settings.helpers.shortcuts import (
     EDITOR_BLOCK_SHORTCUTS as BLOCK_SHORTCUTS,
 )
 from ..settings.helpers.shortcuts import (
-    EDITOR_PASTE_HTML_SHORTCUT,
     editor_fixed_shortcut_action,
     normalize_shortcut,
 )
@@ -121,24 +120,29 @@ def _change_indentation(editor: Editor, action: str) -> None:
 
 
 def _add_button(buttons: list, editor: Editor) -> None:
-    buttons.append(
-        editor.addButton(
-            icon=str(PASTE_HTML_ICON),
-            cmd="anki_global_kit_paste_html",
-            func=_paste_clipboard_as_html,
-            tip=f"Paste as HTML ({shortcut_label(EDITOR_PASTE_HTML_SHORTCUT)})",
-            keys=EDITOR_PASTE_HTML_SHORTCUT,
-        )
-    )
-    buttons.append(
-        editor.addButton(
-            icon=str(BLOCKQUOTE_ICON),
-            cmd="anki_global_kit_blockquote",
-            func=lambda editor: _toggle_block(editor, "blockquote"),
-            tip=f"Blockquote ({shortcut_label(BLOCK_SHORTCUTS['blockquote'])})",
-        )
-    )
     settings = get_editor_settings()
+    if settings["anki_editor_paste_html_button"]:
+        buttons.append(
+            editor.addButton(
+                icon=str(PASTE_HTML_ICON),
+                cmd="anki_global_kit_paste_html",
+                func=_paste_clipboard_as_html,
+                tip=_button_tip(
+                    "Paste as HTML", "anki_editor_paste_html_shortcut", settings
+                ),
+            )
+        )
+    if settings["anki_editor_blockquote_button"]:
+        buttons.append(
+            editor.addButton(
+                icon=str(BLOCKQUOTE_ICON),
+                cmd="anki_global_kit_blockquote",
+                func=lambda editor: _toggle_block(editor, "blockquote"),
+                tip=_button_tip(
+                    "Blockquote", "anki_editor_blockquote_shortcut", settings
+                ),
+            )
+        )
     if not settings["anki_editor_inline_code_button"]:
         return
     buttons.append(
@@ -161,6 +165,13 @@ def _inline_code_tip(settings: dict) -> str:
     return tip
 
 
+def _button_tip(label: str, key: str, settings: dict) -> str:
+    tip = label
+    if settings[f"{key}_enabled"] and settings[key]:
+        tip += f" ({shortcut_label(settings[key])})"
+    return tip
+
+
 def _add_shortcut(shortcuts: list, editor: Editor) -> None:
     # Replace Anki's native list bindings, leaving Command+Comma to Preferences.
     replaced = {
@@ -171,6 +182,8 @@ def _add_shortcut(shortcuts: list, editor: Editor) -> None:
         entry for entry in shortcuts if normalize_shortcut(entry[0]) not in replaced
     ]
     for name, keys in BLOCK_SHORTCUTS.items():
+        if name == "blockquote":
+            continue
         shortcuts.append((keys, partial(_toggle_block, editor, name)))
     settings = get_editor_settings()
     for keys in _configured_editor_shortcuts(settings).values():
@@ -187,6 +200,10 @@ def _add_shortcut(shortcuts: list, editor: Editor) -> None:
 def _configured_editor_shortcuts(settings: dict) -> dict[str, str]:
     """Validate saved bindings before registering or refreshing native keys."""
     configurable = {}
+    for action in ("paste_html", "blockquote"):
+        key = f"anki_editor_{action}_shortcut"
+        if settings[f"{key}_enabled"]:
+            configurable[key] = settings[key]
     if settings["anki_editor_inline_code_shortcut_enabled"]:
         configurable["anki_editor_inline_code_shortcut"] = settings[
             "anki_editor_inline_code_shortcut"
@@ -223,6 +240,10 @@ def _activate_editor_shortcut(editor_ref, name: str) -> None:
         return
     if name == "anki_editor_inline_code_shortcut":
         _toggle_inline_code(editor)
+    elif name == "anki_editor_paste_html_shortcut":
+        _paste_clipboard_as_html(editor)
+    elif name == "anki_editor_blockquote_shortcut":
+        _toggle_block(editor, "blockquote")
     else:
         _change_indentation(editor, "decrease" if "decrease" in name else "increase")
 

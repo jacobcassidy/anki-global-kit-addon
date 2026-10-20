@@ -105,19 +105,31 @@ def open_settings() -> None:
 
     editor_definitions = (
         ("anki_editor_inline_code_shortcut", "inline code"),
+        ("anki_editor_paste_html_shortcut", "Paste as HTML"),
+        ("anki_editor_blockquote_shortcut", "Blockquote"),
     ) + INDENTATION_SHORTCUT_DEFINITIONS
     editor_inputs = {
         "anki_editor_inline_code_shortcut": editor_inline_code_shortcut,
+        **{key: pair[1] for key, pair in editor_fields.action_shortcuts.items()},
         **editor_fields.indentation_rows.shortcut_inputs,
     }
     editor_checks = {
         "anki_editor_inline_code_shortcut_enabled": editor_inline_code_shortcut_enabled,
+        **{
+            f"{key}_enabled": pair[0]
+            for key, pair in editor_fields.action_shortcuts.items()
+        },
         **editor_fields.indentation_rows.shortcut_enabled,
     }
 
     def editor_shortcut_active(key):
         return editor_checks[f"{key}_enabled"].isChecked() and (
-            key == "anki_editor_inline_code_shortcut"
+            key
+            in (
+                "anki_editor_inline_code_shortcut",
+                "anki_editor_paste_html_shortcut",
+                "anki_editor_blockquote_shortcut",
+            )
             or all_controls["anki_editor_tab_indentation"].isChecked()
         )
 
@@ -235,7 +247,11 @@ def open_settings() -> None:
             if not editor_shortcut_active(key):
                 continue
             shortcut = editor_inputs[key].stored_shortcut()
-            if key == "anki_editor_inline_code_shortcut":
+            if key in (
+                "anki_editor_inline_code_shortcut",
+                "anki_editor_paste_html_shortcut",
+                "anki_editor_blockquote_shortcut",
+            ):
                 shortcut = shortcut or DEFAULT_SETTINGS[key]
             if not shortcut:
                 continue

@@ -1,33 +1,6 @@
 import { getEditorSelection } from '../helpers/selection.js';
 import { editWithNativeUndo } from '../helpers/edit-transaction.js';
 
-const PASTE_LISTENER_KEY = Symbol.for('ankiGlobalKitPasteHtmlInstalled');
-
-export function installPasteHtml() {
-  if (document[PASTE_LISTENER_KEY]) return;
-  document[PASTE_LISTENER_KEY] = true;
-  const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
-  document.addEventListener(
-    'keydown',
-    (event) => {
-      const primary = isMac ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey;
-      // Option can change the reported character on macOS. This paste binding
-      // deliberately also accepts the physical V key, like the native action.
-      const pasteKey = event.key.toLowerCase() === 'v' || (isMac && event.code === 'KeyV');
-      if (!primary || !event.altKey || event.shiftKey || event.isComposing || !pasteKey) return;
-      if (!event.composedPath().some((node) => node?.matches?.('anki-editable,[contenteditable="true"]'))) return;
-      const button = document.querySelector('[data-command="anki_global_kit_paste_html"]');
-      if (!button || button.disabled) return;
-      // Qt usually consumes the native QShortcut first. If the event reaches
-      // the webview, invoke that same button and suppress ordinary paste.
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      if (!event.repeat) button.click();
-    },
-    true,
-  );
-}
-
 const INLINE_TAGS = new Set([
   'A',
   'ABBR',

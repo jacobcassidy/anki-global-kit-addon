@@ -11,7 +11,6 @@ const BLOCK_SHORTCUTS = {
   'unordered-list': 'Ctrl+Alt+8',
   'ordered-list': 'Ctrl+Alt+9',
   'no-list': 'Ctrl+Alt+0',
-  blockquote: 'Ctrl+/',
 };
 
 function textOffset(root, node, offset) {
