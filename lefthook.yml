@@ -34,3 +34,17 @@ pre-commit:
         - "**/*.{yaml,yml}"
       run: npx prettier {staged_files} --write
       stage_fixed: true
+    ruff-lint:
+      priority: 4
+      glob:
+        - "*.py"
+        - "**/*.py"
+      run: uv run --locked ruff check --fix {staged_files}
+      stage_fixed: true
+    ruff-format:
+      priority: 5
+      glob:
+        - "*.py"
+        - "**/*.py"
+      run: uv run --locked ruff format {staged_files}
+      stage_fixed: true
