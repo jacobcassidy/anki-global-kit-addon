@@ -69,6 +69,9 @@ export function markdownToHtml(markdown) {
       line = '';
       lineIndent = depth;
     };
+    const leaveBlankLine = () => {
+      if (output.length && output[output.length - 1] !== '') output.push('');
+    };
 
     for (const token of tokens) {
       const tag = token.match(/^<(\/)?([a-z0-9]+)\b[^>]*>$/i);
@@ -104,11 +107,13 @@ export function markdownToHtml(markdown) {
           line = `${line.trimEnd()}${token}`;
           flushLine(false, lineIndent);
           depth = Math.max(0, depth - 1);
+          if (/^h[1-6]$/.test(tagName)) leaveBlankLine();
         } else {
           depth = Math.max(0, depth - 1);
           line = token;
           lineIndent = depth;
           flushLine();
+          if (/^h[1-6]$/.test(tagName)) leaveBlankLine();
         }
       } else {
         flushLine();
