@@ -9,7 +9,8 @@ EDITOR_BLOCK_SHORTCUTS = {
     "no-list": "Ctrl+Alt+0",
     "blockquote": "Ctrl+/",
 }
-EDITOR_PASTE_HTML_SHORTCUT = "Ctrl+Alt+V"
+# Qt calls physical Control "Meta" on macOS.
+EDITOR_PASTE_HTML_SHORTCUT = "Meta+Alt+V" if is_mac else "Ctrl+Alt+V"
 
 
 SHORTCUT_KEY_ALIASES = {
