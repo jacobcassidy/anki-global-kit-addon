@@ -14,6 +14,8 @@ from .card_fields import (
 from .card_reviews import build_card_reviews_section
 from .card_toolbar import build_card_toolbar_section
 
+__all__ = ["SHORTCUT_DEFINITIONS", "CardsTab", "build_cards_tab"]
+
 
 @dataclass
 class CardsTab:
