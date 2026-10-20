@@ -57,25 +57,24 @@ export function markdownToHtml(markdown) {
     const output = [];
     let depth = 0;
     let line = '';
+    let lineIndent = 0;
     let inPre = false;
 
-    const flushLine = (blankBefore = false) => {
+    const flushLine = (blankBefore = false, indent = lineIndent) => {
       const content = line.trim();
       if (content) {
         if (blankBefore && output.length) output.push('');
-        output.push(`${'  '.repeat(depth)}${content}`);
+        output.push(`${'  '.repeat(indent)}${content}`);
       }
       line = '';
+      lineIndent = depth;
     };
 
     for (const token of tokens) {
       const tag = token.match(/^<(\/)?([a-z0-9]+)\b[^>]*>$/i);
       if (!tag) {
         if (inPre) {
-          for (const textLine of token.split('\n')) {
-            if (line) flushLine();
-            if (textLine) output.push(`${'  '.repeat(depth)}${textLine}`);
-          }
+          line += token;
         } else {
           line += token.replace(/\s+/g, ' ');
         }
@@ -94,15 +93,27 @@ export function markdownToHtml(markdown) {
           line += token;
           continue;
         }
-        if (tagName === 'pre') inPre = false;
-        flushLine();
-        depth = Math.max(0, depth - 1);
-        line = token;
-        flushLine();
+        if (tagName === 'pre') {
+          inPre = false;
+          flushLine();
+          depth = Math.max(0, depth - 1);
+          line = token;
+          lineIndent = depth;
+          flushLine();
+        } else if (line) {
+          line = `${line.trimEnd()}${token}`;
+          flushLine(false, lineIndent);
+          depth = Math.max(0, depth - 1);
+        } else {
+          depth = Math.max(0, depth - 1);
+          line = token;
+          lineIndent = depth;
+          flushLine();
+        }
       } else {
         flushLine(tagName[0] === 'h');
         line = token;
-        flushLine();
+        lineIndent = depth;
         depth += 1;
         if (tagName === 'pre') inPre = true;
       }
