@@ -143,7 +143,7 @@ See [development dependency notes](docs/dev/DEPENDENCIES.md) for patched transit
 
 ## Help and feedback
 
-If a shortcut does nothing, check both its group and individual enable switches and resolve any conflicts in settings. Click a shortcut field to capture a new key combination; **Escape** cancels capture. If submitted answers remain plain text, select **Enable Markdown rendering** and **Enable syntax highlighting for submitted answers** under **Cards → Card Reviews** and check that code fences have matching opening and closing lines.
+If a shortcut does nothing, check both its group and individual enable switches and resolve any conflicts in settings. Click a shortcut field to capture a new key combination; **Escape** cancels capture. If submitted answers remain plain text, select **Enable Markdown to HTML rendering** and **Enable syntax highlighting for submitted answers** under **Cards → Card Reviews** and check that code fences have matching opening and closing lines.
 
 Read [HELP.md](addon/HELP.md) for settings guidance and common problems, or open the **Help** tab in **Anki Global Kit Settings...**. For an unresolved problem, [report an issue](https://github.com/jacobcassidy/anki-global-kit-addon/issues) with your Anki version, device, and steps to reproduce it. See the [changelog](CHANGELOG.md) for release notes.
 

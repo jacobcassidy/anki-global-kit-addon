@@ -8,7 +8,7 @@ from ...ui.widgets import add_checkbox_row
 def build_card_reviews_section(parent: QWidget, current_settings: dict):
     section = QGroupBox("Card Reviews", parent)
     layout = QVBoxLayout(section)
-    markdown = QCheckBox("Enable Markdown rendering", section)
+    markdown = QCheckBox("Enable Markdown to HTML rendering", section)
     markdown.setChecked(current_settings["card_review_markdown_rendering"])
     add_checkbox_row(
         layout,
