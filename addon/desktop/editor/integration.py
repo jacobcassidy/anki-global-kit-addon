@@ -25,7 +25,7 @@ EDITOR_ASSET = ADDON_DIR / "desktop" / "editor" / "assets" / "js" / "editor.min.
 EDITOR_STYLES_DIR = ADDON_DIR / "desktop" / "editor" / "assets" / "css"
 ICON_ASSET = ADDON_DIR / "shared" / "assets" / "icons" / "code-inline.svg"
 BLOCKQUOTE_ICON = ICON_ASSET.with_name("blockquote.svg")
-PASTE_HTML_ICON = ICON_ASSET.with_name("html5.svg")
+PASTE_HTML_ICON = ICON_ASSET.with_name("file-html.svg")
 _open_editors = WeakSet()
 
 
