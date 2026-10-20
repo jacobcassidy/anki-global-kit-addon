@@ -1,8 +1,10 @@
 # IGNORE
-.TEMP
-node_modules
-/dist/
-/addon/meta.json
-__pycache__
 *.pyc
+.TEMP
+/.ruff_cache/
+/.venv/
+/addon/meta.json
+/dist/
+__pycache__
 docs/dev/TODO.md
+node_modules
