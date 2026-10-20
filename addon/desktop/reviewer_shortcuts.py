@@ -97,7 +97,11 @@ def _register_editor_webview(editor) -> None:
 
 def _indentation_tab_action(event, settings, prefix="card_input_tab_indent"):
     """Match customized Tab combinations before Qt consumes their keypress."""
-    control = Qt.KeyboardModifier.MetaModifier if is_mac else Qt.KeyboardModifier.ControlModifier
+    control = (
+        Qt.KeyboardModifier.MetaModifier
+        if is_mac
+        else Qt.KeyboardModifier.ControlModifier
+    )
     modifiers = {
         "Ctrl": Qt.KeyboardModifier.ControlModifier,
         "Meta": Qt.KeyboardModifier.MetaModifier,
@@ -122,7 +126,11 @@ def _indentation_tab_action(event, settings, prefix="card_input_tab_indent"):
             if prefix == "anki_editor_indent":
                 method = "indent" if action == "increase" else "unindent"
                 return f"globalThis.ankiGlobalKitEditor?.{method}();"
-            return "globalThis.ankiGlobalKitIndentQuestion?.();" if action == "increase" else "globalThis.ankiGlobalKitUnindentQuestion?.();"
+            return (
+                "globalThis.ankiGlobalKitIndentQuestion?.();"
+                if action == "increase"
+                else "globalThis.ankiGlobalKitUnindentQuestion?.();"
+            )
     return None
 
 
@@ -164,7 +172,9 @@ def _card_indent_shortcut_override(event) -> bool:
         name = f"card_input_tab_indent_{action}_shortcut"
         if not settings.get(f"{name}_enabled", True):
             continue
-        parts = settings.get(name, "Ctrl+Alt+." if action == "increase" else "Ctrl+Alt+,").split("+")
+        parts = settings.get(
+            name, "Ctrl+Alt+." if action == "increase" else "Ctrl+Alt+,"
+        ).split("+")
         key = parts.pop()
         if "Shift" in parts:
             key = {"<": ",", ">": "."}.get(key, key)
@@ -215,7 +225,9 @@ class _PreferencesShortcutFilter(QObject):
     """Route card indentation keys before Qt handles native shortcuts."""
 
     def eventFilter(self, watched, event) -> bool:
-        if event.type() == QEvent.Type.ShortcutOverride and _toolbar_owns_navigation(event):
+        if event.type() == QEvent.Type.ShortcutOverride and _toolbar_owns_navigation(
+            event
+        ):
             # Let the focused HTML button receive activation/navigation instead
             # of Anki's native Show Answer or Escape shortcuts.
             event.accept()
@@ -233,7 +245,13 @@ class _PreferencesShortcutFilter(QObject):
             return True
         if (
             event.type() == QEvent.Type.ShortcutOverride
-            and event.key() in (Qt.Key.Key_Comma, Qt.Key.Key_Period, Qt.Key.Key_Less, Qt.Key.Key_Greater)
+            and event.key()
+            in (
+                Qt.Key.Key_Comma,
+                Qt.Key.Key_Period,
+                Qt.Key.Key_Less,
+                Qt.Key.Key_Greater,
+            )
             and _card_indent_shortcut_override(event)
         ):
             # Qt maps Command to ControlModifier on macOS. Accepting the
@@ -257,11 +275,20 @@ class _PreferencesShortcutFilter(QObject):
 
 def _toolbar_owns_navigation(event) -> bool:
     focused = QApplication.focusWidget()
-    if not any(_webview_contains_focus(webview, focused) for webview in _live_webviews(_toolbar_webviews)):
+    if not any(
+        _webview_contains_focus(webview, focused)
+        for webview in _live_webviews(_toolbar_webviews)
+    ):
         return False
     return event.modifiers() == Qt.KeyboardModifier.NoModifier and event.key() in (
-        Qt.Key.Key_Space, Qt.Key.Key_Return, Qt.Key.Key_Enter, Qt.Key.Key_Escape,
-        Qt.Key.Key_Left, Qt.Key.Key_Right, Qt.Key.Key_Home, Qt.Key.Key_End,
+        Qt.Key.Key_Space,
+        Qt.Key.Key_Return,
+        Qt.Key.Key_Enter,
+        Qt.Key.Key_Escape,
+        Qt.Key.Key_Left,
+        Qt.Key.Key_Right,
+        Qt.Key.Key_Home,
+        Qt.Key.Key_End,
     )
 
 
@@ -279,7 +306,9 @@ def _on_webview_message(handled: tuple[bool, object], message: str, context):
     if not isinstance(context, Reviewer):
         # The JS-message hook supplies the window owning the card webview.
         # Browse previewers expose _web; template previews expose preview_web.
-        webview = getattr(context, "preview_web", None) or getattr(context, "_web", None)
+        webview = getattr(context, "preview_web", None) or getattr(
+            context, "_web", None
+        )
         if webview is None or sip.isdeleted(webview):
             return handled
         _toolbar_webviews.discard(webview)
@@ -311,8 +340,12 @@ def _on_card_will_show(html: str, card, kind: str) -> str:
         _toolbar_webviews.discard(mw.reviewer.web)
         _sync_preferences_action()
     if kind in {
-        "reviewQuestion", "reviewAnswer", "previewQuestion", "previewAnswer",
-        "clayoutQuestion", "clayoutAnswer",
+        "reviewQuestion",
+        "reviewAnswer",
+        "previewQuestion",
+        "previewAnswer",
+        "clayoutQuestion",
+        "clayoutAnswer",
     }:
         # The Python hook runs before the asynchronous card DOM replacement.
         html += (

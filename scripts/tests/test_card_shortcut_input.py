@@ -2,10 +2,10 @@
 
 import ast
 import importlib.util
-from pathlib import Path
 import sys
-from types import ModuleType, SimpleNamespace
 import unittest
+from pathlib import Path
+from types import ModuleType, SimpleNamespace
 from unittest.mock import Mock, patch
 
 
@@ -22,31 +22,61 @@ class Button:
 
 class CardShortcutInputTests(unittest.TestCase):
     def setUp(self):
-        path = Path(__file__).resolve().parents[2] / "addon/desktop/settings/ui/widgets.py"
+        path = (
+            Path(__file__).resolve().parents[2] / "addon/desktop/settings/ui/widgets.py"
+        )
         qt = ModuleType("aqt.qt")
         for item in ast.parse(path.read_text()).body:
             if isinstance(item, ast.ImportFrom) and item.module == "aqt.qt":
                 for name in item.names:
                     setattr(qt, name.name, Button)
         qt.Qt = SimpleNamespace(
-            Key=SimpleNamespace(Key_Tab=9, Key_Backtab=10, Key_Escape=27, Key_Backspace=8,
-                Key_Delete=127, Key_Control=101, Key_Alt=102, Key_Shift=103, Key_Meta=104),
-            KeyboardModifier=SimpleNamespace(ControlModifier=1, MetaModifier=2, AltModifier=4, ShiftModifier=8),
+            Key=SimpleNamespace(
+                Key_Tab=9,
+                Key_Backtab=10,
+                Key_Escape=27,
+                Key_Backspace=8,
+                Key_Delete=127,
+                Key_Control=101,
+                Key_Alt=102,
+                Key_Shift=103,
+                Key_Meta=104,
+            ),
+            KeyboardModifier=SimpleNamespace(
+                ControlModifier=1, MetaModifier=2, AltModifier=4, ShiftModifier=8
+            ),
         )
-        qt.QEvent = SimpleNamespace(Type=SimpleNamespace(
-            ShortcutOverride=1, KeyPress=2, KeyRelease=3, FocusOut=4, MouseButtonPress=5,
-        ))
+        qt.QEvent = SimpleNamespace(
+            Type=SimpleNamespace(
+                ShortcutOverride=1,
+                KeyPress=2,
+                KeyRelease=3,
+                FocusOut=4,
+                MouseButtonPress=5,
+            )
+        )
+
         class Sequence:
             SequenceFormat = SimpleNamespace(PortableText=0)
+
             def __init__(self, key):
                 self.key = key
+
             def toString(self, _):
                 return "Tab" if self.key == 9 else "Backtab"
+
         qt.QKeySequence = Sequence
         utils = ModuleType("aqt.utils")
         utils.is_mac = True
         constants = ModuleType("kit.desktop.settings.configs.constants")
-        for name in ("COLOR_TRANSPARENT", "NESTED_INDENT", "SHORTCUT_MIN_WIDTH", "SHORTCUT_MODIFIER_HINT", "SHARED_ASSET_DIR", "ZERO_MARGINS"):
+        for name in (
+            "COLOR_TRANSPARENT",
+            "NESTED_INDENT",
+            "SHORTCUT_MIN_WIDTH",
+            "SHORTCUT_MODIFIER_HINT",
+            "SHARED_ASSET_DIR",
+            "ZERO_MARGINS",
+        ):
             setattr(constants, name, 0)
         theme = ModuleType("kit.desktop.settings.ui.theme")
         theme.get_theme_color = Mock()
@@ -55,16 +85,23 @@ class CardShortcutInputTests(unittest.TestCase):
         shortcuts.normalize_shortcut = lambda value: value
         shortcuts.reserved_shortcut_warnings = lambda: {}
         shortcuts.split_shortcut = lambda value: (
-            ["+"] if value == "+" else
-            [*value[:-2].split("+"), "+"] if value.endswith("++") else
-            value.split("+")
+            ["+"]
+            if value == "+"
+            else [*value[:-2].split("+"), "+"]
+            if value.endswith("++")
+            else value.split("+")
         )
-        modules = {"aqt.qt": qt, "aqt.utils": utils,
+        modules = {
+            "aqt.qt": qt,
+            "aqt.utils": utils,
             "kit.desktop.settings.configs.constants": constants,
             "kit.desktop.settings.ui.theme": theme,
-            "kit.desktop.settings.helpers.shortcuts": shortcuts}
+            "kit.desktop.settings.helpers.shortcuts": shortcuts,
+        }
         with patch.dict(sys.modules, modules):
-            spec = importlib.util.spec_from_file_location("kit.desktop.settings.ui.widgets", path)
+            spec = importlib.util.spec_from_file_location(
+                "kit.desktop.settings.ui.widgets", path
+            )
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
         self.module = module
@@ -86,13 +123,19 @@ class CardShortcutInputTests(unittest.TestCase):
         return event
 
     def test_modified_tab_is_recorded_before_native_focus_traversal(self):
-        for modifiers, expected in ((4, "Alt+Tab"), (2, "Meta+Tab"), (4 | 8, "Alt+Shift+Tab")):
+        for modifiers, expected in (
+            (4, "Alt+Tab"),
+            (2, "Meta+Tab"),
+            (4 | 8, "Alt+Shift+Tab"),
+        ):
             with self.subTest(modifiers=modifiers):
                 event = self.event(1, modifiers)
                 self.assertTrue(self.input.eventFilter(self.input, event))
                 self.assertEqual(self.input.stored_shortcut(), expected)
                 event.accept.assert_called()
-                self.assertTrue(self.input.eventFilter(self.input, self.event(2, modifiers, key=0)))
+                self.assertTrue(
+                    self.input.eventFilter(self.input, self.event(2, modifiers, key=0))
+                )
                 self.assertEqual(self.input.stored_shortcut(), expected)
                 self.input._stop_capture.assert_not_called()
 

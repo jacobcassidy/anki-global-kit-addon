@@ -1,4 +1,5 @@
 """Readable shortcut labels for editor tooltips."""
+
 import re
 
 from aqt.utils import is_mac, shortcut

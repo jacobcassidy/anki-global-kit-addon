@@ -1,7 +1,7 @@
 """Check destructive-operation confirmations and partial-change reporting."""
 
-from types import SimpleNamespace
 import unittest
+from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from anki_stubs import OpChanges, load_note_type_actions, load_note_type_service
@@ -10,8 +10,13 @@ from anki_stubs import OpChanges, load_note_type_actions, load_note_type_service
 class NoteTypeActionTests(unittest.TestCase):
     def setUp(self):
         notetype = {
-            "id": 42, "name": "Python (Advance)", "type": 0,
-            "tmpls": [{"name": name, "ord": ordinal} for ordinal, name in enumerate(("First", "Reverse", "Extra"))],
+            "id": 42,
+            "name": "Python (Advance)",
+            "type": 0,
+            "tmpls": [
+                {"name": name, "ord": ordinal}
+                for ordinal, name in enumerate(("First", "Reverse", "Extra"))
+            ],
         }
         models = SimpleNamespace(
             all_names_and_ids=lambda: [SimpleNamespace(name=notetype["name"], id=42)],
@@ -26,8 +31,11 @@ class NoteTypeActionTests(unittest.TestCase):
 
     def replace(self):
         self.ui.actions.apply_selected_note_type_changes(
-            {"Python": {"Advance"}}, {"Python": {"Advance"}}, {},
-            parent=object(), on_complete=self.complete,
+            {"Python": {"Advance"}},
+            {"Python": {"Advance"}},
+            {},
+            parent=object(),
+            on_complete=self.complete,
         )
 
     def test_confirmation_lists_removed_template_names_counts_and_cards(self):
@@ -50,7 +58,11 @@ class NoteTypeActionTests(unittest.TestCase):
     def test_populated_delete_never_reaches_confirmation_or_background_work(self):
         self.col.models.use_count = lambda _nt: 1
         self.ui.actions.apply_selected_note_type_changes(
-            {}, {}, {"Python": {"Advance"}}, parent=object(), on_complete=self.complete,
+            {},
+            {},
+            {"Python": {"Advance"}},
+            parent=object(),
+            on_complete=self.complete,
         )
         self.ui.confirm.assert_not_called()
         self.ui.factory.assert_not_called()
@@ -58,10 +70,16 @@ class NoteTypeActionTests(unittest.TestCase):
         self.complete.assert_called_once_with(False)
 
     def test_partial_failure_returns_changes_so_anki_can_refresh(self):
-        plan = self.service.plan_note_type_changes({"Python": {"Advance"}}, {"Python": {"Advance"}})
+        plan = self.service.plan_note_type_changes(
+            {"Python": {"Advance"}}, {"Python": {"Advance"}}
+        )
         changes = OpChanges(notetype=True)
-        error = self.service.NoteTypeApplyError(("Created (Advance)",), OSError("write failed"), changes)
-        with patch.object(self.ui.actions, "apply_note_type_changes", side_effect=error):
+        error = self.service.NoteTypeApplyError(
+            ("Created (Advance)",), OSError("write failed"), changes
+        )
+        with patch.object(
+            self.ui.actions, "apply_note_type_changes", side_effect=error
+        ):
             outcome = self.ui.actions._apply_plan(self.col, plan)
         self.assertIs(outcome.changes, changes)
         self.assertIs(outcome.error, error)

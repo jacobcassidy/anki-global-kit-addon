@@ -23,10 +23,15 @@ def _read_settings(*, editor: bool) -> dict[str, object]:
 
 def get_settings() -> dict[str, object]:
     settings = _read_settings(editor=False)
-    for name in ("card_input_tab_indent_increase_shortcut", "card_input_tab_indent_decrease_shortcut"):
+    for name in (
+        "card_input_tab_indent_increase_shortcut",
+        "card_input_tab_indent_decrease_shortcut",
+    ):
         # These new settings already store Qt modifier names. Only translate
         # the portable physical-Control default, never swap a saved Meta key.
-        settings[name] = settings[name].replace("Control+", "Meta+" if is_mac else "Ctrl+")
+        settings[name] = settings[name].replace(
+            "Control+", "Meta+" if is_mac else "Ctrl+"
+        )
     return settings
 
 
@@ -40,8 +45,13 @@ def get_editor_settings() -> dict[str, object]:
         if settings[name].startswith("CodeBlock+"):
             modifiers = "Ctrl+Meta" if is_mac else "Ctrl+Alt"
             settings[name] = f"{modifiers}+{settings[name].split('+', 1)[1]}"
-    for name in ("anki_editor_indent_increase_shortcut", "anki_editor_indent_decrease_shortcut"):
-        settings[name] = settings[name].replace("Control+", "Meta+" if is_mac else "Ctrl+")
+    for name in (
+        "anki_editor_indent_increase_shortcut",
+        "anki_editor_indent_decrease_shortcut",
+    ):
+        settings[name] = settings[name].replace(
+            "Control+", "Meta+" if is_mac else "Ctrl+"
+        )
     return settings
 
 

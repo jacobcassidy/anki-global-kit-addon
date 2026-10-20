@@ -9,7 +9,9 @@ from .asset_manifest import ADDON_DIR
 USER_FILES_DIR = ADDON_DIR / "user_files"
 SHARED_ASSET_DIR = ADDON_DIR / "shared" / "assets" / "icons"
 ADDON_PACKAGE_NAME = __package__.split(".", maxsplit=1)[0]
-VERSION = json.loads((ADDON_DIR / "manifest.json").read_text(encoding="utf-8"))["version"]
+VERSION = json.loads((ADDON_DIR / "manifest.json").read_text(encoding="utf-8"))[
+    "version"
+]
 SECTION_SPACING = 24
 MARKDOWN_BLOCK_SPACING = 12
 NOTE_TYPES_ROW_PADDING = 4

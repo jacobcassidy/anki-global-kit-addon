@@ -1,7 +1,9 @@
 """Shared nested shortcut rows for card and editor settings."""
 
 from dataclasses import dataclass
+
 from aqt.qt import QCheckBox, QHBoxLayout, QLabel, QSizePolicy, Qt, QVBoxLayout, QWidget
+
 from ..configs.constants import DEFAULT_SETTINGS, NESTED_INDENT, ZERO_MARGINS
 from .theme import get_theme_color
 from .widgets import CardShortcutInput, make_reset_link
@@ -27,7 +29,9 @@ def style_shortcut_option(checkbox: QCheckBox, *, inactive: bool) -> None:
     checkbox.setStyleSheet(f"QCheckBox {{ color: {color}; }}")
 
 
-def build_shortcut_rows(section: QWidget, master: QCheckBox, definitions, current_settings: dict) -> ShortcutRows:
+def build_shortcut_rows(
+    section: QWidget, master: QCheckBox, definitions, current_settings: dict
+) -> ShortcutRows:
     shortcut_inputs = {}
     shortcut_enabled = {}
     reset_links = {}
@@ -66,7 +70,8 @@ def build_shortcut_rows(section: QWidget, master: QCheckBox, definitions, curren
         row.addStretch()
 
         shortcut_input = CardShortcutInput(
-            current_settings.get(key, DEFAULT_SETTINGS[key]), row_widget,
+            current_settings.get(key, DEFAULT_SETTINGS[key]),
+            row_widget,
             code_block_alias=key == "card_input_markdown_code_block_shortcut",
         )
         reset_link = make_reset_link(row_widget, shortcut_input, DEFAULT_SETTINGS[key])
@@ -119,4 +124,11 @@ def build_shortcut_rows(section: QWidget, master: QCheckBox, definitions, curren
     master.toggled.connect(set_shortcut_rows_enabled)
     set_shortcut_rows_enabled(master.isChecked())
 
-    return ShortcutRows(shortcut_rows, shortcut_inputs, shortcut_enabled, reset_links, warning_labels, shortcut_masters)
+    return ShortcutRows(
+        shortcut_rows,
+        shortcut_inputs,
+        shortcut_enabled,
+        reset_links,
+        warning_labels,
+        shortcut_masters,
+    )

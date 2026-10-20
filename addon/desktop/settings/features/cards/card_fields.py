@@ -11,9 +11,8 @@ from aqt.qt import (
     QWidget,
 )
 
-from ...ui.widgets import CardShortcutInput, add_checkbox_row
 from ...ui.shortcut_rows import build_shortcut_rows
-
+from ...ui.widgets import CardShortcutInput, add_checkbox_row
 
 MARKDOWN_SHORTCUT_DEFINITIONS = (
     ("card_input_markdown_bold_shortcut", "bold"),
@@ -48,7 +47,9 @@ class CardFieldsSection:
     shortcut_masters: dict[str, QCheckBox]
 
 
-def build_card_fields_section(parent: QWidget, current_settings: dict) -> CardFieldsSection:
+def build_card_fields_section(
+    parent: QWidget, current_settings: dict
+) -> CardFieldsSection:
     section = QGroupBox("Card Fields", parent)
     layout = QVBoxLayout(section)
     # Warning rows change size before the enclosing scroll area catches up.
@@ -68,7 +69,9 @@ def build_card_fields_section(parent: QWidget, current_settings: dict) -> CardFi
     warning_labels = {}
     shortcut_masters = {}
 
-    markdown_rows = build_shortcut_rows(section, master_toggle, MARKDOWN_SHORTCUT_DEFINITIONS, current_settings)
+    markdown_rows = build_shortcut_rows(
+        section, master_toggle, MARKDOWN_SHORTCUT_DEFINITIONS, current_settings
+    )
     layout.addWidget(markdown_rows.widget)
     tab_indentation = QCheckBox("Enable indentation shortcuts", section)
     tab_indentation.setChecked(current_settings["card_input_tab_indentation"])
@@ -77,7 +80,9 @@ def build_card_fields_section(parent: QWidget, current_settings: dict) -> CardFi
         tab_indentation,
         "Indent the current or selected rows: four spaces for Python topics, two otherwise. Tab and Shift+Tab move focus.",
     )
-    indentation_rows = build_shortcut_rows(section, tab_indentation, TAB_SHORTCUT_DEFINITIONS, current_settings)
+    indentation_rows = build_shortcut_rows(
+        section, tab_indentation, TAB_SHORTCUT_DEFINITIONS, current_settings
+    )
     layout.addWidget(indentation_rows.widget)
     for rows in (markdown_rows, indentation_rows):
         shortcut_inputs.update(rows.shortcut_inputs)

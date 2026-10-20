@@ -16,9 +16,20 @@ class ShortcutHelpersTests(unittest.TestCase):
             with self.subTest(action=action):
                 self.assertIsNone(helpers.anki_editor_shortcut_warning(setting, keys))
                 self.assertIsNone(helpers.anki_editor_shortcut_warning(setting, alias))
-                self.assertIsNotNone(helpers.anki_editor_shortcut_warning(setting, opposite))
-                self.assertIsNotNone(helpers.anki_editor_shortcut_warning("anki_editor_inline_code_shortcut", keys))
-        self.assertEqual(helpers.anki_editor_shortcut_warning("anki_editor_inline_code_shortcut", "Ctrl+B"), "Bold")
+                self.assertIsNotNone(
+                    helpers.anki_editor_shortcut_warning(setting, opposite)
+                )
+                self.assertIsNotNone(
+                    helpers.anki_editor_shortcut_warning(
+                        "anki_editor_inline_code_shortcut", keys
+                    )
+                )
+        self.assertEqual(
+            helpers.anki_editor_shortcut_warning(
+                "anki_editor_inline_code_shortcut", "Ctrl+B"
+            ),
+            "Bold",
+        )
 
     def test_shifted_punctuation_aliases_detect_the_same_shortcut(self):
         for mac in (False, True):

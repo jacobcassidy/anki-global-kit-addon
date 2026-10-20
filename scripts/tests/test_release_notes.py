@@ -2,13 +2,13 @@
 
 import importlib.util
 import json
-from pathlib import Path
 import tempfile
 import unittest
-
+from pathlib import Path
 
 spec = importlib.util.spec_from_file_location(
-    "kit_release_notes", Path(__file__).resolve().parents[1] / "release_notes.py",
+    "kit_release_notes",
+    Path(__file__).resolve().parents[1] / "release_notes.py",
 )
 release = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(release)
@@ -78,7 +78,10 @@ class ReleaseNotesTests(unittest.TestCase):
             (root / "addon").mkdir()
             metadata = {
                 "package.json": {"version": "1.1.0"},
-                "package-lock.json": {"version": "1.1.0", "packages": {"": {"version": "1.1.0"}}},
+                "package-lock.json": {
+                    "version": "1.1.0",
+                    "packages": {"": {"version": "1.1.0"}},
+                },
                 "addon/manifest.json": {"version": "1.1.0"},
             }
             for name, content in metadata.items():
@@ -92,7 +95,9 @@ class ReleaseNotesTests(unittest.TestCase):
                         release.validate_versions(root, "1.1.0")
                     (root / name).write_text(json.dumps(content), encoding="utf-8")
             metadata["package-lock.json"]["packages"][""]["version"] = "1.0.0"
-            (root / "package-lock.json").write_text(json.dumps(metadata["package-lock.json"]), encoding="utf-8")
+            (root / "package-lock.json").write_text(
+                json.dumps(metadata["package-lock.json"]), encoding="utf-8"
+            )
             with self.assertRaises(ValueError):
                 release.validate_versions(root, "1.1.0")
 

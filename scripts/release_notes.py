@@ -1,11 +1,10 @@
 """Extract the latest dated changelog release and validate package versions."""
 
 import argparse
-from datetime import date
 import json
-from pathlib import Path
 import re
-
+from datetime import date
+from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
 VERSION_PATTERN = r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
@@ -38,7 +37,9 @@ def latest_release(changelog: str) -> tuple[str, str]:
             line.strip(),
         )
         if not heading:
-            raise ValueError("The latest release needs a version and date: ## [1.2.3] - YYYY-MM-DD")
+            raise ValueError(
+                "The latest release needs a version and date: ## [1.2.3] - YYYY-MM-DD"
+            )
         date.fromisoformat(heading[2])
         version = heading[1]
         start = index + 1
@@ -61,17 +62,27 @@ def validate_versions(root: Path, version: str) -> None:
         "package-lock.json packages root": lock["packages"][""]["version"],
         "addon/manifest.json": manifest["version"],
     }
-    mismatches = [f"{name}: {value}" for name, value in versions.items() if value != version]
+    mismatches = [
+        f"{name}: {value}" for name, value in versions.items() if value != version
+    ]
     if mismatches:
-        raise ValueError(f"Package versions must match changelog {version}: " + ", ".join(mismatches))
+        raise ValueError(
+            f"Package versions must match changelog {version}: " + ", ".join(mismatches)
+        )
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, required=True, help="Markdown notes destination")
-    parser.add_argument("--github-output", type=Path, help="GitHub Actions step output file")
+    parser.add_argument(
+        "--output", type=Path, required=True, help="Markdown notes destination"
+    )
+    parser.add_argument(
+        "--github-output", type=Path, help="GitHub Actions step output file"
+    )
     args = parser.parse_args()
-    version, notes = latest_release((REPOSITORY_ROOT / "CHANGELOG.md").read_text(encoding="utf-8"))
+    version, notes = latest_release(
+        (REPOSITORY_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    )
     validate_versions(REPOSITORY_ROOT, version)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(notes, encoding="utf-8")

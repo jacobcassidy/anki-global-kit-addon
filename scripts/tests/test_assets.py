@@ -1,9 +1,9 @@
 """Check managed media updates, unrelated-file isolation, and write recovery."""
 
-from pathlib import Path
 import tempfile
-from types import SimpleNamespace
 import unittest
+from pathlib import Path
+from types import SimpleNamespace
 
 from anki_stubs import load_settings_services
 
@@ -61,7 +61,9 @@ class AssetTests(unittest.TestCase):
         self.unrelated = destination / "user-picture.png"
         self.unrelated.write_bytes(b"user media")
 
-    def test_fresh_install_is_scoped_to_managed_names_and_unchanged_files_are_skipped(self):
+    def test_fresh_install_is_scoped_to_managed_names_and_unchanged_files_are_skipped(
+        self,
+    ):
         self.assets.update_assets_for_profile()
         self.assertEqual(set(self.media.writes), set(self.assets.ASSET_NAMES))
         self.assertEqual(self.unrelated.read_bytes(), b"user media")
@@ -88,7 +90,9 @@ class AssetTests(unittest.TestCase):
         self.media.failures = 1
         self.assets.update_assets_for_profile()
         self.assertEqual(path.read_bytes(), previous)
-        self.assertIn("injected media write failure", self.services.warning.call_args.args[0])
+        self.assertIn(
+            "injected media write failure", self.services.warning.call_args.args[0]
+        )
         self.assertEqual(self.unrelated.read_bytes(), b"user media")
         self.services.warning.reset_mock()
         self.assets.update_assets_for_profile()

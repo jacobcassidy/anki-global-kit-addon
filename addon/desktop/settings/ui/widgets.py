@@ -8,14 +8,14 @@ from aqt.qt import (
     QEvent,
     QFrame,
     QHBoxLayout,
-    QLabel,
     QKeySequence,
+    QLabel,
     QPoint,
     QPushButton,
     QScrollArea,
     QSizePolicy,
-    QTimer,
     Qt,
+    QTimer,
     QVBoxLayout,
     QWidget,
 )
@@ -27,13 +27,13 @@ from ..configs.constants import (
     SHORTCUT_MODIFIER_HINT,
     ZERO_MARGINS,
 )
-from .theme import get_theme_color
 from ..helpers.shortcuts import (
     format_shortcut,
     normalize_shortcut,
     reserved_shortcut_warnings,
     split_shortcut,
 )
+from .theme import get_theme_color
 
 
 def add_checkbox_row(
@@ -109,7 +109,9 @@ class CardShortcutInput(QPushButton):
 
     _change_sequence = 0
 
-    def __init__(self, shortcut: str, parent: QWidget, *, code_block_alias: bool = False) -> None:
+    def __init__(
+        self, shortcut: str, parent: QWidget, *, code_block_alias: bool = False
+    ) -> None:
         super().__init__(format_shortcut(shortcut) or "none", parent)
         self._code_block_alias = code_block_alias
         self._capturing = False
@@ -235,13 +237,18 @@ class CardShortcutInput(QPushButton):
             if event.type() == QEvent.Type.KeyRelease:
                 self._captured_tab = False
             modified_tab = (
-                event.key() in (Qt.Key.Key_Tab, Qt.Key.Key_Backtab)
-                and event.modifiers() & (
-                    Qt.KeyboardModifier.ControlModifier
-                    | Qt.KeyboardModifier.AltModifier
-                    | Qt.KeyboardModifier.MetaModifier
+                (
+                    event.key() in (Qt.Key.Key_Tab, Qt.Key.Key_Backtab)
+                    and event.modifiers()
+                    & (
+                        Qt.KeyboardModifier.ControlModifier
+                        | Qt.KeyboardModifier.AltModifier
+                        | Qt.KeyboardModifier.MetaModifier
+                    )
                 )
-            ) if event.type() in (QEvent.Type.ShortcutOverride, QEvent.Type.KeyPress) else False
+                if event.type() in (QEvent.Type.ShortcutOverride, QEvent.Type.KeyPress)
+                else False
+            )
             if modified_tab and event.type() == QEvent.Type.ShortcutOverride:
                 # Capture the intact Tab combination before Qt focus traversal.
                 self._captured_tab = True
@@ -318,8 +325,11 @@ class CardShortcutInput(QPushButton):
                 parts.append(name)
 
         key_name = (
-            "Tab" if event.key() in (Qt.Key.Key_Tab, Qt.Key.Key_Backtab)
-            else QKeySequence(event.key()).toString(QKeySequence.SequenceFormat.PortableText)
+            "Tab"
+            if event.key() in (Qt.Key.Key_Tab, Qt.Key.Key_Backtab)
+            else QKeySequence(event.key()).toString(
+                QKeySequence.SequenceFormat.PortableText
+            )
             or event.text().upper()
         )
         if key_name and key_name not in parts:

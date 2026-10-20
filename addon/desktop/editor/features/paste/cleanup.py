@@ -1,18 +1,27 @@
 """Normalize structural paste whitespace without flattening inline prose."""
+
 import re
 
 from bs4 import BeautifulSoup, Comment, Doctype, NavigableString, Tag
 
-BLOCKS = set("address article aside blockquote body div dl dt dd fieldset figcaption figure footer form h1 h2 h3 h4 h5 h6 header hr html li main nav ol p pre section table tbody td tfoot th thead tr ul".split())
+BLOCKS = set(
+    "address article aside blockquote body div dl dt dd fieldset figcaption figure footer form h1 h2 h3 h4 h5 h6 header hr html li main nav ol p pre section table tbody td tfoot th thead tr ul".split()
+)
 ITEM_CHILDREN = {
-    "ul": {"li"}, "ol": {"li"}, "dl": {"dt", "dd"},
+    "ul": {"li"},
+    "ol": {"li"},
+    "dl": {"dt", "dd"},
     "table": {"caption", "colgroup", "thead", "tbody", "tfoot", "tr"},
-    "thead": {"tr"}, "tbody": {"tr"}, "tfoot": {"tr"},
+    "thead": {"tr"},
+    "tbody": {"tr"},
+    "tfoot": {"tr"},
     "tr": {"td", "th"},
 }
 PROTECTED = {"pre", "code", "textarea", "script", "style", "svg", "math"}
 SPACE = re.compile(r"^[ \t\r\n\f]+$")
-PRESERVE_STYLE = re.compile(r"white-space\s*:\s*(?:pre(?:-wrap|-line)?|break-spaces)\b", re.I)
+PRESERVE_STYLE = re.compile(
+    r"white-space\s*:\s*(?:pre(?:-wrap|-line)?|break-spaces)\b", re.I
+)
 
 
 def clean_paste_html(html):
@@ -76,9 +85,13 @@ def clean_paste_html(html):
     # retain real block structure and wrappers carrying formatting/attributes.
     if len(soup.contents) == 1:
         wrapper = soup.contents[0]
-        if (isinstance(wrapper, Tag) and wrapper.name == "div"
-                and not wrapper.attrs and wrapper.find("code")
-                and not wrapper.find(list(BLOCKS))):
+        if (
+            isinstance(wrapper, Tag)
+            and wrapper.name == "div"
+            and not wrapper.attrs
+            and wrapper.find("code")
+            and not wrapper.find(list(BLOCKS))
+        ):
             wrapper.unwrap()
     return soup.decode(formatter="minimal")
 
@@ -86,10 +99,15 @@ def clean_paste_html(html):
 def clean_paste_mime(mime, editor_web_view, internal, extended, drop_event):
     """Filter external rich HTML; return a copy so the clipboard is untouched."""
     from aqt.qt import QMimeData
+
     from ....settings import get_editor_settings
 
-    if (internal or not extended or not mime.hasHtml()
-            or not get_editor_settings()["anki_editor_paste_cleanup"]):
+    if (
+        internal
+        or not extended
+        or not mime.hasHtml()
+        or not get_editor_settings()["anki_editor_paste_cleanup"]
+    ):
         return mime
     editor_web_view.eval("globalThis.ankiGlobalKitEditor?.beginPasteLayout();")
     original = mime.html()

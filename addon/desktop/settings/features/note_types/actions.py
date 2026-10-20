@@ -116,7 +116,9 @@ def apply_selected_note_type_changes(
         for impact in plan.replacement_impacts:
             if not impact.removed_templates:
                 continue
-            template_names = ", ".join(template.name for template in impact.removed_templates)
+            template_names = ", ".join(
+                template.name for template in impact.removed_templates
+            )
             removals.append(
                 f"• {impact.name}\n"
                 f"  Additional templates to remove: {len(impact.removed_templates)} "

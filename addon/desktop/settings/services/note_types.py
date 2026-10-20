@@ -12,7 +12,6 @@ from anki.consts import MODEL_CLOZE, MODEL_STD
 from anki.stdmodels import get_stock_notetypes
 from aqt import mw
 
-
 ADDON_DIR = Path(__file__).resolve().parents[3]
 TEMPLATE_DIR = ADDON_DIR / "templates" / "note-types" / "parts"
 HTML_DIR = TEMPLATE_DIR / "html"
@@ -94,7 +93,9 @@ class NoteTypePlanChangedError(NoteTypeServiceError):
 
 
 class NoteTypeApplyError(NoteTypeServiceError):
-    def __init__(self, applied_names: tuple[str, ...], cause: Exception, changes: OpChanges):
+    def __init__(
+        self, applied_names: tuple[str, ...], cause: Exception, changes: OpChanges
+    ):
         self.applied_names = applied_names
         self.cause = cause
         self.changes = changes
@@ -220,7 +221,8 @@ def _replacement_impacts(
                     name=template["name"],
                     ordinal=template["ord"],
                     card_count=col.models.template_use_count(
-                        notetype["id"], template["ord"],
+                        notetype["id"],
+                        template["ord"],
                     ),
                 )
                 for template in notetype["tmpls"][1:]
@@ -313,7 +315,9 @@ def plan_note_type_changes(
         NoteTypeOperation(topic, card_format, f"{topic} ({card_format})")
         for topic, card_format in selected
     )
-    creates = tuple(operation for operation in requested if operation.name not in existing_names)
+    creates = tuple(
+        operation for operation in requested if operation.name not in existing_names
+    )
     overwrite_operations = tuple(
         operation
         for operation in requested
@@ -341,7 +345,10 @@ def plan_note_type_changes(
             raise DeletionValidationError(operation.name, missing=False)
         deletion_operations.append(
             NoteTypeOperation(
-                operation.topic, operation.card_format, operation.name, notetype["id"],
+                operation.topic,
+                operation.card_format,
+                operation.name,
+                notetype["id"],
             )
         )
 
@@ -350,9 +357,7 @@ def plan_note_type_changes(
         for operation in (*creates, *overwrite_operations)
     }
     required_paths = (
-        [SCRIPT_PATH, STYLING_DIR / "imports.css"]
-        if selected_for_templates
-        else []
+        [SCRIPT_PATH, STYLING_DIR / "imports.css"] if selected_for_templates else []
     )
     for topic, card_format in selected_for_templates:
         spec = FORMATS[card_format]
@@ -401,7 +406,9 @@ def _revalidate_deletions(
             )
 
 
-def apply_note_type_changes(plan: NoteTypeChangePlan, col: Collection) -> NoteTypeChangeResult:
+def apply_note_type_changes(
+    plan: NoteTypeChangePlan, col: Collection
+) -> NoteTypeChangeResult:
     """Apply a previously confirmed note type change plan."""
     if col is None:
         raise NoActiveCollectionError
