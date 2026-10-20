@@ -9,6 +9,7 @@ EDITOR_BLOCK_SHORTCUTS = {
     "no-list": "Ctrl+Alt+0",
     "blockquote": "Ctrl+/",
 }
+EDITOR_PASTE_HTML_SHORTCUT = "Ctrl+Alt+V"
 
 
 SHORTCUT_KEY_ALIASES = {
@@ -81,6 +82,8 @@ def shortcut_has_required_modifier(shortcut: str) -> bool:
 def editor_fixed_shortcut_action(shortcut: str) -> str | None:
     """Identify a kit action whose editor shortcut cannot be reassigned."""
     normalized = normalize_shortcut(shortcut)
+    if normalized == normalize_shortcut(EDITOR_PASTE_HTML_SHORTCUT):
+        return "Paste as HTML"
     for action, keys in EDITOR_BLOCK_SHORTCUTS.items():
         if normalized == normalize_shortcut(keys):
             return {

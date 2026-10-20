@@ -7,12 +7,13 @@ from weakref import WeakSet, ref
 
 from aqt import gui_hooks
 from aqt.editor import Editor
-from aqt.qt import QKeySequence, QShortcut, sip
+from aqt.qt import QApplication, QKeySequence, QShortcut, sip
 
 from ..settings import get_editor_settings
 from ..settings.configs.constants import USER_FILES_DIR
 from ..settings.helpers.shortcuts import (
     EDITOR_BLOCK_SHORTCUTS as BLOCK_SHORTCUTS,
+    EDITOR_PASTE_HTML_SHORTCUT,
     editor_fixed_shortcut_action,
     normalize_shortcut,
 )
@@ -24,6 +25,7 @@ EDITOR_ASSET = ADDON_DIR / "desktop" / "editor" / "assets" / "js" / "editor.min.
 EDITOR_STYLES_DIR = ADDON_DIR / "desktop" / "editor" / "assets" / "css"
 ICON_ASSET = ADDON_DIR / "shared" / "assets" / "icons" / "code-inline.svg"
 BLOCKQUOTE_ICON = ICON_ASSET.with_name("blockquote.svg")
+PASTE_HTML_ICON = ICON_ASSET.with_name("file-html.svg")
 _open_editors = WeakSet()
 
 
@@ -100,12 +102,27 @@ def _toggle_block(editor: Editor, format_name: str) -> None:
     )
 
 
+def _paste_clipboard_as_html(editor: Editor) -> None:
+    """Insert clipboard plain text as HTML markup at the editor selection."""
+    html = QApplication.clipboard().text()
+    editor.web.eval(
+        f"globalThis.ankiGlobalKitEditor?.pasteHtml({json.dumps(html)});"
+    )
+
+
 def _change_indentation(editor: Editor, action: str) -> None:
     method = "indent" if action == "increase" else "unindent"
     editor.web.eval(f"globalThis.ankiGlobalKitEditor?.{method}();")
 
 
 def _add_button(buttons: list, editor: Editor) -> None:
+    buttons.append(editor.addButton(
+        icon=str(PASTE_HTML_ICON),
+        cmd="anki_global_kit_paste_html",
+        func=_paste_clipboard_as_html,
+        tip=f"Paste as HTML ({shortcut_label(EDITOR_PASTE_HTML_SHORTCUT)})",
+        keys=EDITOR_PASTE_HTML_SHORTCUT,
+    ))
     buttons.append(editor.addButton(
         icon=str(BLOCKQUOTE_ICON),
         cmd="anki_global_kit_blockquote",

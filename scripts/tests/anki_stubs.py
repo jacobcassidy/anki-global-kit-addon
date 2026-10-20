@@ -47,6 +47,7 @@ def load_editor_integration(settings, *, mac=False):
     editor = ModuleType("aqt.editor")
     editor.Editor = object
     qt = ModuleType("aqt.qt")
+    qt.QApplication = Mock()
     qt.QKeySequence = str
     qt.sip = SimpleNamespace(isdeleted=lambda _widget: False)
 
