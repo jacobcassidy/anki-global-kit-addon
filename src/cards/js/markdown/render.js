@@ -177,9 +177,7 @@ export function markdownToHtml(markdown) {
 
   const flushParagraph = () => {
     if (paragraph.length) {
-      const content = renderInline(paragraph.join('\n'))
-        .replace(/\n/g, '<br>')
-        .replace(/(?:<br>\s*)+$/i, '');
+      const content = renderInline(paragraph.join('\n')).replace(/\n/g, '<br>');
       blocks.push(`<p>${content}</p>`);
       paragraph = [];
     }
