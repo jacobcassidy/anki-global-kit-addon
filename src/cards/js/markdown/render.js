@@ -25,11 +25,11 @@ export function markdownToHtml(markdown) {
     );
 
     html = html
-      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-      .replace(/__([^_]+)__/g, '<strong>$1</strong>')
-      .replace(/\*([^*\n]+)\*/g, '<em>$1</em>')
-      .replace(/_([^_\n]+)_/g, '<em>$1</em>')
-      .replace(/~~([^~]+)~~/g, '<del>$1</del>');
+      .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+      .replace(/__([^_]+)__/g, '<b>$1</b>')
+      .replace(/\*([^*\n]+)\*/g, '<i>$1</i>')
+      .replace(/_([^_\n]+)_/g, '<i>$1</i>')
+      .replace(/~~([^~]+)~~/g, '<s>$1</s>');
 
     // Restore protected HTML after formatting the surrounding text.
     // eslint-disable-next-line no-control-regex
