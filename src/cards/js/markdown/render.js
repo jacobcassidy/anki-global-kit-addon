@@ -53,6 +53,19 @@ export function markdownToHtml(markdown) {
       'pre',
       'ul',
     ]);
+    const parentBlockTags = new Set([
+      'blockquote',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'ol',
+      'p',
+      'pre',
+      'ul',
+    ]);
     const tokens = html.match(/<[^>]+>|[^<]+/g) || [];
     const output = [];
     let depth = 0;
@@ -107,19 +120,18 @@ export function markdownToHtml(markdown) {
           line = `${line.trimEnd()}${token}`;
           flushLine(false, lineIndent);
           depth = Math.max(0, depth - 1);
-          if (/^h[1-6]$/.test(tagName)) leaveBlankLine();
+          if (depth === 0 && parentBlockTags.has(tagName)) leaveBlankLine();
         } else {
           depth = Math.max(0, depth - 1);
           line = token;
           lineIndent = depth;
           flushLine();
-          if (/^h[1-6]$/.test(tagName)) leaveBlankLine();
+          if (depth === 0 && parentBlockTags.has(tagName)) leaveBlankLine();
         }
       } else {
+        const isParentBlock = depth === 0 && parentBlockTags.has(tagName);
         flushLine();
-        if (tagName[0] === 'h' && output.length && output[output.length - 1] !== '') {
-          output.push('');
-        }
+        if (isParentBlock && output.length && output[output.length - 1] !== '') output.push('');
         line = token;
         lineIndent = depth;
         depth += 1;
