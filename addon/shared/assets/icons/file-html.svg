@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-  stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <path d="M5 2.75h9l5 5V21.25H5z" />
-  <path d="M14 2.75v5h5" />
-  <text x="12" y="15.1" fill="currentColor" stroke="none" text-anchor="middle"
-    font-family="sans-serif" font-size="4.4" font-weight="700">HTML</text>
-</svg>

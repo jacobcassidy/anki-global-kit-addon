@@ -26,8 +26,6 @@ EDITOR_ASSET = ADDON_DIR / "desktop" / "editor" / "assets" / "js" / "editor.min.
 EDITOR_STYLES_DIR = ADDON_DIR / "desktop" / "editor" / "assets" / "css"
 ICON_ASSET = ADDON_DIR / "shared" / "assets" / "icons" / "code-inline.svg"
 BLOCKQUOTE_ICON = ICON_ASSET.with_name("blockquote.svg")
-PASTE_HTML_ICON = ICON_ASSET.with_name("file-html.svg")
-MARKDOWN_HTML_ICON = ICON_ASSET.with_name("html5.svg")
 PASTE_MARKDOWN_ICON = ICON_ASSET.with_name("markdown.svg")
 _open_editors = WeakSet()
 
@@ -110,16 +108,6 @@ def _toggle_block(editor: Editor, format_name: str) -> None:
     )
 
 
-def _paste_clipboard_as_html(editor: Editor) -> None:
-    """Insert clipboard plain text as HTML markup at the editor selection."""
-    html = QApplication.clipboard().text()
-    editor.web.eval(f"globalThis.ankiGlobalKitEditor?.pasteHtml({json.dumps(html)});")
-
-
-def _convert_selected_markdown(editor: Editor) -> None:
-    editor.web.eval("globalThis.ankiGlobalKitEditor?.convertSelectedMarkdownToHtml();")
-
-
 def _paste_markdown_as_html(editor: Editor) -> None:
     markdown = QApplication.clipboard().text()
     editor.web.eval(
@@ -134,17 +122,6 @@ def _change_indentation(editor: Editor, action: str) -> None:
 
 def _add_button(buttons: list, editor: Editor) -> None:
     settings = get_editor_settings()
-    if settings["anki_editor_paste_html_button"]:
-        buttons.append(
-            editor.addButton(
-                icon=str(PASTE_HTML_ICON),
-                cmd="anki_global_kit_paste_html",
-                func=_paste_clipboard_as_html,
-                tip=_button_tip(
-                    "Paste as HTML", "anki_editor_paste_html_shortcut", settings
-                ),
-            )
-        )
     if settings["anki_editor_blockquote_button"]:
         buttons.append(
             editor.addButton(
@@ -154,15 +131,6 @@ def _add_button(buttons: list, editor: Editor) -> None:
                 tip=_button_tip(
                     "Blockquote", "anki_editor_blockquote_shortcut", settings
                 ),
-            )
-        )
-    if settings["anki_editor_markdown_to_html_button"]:
-        buttons.append(
-            editor.addButton(
-                icon=str(MARKDOWN_HTML_ICON),
-                cmd="anki_global_kit_markdown_to_html",
-                func=_convert_selected_markdown,
-                tip="Convert selected Markdown to HTML",
             )
         )
     if settings["anki_editor_paste_markdown_as_html_button"]:
@@ -231,7 +199,7 @@ def _add_shortcut(shortcuts: list, editor: Editor) -> None:
 def _configured_editor_shortcuts(settings: dict) -> dict[str, str]:
     """Validate saved bindings before registering or refreshing native keys."""
     configurable = {}
-    for action in ("paste_html", "blockquote"):
+    for action in ("blockquote",):
         key = f"anki_editor_{action}_shortcut"
         if settings[f"{key}_enabled"]:
             configurable[key] = settings[key]
@@ -271,8 +239,6 @@ def _activate_editor_shortcut(editor_ref, name: str) -> None:
         return
     if name == "anki_editor_inline_code_shortcut":
         _toggle_inline_code(editor)
-    elif name == "anki_editor_paste_html_shortcut":
-        _paste_clipboard_as_html(editor)
     elif name == "anki_editor_blockquote_shortcut":
         _toggle_block(editor, "blockquote")
     else:

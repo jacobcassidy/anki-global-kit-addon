@@ -17,25 +17,9 @@ def build_editor_ui_section(parent: QWidget, current_settings: dict):
         inline_code_button,
         "Add an inline code button to the Desktop editor toolbar for formatting selected text or starting an inline code span.",
     )
-    paste_html_button = QCheckBox(
-        "Show Paste as HTML button in editor toolbar", section
-    )
-    paste_html_button.setChecked(current_settings["anki_editor_paste_html_button"])
-    add_checkbox_row(layout, paste_html_button)
     blockquote_button = QCheckBox("Show Blockquote button in editor toolbar", section)
     blockquote_button.setChecked(current_settings["anki_editor_blockquote_button"])
     add_checkbox_row(layout, blockquote_button)
-    markdown_to_html_button = QCheckBox(
-        "Show Convert Markdown to HTML button in editor toolbar", section
-    )
-    markdown_to_html_button.setChecked(
-        current_settings["anki_editor_markdown_to_html_button"]
-    )
-    add_checkbox_row(
-        layout,
-        markdown_to_html_button,
-        "Convert selected Markdown text in an editor field to formatted HTML.",
-    )
     paste_markdown_button = QCheckBox(
         "Show Paste Markdown as HTML button in editor toolbar", section
     )
@@ -77,9 +61,7 @@ def build_editor_ui_section(parent: QWidget, current_settings: dict):
     add_checkbox_row(layout, custom_styles, trailing_widget=stylesheet_controls)
     return section, {
         "anki_editor_inline_code_button": inline_code_button,
-        "anki_editor_paste_html_button": paste_html_button,
         "anki_editor_blockquote_button": blockquote_button,
-        "anki_editor_markdown_to_html_button": markdown_to_html_button,
         "anki_editor_paste_markdown_as_html_button": paste_markdown_button,
         "anki_editor_custom_ui_styles": custom_styles,
     }

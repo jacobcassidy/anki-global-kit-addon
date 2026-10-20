@@ -105,7 +105,6 @@ def open_settings() -> None:
 
     editor_definitions = (
         ("anki_editor_inline_code_shortcut", "inline code"),
-        ("anki_editor_paste_html_shortcut", "Paste as HTML"),
         ("anki_editor_blockquote_shortcut", "Blockquote"),
     ) + INDENTATION_SHORTCUT_DEFINITIONS
     editor_inputs = {
@@ -127,7 +126,6 @@ def open_settings() -> None:
             key
             in (
                 "anki_editor_inline_code_shortcut",
-                "anki_editor_paste_html_shortcut",
                 "anki_editor_blockquote_shortcut",
             )
             or all_controls["anki_editor_tab_indentation"].isChecked()
@@ -249,7 +247,6 @@ def open_settings() -> None:
             shortcut = editor_inputs[key].stored_shortcut()
             if key in (
                 "anki_editor_inline_code_shortcut",
-                "anki_editor_paste_html_shortcut",
                 "anki_editor_blockquote_shortcut",
             ):
                 shortcut = shortcut or DEFAULT_SETTINGS[key]

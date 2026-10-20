@@ -92,10 +92,7 @@ def build_editor_fields_section(
     shortcut_enabled.toggled.connect(set_shortcut_enabled)
 
     action_shortcuts = {}
-    for key, label in (
-        ("anki_editor_paste_html_shortcut", "Paste as HTML"),
-        ("anki_editor_blockquote_shortcut", "Blockquote"),
-    ):
+    for key, label in (("anki_editor_blockquote_shortcut", "Blockquote"),):
         enabled_key = f"{key}_enabled"
         enabled = QCheckBox(f"Enable {label} shortcut", section)
         enabled.setChecked(current_settings[enabled_key])
