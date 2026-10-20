@@ -3,6 +3,7 @@ import { installCodeSpaceNormalization } from './formatting/code-spaces.js';
 import { toggleInlineCode } from './formatting/inline-code.js';
 import { installCopySource } from './clipboard/copy-source.js';
 import { pasteHtml } from './clipboard/paste-html.js';
+import { convertSelectedMarkdownToHtml, pasteMarkdownAsHtml } from './formatting/markdown.js';
 import { installClozeShortcuts } from './cloze/shortcuts.js';
 import { beginPasteLayout, finishPasteLayout } from './paste/layout.js';
 import { installEditorStyles } from './styles.js';
@@ -25,6 +26,8 @@ if (!globalThis.ankiGlobalKitEditor) {
     toggleBlock: toggleEditorBlock,
     toggleInlineCode,
     pasteHtml,
+    convertSelectedMarkdownToHtml,
+    pasteMarkdownAsHtml,
     beginPasteLayout,
     finishPasteLayout,
   };
@@ -35,5 +38,7 @@ if (!globalThis.ankiGlobalKitEditor) {
 globalThis.ankiGlobalKitEditor.indent = indentEditorField;
 globalThis.ankiGlobalKitEditor.unindent = unindentEditorField;
 globalThis.ankiGlobalKitEditor.pasteHtml = pasteHtml;
+globalThis.ankiGlobalKitEditor.convertSelectedMarkdownToHtml = convertSelectedMarkdownToHtml;
+globalThis.ankiGlobalKitEditor.pasteMarkdownAsHtml = pasteMarkdownAsHtml;
 
 installEditorStyles();

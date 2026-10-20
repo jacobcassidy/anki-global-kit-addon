@@ -76,6 +76,8 @@ DEFAULT_SETTINGS = {
     "anki_editor_inline_code_button": True,
     "anki_editor_paste_html_button": True,
     "anki_editor_blockquote_button": True,
+    "anki_editor_markdown_to_html_button": True,
+    "anki_editor_paste_markdown_as_html_button": True,
     "anki_editor_normalize_code_spaces": True,
     "anki_editor_copy_source_html": True,
     "anki_editor_paste_cleanup": True,

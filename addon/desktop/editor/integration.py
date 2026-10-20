@@ -27,6 +27,8 @@ EDITOR_STYLES_DIR = ADDON_DIR / "desktop" / "editor" / "assets" / "css"
 ICON_ASSET = ADDON_DIR / "shared" / "assets" / "icons" / "code-inline.svg"
 BLOCKQUOTE_ICON = ICON_ASSET.with_name("blockquote.svg")
 PASTE_HTML_ICON = ICON_ASSET.with_name("file-html.svg")
+MARKDOWN_HTML_ICON = ICON_ASSET.with_name("html5.svg")
+PASTE_MARKDOWN_ICON = ICON_ASSET.with_name("markdown.svg")
 _open_editors = WeakSet()
 
 
@@ -114,6 +116,17 @@ def _paste_clipboard_as_html(editor: Editor) -> None:
     editor.web.eval(f"globalThis.ankiGlobalKitEditor?.pasteHtml({json.dumps(html)});")
 
 
+def _convert_selected_markdown(editor: Editor) -> None:
+    editor.web.eval("globalThis.ankiGlobalKitEditor?.convertSelectedMarkdownToHtml();")
+
+
+def _paste_markdown_as_html(editor: Editor) -> None:
+    markdown = QApplication.clipboard().text()
+    editor.web.eval(
+        f"globalThis.ankiGlobalKitEditor?.pasteMarkdownAsHtml({json.dumps(markdown)});"
+    )
+
+
 def _change_indentation(editor: Editor, action: str) -> None:
     method = "indent" if action == "increase" else "unindent"
     editor.web.eval(f"globalThis.ankiGlobalKitEditor?.{method}();")
@@ -141,6 +154,24 @@ def _add_button(buttons: list, editor: Editor) -> None:
                 tip=_button_tip(
                     "Blockquote", "anki_editor_blockquote_shortcut", settings
                 ),
+            )
+        )
+    if settings["anki_editor_markdown_to_html_button"]:
+        buttons.append(
+            editor.addButton(
+                icon=str(MARKDOWN_HTML_ICON),
+                cmd="anki_global_kit_markdown_to_html",
+                func=_convert_selected_markdown,
+                tip="Convert selected Markdown to HTML",
+            )
+        )
+    if settings["anki_editor_paste_markdown_as_html_button"]:
+        buttons.append(
+            editor.addButton(
+                icon=str(PASTE_MARKDOWN_ICON),
+                cmd="anki_global_kit_paste_markdown_as_html",
+                func=_paste_markdown_as_html,
+                tip="Paste Markdown as HTML",
             )
         )
     if not settings["anki_editor_inline_code_button"]:
