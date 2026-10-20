@@ -38,6 +38,80 @@ export function markdownToHtml(markdown) {
     return html;
   };
 
+  const formatBlocks = (html) => {
+    const blockTags = new Set([
+      'blockquote',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'li',
+      'ol',
+      'p',
+      'pre',
+      'ul',
+    ]);
+    const tokens = html.match(/<[^>]+>|[^<]+/g) || [];
+    const output = [];
+    let depth = 0;
+    let line = '';
+    let inPre = false;
+
+    const flushLine = (blankBefore = false) => {
+      const content = line.trim();
+      if (content) {
+        if (blankBefore && output.length) output.push('');
+        output.push(`${'  '.repeat(depth)}${content}`);
+      }
+      line = '';
+    };
+
+    for (const token of tokens) {
+      const tag = token.match(/^<(\/)?([a-z0-9]+)\b[^>]*>$/i);
+      if (!tag) {
+        if (inPre) {
+          for (const textLine of token.split('\n')) {
+            if (line) flushLine();
+            if (textLine) output.push(`${'  '.repeat(depth)}${textLine}`);
+          }
+        } else {
+          line += token.replace(/\s+/g, ' ');
+        }
+        continue;
+      }
+
+      const [, closing, name] = tag;
+      const tagName = name.toLowerCase();
+      if (!blockTags.has(tagName)) {
+        line += token;
+        continue;
+      }
+
+      if (closing) {
+        if (inPre && tagName !== 'pre') {
+          line += token;
+          continue;
+        }
+        if (tagName === 'pre') inPre = false;
+        flushLine();
+        depth = Math.max(0, depth - 1);
+        line = token;
+        flushLine();
+      } else {
+        flushLine(tagName[0] === 'h');
+        line = token;
+        flushLine();
+        depth += 1;
+        if (tagName === 'pre') inPre = true;
+      }
+    }
+
+    flushLine();
+    return output.join('\n').replace(/\n+$/, '');
+  };
+
   const lines = markdown.replace(/\r\n?/g, '\n').split('\n');
   const blocks = [];
   let paragraph = [];
@@ -146,5 +220,5 @@ export function markdownToHtml(markdown) {
   flushParagraph();
   closeLists();
   if (inCodeBlock) renderCodeBlock();
-  return blocks.join('\n').replace(/<li>\n/g, '<li>');
+  return formatBlocks(blocks.join('\n').replace(/<li>\n/g, '<li>'));
 }
