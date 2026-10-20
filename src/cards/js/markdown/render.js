@@ -44,6 +44,7 @@ export function markdownToHtml(markdown) {
   let code = [];
   let inCodeBlock = false;
   let codeLanguage = '';
+  let lastHeadingLevel = 1;
 
   const renderCodeBlock = () => {
     const languageAttribute = codeLanguage ? ` data-language="${escapeHtml(codeLanguage)}"` : '';
@@ -92,15 +93,25 @@ export function markdownToHtml(markdown) {
 
     const heading = line.match(/^\s{0,3}(#{1,6})\s+(.+)$/);
     const listItem = line.match(/^([ \t]*)(?:([-+*])\s+|(\d+)\.\s+)(.*)$/);
+    // Craft exports toggle headings with `+` list markers. Explicit Markdown
+    // headings keep their level; unmarked question toggles become the next
+    // heading level after the most recent heading. Other `+` items remain lists.
+    const craftHeading = listItem?.[2] === '+' ? listItem[4].match(/^(?:(#{1,6})\s+(.+)|(.+\?))$/) : null;
     const quote = line.match(/^\s*>\s?(.*)$/);
-    if (!line.trim() || heading || listItem || quote) flushParagraph();
+    if (!line.trim() || heading || craftHeading || listItem || quote) flushParagraph();
 
     if (!line.trim()) {
       closeLists();
-    } else if (heading) {
+    } else if (heading || craftHeading) {
       closeLists();
-      const level = heading[1].length;
-      blocks.push(`<h${level}>${renderInline(heading[2])}</h${level}>`);
+      const level = heading
+        ? heading[1].length
+        : craftHeading[1]
+          ? craftHeading[1].length
+          : Math.min(lastHeadingLevel + 1, 6);
+      const text = heading ? heading[2] : craftHeading[2] || craftHeading[3];
+      lastHeadingLevel = level;
+      blocks.push(`<h${level}>${renderInline(text)}</h${level}>`);
     } else if (listItem) {
       const indent = listItem[1].replace(/\t/g, '    ').length;
       const nextListType = listItem[3] ? 'ol' : 'ul';
