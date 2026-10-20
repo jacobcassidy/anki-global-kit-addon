@@ -17,7 +17,7 @@
   }
 
   :not(.nightMode) & {
-    code {
+    :not(pre) > code {
       color: var(--color--secondary);
     }
   }
