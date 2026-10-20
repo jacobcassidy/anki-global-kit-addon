@@ -13,7 +13,7 @@ def build_card_reviews_section(parent: QWidget, current_settings: dict):
     add_checkbox_row(
         layout,
         markdown,
-        "Render Markdown in submitted answers, including formatting such as headings, lists, links, and code blocks.",
+        "Render Markdown as HTML in submitted answers, including formatting such as headings, lists, links, and code blocks.",
     )
     highlighting = QCheckBox(
         "Enable syntax highlighting for submitted answers", section
