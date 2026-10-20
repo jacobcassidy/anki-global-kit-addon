@@ -6,6 +6,6 @@
   color: var(--color--tertiary);
   block-size: 2.5rem;
   margin: 0 auto var(--spacing--default);
-  font-size: var(--font-size--x-large);
+  font-size: var(--font-size--large);
   font-weight: var(--font-weight--normal);
 }

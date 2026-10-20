@@ -1,11 +1,7 @@
 .box {
   border: calc(var(--spacing--default) / 24) solid transparent;
   border-radius: var(--border-radius--default);
-  font-size: var(--font-size--large);
-
-  pre {
-    margin: 0 0 var(--spacing--default);
-  }
+  font-size: var(--font-size--medium);
 
   &.has-comparison {
     border: none;
@@ -24,7 +20,7 @@
     color: var(--color--tertiary);
     block-size: 28px;
     margin: 0 auto;
-    font-size: var(--font-size--small);
+    font-size: var(--font-size--xx-small);
     font-weight: var(--font-weight--strong);
     text-transform: uppercase;
   }
@@ -34,32 +30,24 @@
 
     > *:first-child {
       margin-block-start: 0;
+
+      > ol:first-child,
+      > ul:first-child {
+        margin-block-start: 0;
+      }
     }
 
     > *:last-child {
       margin-block-end: 0;
 
+      > ol:last-child,
+      > ul:last-child {
+        margin-block-end: 0;
+      }
+
       pre {
         margin-block-end: 0;
       }
-    }
-
-    ul,
-    ol {
-      ul,
-      ol {
-        margin-block-start: calc(var(--spacing--default) / 3);
-      }
-    }
-
-    > div > ol:first-child,
-    > div > ul:first-child {
-      margin-block-start: 0;
-    }
-
-    > div > ol:last-child,
-    > div > ul:last-child {
-      margin-block-end: 0;
     }
 
     .user-answer &,

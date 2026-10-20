@@ -4,6 +4,7 @@
 .notes-container,
 .question-container {
   display: none;
+  margin: 0 auto calc(var(--spacing--default) * 2);
   padding-inline: calc(50% - (var(--container-width) / 2));
 
   &.active {
@@ -13,11 +14,6 @@
   @media only screen and (width <= 44rem) {
     padding: 0 calc(var(--spacing--default) / 1);
   }
-}
-
-.answer-container,
-.question-container {
-  margin: 0 auto calc(var(--spacing--default) * 2);
 }
 
 .answer-container {
@@ -35,6 +31,12 @@
     @media only screen and (width <= 40rem) {
       display: block;
     }
+  }
+}
+
+.question-container {
+  .question-input {
+    margin: 0 auto;
   }
 }
 
