@@ -123,7 +123,23 @@ export function markdownToHtml(markdown) {
     return output.join('\n').replace(/\n+$/, '');
   };
 
-  const lines = markdown.replace(/\r\n?/g, '\n').split('\n');
+  const sourceLines = markdown.replace(/\r\n?/g, '\n').split('\n');
+  const indentLevels = sourceLines
+    .filter((line) => line.trim())
+    .map((line) => (line.match(/^[ \t]*/) || [''])[0].replace(/\t/g, '    ').length);
+  const sharedIndent = indentLevels.length ? Math.min(...indentLevels) : 0;
+  const lines =
+    sharedIndent > 0
+      ? sourceLines.map((line) => {
+          let remaining = sharedIndent;
+          let index = 0;
+          while (remaining > 0 && (line[index] === ' ' || line[index] === '\t')) {
+            remaining -= line[index] === '\t' ? 4 : 1;
+            index += 1;
+          }
+          return `${' '.repeat(Math.max(0, -remaining))}${line.slice(index)}`;
+        })
+      : sourceLines;
   const blocks = [];
   let paragraph = [];
   let code = [];
