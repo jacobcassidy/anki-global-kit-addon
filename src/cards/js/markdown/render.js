@@ -111,7 +111,10 @@ export function markdownToHtml(markdown) {
           flushLine();
         }
       } else {
-        flushLine(tagName[0] === 'h');
+        flushLine();
+        if (tagName[0] === 'h' && output.length && output[output.length - 1] !== '') {
+          output.push('');
+        }
         line = token;
         lineIndent = depth;
         depth += 1;
