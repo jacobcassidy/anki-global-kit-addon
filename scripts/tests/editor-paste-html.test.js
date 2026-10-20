@@ -113,8 +113,8 @@ for (const mac of [false, true]) {
     const key = new window.KeyboardEvent('keydown', {
       key: mac ? '√' : 'v',
       code: 'KeyV',
-      metaKey: false,
-      ctrlKey: true,
+      metaKey: mac,
+      ctrlKey: !mac,
       altKey: true,
       bubbles: true,
       composed: true,
@@ -137,8 +137,8 @@ test('ordinary paste, composition, and shortcuts outside a formatted field stay 
   });
   for (const [target, overrides] of [
     [field, { altKey: false }],
-    [field, { ctrlKey: false, metaKey: true }],
-    [field, { metaKey: true }],
+    [field, { metaKey: false, ctrlKey: true }],
+    [field, { ctrlKey: true }],
     [field, { shiftKey: true }],
     [field, { isComposing: true }],
     [document.body, {}],
@@ -146,7 +146,7 @@ test('ordinary paste, composition, and shortcuts outside a formatted field stay 
     const key = new window.KeyboardEvent('keydown', {
       key: 'v',
       code: 'KeyV',
-      ctrlKey: true,
+      metaKey: true,
       altKey: true,
       bubbles: true,
       composed: true,
