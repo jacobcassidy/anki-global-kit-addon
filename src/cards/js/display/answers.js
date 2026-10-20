@@ -68,7 +68,7 @@ export function showAnswerContainers() {
         comparisonTitleEl.innerHTML = 'Bonus Answer Comparison';
       }
 
-      // Don't compare user's answer to card's answer if the user did NOT input an answer.
+      // Don't compare user's answer to card's reference answer if the user did NOT input an answer.
       if (typedAnswer === undefined) {
         const cardAnswerCharArr = Array.from(cardAnswer);
         const cardAnswerComparisonArr = [];
@@ -79,7 +79,7 @@ export function showAnswerContainers() {
 
         comparisonPreEl.innerHTML = '\n&darr;\n' + cardAnswerComparisonArr.join('');
 
-        // Compare user's answer to card's answer when user did input an answer.
+        // Compare user's answer to card's reference answer when user did input an answer.
       } else {
         const dmpArr = diffAnswerCharacters(cardAnswer, typedAnswer.replace(/\u00a0/g, ' '));
         const dmpMatchTypeAndCharArr = [];

@@ -19,7 +19,7 @@ For setup details, shortcuts, customization, and troubleshooting, read the [user
 - Topic accent colors and customizable card styling through the note type stylesheet.
 - AnkiWeb study menu layout adjustments.
 
-The front shows the question, typed answer fields, formatting toolbar, and optional hint. On the back, the typed answer appears alongside the card's answer; bonus comparison and notes can appear below. These examples use a Python Advance note in light and dark themes.
+The front shows the question, typed answer fields, formatting toolbar, and optional hint. On the back, the typed answer appears alongside the card's reference answer; bonus comparison and notes can appear below. These examples use a Python Advance note in light and dark themes.
 
 | Card preview                                                                                                                     |
 | -------------------------------------------------------------------------------------------------------------------------------- |
