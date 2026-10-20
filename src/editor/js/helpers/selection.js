@@ -19,15 +19,22 @@ export function getFieldInputSelection() {
 
 // Toolbar activation can move focus outside the field's shadow root. Remember
 // the field itself so its native selection remains reachable from the button.
-let lastEditorField = null;
+// The bundle is evaluated again on note loads and settings saves. Keep the
+// listener and remembered field together across those module instances.
+const STATE_KEY = Symbol.for('ankiGlobalKitEditorSelection');
+function selectionState() {
+  return (document[STATE_KEY] ||= { installed: false, lastEditorField: null });
+}
+
 export function installSelectionTracking() {
-  if (installSelectionTracking.installed) return;
-  installSelectionTracking.installed = true;
+  const state = selectionState();
+  if (state.installed) return;
+  state.installed = true;
   document.addEventListener(
     'focusin',
     (event) => {
       const field = event.composedPath().find((node) => node?.matches?.('anki-editable'));
-      if (field) lastEditorField = field;
+      if (field) state.lastEditorField = field;
     },
     true,
   );
@@ -36,6 +43,7 @@ export function installSelectionTracking() {
 export function getEditorSelection() {
   const current = getFieldInputSelection();
   if (current?.rangeCount) return current;
+  const { lastEditorField } = selectionState();
   if (!lastEditorField?.isConnected) return null;
   const selection = lastEditorField.getRootNode().getSelection?.();
   if (!selection?.rangeCount) return null;

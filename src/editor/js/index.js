@@ -2,7 +2,7 @@ import { installSelectionTracking } from './helpers/selection.js';
 import { installCodeSpaceNormalization } from './formatting/code-spaces.js';
 import { toggleInlineCode } from './formatting/inline-code.js';
 import { installCopySource } from './clipboard/copy-source.js';
-import { pasteHtml } from './clipboard/paste-html.js';
+import { installPasteHtml, pasteHtml } from './clipboard/paste-html.js';
 import { installClozeShortcuts } from './cloze/shortcuts.js';
 import { beginPasteLayout, finishPasteLayout } from './paste/layout.js';
 import { installEditorStyles } from './styles.js';
@@ -13,8 +13,10 @@ import {
   unindentEditorField,
 } from './formatting/blocks.js';
 
+installSelectionTracking();
+installPasteHtml();
+
 if (!globalThis.ankiGlobalKitEditor) {
-  installSelectionTracking();
   installCodeSpaceNormalization();
   installCopySource();
   installClozeShortcuts();
