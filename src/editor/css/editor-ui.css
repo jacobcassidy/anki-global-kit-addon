@@ -5,3 +5,7 @@
 /* Register fonts in the document; Chromium ignores font faces in field shadow roots. */
 @import url("../../shared/css/fonts.css");
 @import url("../../shared/css/syntax-highlighting.css");
+
+button.anki-global-kit-toolbar-group-start {
+  margin-inline-start: var(--anki-global-kit-toolbar-group-gap, 8px);
+}

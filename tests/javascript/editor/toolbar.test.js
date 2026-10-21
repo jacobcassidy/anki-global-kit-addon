@@ -45,3 +45,60 @@ test('editor toolbar settings refresh custom buttons together while preserving i
     dom.window.close();
   }
 });
+
+test('toolbar gaps separate visible groups and collapse when groups are hidden', () => {
+  const commands = [
+    'syntax_highlighting',
+    'syntax_language',
+    'code_block_options',
+    'blockquote',
+    'paste_markdown_as_html',
+    'inline_code',
+  ];
+  const dom = new JSDOM(
+    `<body><button data-command="bold"></button>${commands.map((command) => `<span><button data-command="anki_global_kit_${command}"></button></span>`).join('')}</body>`,
+  );
+  const previousDocument = globalThis.document;
+  const previousSettings = globalThis.ankiGlobalKitEditorSettings;
+
+  globalThis.document = dom.window.document;
+
+  try {
+    const settings = {};
+
+    globalThis.ankiGlobalKitEditorSettings = settings;
+
+    const checkGaps = (expected) => {
+      refreshEditorToolbar();
+      assert.deepEqual(
+        [...document.querySelectorAll('.anki-global-kit-toolbar-group-start')].map((button) =>
+          button.dataset.command.replace('anki_global_kit_', ''),
+        ),
+        expected,
+      );
+      assert.equal(document.querySelector('[data-command="bold"]').className, '');
+    };
+
+    checkGaps(['blockquote', 'inline_code']);
+    settings.anki_editor_blockquote_button = false;
+    checkGaps(['paste_markdown_as_html', 'inline_code']);
+    settings.anki_editor_paste_markdown_as_html_button = false;
+    checkGaps(['inline_code']);
+    settings.anki_editor_syntax_highlighting_button = false;
+    checkGaps([]);
+    settings.anki_editor_blockquote_button = true;
+    checkGaps(['inline_code']);
+    settings.anki_editor_inline_code_button = false;
+    checkGaps([]);
+    settings.anki_editor_toolbar_enabled = false;
+    checkGaps([]);
+    settings.anki_editor_toolbar_enabled = true;
+    settings.anki_editor_inline_code_button = true;
+    settings.anki_editor_syntax_highlighting_button = true;
+    checkGaps(['blockquote', 'inline_code']);
+  } finally {
+    globalThis.document = previousDocument;
+    globalThis.ankiGlobalKitEditorSettings = previousSettings;
+    dom.window.close();
+  }
+});
