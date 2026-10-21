@@ -1,5 +1,54 @@
 @import url("./generated/cassidy-dark.css");
 
+.agk-code-block > code {
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.agk-code-line {
+  display: block;
+  min-block-size: 1lh;
+}
+
+.agk-code-block[data-line-numbers="true"] .agk-code-line::before {
+  user-select: none;
+  content: attr(data-line-number);
+  display: inline-block;
+  color: var(--agk-syntax-comment);
+  inline-size: 4ch;
+  padding-inline-end: 1ch;
+  text-align: end;
+}
+
+.agk-code-options {
+  background: var(--agk-syntax-background);
+  border: 1px solid var(--agk-syntax-comment);
+  border-radius: 0.5rem;
+  color: var(--agk-syntax-foreground);
+  max-inline-size: min(28rem, calc(100vi - 2rem));
+  padding: 1rem;
+  font: inherit;
+}
+
+.agk-code-options form,
+.agk-code-options label {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.agk-code-options-actions {
+  display: flex;
+  justify-content: end;
+  gap: 0.5rem;
+}
+
+.agk-code-options select,
+.agk-code-options input {
+  color: inherit;
+  font: inherit;
+}
+
 .syntax-highlights {
   padding: 0 !important;
 }

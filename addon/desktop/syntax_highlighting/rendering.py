@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import html
 import importlib
+import re
 import sys
 import threading
 
@@ -129,7 +131,9 @@ def _get_bundled_lexer(lexers, alias: str, **options):
     raise SyntaxHighlightingError(f"Unsupported code language: {alias}.")
 
 
-def render_code(source: str, language: str) -> tuple[str, str]:
+def render_code(
+    source: str, language: str, cloze_mode: str = "active"
+) -> tuple[str, str]:
     """Return Pygments token HTML and its normalized canonical language alias."""
     if not isinstance(source, str) or not isinstance(language, str):
         raise SyntaxHighlightingError("Code and language must be text values.")
@@ -138,11 +142,64 @@ def render_code(source: str, language: str) -> tuple[str, str]:
             f"Code exceeds the {MAX_SOURCE_CHARACTERS:,}-character highlighting limit."
         )
 
+    return _render_with_clozes(source, language, cloze_mode)
+
+
+def _split_clozes(source: str) -> list[tuple[bool, str]]:
+    """Split complete, possibly nested Anki clozes from surrounding source."""
+    segments = []
+    cursor = 0
+    marker = re.compile(r"\{\{c\d+::")
+    while match := marker.search(source, cursor):
+        if match.start() > cursor:
+            segments.append((False, source[cursor : match.start()]))
+        depth = 1
+        position = match.end()
+        while position < len(source) and depth:
+            if source.startswith("{{", position):
+                depth += 1
+                position += 2
+            elif source.startswith("}}", position):
+                depth -= 1
+                position += 2
+            else:
+                position += 1
+        if depth:
+            segments.append((False, source[match.start() :]))
+            cursor = len(source)
+            break
+        segments.append((True, source[match.start() : position]))
+        cursor = position
+    if cursor < len(source) or not segments:
+        segments.append((False, source[cursor:]))
+    return segments
+
+
+def _render_with_clozes(source: str, language: str, cloze_mode: str) -> tuple[str, str]:
+    """Keep active cloze syntax contiguous or encode it as literal code."""
+    if cloze_mode not in {"active", "literal"}:
+        raise SyntaxHighlightingError("Unknown Anki cloze handling mode.")
+
     with _with_bundled_modules():
         lexers = importlib.import_module("pygments.lexers")
         formatters = importlib.import_module("pygments.formatters")
         lexer = _get_bundled_lexer(lexers, language, stripnl=False, ensurenl=False)
 
         formatter = formatters.HtmlFormatter(nowrap=True, classprefix="")
-        html = importlib.import_module("pygments").highlight(source, lexer, formatter)
-        return html, getattr(lexer, "aliases", [language])[0]
+        pygments = importlib.import_module("pygments")
+        pieces = []
+        for is_cloze, segment in _split_clozes(source):
+            if not is_cloze:
+                pieces.append(pygments.highlight(segment, lexer, formatter))
+                continue
+            if cloze_mode == "literal":
+                literal = html.escape(segment, quote=False)
+                pieces.append(
+                    literal.replace("{{", "&#123;&#123;").replace("}}", "&#125;&#125;")
+                )
+                continue
+            header = re.match(r"\{\{c\d+::", segment)
+            assert header is not None
+            body = html.escape(segment[header.end() : -2], quote=False)
+            pieces.append(segment[: header.end()] + body + "}}")
+        return "".join(pieces), getattr(lexer, "aliases", [language])[0]

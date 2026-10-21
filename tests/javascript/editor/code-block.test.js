@@ -12,6 +12,7 @@ function withEditor(html, callback) {
     InputEvent: globalThis.InputEvent,
     pycmd: globalThis.pycmd,
     api: globalThis.ankiGlobalKitEditor,
+    settings: globalThis.ankiGlobalKitEditorSettings,
   };
   globalThis.document = dom.window.document;
   globalThis.window = dom.window;
@@ -19,6 +20,10 @@ function withEditor(html, callback) {
   globalThis.InputEvent = dom.window.InputEvent;
   globalThis.pycmd = (message) => callback.message?.(message);
   globalThis.ankiGlobalKitEditor = {};
+  globalThis.ankiGlobalKitEditorSettings = {
+    anki_editor_syntax_highlighting_line_numbers: true,
+    anki_editor_syntax_highlighting_line_number_start: 50,
+  };
   installCodeBlockHighlighting();
 
   try {
@@ -85,5 +90,51 @@ test('stale responses leave a changed field untouched', () => {
 
     assert.equal(globalThis.ankiGlobalKitEditor.applyHighlightResult(request.id, request.source, 'python', 'x'), false);
     assert.equal(field.textContent, 'changed');
+  });
+});
+
+test('multiline blocks preserve source and their starting line number when refreshed', () => {
+  withEditor('<p>first\nsecond</p>', (document, window) => {
+    const field = document.querySelector('anki-editable');
+    selectText(document, window, field.querySelector('p'));
+    let request;
+    globalThis.pycmd = (message) => {
+      request = JSON.parse(message.slice(message.indexOf('{')));
+    };
+    globalThis.ankiGlobalKitEditor.highlightCode('', 'python');
+    assert.equal(request.source, 'first\nsecond');
+    assert.equal(request.lineNumbers, true);
+    assert.equal(request.lineStart, 50);
+
+    document.execCommand = (_command, _showUi, html) => {
+      const range = window.getSelection().getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(range.createContextualFragment(html));
+      return true;
+    };
+    assert.equal(
+      globalThis.ankiGlobalKitEditor.applyHighlightResult(
+        request.id,
+        request.source,
+        'python',
+        'first\nsecond',
+        request.lineNumbers,
+        request.lineStart,
+      ),
+      true,
+    );
+    const block = field.querySelector('pre.agk-code-block');
+    assert.equal(block.dataset.lineNumbers, 'true');
+    assert.equal(block.dataset.lineStart, '50');
+    assert.deepEqual(
+      [...block.querySelectorAll('.agk-code-line')].map((line) => line.dataset.lineNumber),
+      ['50', '51'],
+    );
+
+    selectText(document, window, block.querySelector('code'));
+    globalThis.ankiGlobalKitEditor.highlightCode('', 'javascript');
+    assert.equal(request.source, 'first\nsecond');
+    assert.equal(request.lineNumbers, true);
+    assert.equal(request.lineStart, 50);
   });
 });

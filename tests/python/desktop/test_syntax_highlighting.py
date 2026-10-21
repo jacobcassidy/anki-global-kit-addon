@@ -29,6 +29,21 @@ class SyntaxRenderingTests(unittest.TestCase):
         with self.assertRaises(self.renderer.SyntaxHighlightingError):
             self.renderer.render_code("x" * 50_001, "python")
 
+    def test_active_cloze_markup_stays_contiguous_and_literal_mode_is_escaped(self):
+        source = "answer = {{c1::42::the answer}}\n"
+
+        active, _language = self.renderer.render_code(source, "python", "active")
+        literal, _language = self.renderer.render_code(source, "python", "literal")
+
+        self.assertIn("{{c1::42::the answer}}", active)
+        self.assertNotIn(
+            "<span", active.split("{{c1::42::the answer}}", 1)[1].split("\n", 1)[0]
+        )
+        self.assertIn("&#123;&#123;c1::42::the answer&#125;&#125;", literal)
+        self.assertNotIn("{{c1::", literal)
+        with self.assertRaises(self.renderer.SyntaxHighlightingError):
+            self.renderer.render_code(source, "python", "unsafe")
+
     def test_does_not_replace_an_existing_pygments_installation(self):
         self.renderer.render_code("print('ok')", "python")
 
