@@ -62,6 +62,7 @@
   ],
   "anki_editor_syntax_highlighting_default_language": "python",
   "anki_editor_syntax_highlighting_remember_language_per_deck": false,
+  "anki_editor_syntax_highlighting_remember_language_per_deck": false,
   "anki_editor_syntax_highlighting_line_numbers": false,
   "anki_editor_syntax_highlighting_line_number_start": 1,
   "note_type_selections": {

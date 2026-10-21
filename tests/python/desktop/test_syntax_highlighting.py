@@ -12,6 +12,46 @@ class SyntaxRenderingTests(unittest.TestCase):
     def setUp(self):
         self.renderer = load_addon_module("desktop.syntax_highlighting.rendering")
 
+    def test_deck_language_memory_is_collection_scoped_and_validated(self):
+        memory = load_addon_module("desktop.syntax_highlighting.language_memory")
+
+        class Collection:
+            def __init__(self):
+                self.config = {
+                    "unrelated": "preserved",
+                    "anki_global_kit.syntax_highlighting.deck_languages": {
+                        "12": "python",
+                        "bad": "sql",
+                        "14": 4,
+                    },
+                }
+
+            def get_config(self, key, default=None):
+                return self.config.get(key, default)
+
+            def set_config(self, key, value):
+                self.config[key] = value
+
+        collection = Collection()
+        self.assertEqual(
+            memory.remembered_language(collection, 12, ["python"]), "python"
+        )
+        self.assertIsNone(memory.remembered_language(collection, 12, ["sql"]))
+        self.assertTrue(
+            memory.remember_language(collection, 13, "sql", {"python", "sql"})
+        )
+        self.assertEqual(
+            collection.config["anki_global_kit.syntax_highlighting.deck_languages"],
+            {"12": "python", "13": "sql"},
+        )
+        self.assertEqual(collection.config["unrelated"], "preserved")
+        self.assertFalse(
+            memory.remember_language(collection, None, "python", {"python"})
+        )
+        self.assertFalse(
+            memory.remember_language(collection, 13, "unsupported", {"python"})
+        )
+
     def test_preserves_whitespace_and_escapes_source(self):
         source = "\tprint('<tag>')\n\n"
 
