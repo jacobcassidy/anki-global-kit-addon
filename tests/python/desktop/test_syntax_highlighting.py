@@ -139,7 +139,8 @@ class SyntaxRenderingTests(unittest.TestCase):
         self.assertEqual(preset["colors"]["declaration"], "#92c1fd")
         css = themes.generate_theme_css()
         declaration_rule = css.split(
-            ":is(.global-kit-code-block, .syntax-highlights) :is(.kd) {", 1
+            ':is(.global-kit-code-block, .syntax-highlights) [data-global-kit-token="declaration"] {',
+            1,
         )[1]
         declaration_rule = declaration_rule.split("}", 1)[0]
         self.assertIn("color: var(--global-kit-syntax-declaration);", declaration_rule)
@@ -259,10 +260,16 @@ class SyntaxRenderingTests(unittest.TestCase):
 
         self.assertNotIn(".global-kit-code-block", overrides)
         self.assertEqual(combined.count(".global-kit-code-block {"), 1)
-        for selectors in themes._TOKEN_SELECTORS.values():
+        for role, selectors in themes._TOKEN_SELECTORS.items():
             self.assertEqual(
                 combined.count(
-                    f":is(.global-kit-code-block, .syntax-highlights) :is({selectors}) {{"
+                    f":is(.global-kit-code-block, .syntax-highlights) :is({selectors}),"
+                ),
+                1,
+            )
+            self.assertEqual(
+                combined.count(
+                    f':is(.global-kit-code-block, .syntax-highlights) [data-global-kit-token="{role}"] {{'
                 ),
                 1,
             )

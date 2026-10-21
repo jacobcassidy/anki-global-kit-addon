@@ -49,7 +49,7 @@ _TOKEN_SELECTORS = {
     "namespace": ".nn",
     "parameter": ".hljs-params",
     "attribute": ".na, .nl, .hljs-attr, .hljs-attribute, .hljs-property",
-    "variable": ".n, .nx, .nv, .vc, .vg, .vi, .hljs-variable",
+    "variable": ".nv, .vc, .vg, .vi, .hljs-variable",
     "library-variable": ".vm, .bp, .hljs-variable.language_",
     "constant": ".m, .no, .hljs-number, .hljs-symbol",
     "operator": ".o, .ow, .hljs-operator",
@@ -247,11 +247,13 @@ def theme_preview_html(preset: dict) -> str:
             declarations.append("font-weight: 700;")
         if role in preset["styles"]["italic"]:
             declarations.append("font-style: italic;")
-        rules.append(f"{selectors} {{ {' '.join(declarations)} }}")
+        rules.append(
+            f'{selectors}, [data-global-kit-token="{role}"] {{ {" ".join(declarations)} }}'
+        )
     return (
         f"<html><head><style>{' '.join(rules)}</style></head>"
         "<body><pre>"
-        "<span class='k'>def</span> <span class='nf'>highlight</span>():\n"
+        "<span class='kd'>def</span> <span class='nf'>highlight</span>():\n"
         "    <span class='c1'># a small preview</span>\n"
         "    <span class='k'>return</span> <span class='s1'>'Anki Global Kit'</span>"
         "</pre></body></html>"
@@ -297,6 +299,10 @@ def generate_theme_css(
             "  color: var(--global-kit-syntax-foreground);",
             "  white-space: pre;",
             "}",
+            "",
+            ":is(.global-kit-code-block, .syntax-highlights) :is(.n, .nx) {",
+            "  color: var(--global-kit-syntax-foreground);",
+            "}",
         ]
     )
 
@@ -309,7 +315,8 @@ def generate_theme_css(
         css.extend(
             [
                 "",
-                f":is(.global-kit-code-block, .syntax-highlights) :is({selectors}) {{",
+                f":is(.global-kit-code-block, .syntax-highlights) :is({selectors}),",
+                f':is(.global-kit-code-block, .syntax-highlights) [data-global-kit-token="{role}"] {{',
                 *declarations,
                 "}",
             ]

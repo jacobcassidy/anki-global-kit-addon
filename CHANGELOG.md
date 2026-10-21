@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added a shared parser-based JavaScript and Python classifier for editor code, pasted Markdown, and typed answers. Identifier colors now distinguish functions, methods, parameters and references, properties, classes, namespace imports, variables, and unshadowed builtins within each snippet. Python `def` and `class` use the declaration color. Re-highlight existing saved blocks to add the annotations.
 - Added generated `_syntax-highlighting.css` media for new Kit note types and a confirmed **Enable Code Styling…** action that adds only the stylesheet import to an existing note type.
 - Added optional per-deck language memory storage and upgraded review highlighting to a pinned, locally bundled highlight.js grammar set with per-answer processing limits.
 - Added bundled Pygments theme choices, independent light and dark theme settings, read-only previews, collection-synced resolved palettes, and stylesheet recovery during Settings saves.
@@ -18,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Added the default editor placeholder "Leave blank unless compare is wanted" to empty Compare fields in Kit note types, preserving custom descriptions and saved field values.
+- Stopped treating generic Pygments `Name` and `Name.Other` tokens as variables. Unclassified names use the foreground color; parser-classified identifiers use normalized theme roles. Classification preserves clozes and source text, recovers incomplete snippets, and falls back to basic syntax highlighting when its work budget is exhausted.
 - Replaced the Paste Markdown as HTML button icon with the official Markdown Mark, retaining its proportions and using the toolbar's theme color.
 - Grouped the custom editor toolbar into syntax highlighting, formatting, and inline code, with gaps that adjust to hidden buttons.
 - Enlarged and thickened the editor's syntax-highlighting lightning bolt icon, with a downward-sloping middle for a clearer bolt shape.
@@ -44,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed custom editor toolbar separation by rendering independent groups with gaps and rounded outer edges, including when the default Editor UI stylesheet is disabled or individual buttons are hidden.
+- Kept literal code clozes inert through editor annotation, line wrapping, and HTML serialization, while preserving their displayed source text.
 - Fixed Settings Save being blocked by the default Blockquote shortcut conflicting with itself, and added feedback when shortcut validation prevents saving.
 - Fixed Highlight Code shortcut tooltips, language menu positioning and labels, and the filled lightning icon.
 - Fixed light and dark theme previews with Qt-compatible palette rendering, added readable theme names, and kept Note Types content at fixed vertical spacing.

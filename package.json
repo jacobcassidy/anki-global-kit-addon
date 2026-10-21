@@ -78,6 +78,8 @@
     "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   },
   "dependencies": {
+    "@lezer/javascript": "1.5.6",
+    "@lezer/python": "1.1.18",
     "highlight.js": "11.11.1"
   }
 }

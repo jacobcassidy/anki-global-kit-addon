@@ -84,6 +84,55 @@ test('new blocks start at line 1 despite old global preferences and apply tokens
     assert.equal(field.querySelectorAll('[data-language]').length, 1);
     assert.equal(field.querySelector('code').attributes.length, 0);
     assert.equal(field.querySelector('code').textContent, request.source);
+    assert.equal(field.querySelector('[data-global-kit-token="declaration"]').textContent, 'const');
+    assert.equal(field.querySelector('[data-global-kit-token="variable"]').textContent, 'answer');
+  });
+});
+
+test('literal clozes remain inert through HTML annotation, line wrapping, and native insertion', () => {
+  withEditor('<p>const value = {{c1::hidden.name}};</p>', (document, window) => {
+    const field = document.querySelector('anki-editable');
+
+    selectText(document, window, field.querySelector('p'));
+
+    let request;
+
+    globalThis.confirm = () => false;
+    globalThis.pycmd = (message) => {
+      if (message.startsWith('anki-global-kit:syntax-highlight:'))
+        request = JSON.parse(message.slice(message.indexOf('{')));
+    };
+    document.execCommand = (_command, _ui, html) => {
+      const range = window.getSelection().getRangeAt(0);
+
+      range.deleteContents();
+      range.insertNode(range.createContextualFragment(html));
+
+      return true;
+    };
+
+    try {
+      globalThis.ankiGlobalKitEditor.highlightCode('', 'javascript');
+      assert.equal(request.clozeMode, 'literal');
+      globalThis.ankiGlobalKitEditor.applyHighlightResult(
+        request.id,
+        request.source,
+        'javascript',
+        '<span class="kd">const</span> value = &#123;&#123;c1::hidden.name&#125;&#125;;',
+        false,
+        1,
+        'literal',
+      );
+
+      const block = field.querySelector('pre');
+
+      assert.equal(block.textContent, request.source);
+      assert.doesNotMatch(block.outerHTML, /\{\{c1::/);
+      assert.equal(block.querySelectorAll('[data-global-kit-literal-brace]').length, 2);
+      assert.equal(block.querySelector('[data-global-kit-token="variable"]').textContent, 'value');
+    } finally {
+      delete globalThis.confirm;
+    }
   });
 });
 

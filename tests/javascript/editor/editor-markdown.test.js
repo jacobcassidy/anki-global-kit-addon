@@ -83,6 +83,7 @@ test('Pygments response inserts a Kit code block as one native edit', () => {
     assert.equal(field.querySelector('pre > code').attributes.length, 0);
     assert.equal(field.querySelector('code').textContent, 'print(42)');
     assert.ok(field.querySelector('code .nb'));
+    assert.equal(field.querySelector('[data-global-kit-token="builtin"]').textContent, 'print');
     assert.equal(document.querySelectorAll('[data-anki-global-kit-edit-boundary]').length, 0);
   });
 });

@@ -21,6 +21,8 @@ import sql from 'highlight.js/lib/languages/sql';
 import typescript from 'highlight.js/lib/languages/typescript';
 import xml from 'highlight.js/lib/languages/xml';
 import { reviewLanguageAliases } from '../../../shared/js/syntax-highlighting/language-aliases.js';
+import { enhanceHighlightHtml } from '../../../shared/js/syntax-highlighting/classification/markup.js';
+import { createClassificationBudget } from '../../../shared/js/syntax-highlighting/classification/index.js';
 
 export { reviewLanguageAliases };
 
@@ -48,12 +50,17 @@ const grammars = {
 
 Object.entries(grammars).forEach(([name, grammar]) => hljs.registerLanguage(name, grammar));
 
-export function highlightReviewCode(source, language) {
+export function highlightReviewCode(source, language, options = {}) {
   const canonical = reviewLanguageAliases[String(language || '').toLowerCase()];
   if (!canonical) return null;
 
   try {
-    return hljs.highlight(source, { language: canonical, ignoreIllegals: true }).value;
+    const html = hljs.highlight(source, { language: canonical, ignoreIllegals: true }).value;
+
+    return enhanceHighlightHtml(html, canonical, {
+      ...options,
+      budget: options.budget || createClassificationBudget(25),
+    });
   } catch {
     return null;
   }

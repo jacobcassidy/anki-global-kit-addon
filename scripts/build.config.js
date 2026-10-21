@@ -5,6 +5,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const cardAssets = `${root}addon/assets/cards`;
 const comparisonLicense = readFileSync(`${cardAssets}/js/licenses/diff-match-patch.txt`, 'utf8').trimEnd();
 const highlightJsLicense = readFileSync(`${cardAssets}/js/licenses/highlight.js.txt`, 'utf8').trimEnd();
+const lezerLicense = readFileSync(`${cardAssets}/js/licenses/lezer.txt`, 'utf8').trimEnd();
 
 export const cardsJsBuildOptions = {
   entryPoints: [`${root}src/cards/js/index.js`],
@@ -13,11 +14,13 @@ export const cardsJsBuildOptions = {
   format: 'iife',
   platform: 'browser',
   target: ['es2018'],
+  // Keep literal line-ending whitespace escaped in the generated media script.
+  supported: { 'template-literal': false },
   legalComments: 'none',
   minify: true,
   // Keep the complete dependency notice in the media file that syncs to clients.
   banner: {
-    js: `/*!\n${comparisonLicense}\n\n${highlightJsLicense}\n*/\nvar hasMyCustomScript = true;`,
+    js: `/*!\n${comparisonLicense}\n\n${highlightJsLicense}\n\n${lezerLicense}\n*/\nvar hasMyCustomScript = true;`,
   },
   loader: { '.svg': 'text' },
 };
@@ -58,4 +61,5 @@ export const editorJsBuildOptions = {
   target: ['es2020'],
   legalComments: 'none',
   minify: true,
+  banner: { js: `/*!\n${lezerLicense}\n*/` },
 };

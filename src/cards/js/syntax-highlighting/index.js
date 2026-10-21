@@ -2,6 +2,7 @@ import { highlightReviewCode } from './engine.js';
 import { getSyntaxLanguage } from '../../../shared/js/syntax-highlighting/languages.js';
 import { settings } from '../runtime/settings.js';
 import { observers } from '../runtime/state.js';
+import { createClassificationBudget } from '../../../shared/js/syntax-highlighting/classification/index.js';
 
 const MAX_BLOCK_CHARACTERS = 10_000;
 const MAX_ANSWER_CHARACTERS = 20_000;
@@ -15,6 +16,7 @@ export function watchSubmittedCodeBlocks() {
 
   const submittedCodeSelector = ':scope pre > code';
   const processAnswer = (answer) => {
+    const budget = createClassificationBudget(25);
     let totalCharacters = 0;
     let processedBlocks = 0;
     const blocks = [...answer.querySelectorAll(submittedCodeSelector)].filter(
@@ -40,7 +42,7 @@ export function watchSubmittedCodeBlocks() {
       if (totalCharacters + sourceLength > MAX_ANSWER_CHARACTERS) break;
 
       totalCharacters += sourceLength;
-      const highlighted = highlightReviewCode(source, language);
+      const highlighted = highlightReviewCode(source, language, { budget });
       if (highlighted === null) continue;
 
       code.innerHTML = highlighted;

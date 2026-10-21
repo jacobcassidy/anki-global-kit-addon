@@ -2,6 +2,8 @@ import { markdownToHtml } from '../../../shared/js/markdown/render.js';
 import { getSyntaxLanguage } from '../../../shared/js/syntax-highlighting/languages.js';
 import { getEditorSelection } from '../helpers/selection.js';
 import { editWithNativeUndo } from '../helpers/edit-transaction.js';
+import { enhanceHighlightHtml } from '../../../shared/js/syntax-highlighting/classification/markup.js';
+import { createClassificationBudget } from '../../../shared/js/syntax-highlighting/classification/index.js';
 
 const MESSAGE_PREFIX = 'anki-global-kit:markdown-highlight:';
 const pending = new Map();
@@ -113,6 +115,7 @@ function applyMarkdownHighlightResult(id, html, renderedBlocks) {
 
   const container = document.createElement('div');
   container.innerHTML = html;
+  const budget = createClassificationBudget(100);
   for (const rendered of renderedBlocks) {
     if (!Number.isInteger(rendered.index) || typeof rendered.html !== 'string') continue;
     const code = container.querySelectorAll('pre > code')[rendered.index];
@@ -125,7 +128,7 @@ function applyMarkdownHighlightResult(id, html, renderedBlocks) {
     pre.dataset.clozeMode = 'active';
     code.removeAttribute('class');
     code.removeAttribute('data-language');
-    code.innerHTML = rendered.html;
+    code.innerHTML = enhanceHighlightHtml(rendered.html, rendered.language, { budget });
   }
 
   return insertHtml(target, container.innerHTML);

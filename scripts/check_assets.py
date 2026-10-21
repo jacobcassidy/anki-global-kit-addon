@@ -147,6 +147,25 @@ def validate_assets(package_files: list[Path]) -> str:
     require_packaged(pygments_root / "__init__.py", packaged_paths)
     require_packaged(pygments_license, packaged_paths)
 
+    lezer_license = ROOT / "addon/assets/cards/js/licenses/lezer.txt"
+    require_packaged(lezer_license, packaged_paths)
+    lezer_notice = read_source(lezer_license).strip()
+    for name in ("javascript", "python", "common", "lr", "highlight"):
+        if f"@lezer/{name}\n" not in lezer_notice:
+            raise ValueError(f"The bundled @lezer/{name} license notice is missing")
+    for path in (
+        ROOT / "addon/assets/cards/js/_anki-global-kit.min.js",
+        ROOT / "addon/assets/editor/js/editor.min.js",
+    ):
+        if lezer_notice not in read_source(path):
+            raise ValueError(
+                f"The Lezer notice is missing from {path.relative_to(ROOT)}"
+            )
+    dependencies = json.loads(read_source(ROOT / "package.json"))["dependencies"]
+    for name, version in (("javascript", "1.5.6"), ("python", "1.1.18")):
+        if dependencies.get(f"@lezer/{name}") != version:
+            raise ValueError(f"@lezer/{name} must be pinned to {version}")
+
     categories = {".js": "js", ".css": "css"}
     for media_name, source_path in manifest.ASSET_PATHS.items():
         if source_path.suffix in {".woff", ".woff2"} or (

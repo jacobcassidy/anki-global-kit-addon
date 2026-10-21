@@ -1,6 +1,7 @@
 import { getEditorSelection } from '../helpers/selection.js';
 import { editWithNativeUndo } from '../helpers/edit-transaction.js';
 import { getSyntaxLanguage } from '../../../shared/js/syntax-highlighting/languages.js';
+import { enhanceHighlightHtml } from '../../../shared/js/syntax-highlighting/classification/markup.js';
 
 const CODE_SELECTOR = 'pre.global-kit-code-block > code';
 const pending = new Map();
@@ -56,6 +57,45 @@ function tokenHtmlByLine(tokenHtml, start) {
   return lines
     .map((line, index) => `<span class="code-line" data-line-number="${start + index}">${line}</span>`)
     .join('');
+}
+
+function preserveClozeMode(code, mode) {
+  for (const guard of code.querySelectorAll('[data-global-kit-literal-brace]')) {
+    guard.replaceWith(...guard.childNodes);
+  }
+
+  code.normalize();
+
+  if (mode !== 'literal') return;
+
+  // Entity escapes become ordinary braces when browser HTML is serialized.
+  // Splitting each pair with a span keeps literal clozes inert after saving.
+  const owner = code.ownerDocument;
+  const walker = owner.createTreeWalker(code, 4);
+  const leaves = [];
+  let leaf;
+
+  while ((leaf = walker.nextNode())) {
+    if (/\{\{|\}\}/.test(leaf.data)) leaves.push(leaf);
+  }
+
+  for (const node of leaves) {
+    const fragment = owner.createDocumentFragment();
+
+    for (const part of node.data.split(/(\{\{|\}\})/)) {
+      if (part === '{{' || part === '}}') {
+        const guard = owner.createElement('span');
+
+        guard.dataset.globalKitLiteralBrace = '';
+        guard.textContent = part[0];
+        fragment.append(guard, owner.createTextNode(part[1]));
+      } else {
+        fragment.append(owner.createTextNode(part));
+      }
+    }
+
+    node.replaceWith(fragment);
+  }
 }
 
 function sourceFromFragment(node) {
@@ -195,6 +235,8 @@ function applyHighlightResult(id, source, language, tokenHtml, lineNumbers, line
     return false;
   }
 
+  const enrichedHtml = enhanceHighlightHtml(tokenHtml, language);
+
   const applied = Boolean(
     editWithNativeUndo(target.field, target.selection, (field, selection) => {
       const replacement = selection.getRangeAt(0);
@@ -205,7 +247,8 @@ function applyHighlightResult(id, source, language, tokenHtml, lineNumbers, line
       pre.dataset.lineStart = String(Math.max(1, Number.parseInt(lineStart, 10) || 1));
       pre.dataset.clozeMode = clozeMode === 'literal' ? 'literal' : 'active';
       const code = document.createElement('code');
-      code.innerHTML = tokenHtmlByLine(tokenHtml, Number(pre.dataset.lineStart));
+      code.innerHTML = tokenHtmlByLine(enrichedHtml, Number(pre.dataset.lineStart));
+      preserveClozeMode(code, pre.dataset.clozeMode);
       pre.append(code);
       replacement.deleteContents();
       replacement.insertNode(pre);
@@ -295,6 +338,7 @@ function openCodeBlockOptions() {
       clonedPre.dataset.lineNumbers = String(lineNumbers.checked);
       clonedPre.dataset.lineStart = String(nextStart);
       clonedPre.dataset.clozeMode = clozeMode.value;
+      preserveClozeMode(clonedPre.querySelector('code'), clozeMode.value);
       clonedPre.querySelectorAll(':scope > code > .code-line').forEach((line, index) => {
         line.dataset.lineNumber = String(nextStart + index);
       });
