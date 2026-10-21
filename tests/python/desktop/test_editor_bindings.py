@@ -115,7 +115,14 @@ class EditorBindingsTests(unittest.TestCase):
         settings["anki_editor_inline_code_shortcut_enabled"] = True
         integration.refresh_open_editors()
         self.assertTrue(shortcut.isEnabled())
-        self.assertEqual(len(editor._anki_global_kit_shortcuts), 3)
+        self.assertEqual(
+            set(editor._anki_global_kit_shortcuts),
+            {
+                "anki_editor_inline_code_shortcut",
+                "anki_editor_indent_increase_shortcut",
+                "anki_editor_indent_decrease_shortcut",
+            },
+        )
 
     def test_refresh_preserves_fixed_actions_and_prunes_deleted_editors(self):
         settings = load_settings_services().config.get_editor_settings()
