@@ -174,8 +174,6 @@ def _add_shortcut(shortcuts: list, editor: Editor) -> None:
         entry for entry in shortcuts if normalize_shortcut(entry[0]) not in replaced
     ]
     for name, keys in BLOCK_SHORTCUTS.items():
-        if name == "blockquote":
-            continue
         shortcuts.append((keys, partial(_toggle_block, editor, name)))
     settings = get_editor_settings()
     for keys in _configured_editor_shortcuts(settings).values():

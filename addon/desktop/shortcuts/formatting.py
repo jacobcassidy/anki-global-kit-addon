@@ -85,8 +85,6 @@ def editor_fixed_shortcut_action(shortcut: str) -> str | None:
     """Identify a kit action whose editor shortcut cannot be reassigned."""
     normalized = normalize_shortcut(shortcut)
     for action, keys in EDITOR_BLOCK_SHORTCUTS.items():
-        if action == "blockquote":
-            continue
         if normalized == normalize_shortcut(keys):
             return {
                 "unordered-list": "Bullet List",
