@@ -9,4 +9,4 @@ node_modules
 
 # IGNORE DEV FILES
 /addon/meta.json
-/docs/TODO.md
+/docs/development/TODO.md
