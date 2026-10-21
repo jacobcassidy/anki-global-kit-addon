@@ -1,6 +1,46 @@
 import { markdownToHtml } from '../../../cards/js/markdown/render.js';
+import { getSyntaxLanguage, highlightCodeText } from '../../../cards/js/syntax-highlighting/tokenizer.js';
 import { getEditorSelection } from '../helpers/selection.js';
 import { editWithNativeUndo } from '../helpers/edit-transaction.js';
+
+function getStoreValue(store) {
+  let value;
+  const unsubscribe = store?.subscribe?.((nextValue) => {
+    value = nextValue;
+  });
+  unsubscribe?.();
+  return value;
+}
+
+function getTopicText() {
+  const fields = globalThis.require?.('anki/NoteEditor')?.instances?.[0]?.fields;
+  const topicField = fields?.find((field) =>
+    [field.name, field.fieldName, field.field?.name].some(
+      (name) => typeof name === 'string' && name.trim().toLowerCase() === 'topic',
+    ),
+  );
+  const html = getStoreValue(topicField?.editingArea?.content);
+  if (typeof html !== 'string' || !html) return '';
+  const content = document.createElement('template');
+  content.innerHTML = html;
+  return content.content.textContent || '';
+}
+
+export function highlightMarkdownCodeBlocks(html, topicText = '') {
+  const container = document.createElement('div');
+  container.innerHTML = html;
+
+  container.querySelectorAll('pre > code').forEach((code) => {
+    const explicitLanguage = getSyntaxLanguage(code.dataset.language);
+    const language = explicitLanguage || getSyntaxLanguage(topicText);
+    if (!language) return;
+
+    code.innerHTML = highlightCodeText(code.textContent || '', language);
+    code.classList.add('shigeSyntax', `language-${language}`);
+  });
+
+  return container.innerHTML;
+}
 
 function insertMarkdown(markdown) {
   if (!markdown) return false;
@@ -10,7 +50,7 @@ function insertMarkdown(markdown) {
   const element = (node) => (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement);
   const field = element(range.startContainer)?.closest('anki-editable,[contenteditable="true"]');
   if (!field || field.closest('.cm-editor') || !field.contains(range.endContainer)) return false;
-  const html = markdownToHtml(markdown);
+  const html = highlightMarkdownCodeBlocks(markdownToHtml(markdown), getTopicText());
   if (!html) return false;
 
   return Boolean(
