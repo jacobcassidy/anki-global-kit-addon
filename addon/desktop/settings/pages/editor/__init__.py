@@ -25,15 +25,15 @@ def build_editor_tab(parent: QWidget, current_settings: dict) -> EditorTab:
     layout.setSpacing(SECTION_SPACING)
 
     fields = build_editor_fields_section(content, current_settings)
+    styles, style_controls = build_editor_styles_section(content, current_settings)
     text_handling, text_controls = build_editor_text_handling_section(
         content, current_settings
     )
     toolbar, toolbar_controls = build_editor_toolbar_section(content, current_settings)
-    styles, style_controls = build_editor_styles_section(content, current_settings)
     layout.addWidget(fields.widget)
+    layout.addWidget(styles)
     layout.addWidget(text_handling)
     layout.addWidget(toolbar)
-    layout.addWidget(styles)
     layout.addStretch()
 
     return EditorTab(

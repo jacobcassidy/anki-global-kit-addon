@@ -18,9 +18,11 @@ Choose **Apply Selected Changes** and confirm the listed collection changes. The
 
 ## Customizing editor styles
 
-To customize field contents, open **Tools > Anki Global Kit Settings... > Editor**. In **Editor Styles**, use **Enable custom editor fields stylesheet** to turn your custom field CSS on or off, and click **View Editor Fields stylesheet** to open `user_files`, where you can edit `editor-fields.css`. Custom field styles are enabled by default and appended after the kit defaults. Restart Anki after editing the stylesheet to reload it.
+Under **Editor Styles**, the two **Enable Anki Global Kit's default … styles** options control the packaged field and UI styles independently. Disable default field styles to omit the kit's field CSS and editor syntax theme styling. The custom stylesheet switches work independently, so you can use custom CSS without the packaged styles. Saving updates open editors.
 
-In the same **Editor Styles** section, use **Enable custom editor UI stylesheet** to turn interface CSS on or off, and click **View Editor UI stylesheet** to open the same folder and edit `editor-ui.css`. Custom UI styles are also enabled by default. To find these files through the add-ons dialog, open **Tools > Add-ons**, select **Anki Global Kit**, and click **View Files**, then open `user_files`. The `user_files/README.txt` file is also included with the add-on.
+To customize field contents, open **Tools > Anki Global Kit Settings... > Editor**. In **Editor Styles**, use **Enable custom editor fields stylesheet** to turn your custom field CSS on or off, and click **View custom Editor Fields stylesheet** to open `user_files`, where you can edit `editor-fields.css`. Custom field styles are enabled by default and appended after the kit defaults. Restart Anki after editing the stylesheet to reload it.
+
+In the same **Editor Styles** section, use **Enable custom editor UI stylesheet** to turn interface CSS on or off, and click **View custom Editor UI stylesheet** to open the same folder and edit `editor-ui.css`. Custom UI styles are also enabled by default. To find these files through the add-ons dialog, open **Tools > Add-ons**, select **Anki Global Kit**, and click **View Files**, then open `user_files`. The `user_files/README.txt` file is also included with the add-on.
 
 ## Build and install for development
 

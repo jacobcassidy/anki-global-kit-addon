@@ -1,4 +1,4 @@
-"""Settings section for custom Desktop editor stylesheets."""
+"""Settings section for default and custom Desktop editor stylesheets."""
 
 from aqt.qt import QCheckBox, QGroupBox, QHBoxLayout, QPushButton, QVBoxLayout, QWidget
 from aqt.utils import openFolder
@@ -33,10 +33,29 @@ def build_editor_styles_section(parent: QWidget, current_settings: dict):
         openFolder(str(USER_FILES_DIR))
 
     for key, label, filename, description in STYLESHEET_SETTINGS:
+        field_styles = filename == "editor-fields.css"
+        default_key = (
+            "anki_editor_default_fields_styles"
+            if field_styles
+            else "anki_editor_default_ui_styles"
+        )
+        default_name = "Editor Field" if field_styles else "Editor UI"
+        default_styles = QCheckBox(
+            f"Enable Anki Global Kit's default {default_name} styles", section
+        )
+        default_styles.setChecked(current_settings[default_key])
+        add_checkbox_row(
+            layout,
+            default_styles,
+            "Apply the kit's built-in field stylesheet and syntax theme styling. Custom field styles are controlled separately."
+            if field_styles
+            else "Apply the kit's built-in editor interface stylesheet. Custom UI styles are controlled separately.",
+        )
+        controls[default_key] = default_styles
         enabled = QCheckBox(label, section)
         enabled.setChecked(current_settings[key])
         name = "Editor Fields" if filename == "editor-fields.css" else "Editor UI"
-        view_stylesheet = QPushButton(f"View {name} stylesheet", section)
+        view_stylesheet = QPushButton(f"View custom {name} stylesheet", section)
         view_stylesheet.setAutoDefault(False)
         view_stylesheet.setToolTip(f"Open user_files, which contains {filename}.")
         view_stylesheet.clicked.connect(view_stylesheet_folder)

@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Capitalized Settings section titles, renamed **Card Fields** to **Card Inputs**, and alphabetized Editor sections.
+- Added independent switches for the default Editor Field and Editor UI styles, retained separate custom CSS controls, and renamed the custom stylesheet buttons. Disabled styles are removed from open editors when saving.
+- Moved per-deck language memory below the default language and matched language list borders and alternating rows to Note Types.
 - Clarified the syntax theme selectors as **Theme for Light Mode** and **Theme for Dark Mode**, labeled the preview with the most recently selected mode, and removed the redundant theme name beside the preview heading.
 - Removed the global starting-line preference. New code blocks start at **1**, while **Code Block Options** retains custom starting numbers for individual blocks and existing blocks keep their saved numbering.
 - Replaced language support labels with an **Auto** badge for typed-answer highlighting and explained that all languages support saved highlighting on cards. Reserved a badge column and shortened long language names with ellipses to prevent overlap; full names remain available on hover.

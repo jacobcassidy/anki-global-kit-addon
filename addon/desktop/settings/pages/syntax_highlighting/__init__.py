@@ -32,6 +32,7 @@ from ....ui.constants import SECTION_SPACING, ZERO_MARGINS
 from ....ui.help import HelpIndicator
 from ....ui.input_styles import style_settings_input
 from ....ui.layouts import add_checkbox_row, make_scroll_area
+from ....ui.lists import RoundedListWidget
 from ....ui.theme import get_theme_color
 from ..note_types.actions import enable_syntax_styling
 
@@ -166,23 +167,18 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
         row.addWidget(control)
         parent_layout.addLayout(row)
 
-    remember = QCheckBox("Remember last language per deck", languages_section)
-    remember.setChecked(
-        current_settings["anki_editor_syntax_highlighting_remember_language_per_deck"]
-    )
-    add_checkbox_row(language_layout, remember)
     search = QLineEdit(languages_section)
     search.setPlaceholderText("Search languages and aliases")
     input_height = page.fontMetrics().height() + 6
     style_settings_input(search, input_height)
     language_layout.addWidget(search)
     groups_layout = QHBoxLayout()
-    shown_box = QGroupBox("Shown in editor", languages_section)
-    other_box = QGroupBox("Other languages", languages_section)
+    shown_box = QGroupBox("Shown In Editor", languages_section)
+    other_box = QGroupBox("Other Languages", languages_section)
     shown_layout = QVBoxLayout(shown_box)
     other_layout = QVBoxLayout(other_box)
-    shown_list = QListWidget(shown_box)
-    other_list = QListWidget(other_box)
+    shown_list = RoundedListWidget(shown_box)
+    other_list = RoundedListWidget(other_box)
     for widget in (shown_list, other_list):
         widget.setMinimumHeight(160)
         widget.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -283,6 +279,11 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
     language_control.add_change_listener(update_default_languages)
     update_default_languages()
     add_field_row(language_layout, "Default language", default_language)
+    remember = QCheckBox("Remember last language per deck", languages_section)
+    remember.setChecked(
+        current_settings["anki_editor_syntax_highlighting_remember_language_per_deck"]
+    )
+    add_checkbox_row(language_layout, remember)
 
     line_numbers = QCheckBox("Show line numbers on new code blocks", lines_section)
     line_numbers.setChecked(

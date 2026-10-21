@@ -1,12 +1,50 @@
 """Check native editor bindings preserve fixed actions and avoid ambiguity."""
 
+import tempfile
 import unittest
-from unittest.mock import Mock
+from pathlib import Path
+from unittest.mock import Mock, patch
 
 from tests.support.anki_stubs import load_editor_integration, load_settings_services
 
 
 class EditorBindingsTests(unittest.TestCase):
+    def test_default_and_custom_styles_can_be_selected_independently(self):
+        settings = load_settings_services().config.get_editor_settings()
+        integration = load_editor_integration(settings)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            packaged = root / "packaged"
+            custom = root / "custom"
+            packaged.mkdir()
+            custom.mkdir()
+            for name in ("editor-fields", "editor-ui"):
+                (packaged / f"{name}.min.css").write_text("packaged")
+                (custom / f"{name}.css").write_text("custom")
+            with (
+                patch.object(integration, "EDITOR_STYLES_DIR", packaged),
+                patch.object(integration, "USER_FILES_DIR", custom),
+            ):
+                for name in ("editor-fields", "editor-ui"):
+                    for defaults, overrides, expected in (
+                        (True, True, "packaged\ncustom"),
+                        (True, False, "packaged"),
+                        (False, True, "custom"),
+                        (False, False, ""),
+                    ):
+                        with self.subTest(
+                            name=name, defaults=defaults, custom=overrides
+                        ):
+                            self.assertEqual(
+                                integration._read_editor_styles(
+                                    f"{name}.min.css",
+                                    custom_filename=f"{name}.css",
+                                    include_default=defaults,
+                                    include_custom=overrides,
+                                ),
+                                expected,
+                            )
+
     def test_hidden_toolbar_keeps_actions_registered_and_shortcuts_active(self):
         settings = load_settings_services(
             config={"anki_editor_toolbar_enabled": False}

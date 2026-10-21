@@ -51,7 +51,7 @@ class CardFieldsSection:
 def build_card_fields_section(
     parent: QWidget, current_settings: dict
 ) -> CardFieldsSection:
-    section = QGroupBox("Card Fields", parent)
+    section = QGroupBox("Card Inputs", parent)
     layout = QVBoxLayout(section)
     # Warning rows change size before the enclosing scroll area catches up.
     # Keep spare height below the controls during those layout passes.

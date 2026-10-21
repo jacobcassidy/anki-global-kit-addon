@@ -53,15 +53,17 @@ def _inject_features(editor: Editor) -> None:
         "ui": _read_editor_styles(
             "editor-ui.min.css",
             custom_filename="editor-ui.css",
+            include_default=editor_settings["anki_editor_default_ui_styles"],
             include_custom=editor_settings["anki_editor_custom_ui_styles"],
         ),
         "fields": _read_editor_styles(
             "editor-fields.min.css",
             custom_filename="editor-fields.css",
+            include_default=editor_settings["anki_editor_default_fields_styles"],
             include_custom=editor_settings["anki_editor_custom_fields_styles"],
         ),
     }
-    if mw.col is not None:
+    if mw.col is not None and editor_settings["anki_editor_default_fields_styles"]:
         from ..syntax_highlighting.preferences import get_themes
         from ..syntax_highlighting.themes import generate_theme_pair_css
 
@@ -97,10 +99,11 @@ def _read_editor_styles(
     filename: str,
     *,
     custom_filename: str,
+    include_default: bool = True,
     include_custom: bool = True,
 ) -> str:
     """Combine packaged editor CSS with a user's upgrade-safe overrides."""
-    paths = [EDITOR_STYLES_DIR / filename]
+    paths = [EDITOR_STYLES_DIR / filename] if include_default else []
     if include_custom:
         paths.append(USER_FILES_DIR / custom_filename)
     return "\n".join(

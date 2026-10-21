@@ -8,7 +8,7 @@ Anki Global Kit is a collection of global features that supercharges Anki flashc
 
 Anki Desktop saves the kit's settings locally. Card settings are also included in the **{asset_name}** file in the active profile's **collection.media** folder and sync with the card assets. Editor settings apply to editing in Anki Desktop.
 
-## Getting started
+## Getting Started
 
 Requires **Anki Desktop 26.05 or later**.
 
@@ -16,7 +16,7 @@ Open **Tools > Anki Global Kit Settings...** on Desktop. Use **Cards** for revie
 
 **Save** applies settings; sync to carry card changes to other devices. Editor settings apply on Desktop. **Cancel** discards unsaved settings but does not undo confirmed note type actions.
 
-## Set up kit note types
+## Set Up Kit Note Types
 
 1. Open **Note Types** and choose a topic.
 2. Check **Create** under **Advance** for question-and-answer cards, or **Cloze** for cloze-deletion cards. Use **+** to add your own topic.
@@ -33,7 +33,7 @@ Custom topic headings display braces as literal text. If an existing kit topic n
 
 After deleting a note type, Anki may require a full sync. Upload from the device where you made the deletion, then download on your other devices to keep the same collection. Sync other devices' pending changes before deleting.
 
-## Type and format answers
+## Type And Format Answers
 
 Type in the card's input field, then reveal the answer to see your response and the reference.
 
@@ -45,17 +45,19 @@ Enable **Markdown to HTML rendering** under **Cards > Card Reviews** to format s
 
 Click a shortcut field and press the new combination. **Escape** cancels capture; the reset link restores the default. Enable both the Markdown shortcut group and the individual shortcut, and resolve conflict warnings before saving. On macOS, displayed Command and Control symbols identify the physical keys.
 
-## Edit notes and customize appearance
+## Edit Notes And Customize Appearance
 
 Enable **Show custom formatting toolbar** and **Show Inline Code button** under **Editor Toolbar** or its shortcut under **Editor Fields** to format a selection or word. On macOS, physical **Control+Shift+C** inserts Cloze; **Command+Shift+C** is the default inline-code shortcut.
 
 New code blocks start at line **1**. To use another starting number, place the caret in the block and open **Code Block Options** in the editor toolbar.
 
-Under **Editor Styles**, choose **View Editor Fields stylesheet** or **View Editor UI stylesheet** to open `user_files`. Edit `editor-fields.css` for note fields or `editor-ui.css` for the surrounding interface. Enable the corresponding stylesheet setting and restart Anki to reload edits. These files survive add-on upgrades.
+Under **Editor Styles**, the two **Enable Anki Global Kit's default … styles** options control the kit's field and UI styles. The custom stylesheet switches work independently. Saving applies these switches to open editors.
+
+Under **Editor Styles**, choose **View custom Editor Fields stylesheet** or **View custom Editor UI stylesheet** to open `user_files`. Edit `editor-fields.css` for note fields or `editor-ui.css` for the surrounding interface. Enable the corresponding stylesheet setting and restart Anki to reload edits. These files survive add-on upgrades.
 
 Under **Syntax Highlighting > Themes**, choose **Enable Code Styling…** to add the shared syntax stylesheet to an existing note type after confirmation. This preserves its notes, fields, templates, cards, and other styling.
 
-## If something does not work
+## If Something Does Not Work
 
 - **Changes are missing on another device:** save the card settings on Desktop and sync both the collection and media, then sync the other device. After updating the add-on, restart Desktop before syncing.
 - **A shortcut does nothing:** check its enable switches and conflict warning. Check whether another Anki shortcut uses the same keys.
