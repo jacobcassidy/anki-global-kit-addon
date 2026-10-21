@@ -86,6 +86,7 @@ docs/
    - Move editor assets from `addon/desktop/editor/assets/` into `addon/assets/editor/`, also retaining `js/` and `css/` subdivisions.
    - Move shared icons and fonts into `addon/assets/icons/` and `addon/assets/fonts/`, keeping their associated notices.
    - Update source imports, Desktop asset loading, build/watch outputs, manifest paths, package rules, and validation together. Preserve installed media filenames and template imports.
+   - Extend the asset manifest to cover editor assets and shared resources where it removes duplicated path definitions. Keep each resource's packaged location and any public media name explicit.
 3. Make Settings explicitly responsible for presentation:
    - Rename `settings/features/` to `settings/pages/`.
    - Put reusable Qt controls, icons, and styling helpers under `desktop/ui/`. Split the existing `widgets.py` by responsibility as its controls move.
@@ -117,21 +118,24 @@ docs/
 
 - Desktop services must not import Settings pages or the settings dialog. Reusable UI must not import feature pages; pages and feature coordinators consume services and shared UI.
 - Keep pure rendering, paths, and configuration definitions importable without Qt. Keep Anki-dependent persistence and UI adapters separate from those definitions.
+- Distinguish packaged filesystem paths, build output paths, and public `collection.media` filenames. Resolve packaged resources independently of the working directory and verify lookup through both the development symlink and an installed archive.
 - Keep package `__init__.py` files lightweight, except for the required add-on entry point's startup call. Put explicit startup coordination in `desktop/bootstrap.py`, preserving initialization order and assigning each hook and event filter one registration owner.
 - Preserve JavaScript globals, Python–JavaScript bridge commands, saved HTML classes and data attributes, and the add-on package/configuration identity as well as public media filenames and settings keys. Internal module moves must not require rewriting existing notes or templates.
 - Preserve hook and event-filter registration counts through startup changes. Verify initialization does not introduce duplicate callbacks, controls, or shortcut handlers.
 
 ## Delivery and validation
 
-- Deliver separate stages for tests/documentation, Desktop services, Settings/shortcuts, and asset paths. Use reviewable commits on a non-main branch. Each commit must preserve behavior and independently build, test, and package successfully without temporary dependence on both layouts.
+- Deliver separate stages for tests/documentation, Desktop services, Settings/shortcuts, and asset paths. Use reviewable commits on a non-main branch. Each commit must preserve behavior and independently build, test, and package successfully. Different subsystems may migrate in separate commits, but each must use one authoritative implementation and resource location, without duplicate implementations or fallback lookups across old and new layouts.
 - Record a before/after inventory of discovered JavaScript and Python tests, accounting for renamed tests explicitly. Run the existing suites after relevant moves and verify nested tests and shared helpers are discovered.
 - Add startup/import smoke coverage that exercises package initialization and bootstrap with suitable Anki stubs, rather than loading only individual modules by file path. Verify pure modules import without Qt and startup registers the expected hooks and event filters once.
 - Run relevant lint and formatting checks, the add-on build, asset checks, and package validation. Verify that the archive contains all required resources and notices, and excludes local metadata and user data.
 - Update the hardcoded generated-file paths in `.github/workflows/tests.yml` alongside asset moves. From a clean checkout, build and regenerate all tracked outputs and require no resulting diff, including font notices and theme fallbacks once introduced. Ensure freshness checks actually cover the new output locations.
+- Verify watch mode separately from builds: changes to card, editor, and shared JavaScript/CSS and imported icons must rebuild the correct outputs. Include generated theme inputs once introduced, and confirm the watcher follows their generation dependencies.
 - Verify the development symlink still points to a directly usable `addon/` package. Check profile asset installation, editor asset injection, and template resource resolution after path changes.
 - Test both a clean installation from an extracted release archive and an upgrade from the previous package layout. Inspect how the supported installer handles obsolete files and document the result; verify old package paths cannot affect imports or resource loading. If cleanup is required, restrict it to explicitly identified obsolete Kit-owned files rather than deleting directories broadly.
 - Verify upgrades preserve `meta.json`, saved configuration, collection preferences, and user styles. Include saved markup, existing templates, browser globals, and bridge commands in compatibility checks.
 - Preserve note-type confirmation requirements, managed-media scope, native undo behavior, and cross-client functionality. Do not mix structural moves with feature changes.
+- After each stage, search the repository for retired paths and module names. Update references in active code, tests, tooling, CI, and documentation. Allow historical references in archives, migration notes, and this plan's before/after descriptions, documenting any remaining references so obsolete active lookups cannot be mistaken for intentional history.
 - Report automated checks separately from live Anki and cross-client verification. Live acceptance should cover startup, Settings, editor controls, reviewer shortcuts, and managed-media refresh.
 
 ## Assumptions and defaults
