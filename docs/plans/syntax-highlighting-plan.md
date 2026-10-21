@@ -24,29 +24,60 @@ Include:
 
 Do not include automatic collection-wide conversion, automatic changes to existing note types, or separate font-size and centering controls in the initial implementation. Preserve existing content and legacy stylesheets. JavaScript review highlighting is included, with consistent theme roles and a defined common language set; exact tokenization parity with every Pygments lexer is not a requirement.
 
+## Refactor alignment and prerequisites
+
+The [broad repository restructuring plan](broad-restructure-plan.md) is authoritative for directory ownership and structural moves. This integration plan remains authoritative for highlighting behavior, defaults, and acceptance criteria. The paths below describe the planned layout, not a claim that the refactor has already landed.
+
+- Complete the relevant Desktop service promotion and Settings separation before integrating the feature with configuration, media installation, note-type operations, shortcuts, or Settings. Pure rendering experiments and focused feasibility prototypes can proceed independently of those moves.
+- Consume the promoted services and Settings contracts rather than adding new service responsibilities under Settings or recreating its old service/helper packages. Keep structural moves and highlighting behavior changes in separate reviewable commits.
+- Asset consolidation and test relocation need not block the feature. Until those stages land, use the repository's actual build outputs, package paths, and test discovery; switch them together when their dedicated refactor stage lands. Do not create duplicate layouts or unused placeholder directories to match the target tree.
+- Move the shared Markdown renderer through the relevant structural stage before changing its Desktop highlighting consumer. Preserve the card/editor/shared runtime boundaries and update all consumers as part of that move.
+- Reconcile concrete imports, hook ownership, build/watch outputs, media manifests, package rules, tests, and documentation after each relevant refactor stage. Verify the completed refactor against this plan once more before remaining feature integration; do not defer all architectural alignment until the entire refactor is finished.
+- Preserve the installable `addon/` entry point, package/configuration identity, setting keys, public media filenames, bridge commands, browser globals, and saved HTML contracts across structural moves. Update `AGENTS.md` and source-map documentation when ownership moves, including the guidance currently locating note-type services under Settings. Existing behavioral inconsistencies discovered during restructuring are separate fixes.
+
 ## Source structure and responsibilities
+
+This tree shows the feature and its shared dependencies in the refactor's target layout. Create only modules and directories used by the implementation.
 
 ```text
 addon/
-├── vendor/
-│   └── pygments/                    # Pinned dependency and license notices
+├── __init__.py                     # Required installable add-on entry point
 ├── desktop/
+│   ├── bootstrap.py                # Explicit startup and registration ownership
+│   ├── paths.py                    # Shared filesystem paths, independent of Qt
+│   ├── config/                     # Defaults, validation, local persistence
+│   ├── media/                      # Asset manifest and managed-media installation
+│   ├── note_types/                 # Definitions and collection operations
+│   ├── shortcuts/                  # Shared validation, matching, and labels
 │   ├── syntax_highlighting/
 │   │   ├── __init__.py              # Public service interface
 │   │   ├── custom_themes/
 │   │   │   ├── __init__.py          # Kit-owned preset registration
 │   │   │   └── cassidy_dark.py      # Editable Cassidy Dark definition
 │   │   ├── language_memory.py       # Collection-scoped per-deck preferences
+│   │   ├── preferences.py           # Feature-owned collection persistence
 │   │   ├── rendering.py             # Language lookup and token HTML
+│   │   ├── tasks.py                 # Background rendering coordination
 │   │   └── themes.py                # Preset discovery and theme CSS
 │   ├── editor/
 │   │   ├── integration.py           # Existing editor hook registration
 │   │   └── features/
 │   │       └── syntax_highlighting.py
-│   └── settings/
-│       └── features/syntax_highlighting/
-│           ├── __init__.py          # Dedicated settings tab
-│           └── languages.py         # Grouped, checkable language list
+│   ├── settings/
+│   │   ├── dialog.py               # Page composition
+│   │   ├── bindings.py             # Typed controls, reset, and change detection
+│   │   ├── save.py                 # Save coordination and failure feedback
+│   │   └── pages/syntax_highlighting/
+│   │       ├── __init__.py          # Dedicated settings tab
+│   │       └── languages.py         # Grouped, checkable language list
+│   └── ui/                        # Shared Qt controls and styling
+├── assets/
+│   ├── cards/                     # Built card js/ and css/
+│   ├── editor/                    # Built editor js/ and css/
+│   ├── icons/                     # Shared icons, including the lightning button
+│   └── fonts/                     # Packaged fonts and associated notices
+├── vendor/
+│   └── pygments/                  # Pinned dependency and license notices
 └── config.json                     # Release defaults
 
 src/
@@ -57,13 +88,31 @@ src/
 │   └── tokens.js                   # Engine scopes to shared theme roles
 ├── editor/js/formatting/
 │   └── code-block.js               # Editor extraction and block updates
-└── shared/css/
-    ├── generated/cassidy-dark.css  # Headless-generated fallback palette/rules
-    └── syntax-highlighting.css     # Shared token rules and block styling
+└── shared/
+    ├── js/markdown/               # Shared renderer consumed by cards and editor
+    └── css/
+        ├── generated/cassidy-dark.css  # Headless-generated fallback palette/rules
+        └── syntax-highlighting.css    # Shared token rules and block styling
+
+tests/
+├── javascript/                    # Cards, editor, shared behavior, and tooling
+├── python/                        # Desktop services and tooling
+├── fixtures/                      # Shared Python/JavaScript source examples
+└── support/                       # Anki stubs and test helpers
 
 scripts/
 └── export_syntax_themes.py         # Headless theme export and freshness checks
 ```
+
+### Shared Desktop service ownership
+
+- `desktop/config/` owns release-default loading, validation, and local settings persistence. Keep `addon/config.json` authoritative; check Python/browser fallbacks against it and preserve intentional platform translations.
+- `desktop/media/` owns the asset manifest and managed-media writes, replacement, and recovery. Highlighting supplies generated theme bytes; neither Settings pages nor the pure rendering service write media directly.
+- `desktop/note_types/` owns the confirmed additive syntax-import operation and all collection model updates. Settings presents the operation and its impact, preserving existing confirmation rules.
+- `desktop/shortcuts/` owns shared matching, validation, labels, and native event handling. Editor integration consumes its context-appropriate interfaces instead of importing Settings helpers.
+- `desktop/settings/pages/` owns feature presentation, `settings/bindings.py` owns typed control bindings, and `settings/save.py` coordinates Save through service APIs. Reusable Qt controls live in `desktop/ui/`. Services must not import Settings pages or the dialog; shared UI must not import feature pages.
+- Keep rendering, theme definitions, and shared path/configuration definitions importable without Qt. Keep feature-specific collection persistence in `syntax_highlighting/preferences.py`, exposed through the language-memory and theme interfaces, and background-task coordination in `syntax_highlighting/tasks.py`.
+- Keep package initializers lightweight. `desktop/bootstrap.py` owns explicit startup coordination, while the editor integration owns its feature-hook registration. Assign each hook and event filter one registration owner; repeated initialization must not duplicate callbacks, controls, or shortcuts.
 
 ### Dependency and rendering service
 
@@ -81,8 +130,8 @@ scripts/
 - Keep toolbar, shortcut, language-selection UI, clipboard access, and service orchestration in `editor/features/syntax_highlighting.py`.
 - Use a split highlighting button: the main lightning-icon action highlights immediately, and its adjacent arrow opens a menu containing **Highlight Code** and **Code Block Options…**. Keep the language dropdown next to the button. Disable Code Block Options when the caret or selection is outside a recognized code block.
 - Code Block Options opens a dialog for the current block with line-number visibility, starting number, and cloze-handling controls. **Apply to Block** updates only that block as one undoable edit; Cancel leaves it unchanged. Keep the main highlighting action direct and reject application if the target block or note changes while the dialog is open.
-- Use the existing `editor/integration.py` to register the feature through supported hooks and refresh saved settings in open editors. Avoid growing that file into the rendering implementation.
-- Extend existing shortcut validation and conflict handling. Respect Qt's macOS modifier mapping and the separate standard browser-event mapping.
+- Use `desktop/editor/integration.py` to register the feature through supported hooks and refresh saved settings in open editors, coordinated by the refactored bootstrap. Avoid growing that file into the rendering implementation.
+- Extend the promoted shortcut service's validation and conflict handling. Respect Qt's macOS modifier mapping and the separate standard browser-event mapping.
 - Let `code-block.js` own target capture, plain-text extraction, block markup, line-number decorations, and application of returned token HTML.
 - Reuse the selection helpers and `editWithNativeUndo` transaction. Applying or refreshing highlighting must be one native undoable edit.
 - Associate each request with its editor, note, field, target range, source snapshot, and resolved deck context. Discard the response if that target is no longer current, its content has changed, or its deck context has changed. Discarded requests must not update language memory.
@@ -99,15 +148,16 @@ scripts/
 - Persist language choices using canonical language identifiers. Limit the editor language picker and default-language choices to checked languages. If the configured default is unchecked, select the first checked language alphabetically; if none are checked, disable highlighting and show an explanation directing the user to this tab. Keep that empty selection valid and reversible.
 - Treat this list as editor visibility configuration, not a limit on either rendering engine. Changing the checked languages must not rewrite existing blocks, remove their language metadata, or disable supported review languages or explicit Markdown fence languages. Existing blocks retain their recorded language when highlighted again, even if that language is hidden from the picker.
 - Keep release defaults in `addon/config.json` and align the Python and browser fallback defaults. Extend existing configuration reading, validation, and saving rather than adding another persistence mechanism.
-- Extend the settings dialog's value reading, writing, change detection, and reset behavior beyond its current checkbox/shortcut controls. Support language/theme dropdowns, language lists, and positive integer starting numbers with explicit types. Save commits valid changes, Cancel discards staged changes, and Reset restores the defined defaults in the UI until saved.
+- Extend `desktop/settings/bindings.py` for typed value reading/writing, change detection, and reset behavior beyond checkbox/shortcut controls. Support language/theme dropdowns, language lists, and positive integer starting numbers with explicit types. Save commits valid changes through `settings/save.py`, Cancel discards staged changes, and Reset restores the defined defaults in the UI until saved.
 - Recover malformed saved values individually using defaults while retaining other valid settings. Validate list entries as supported canonical language identifiers, preserving valid entries; an intentionally empty language list remains valid. Flag invalid new UI input and block Save until corrected. Preserve unrelated stored settings and collection-scoped deck memory when saving.
 - Use `anki_editor_` settings for authoring controls and keep those controls local to the Desktop installation. Theme selections are collection-scoped, synced preferences as described below, available to the theme service and settings UI without being overwritten by an ordinary local-settings save.
 - Keep previews read-only. A successful settings save refreshes editor presentation and managed theme media without rewriting note fields. Follow the coordinated save and recovery behavior below.
-- Add a separate confirmed note-type action to the existing note-type service: enable Kit code styling by adding only the syntax stylesheet import. Do not invoke Replace, change card templates, remove cards, or alter fields.
+- Add a separate confirmed action to the promoted `desktop/note_types/` service: enable Kit code styling by adding only the syntax stylesheet import. Do not invoke Replace, change card templates, remove cards, or alter fields.
 - Show the target note type and exact styling change before confirmation. Re-read the current note type before applying the additive, idempotent update through documented `col.models` APIs.
 
 ### Settings save and stylesheet recovery
 
+- Implement Save coordination in `desktop/settings/save.py`, using `desktop/config/` for local persistence, feature-owned collection preference APIs, and `desktop/media/` for stylesheet installation/recovery. Keep generation in the pure theme service and failure feedback in Settings.
 - Generate and validate the requested theme CSS before committing staged settings. Keep the previous local settings, complete shared theme records and revisions, and working stylesheet available for recovery during the save. Re-read current shared records before committing so stale dialog state cannot silently overwrite a newer synchronized theme revision.
 - Treat settings persistence and stylesheet installation as one successful Save from the user's perspective. If installation or another application step fails, preserve or restore the previous working settings and stylesheet, leave the dialog open with staged edits intact, and explain the error with a retry path. Do not report success or close the dialog after a failed save.
 - If a partial write requires restoration, verify that restoration succeeded. If recovery itself fails, report the actual state and recovery error clearly rather than claiming the previous working state was preserved. Keep unrelated settings and media outside the operation.
@@ -158,7 +208,7 @@ Use canonical aliases in saved markup. An empty checked-language list continues 
 ### Per-deck language memory
 
 - Add the authoring setting `anki_editor_syntax_highlighting_remember_language_per_deck`, defaulting to false. Disabling it stops both lookups and writes but preserves remembered choices for later re-enabling.
-- Keep memory reads and writes in `addon/desktop/syntax_highlighting/language_memory.py`. The editor feature resolves the deck and supplies its ID; the renderer remains independent of decks and collection state.
+- Keep the language-memory interface and policy in `addon/desktop/syntax_highlighting/language_memory.py`, delegating collection persistence to the feature's `preferences.py`. The editor feature resolves the deck and supplies its ID; the renderer remains independent of decks and collection state.
 - Store a mapping of stringified deck IDs to canonical language aliases under the namespaced collection configuration key `anki_global_kit.syntax_highlighting.deck_languages`, using supported collection configuration APIs. This scopes memory to the collection, survives deck renames, and allows it to sync with the collection. Keep the map out of add-on release defaults, generated media, and the ordinary settings-dialog save payload.
 - Resolve the deck when the highlighting action runs, not from the main window's globally selected deck. In the Add window, use that window's currently selected destination deck. When editing a specific card, use its original deck for a filtered card and its current deck otherwise. Without a specific card context, use the note's deck only if all its cards resolve to the same original/nonfiltered deck. If the context is ambiguous or unavailable, use normal language fallback without reading or writing deck memory.
 - Treat each deck independently; do not inherit preferences from parent decks. If a deck is deleted, ignore its stored entry. A renamed deck keeps its preference because its ID is unchanged.
@@ -184,6 +234,7 @@ Use canonical aliases in saved markup. An empty checked-language list continues 
 ### Markdown and cross-client behavior
 
 - Route Desktop Paste Markdown as HTML code blocks through the Python rendering service, then apply the complete insertion as one undoable edit.
+- Consume Markdown conversion from the refactored `src/shared/js/markdown/` package in both card and editor paths; do not reintroduce an editor import from the card-specific Markdown directory.
 - Respect an explicit supported fence language. For an unlabeled fence, use a recognized Topic language; leave unsupported explicit languages and unresolved unlabeled blocks as escaped plain code.
 - Remove Desktop Markdown's dependency on the current JavaScript tokenizer after routing it through Pygments. Replace that tokenizer with the review engine described below, keeping its adapter and card observation logic under `src/cards/js/syntax-highlighting/`. Move code into `src/shared/js/` only if another runtime actually consumes it.
 - Saved Pygments HTML and its CSS display across clients. Pygments itself runs only on Desktop; newly typed answers use the upgraded JavaScript engine on every review client, including Desktop.
@@ -215,7 +266,7 @@ Use canonical aliases in saved markup. An empty checked-language list continues 
 - Let `themes.py` combine Kit-owned presets with Pygments presets and generate the selected light and dark definitions. Register the built-in **Cassidy Dark** preset under the stable identifier `cassidy-dark`.
 - Keep Cassidy Dark's definition in `addon/desktop/syntax_highlighting/custom_themes/cassidy_dark.py`, separate from the vendored dependency. Initialize its palette, code-block foreground/background, and token font styles from the existing shared syntax stylesheet and syntax color variables. Use this same appearance in both modes; do not create a lighter variant or introduce a separate Kit Classic preset. This is the starter definition for the user's later theme edits.
 - Default both light and dark theme settings to `cassidy-dark` in release defaults and runtime fallbacks. A missing or empty selection with no usable shared definition falls back to Cassidy Dark for that mode. Reset stages the Cassidy Dark selection and definition for both modes. Preserve valid explicitly selected alternatives across restarts and upgrades, and retain independent mode selectors so users can choose different presets later.
-- Store a light/dark pair of shared theme records in collection configuration under `anki_global_kit.syntax_highlighting.themes`, using supported collection configuration APIs. Each record includes the preset identifier, display name, resolved token/palette/style data, and a revision, with a versioned data format. Sync these records with the collection so installations with different local preset definitions generate CSS from the same shared data. Keep local authoring controls outside this synced preference. Sync only validated colors and style data, never Python code or arbitrary executable content.
+- Store a light/dark pair of shared theme records in collection configuration under `anki_global_kit.syntax_highlighting.themes`, through the feature-owned `syntax_highlighting/preferences.py` adapter and supported collection configuration APIs. Each record includes the preset identifier, display name, resolved token/palette/style data, and a revision, with a versioned data format. Sync these records with the collection so installations with different local preset definitions generate CSS from the same shared data. Keep local authoring controls outside this synced preference. Sync only validated colors and style data, never Python code or arbitrary executable content.
 - Profile open and sync refresh read and apply compatible shared definitions without republishing local preset definitions. If a preset is absent from the local registry but its shared definition is compatible, use the shared data. If an installation cannot interpret a newer shared format, leave the shared stylesheet and preferences intact, report the compatibility issue, and use the existing stylesheet or bundled fallback locally. Never overwrite a newer shared definition merely because local preset code differs.
 - Selecting a different preset stages its resolved definition and publishes it with a new revision on a successful Settings save. Add **Update Shared Theme from This Installation** in Syntax Highlighting settings for explicitly replacing the definition of an already selected preset, including after later Cassidy Dark edits. This action stages the local definition for preview and publication; Cancel discards it. An unrelated settings save must not republish the same preset from stale local code. Regenerate media after a successful publication or a compatible synchronized definition change.
 - Bundle readable Cassidy Dark fallback variables and scoped rules with the review assets and editor styles, generated from the same preset definition. Use them when `_syntax-highlighting.css` is missing, has not downloaded, or cannot load; let the generated selected-theme stylesheet take precedence when available. Do not maintain a separate hand-edited fallback palette.
@@ -223,24 +274,28 @@ Use canonical aliases in saved markup. An empty checked-language list continues 
 - Represent theme colors with CSS variables, including token foreground/background colors and code-block foreground/background colors. Preserve bold, italic, and inherited token styles. Qt controls use Anki color tokens.
 - Scope new rules to Kit code blocks. Do not inject global rules for short classes such as `.k` or `.s` into unrelated content.
 - Reuse the shared stylesheet for token presentation and layout. Separate palette selection from tokenization so compatible class-based snippets can change themes without rewriting their fields.
-- Create a new media file named exactly `_syntax-highlighting.css` containing the selected theme CSS and scoped structural rules. Use this filename consistently in the asset manifest, installer, template imports, note-type styling action, packaging checks, and documentation. Use Kit-owned names for all feature classes and identifiers. Extend the existing media installer to support this generated asset, refreshing it on profile open and after a theme save through Anki's media manager.
+- Create a new media file named exactly `_syntax-highlighting.css` containing the selected theme CSS and scoped structural rules. Use this filename consistently in the promoted `desktop/media/` manifest/installer, template imports, note-type styling action, packaging checks, and documentation. Use Kit-owned names for all feature classes and identifiers. Extend that media service for the generated asset, refreshing it on profile open and after a theme save through Anki's media manager.
 - Inject the same selected theme CSS into editor field shadow roots and theme previews using existing style injection facilities. Verify light/dark selection in each supported client context.
 - Add the syntax stylesheet import to new Kit template parts. Existing Kit note types acquire that import only through an explicitly confirmed update; document both the additive styling action and the existing Replace workflow accurately.
 - Ordinary note types can receive the syntax import through the separate styling action without acquiring Kit layout rules. The dedicated stylesheet must not require the full Kit card stylesheet or its font installation to remain readable.
 - Preserve existing legacy class styling until compatibility tests justify narrowing it. Do not overwrite or delete third-party stylesheets, their note-type imports, or unrelated media. Do not reuse third-party branding in feature filenames, CSS classes, identifiers, or documentation.
 - Extend the asset manifest, build/package validation, and archive contents for the generated stylesheet, vendored dependency, and notices. No runtime Python dependency is copied into `collection.media`.
+- Follow the refactor's packaged asset targets: card bundles under `addon/assets/cards/{js,css}/`, editor bundles under `addon/assets/editor/{js,css}/`, and shared icons/fonts under `addon/assets/{icons,fonts}/`. Resolve them through `desktop/paths.py` and the media/editor adapters. If consolidation has not landed yet, keep using the active paths until its dedicated move updates build/watch outputs, loading, manifests, package rules, and CI together; public installed filenames remain unchanged.
 
 ### Headless theme generation
 
 - Add `scripts/export_syntax_themes.py` to generate `src/shared/css/generated/cassidy-dark.css` from the canonical Python preset and shared CSS-generation logic. Import the pure theme modules without running the Anki add-on entry point or Qt-bound package initializers. Require no running Anki instance or active profile.
 - Run export before esbuild in the normal build pipeline so both card and editor CSS consume fresh fallback output. Preserve one source for Cassidy Dark's token styles and palette; do not hand-maintain a second CSS definition. Profile-specific selected-theme media remains a runtime product of the shared collection definitions.
 - Provide a deterministic freshness check for the generated output and include it in asset/package validation and CI. Fail the build on export errors and fail freshness checks on missing or stale output rather than shipping old styling.
+- Apply the broad refactor's tooling policy: exclude `addon/vendor/` from first-party formatters, linters, and automatic hook rewrites, while checking pinned dependency presence and notices. Validate generated fallback CSS through its exporter and freshness check rather than independently editing or formatting it. Keep the tracked-output workflow and clean-checkout build checks aligned with any asset-path moves.
 
 ## Delivery and validation
 
 Before building out the full interface, use focused prototypes to prove isolated Pygments loading, active/literal cloze preservation, native undo/redo, and review responsiveness on representative mobile clients. Use these results to validate the proposed architecture and provisional limits early; do not defer the first feasibility checks until final acceptance.
 
 Implement in reviewable stages, each with appropriate validation and a separate commit on a non-main branch:
+
+The relevant service/Settings ownership stages are prerequisites for the integration stages below. Land them under the broad refactor plan with behavior-preserving build/test/package checks; do not fold structural moves into a highlighting feature commit. Asset consolidation and test relocation may land independently. After each affected move, reconcile this plan's concrete paths and service contracts with the actual repository before continuing.
 
 1. Establish isolated dependency loading and prove coexistence in both load orders, then add the pure rendering/theme services, initial Cassidy Dark preset, headless pre-esbuild export, and package/freshness coverage.
 2. Add editor targeting and insertion, the Python coordinator, language picker, configurable action, and per-deck language-memory service and deck resolution.
@@ -250,6 +305,8 @@ Implement in reviewable stages, each with appropriate validation and a separate 
 
 Automated coverage:
 
+- Add first-party tests to the refactor's active test layout: target `tests/javascript/{cards,editor,shared,tooling}/` and `tests/python/{desktop,tooling}/`, with shared snippets in `tests/fixtures/` and Anki stubs/helpers in `tests/support/`. If test relocation has not landed, use the current suite until its dedicated move updates all discovery and imports together. Verify recursive JavaScript discovery, discoverable Python subpackages, explicit helper imports, and before/after test inventories so nested highlighting tests are not silently omitted.
+- Verify pure rendering/theme/path/configuration definitions import without Qt, and bootstrap/editor initialization registers each feature hook once. Include smoke tests that exercise package startup with Anki stubs and verify no service imports the Settings dialog/pages.
 - Render representative existing languages and newly supported HTML, CSS, Markdown, PowerShell, and Kotlin; validate aliases and invalid-language failures.
 - Verify exact source preservation, escaping, Unicode, indentation, trailing newlines, literal template-like syntax, and cloze handling.
 - Verify saved-content round trips: save/reopen notes, switch between rich-text and HTML editing, and sync to another client. Confirm language metadata, per-block numbering, cloze-handling mode, active/literal cloze behavior, source whitespace, and subsequent re-highlighting survive Anki's persistence and HTML normalization. Use live acceptance where isolated tests cannot establish these behaviors.
@@ -288,6 +345,8 @@ Automated coverage:
 - Verify theme export runs headlessly before bundling, produces deterministic fallback output from the Python definition, and is shared by card/editor builds. Cover clean builds, definition edits, missing/stale generated CSS, failed export, and package/CI freshness enforcement without Anki or Qt.
 
 Run focused tests while developing, then the project test suites, relevant lint/format checks, `npm run build:addon`, `npm run check:assets`, and package validation. Do not present isolated tests as live Anki verification.
+
+Use the refactor's clean-checkout generated-output check, updating workflow paths when assets move, and require no diff after regenerating tracked bundles/notices/fallback CSS. Validate installation from an extracted release archive and upgrade from the previous layout, including obsolete-file handling, retained user/configuration data, editor injection, and media/template resource resolution. Keep the development link usable throughout; report any temporarily unmoved target paths accurately.
 
 Manual acceptance should cover Anki Desktop 26.05 and a current supported release, Add/Browse editors, note switching while rendering, native undo/redo, light/dark mode, and synced display on AnkiWeb, AnkiMobile, and AnkiDroid. On every review client, compare saved reference code with newly submitted code under Cassidy Dark and an alternative preset. Record bundle-size changes and mobile responsiveness for long answers. Confirm behavior against official minimum-version APIs before using new hooks or collection operations.
 
