@@ -14,7 +14,7 @@ Choose **Tools > Anki Global Kit Settings...**, open **Note Types**, and select 
 - **Replace** updates an existing type's first card template and styling after explicit selection and confirmation. Notes and fields are kept, and missing kit fields are added. For standard note types, additional card templates and their associated cards are removed, including those cards' scheduling. The confirmation lists the affected note types, additional template names, and template and card removal counts. The existing type must be standard for **Advance** or Cloze for **Cloze**.
 - **Delete** removes an empty note type after confirmation, or removes an uncreated custom topic row. Types containing notes cannot be deleted here. After a Delete action, a custom topic row is removed if none of its formats remain.
 
-Choose **Update Selected Note Types** and confirm the listed collection changes. These actions apply separately from **Save**, which applies settings. **Cancel** does not undo confirmed note type changes. Sync the collection and media afterward to make the changes available on your other devices.
+Choose **Apply Selected Changes** and confirm the listed collection changes. These actions apply separately from **Save**, which applies settings. **Cancel** does not undo confirmed note type changes. Sync the collection and media afterward to make the changes available on your other devices.
 
 ## Customizing editor styles
 
@@ -31,7 +31,7 @@ npm install
 npm run build:addon
 ```
 
-Copy the `addon` folder into Anki's add-ons folder and restart Anki. On profile open, the add-on installs or refreshes the card JavaScript, CSS, and font in that profile. In **Tools > Anki Global Kit Settings... > Note Types**, select topics and card formats, then choose **Update Selected Note Types** and confirm. Sync your collection and media before reviewing on other devices.
+Copy the `addon` folder into Anki's add-ons folder and restart Anki. On profile open, the add-on installs or refreshes the card JavaScript, CSS, and font in that profile. In **Tools > Anki Global Kit Settings... > Note Types**, select topics and card formats, then choose **Apply Selected Changes** and confirm. Sync your collection and media before reviewing on other devices.
 
 The **Cards** settings tab controls question-input Markdown shortcuts and indentation, answer Markdown rendering and syntax highlighting, and the question formatting toolbar and its buttons. Fenced code uses an explicit language label when supplied after the opening backticks (for example, a `python` label); otherwise, syntax highlighting is inferred from the card topic. The toolbar appears above question inputs; each button tooltip lists its shortcut. The **Editor** tab controls features in Anki Desktop's note editor, including inline-code formatting, indentation, and copy behavior. Card settings sync with your collection; Desktop editor settings apply in Anki Desktop.
 

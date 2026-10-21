@@ -34,6 +34,7 @@ from ....ui.help import HelpIndicator
 from ....ui.input_styles import style_settings_input
 from ....ui.layouts import add_checkbox_row, make_scroll_area
 from ....ui.theme import get_theme_color
+from ..note_types.actions import enable_syntax_styling
 
 DEFAULT_LANGUAGES = {
     "bash",
@@ -394,6 +395,27 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
     )
     publication_row.addStretch()
     themes_layout.addLayout(publication_row)
+    syntax_style_button = QPushButton("Enable Code Styling…", themes_section)
+    syntax_style_button.setAutoDefault(False)
+    syntax_style_button.setToolTip(
+        "Add only the syntax stylesheet import to an existing note type"
+    )
+    syntax_style_button.clicked.connect(lambda: enable_syntax_styling(parent))
+    syntax_style_row = QHBoxLayout()
+    syntax_style_row.addWidget(syntax_style_button)
+    syntax_style_row.addWidget(
+        HelpIndicator(
+            "Enable Code Styling",
+            "Choose an existing note type and confirm to add the shared syntax "
+            "highlighting stylesheet import. This lets saved Highlight Code blocks "
+            "use your selected themes during card review. Notes, fields, card "
+            "templates, and other styling are preserved. Sync afterward to apply "
+            "the stylesheet on other devices.",
+            themes_section,
+        )
+    )
+    syntax_style_row.addStretch()
+    themes_layout.addLayout(syntax_style_row)
     layout.addStretch()
 
     theme_snapshot = {

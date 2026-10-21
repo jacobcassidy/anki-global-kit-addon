@@ -26,7 +26,7 @@ from ....config.service import save_note_type_selections
 from ....note_types.service import FORMATS, TOPICS
 from ....ui.constants import NOTE_TYPES_ROW_PADDING, ZERO_MARGINS
 from ....ui.help import HelpIndicator
-from .actions import apply_selected_note_type_changes, enable_syntax_styling
+from .actions import apply_selected_note_type_changes
 from .table import NoteTypesTable
 
 
@@ -66,14 +66,8 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     note_type_checks: dict[str, dict[str, QCheckBox]] = {}
     overwrite_checks: dict[str, dict[str, QCheckBox]] = {}
     delete_checks: dict[str, dict[str, QCheckBox]] = {}
-    note_types_button = QPushButton("Update Selected Note Types", note_types_tab)
+    note_types_button = QPushButton("Apply Selected Changes", note_types_tab)
     note_types_button.setAutoDefault(False)
-    syntax_style_button = QPushButton("Enable Code Styling…", note_types_tab)
-    syntax_style_button.setAutoDefault(False)
-    syntax_style_button.setToolTip(
-        "Add only the syntax stylesheet import to an existing note type"
-    )
-    syntax_style_button.clicked.connect(lambda: enable_syntax_styling(parent))
 
     def update_note_types_button_state(*_args) -> None:
         has_selection = (
@@ -436,18 +430,6 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     note_types_controls_layout.setContentsMargins(*ZERO_MARGINS)
     note_types_controls_layout.addWidget(add_button)
     note_types_controls_layout.addStretch()
-    note_types_controls_layout.addWidget(syntax_style_button)
-    note_types_controls_layout.addWidget(
-        HelpIndicator(
-            "Enable Code Styling",
-            "Choose an existing note type and confirm to add the shared syntax "
-            "highlighting stylesheet import. This lets saved Highlight Code blocks "
-            "use your selected themes during card review. Notes, fields, card "
-            "templates, and other styling are preserved. Sync afterward to apply "
-            "the stylesheet on other devices.",
-            note_types_controls,
-        )
-    )
     note_types_controls_layout.addWidget(note_types_button)
     note_types_layout.addWidget(note_types_controls)
     note_types_layout.addStretch()

@@ -20,14 +20,14 @@ Open **Tools > Anki Global Kit Settings...** on Desktop. Use **Cards** for revie
 
 1. Open **Note Types** and choose a topic.
 2. Check **Create** under **Advance** for question-and-answer cards, or **Cloze** for cloze-deletion cards. Use **+** to add your own topic.
-3. Choose **Update Selected Note Types** and confirm the changes.
+3. Choose **Apply Selected Changes** and confirm the changes.
 4. Add a note using the new type, such as **Python (Advance)**, then sync your collection and media before reviewing on another device.
 
 For Advance notes, fill in **Question** and **Answer**. Enter `yes` in **Compare** to highlight differences from your typed answer; leave it empty to show the answers separately. Hints, bonus questions, and notes are optional. Cloze notes use **Cloze Question** and compare the primary answer automatically.
 
 Existing note types are checked automatically. To update their first card template and styling, select **Replace** and confirm. Existing notes and fields are kept, and missing kit fields are added. For standard note types, additional card templates and their associated cards are removed, including those cards' scheduling. Review the affected note types, additional template names, and template and card removal counts in the confirmation before proceeding. If the active collection, selected note types, affected templates, or card counts change after confirmation, the operation stops so you can review and confirm again.
 
-**Delete** removes empty note types or uncreated custom topics. Move or delete a type's notes first if deletion is unavailable. Note type actions apply through **Update Selected Note Types**, separately from **Save**.
+**Delete** removes empty note types or uncreated custom topics. Move or delete a type's notes first if deletion is unavailable. Note type actions apply through **Apply Selected Changes**, separately from **Save**.
 
 Custom topic headings display braces as literal text. If an existing kit topic name contains `{{…}}`, select **Replace** for its note types and confirm to apply the corrected heading, then sync the collection and media.
 
@@ -50,6 +50,8 @@ Click a shortcut field and press the new combination. **Escape** cancels capture
 Enable **Show custom formatting toolbar** and **Show Inline Code button** under **Editor Toolbar** or its shortcut under **Editor Fields** to format a selection or word. On macOS, physical **Control+Shift+C** inserts Cloze; **Command+Shift+C** is the default inline-code shortcut.
 
 Under **Editor Styles**, choose **View Editor Fields stylesheet** or **View Editor UI stylesheet** to open `user_files`. Edit `editor-fields.css` for note fields or `editor-ui.css` for the surrounding interface. Enable the corresponding stylesheet setting and restart Anki to reload edits. These files survive add-on upgrades.
+
+Under **Syntax Highlighting > Themes**, choose **Enable Code Styling…** to add the shared syntax stylesheet to an existing note type after confirmation. This preserves its notes, fields, templates, cards, and other styling.
 
 ## If something does not work
 
