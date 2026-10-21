@@ -151,9 +151,7 @@ function requestHighlight(clipboardText, language) {
       lineNumbers: target.block
         ? target.block.dataset.lineNumbers === 'true'
         : globalThis.ankiGlobalKitEditorSettings?.anki_editor_syntax_highlighting_line_numbers === true,
-      lineStart: target.block
-        ? Number.parseInt(target.block.dataset.lineStart || '1', 10)
-        : globalThis.ankiGlobalKitEditorSettings?.anki_editor_syntax_highlighting_line_number_start || 1,
+      lineStart: target.block ? Number.parseInt(target.block.dataset.lineStart || '1', 10) : 1,
     })}`,
   );
   return true;

@@ -13,7 +13,6 @@ from aqt.qt import (
     QListWidgetItem,
     QPushButton,
     QSizePolicy,
-    QSpinBox,
     QStyle,
     QStyledItemDelegate,
     QStyleOptionViewItem,
@@ -289,41 +288,11 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
     line_numbers.setChecked(
         current_settings["anki_editor_syntax_highlighting_line_numbers"]
     )
-    add_checkbox_row(lines_layout, line_numbers)
-    start = QSpinBox(lines_section)
-    start.setRange(1, 1_000_000)
-    start.setValue(
-        current_settings["anki_editor_syntax_highlighting_line_number_start"]
+    add_checkbox_row(
+        lines_layout,
+        line_numbers,
+        "New code blocks start at line 1. Use Code Block Options in the editor to change an individual block's starting line number.",
     )
-    start.setMinimumWidth(80)
-    start.setButtonSymbols(QSpinBox.ButtonSymbols.NoButtons)
-    style_settings_input(start, input_height)
-    start_control = QWidget(lines_section)
-    start_layout = QHBoxLayout(start_control)
-    start_layout.setContentsMargins(*ZERO_MARGINS)
-    start_layout.setSpacing(4)
-    decrease = QPushButton("−", start_control)
-    increase = QPushButton("+", start_control)
-    for button, name in ((decrease, "Decrease"), (increase, "Increase")):
-        button.setAutoDefault(False)
-        button.setAutoRepeat(True)
-        button.setFixedSize(input_height, input_height)
-        button.setAccessibleName(f"{name} starting line number")
-        button.setToolTip(f"{name} starting line number")
-    decrease.clicked.connect(start.stepDown)
-    increase.clicked.connect(start.stepUp)
-    start_layout.addWidget(decrease)
-    start_layout.addWidget(start)
-    start_layout.addWidget(increase)
-
-    def update_line_step_buttons(*_args):
-        decrease.setEnabled(start.value() > start.minimum())
-        increase.setEnabled(start.value() < start.maximum())
-
-    start.valueChanged.connect(update_line_step_buttons)
-    update_line_step_buttons()
-    add_field_row(lines_layout, "Starting line number", start_control)
-
     theme_controls = {}
     theme_preview_frame = QFrame(themes_section)
     theme_preview_frame.setObjectName("syntaxThemePreview")
@@ -451,7 +420,6 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
         {
             "anki_editor_syntax_highlighting_remember_language_per_deck": remember,
             "anki_editor_syntax_highlighting_line_numbers": line_numbers,
-            "anki_editor_syntax_highlighting_line_number_start": start,
             "anki_editor_syntax_highlighting_languages": language_control,
             "anki_editor_syntax_highlighting_default_language": default_language,
         },
