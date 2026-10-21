@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { execFileSync } from 'node:child_process';
 import { JSDOM } from 'jsdom';
 import { refreshEditorToolbar } from '../../../src/editor/js/toolbar.js';
 
@@ -46,17 +47,26 @@ test('editor toolbar settings refresh custom buttons together while preserving i
   }
 });
 
-test('toolbar gaps separate visible groups and collapse when groups are hidden', () => {
-  const commands = [
-    'syntax_highlighting',
-    'syntax_language',
-    'code_block_options',
-    'blockquote',
-    'paste_markdown_as_html',
-    'inline_code',
-  ];
+test('rendered toolbar groups retain gaps and rounded edges without the optional UI stylesheet', () => {
+  const html = execFileSync(
+    'python3',
+    [
+      '-c',
+      `
+from unittest.mock import Mock
+from tests.support.anki_stubs import load_editor_integration, load_settings_services
+integration = load_editor_integration(load_settings_services().config.get_editor_settings())
+editor = Mock()
+editor.addButton.side_effect = lambda **kwargs: f'<button class="anki-addon-button linkb" data-command="{kwargs["cmd"]}"></button>'
+buttons = []
+integration._add_button(buttons, editor)
+print(''.join(buttons))
+`,
+    ],
+    { cwd: new URL('../../../', import.meta.url), encoding: 'utf8' },
+  );
   const dom = new JSDOM(
-    `<body><button data-command="bold"></button>${commands.map((command) => `<span><button data-command="anki_global_kit_${command}"></button></span>`).join('')}</body>`,
+    `<body><button data-command="bold"></button><div class="button-group btn-group"><div style="display: contents; --border-left-radius: 5px; --border-right-radius: 5px;">${html}</div></div></body>`,
   );
   const previousDocument = globalThis.document;
   const previousSettings = globalThis.ankiGlobalKitEditorSettings;
@@ -68,34 +78,53 @@ test('toolbar gaps separate visible groups and collapse when groups are hidden',
 
     globalThis.ankiGlobalKitEditorSettings = settings;
 
-    const checkGaps = (expected) => {
+    const toolbar = document.querySelector('[data-anki-global-kit-toolbar]');
+    const radius = 'var(--anki-global-kit-toolbar-group-radius, 5px)';
+
+    assert.equal(toolbar.style.columnGap, 'var(--anki-global-kit-toolbar-group-gap, 8px)');
+
+    const checkGroups = (expected) => {
       refreshEditorToolbar();
+      const groups = [...toolbar.querySelectorAll('[data-anki-global-kit-toolbar-group]')];
+      const visibleGroups = groups.filter((group) => group.style.display !== 'none');
+
       assert.deepEqual(
-        [...document.querySelectorAll('.anki-global-kit-toolbar-group-start')].map((button) =>
-          button.dataset.command.replace('anki_global_kit_', ''),
-        ),
+        visibleGroups.map((group) => group.dataset.ankiGlobalKitToolbarGroup),
         expected,
       );
+
+      for (const group of visibleGroups) {
+        const visible = [...group.querySelectorAll('button')].filter((button) => button.style.display !== 'none');
+
+        for (const button of visible) {
+          assert.equal(button.style.getPropertyValue('--border-left-radius'), button === visible[0] ? radius : '0');
+          assert.equal(
+            button.style.getPropertyValue('--border-right-radius'),
+            button === visible.at(-1) ? radius : '0',
+          );
+        }
+      }
+
       assert.equal(document.querySelector('[data-command="bold"]').className, '');
     };
 
-    checkGaps(['blockquote', 'inline_code']);
+    checkGroups(['syntax-highlighting', 'formatting', 'inline-code']);
     settings.anki_editor_blockquote_button = false;
-    checkGaps(['paste_markdown_as_html', 'inline_code']);
+    checkGroups(['syntax-highlighting', 'formatting', 'inline-code']);
     settings.anki_editor_paste_markdown_as_html_button = false;
-    checkGaps(['inline_code']);
+    checkGroups(['syntax-highlighting', 'inline-code']);
     settings.anki_editor_syntax_highlighting_button = false;
-    checkGaps([]);
+    checkGroups(['inline-code']);
     settings.anki_editor_blockquote_button = true;
-    checkGaps(['inline_code']);
+    checkGroups(['formatting', 'inline-code']);
     settings.anki_editor_inline_code_button = false;
-    checkGaps([]);
+    checkGroups(['formatting']);
     settings.anki_editor_toolbar_enabled = false;
-    checkGaps([]);
+    checkGroups([]);
     settings.anki_editor_toolbar_enabled = true;
     settings.anki_editor_inline_code_button = true;
     settings.anki_editor_syntax_highlighting_button = true;
-    checkGaps(['blockquote', 'inline_code']);
+    checkGroups(['syntax-highlighting', 'formatting', 'inline-code']);
   } finally {
     globalThis.document = previousDocument;
     globalThis.ankiGlobalKitEditorSettings = previousSettings;

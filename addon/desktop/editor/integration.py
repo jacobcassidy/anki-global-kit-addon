@@ -14,7 +14,7 @@ from ..paths import ICON_ASSET_DIR, USER_FILES_DIR
 from ..shortcuts.formatting import EDITOR_BLOCK_SHORTCUTS as BLOCK_SHORTCUTS
 from ..shortcuts.formatting import editor_fixed_shortcut_action, normalize_shortcut
 from ..shortcuts.labels import shortcut_label
-from .buttons import toolbar_button
+from .buttons import toolbar_button, toolbar_groups
 from .features import field_descriptions, syntax_highlighting
 
 EDITOR_ASSET = EDITOR_ASSET_PATHS["editor.min.js"]
@@ -135,9 +135,10 @@ def _change_indentation(editor: Editor, action: str) -> None:
 
 def _add_button(buttons: list, editor: Editor) -> None:
     settings = get_editor_settings()
-    syntax_highlighting.add_button(buttons, editor, settings)
+    custom_buttons = []
+    syntax_highlighting.add_button(custom_buttons, editor, settings)
 
-    buttons.append(
+    custom_buttons.append(
         toolbar_button(
             editor,
             settings,
@@ -148,7 +149,7 @@ def _add_button(buttons: list, editor: Editor) -> None:
             tip=_button_tip("Blockquote", "anki_editor_blockquote_shortcut", settings),
         )
     )
-    buttons.append(
+    custom_buttons.append(
         toolbar_button(
             editor,
             settings,
@@ -159,7 +160,7 @@ def _add_button(buttons: list, editor: Editor) -> None:
             tip="Paste Markdown as HTML",
         )
     )
-    buttons.append(
+    custom_buttons.append(
         toolbar_button(
             editor,
             settings,
@@ -168,6 +169,15 @@ def _add_button(buttons: list, editor: Editor) -> None:
             cmd="anki_global_kit_inline_code",
             func=_toggle_inline_code,
             tip=_inline_code_tip(settings),
+        )
+    )
+    buttons.append(
+        toolbar_groups(
+            [
+                ("syntax-highlighting", "Syntax Highlighting", custom_buttons[:3]),
+                ("formatting", "Formatting", custom_buttons[3:5]),
+                ("inline-code", "Inline Code", custom_buttons[5:]),
+            ]
         )
     )
 

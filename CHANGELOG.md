@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed custom editor toolbar separation by rendering independent groups with gaps and rounded outer edges, including when the default Editor UI stylesheet is disabled or individual buttons are hidden.
 - Fixed Settings Save being blocked by the default Blockquote shortcut conflicting with itself, and added feedback when shortcut validation prevents saving.
 - Fixed Highlight Code shortcut tooltips, language menu positioning and labels, and the filled lightning icon.
 - Fixed light and dark theme previews with Qt-compatible palette rendering, added readable theme names, and kept Note Types content at fixed vertical spacing.

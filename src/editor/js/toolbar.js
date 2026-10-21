@@ -1,43 +1,32 @@
 const BUTTON_SETTINGS = {
-  anki_global_kit_inline_code: { setting: 'anki_editor_inline_code_button', group: 'inline-code' },
-  anki_global_kit_blockquote: { setting: 'anki_editor_blockquote_button', group: 'formatting' },
-  anki_global_kit_paste_markdown_as_html: {
-    setting: 'anki_editor_paste_markdown_as_html_button',
-    group: 'formatting',
-  },
-  anki_global_kit_syntax_highlighting: {
-    setting: 'anki_editor_syntax_highlighting_button',
-    group: 'syntax-highlighting',
-  },
-  anki_global_kit_syntax_language: {
-    setting: 'anki_editor_syntax_highlighting_button',
-    group: 'syntax-highlighting',
-  },
-  anki_global_kit_code_block_options: {
-    setting: 'anki_editor_syntax_highlighting_button',
-    group: 'syntax-highlighting',
-  },
+  anki_global_kit_inline_code: 'anki_editor_inline_code_button',
+  anki_global_kit_blockquote: 'anki_editor_blockquote_button',
+  anki_global_kit_paste_markdown_as_html: 'anki_editor_paste_markdown_as_html_button',
+  anki_global_kit_syntax_highlighting: 'anki_editor_syntax_highlighting_button',
+  anki_global_kit_syntax_language: 'anki_editor_syntax_highlighting_button',
+  anki_global_kit_code_block_options: 'anki_editor_syntax_highlighting_button',
 };
 
 export function refreshEditorToolbar() {
   const settings = globalThis.ankiGlobalKitEditorSettings || {};
   const enabled = settings.anki_editor_toolbar_enabled !== false;
-  const selector = Object.keys(BUTTON_SETTINGS)
-    .map((command) => `[data-command="${command}"]`)
-    .join(',');
 
-  let previousGroup;
+  for (const [command, setting] of Object.entries(BUTTON_SETTINGS)) {
+    for (const button of document.querySelectorAll(`[data-command="${command}"]`)) {
+      button.style.display = enabled && settings[setting] !== false ? '' : 'none';
+    }
+  }
 
-  for (const button of document.querySelectorAll(selector)) {
-    const { setting, group } = BUTTON_SETTINGS[button.dataset.command];
-    const visible = enabled && settings[setting] !== false;
+  for (const group of document.querySelectorAll('[data-anki-global-kit-toolbar-group]')) {
+    const buttons = [...group.querySelectorAll('[data-command]')];
+    const visible = buttons.filter((button) => button.style.display !== 'none');
+    const radius = 'var(--anki-global-kit-toolbar-group-radius, 5px)';
 
-    button.style.display = visible ? '' : 'none';
-    button.classList.toggle(
-      'anki-global-kit-toolbar-group-start',
-      visible && previousGroup !== undefined && previousGroup !== group,
-    );
+    group.style.display = visible.length ? 'inline-flex' : 'none';
 
-    if (visible) previousGroup = group;
+    for (const button of buttons) {
+      button.style.setProperty('--border-left-radius', button === visible[0] ? radius : '0');
+      button.style.setProperty('--border-right-radius', button === visible.at(-1) ? radius : '0');
+    }
   }
 }

@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
+from xml.etree import ElementTree
 
 from tests.support.anki_stubs import load_editor_integration, load_settings_services
 
@@ -56,8 +57,19 @@ class EditorBindingsTests(unittest.TestCase):
         )
         buttons = []
         integration._add_button(buttons, editor)
-        self.assertEqual(len(buttons), 6)
-        self.assertTrue(all('style="display: none;"' in button for button in buttons))
+        self.assertEqual(len(buttons), 1)
+        self.assertEqual(editor.addButton.call_count, 6)
+        toolbar = ElementTree.fromstring(buttons[0])
+        self.assertEqual([len(group) for group in toolbar], [3, 2, 1])
+        self.assertTrue(
+            all(group.attrib["style"] == "display: none;" for group in toolbar)
+        )
+        self.assertTrue(
+            all(
+                "display: none;" in button.attrib["style"]
+                for button in toolbar.iter("button")
+            )
+        )
         integration._add_shortcut([], editor)
         self.assertTrue(
             editor._anki_global_kit_shortcuts["anki_editor_inline_code_shortcut"][
@@ -69,8 +81,43 @@ class EditorBindingsTests(unittest.TestCase):
         settings["anki_editor_syntax_highlighting_button"] = False
         buttons.clear()
         integration._add_button(buttons, editor)
-        self.assertTrue(all("display: none" in button for button in buttons[:3]))
-        self.assertTrue(all("display: none" not in button for button in buttons[3:]))
+        toolbar = ElementTree.fromstring(buttons[0])
+        self.assertIn(
+            "column-gap: var(--anki-global-kit-toolbar-group-gap, 8px)",
+            toolbar.attrib["style"],
+        )
+        self.assertEqual(toolbar[0].attrib["style"], "display: none;")
+        self.assertTrue(
+            all(
+                group.attrib["style"] == "display: inline-flex;"
+                for group in toolbar[1:]
+            )
+        )
+        self.assertTrue(
+            all(
+                "display: none" not in button.attrib["style"]
+                for group in toolbar[1:]
+                for button in group
+            )
+        )
+        self.assertIn(
+            "--border-left-radius: var(--anki-global-kit-toolbar-group-radius, 5px)",
+            toolbar[1][0].attrib["style"],
+        )
+        self.assertIn("--border-right-radius: 0", toolbar[1][0].attrib["style"])
+        self.assertIn("--border-left-radius: 0", toolbar[1][1].attrib["style"])
+        self.assertIn(
+            "--border-right-radius: var(--anki-global-kit-toolbar-group-radius, 5px)",
+            toolbar[1][1].attrib["style"],
+        )
+        self.assertIn(
+            "--border-left-radius: var(--anki-global-kit-toolbar-group-radius, 5px)",
+            toolbar[2][0].attrib["style"],
+        )
+        self.assertIn(
+            "--border-right-radius: var(--anki-global-kit-toolbar-group-radius, 5px)",
+            toolbar[2][0].attrib["style"],
+        )
 
     def bindings(self, overrides):
         settings = load_settings_services(config=overrides).config.get_editor_settings()
