@@ -69,7 +69,7 @@ def _inject_features(editor: Editor) -> None:
 
         themes = get_themes(mw.col)
         styles["fields"] += "\n" + generate_theme_pair_css(
-            themes.get("light"), themes.get("dark")
+            themes.get("light"), themes.get("dark"), editor=True
         )
     styles_json = json.dumps(styles, separators=(",", ":"))
     styles_json = styles_json.replace("<", "\\u003c")

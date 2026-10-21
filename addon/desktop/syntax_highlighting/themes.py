@@ -228,27 +228,38 @@ def theme_preview_html(preset: dict) -> str:
     )
 
 
-def generate_theme_css(
-    preset_id: str = "cassidy-dark", resolved: dict | None = None
-) -> str:
-    """Generate deterministic token and block styling from a registered preset."""
-    preset = (
-        validate_resolved_theme(resolved)
-        if resolved is not None
-        else resolve_preset(preset_id)
-    )
+def _theme_variables_css(preset: dict, selector: str) -> str:
+    """Keep all mode-dependent colors and font styles in custom properties."""
     colors = preset["colors"]
     css = [
-        ":root,\nanki-editable {",
+        f"{selector} {{",
         f"  --global-kit-syntax-background: {colors['background']};",
         f"  --global-kit-syntax-foreground: {colors['foreground']};",
     ]
     for role, color in colors.items():
         if role not in {"background", "foreground"}:
             css.append(f"  --global-kit-syntax-{role}: {color};")
+    for role in _TOKEN_SELECTORS:
+        weight = "700" if role in preset["styles"]["bold"] else "400"
+        style = "italic" if role in preset["styles"]["italic"] else "normal"
+        css.append(f"  --global-kit-syntax-{role}-weight: {weight};")
+        css.append(f"  --global-kit-syntax-{role}-style: {style};")
+    css.append("}")
+    return "\n".join(css) + "\n"
+
+
+def generate_theme_css(
+    preset_id: str = "cassidy-dark", resolved: dict | None = None
+) -> str:
+    """Generate fallback variables and one shared set of block and token rules."""
+    preset = (
+        validate_resolved_theme(resolved)
+        if resolved is not None
+        else resolve_preset(preset_id)
+    )
+    css = [_theme_variables_css(preset, ":root,\nanki-editable").rstrip()]
     css.extend(
         [
-            "}",
             "",
             ".global-kit-code-block {",
             "  overflow-inline: auto;",
@@ -260,11 +271,11 @@ def generate_theme_css(
     )
 
     for role, selectors in _TOKEN_SELECTORS.items():
-        declarations = [f"  color: var(--global-kit-syntax-{role});"]
-        if role in preset["styles"].get("bold", []):
-            declarations.append("  font-weight: 700;")
-        if role in preset["styles"].get("italic", []):
-            declarations.append("  font-style: italic;")
+        declarations = [
+            f"  color: var(--global-kit-syntax-{role});",
+            f"  font-style: var(--global-kit-syntax-{role}-style);",
+            f"  font-weight: var(--global-kit-syntax-{role}-weight);",
+        ]
         css.extend(
             ["", f".global-kit-code-block :is({selectors}) {{", *declarations, "}"]
         )
@@ -272,16 +283,26 @@ def generate_theme_css(
     return "\n".join(css) + "\n"
 
 
-def generate_theme_pair_css(light: dict | None, dark: dict | None) -> str:
-    """Generate scoped light/dark CSS from compatible resolved theme records."""
+def generate_theme_pair_css(
+    light: dict | None, dark: dict | None, *, editor: bool = False
+) -> str:
+    """Override fallback variables without repeating block or token rules."""
     light_theme = (
         validate_resolved_theme(light) if light else resolve_preset("cassidy-dark")
     )
     dark_theme = (
         validate_resolved_theme(dark) if dark else resolve_preset("cassidy-dark")
     )
-    light_css = generate_theme_css(light_theme["id"], light_theme)
-    dark_css = generate_theme_css(dark_theme["id"], dark_theme)
-    light_css = light_css.replace(":root,\nanki-editable {", ":root {", 1)
-    dark_css = dark_css.replace(":root,\nanki-editable {", ".nightMode {", 1)
+    light_selector = ":root,\nanki-editable" if editor else ":root"
+    dark_selector = ".nightMode,\n.night_mode,\n.night-mode"
+    if editor:
+        # Qt supports shadow host context selectors. Keep these out of card
+        # stylesheets so clients without that selector retain their dark mode.
+        dark_selector += (
+            ",\n:host-context(.nightMode) anki-editable,\n"
+            ":host-context(.night_mode) anki-editable,\n"
+            ":host-context(.night-mode) anki-editable"
+        )
+    light_css = _theme_variables_css(light_theme, light_selector)
+    dark_css = _theme_variables_css(dark_theme, dark_selector)
     return light_css + "\n" + dark_css

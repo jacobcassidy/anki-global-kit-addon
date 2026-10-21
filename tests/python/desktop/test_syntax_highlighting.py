@@ -131,6 +131,39 @@ class SyntaxRenderingTests(unittest.TestCase):
             self.assertNotIn("var(", html)
             self.assertNotIn(":is(", html)
 
+    def test_mode_themes_do_not_repeat_block_and_token_rules(self):
+        themes = load_addon_module("desktop.syntax_highlighting.themes")
+        light = themes.resolve_preset("pygments:default")
+        dark = themes.resolve_preset("pygments:monokai")
+        light["styles"] = {"bold": ["keyword"], "italic": []}
+        dark["styles"] = {"bold": [], "italic": ["comment"]}
+        overrides = themes.generate_theme_pair_css(light, dark)
+        combined = themes.generate_theme_css() + overrides
+
+        self.assertNotIn(".global-kit-code-block", overrides)
+        self.assertEqual(combined.count(".global-kit-code-block {"), 1)
+        for selectors in themes._TOKEN_SELECTORS.values():
+            self.assertEqual(
+                combined.count(f".global-kit-code-block :is({selectors}) {{"), 1
+            )
+        light_css, dark_css = overrides.split(".nightMode,", 1)
+        self.assertIn(
+            f"--global-kit-syntax-background: {light['colors']['background']};",
+            light_css,
+        )
+        self.assertIn(
+            f"--global-kit-syntax-background: {dark['colors']['background']};", dark_css
+        )
+        self.assertIn("--global-kit-syntax-keyword-weight: 700;", light_css)
+        self.assertIn("--global-kit-syntax-keyword-weight: 400;", dark_css)
+        self.assertIn("--global-kit-syntax-comment-style: normal;", light_css)
+        self.assertIn("--global-kit-syntax-comment-style: italic;", dark_css)
+        self.assertNotIn(":host-context", overrides)
+        editor_css = themes.generate_theme_pair_css(light, dark, editor=True)
+        self.assertIn(":host-context(.nightMode) anki-editable", editor_css)
+        self.assertIn(":root,\nanki-editable {", editor_css)
+        self.assertNotIn(".global-kit-code-block", editor_css)
+
     def test_highlight_button_tooltip_uses_the_enabled_shortcut(self):
         settings = {
             "anki_editor_syntax_highlighting_shortcut_enabled": True,
