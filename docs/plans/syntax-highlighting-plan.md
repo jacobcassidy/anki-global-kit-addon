@@ -10,6 +10,7 @@ Include:
 
 - Highlight selected code or plain text from the clipboard through a toolbar action and configurable shortcut.
 - Choose a language from Pygments' available lexers.
+- Optionally remember the last explicitly applied language for each deck.
 - Configure the feature in a dedicated Syntax Highlighting settings tab, including a checkable list controlling which languages appear in the editor dropdown next to the highlighting button.
 - Apply highlighting again to an existing code block, including blocks containing highlighted spans.
 - Optional line numbers with a configurable starting number.
@@ -19,7 +20,7 @@ Include:
 - Route Desktop Markdown code-block highlighting through the same rendering service.
 - A lighting bolt icon for the editor toolbar button.
 
-Do not include automatic collection-wide conversion, automatic changes to existing note types, per-deck language memory, or separate font-size and centering controls in the initial implementation. Preserve existing content and legacy stylesheets. Expanding the JavaScript review highlighter's language coverage is a separate change.
+Do not include automatic collection-wide conversion, automatic changes to existing note types, or separate font-size and centering controls in the initial implementation. Preserve existing content and legacy stylesheets. Expanding the JavaScript review highlighter's language coverage is a separate change.
 
 ## Source structure and responsibilities
 
@@ -30,6 +31,7 @@ addon/
 ├── desktop/
 │   ├── syntax_highlighting/
 │   │   ├── __init__.py              # Public service interface
+│   │   ├── language_memory.py       # Collection-scoped per-deck preferences
 │   │   ├── rendering.py             # Language lookup and token HTML
 │   │   └── themes.py                # Preset discovery and theme CSS
 │   ├── editor/
@@ -67,12 +69,12 @@ src/
 - Extend existing shortcut validation and conflict handling. Respect Qt's macOS modifier mapping and the separate standard browser-event mapping.
 - Let `code-block.js` own target capture, plain-text extraction, block markup, line-number decorations, and application of returned token HTML.
 - Reuse the selection helpers and `editWithNativeUndo` transaction. Applying or refreshing highlighting must be one native undoable edit.
-- Associate each request with its editor, note, field, target range, and source snapshot. Discard the response if that target is no longer current or its content has changed.
+- Associate each request with its editor, note, field, target range, source snapshot, and resolved deck context. Discard the response if that target is no longer current, its content has changed, or its deck context has changed. Discarded requests must not update language memory.
 - Register any JavaScript message handler only for the kit's own commands and the correct editor context. Do not accept arbitrary HTML insertion or arbitrary Python operations through the bridge.
 
 ### Settings and note-type operations
 
-- Add a dedicated **Syntax Highlighting** tab to Settings. Put all settings for this feature there: toolbar visibility, shortcut enable/binding, editor language visibility, default language, line-number enable/start, theme selections, and a preview. Integrate it with the existing settings dialog's loading, saving, reset, and validation behavior.
+- Add a dedicated **Syntax Highlighting** tab to Settings. Put all settings for this feature there: toolbar visibility, shortcut enable/binding, editor language visibility, default language, **Remember last language per deck**, line-number enable/start, theme selections, and a preview. Integrate it with the existing settings dialog's loading, saving, reset, and validation behavior.
 - Show all available languages in a checkable list with two distinct groups: **Shown in editor** for checked languages first, followed by **Other languages** for unchecked languages. Sort both groups alphabetically by display name, ignoring case. Checking or unchecking a language moves it immediately to the correct alphabetical position in the other group, without duplicates and while preserving keyboard focus.
 - Persist language choices using canonical language identifiers. Limit the editor language picker and default-language choices to checked languages. If the configured default is unchecked, select the first checked language alphabetically; if none are checked, disable highlighting and show an explanation directing the user to this tab. Keep that empty selection valid and reversible.
 - Treat this list as editor visibility configuration, not a limit on Pygments' renderer. Changing the checked languages must not rewrite existing blocks, remove their language metadata, or stop supported explicit Markdown fence languages from rendering. Existing blocks retain their recorded language when highlighted again, even if that language is hidden from the picker.
@@ -96,7 +98,26 @@ Reject selections crossing fields or crossing a code-block boundary into unrelat
 
 This deliberately improves on the inspected Syntax Highlighter implementation, which uses any nonempty `selectedText()` result and otherwise reads clipboard text. That implementation does not inspect the block around the caret and normalizes nonbreaking spaces only on the selection path.
 
-For an existing block, preselect its recorded language. For a new block, preselect a recognized Topic language, then the configured default language. Allow the user to override the language in the picker. Use canonical aliases in saved markup.
+Resolve the starting language in this order:
+
+1. The existing code block's recorded, supported language.
+2. A recognized Topic language that is checked for editor visibility.
+3. The resolved deck's remembered language, when memory is enabled and that language is checked for editor visibility.
+4. The configured enabled default language, falling back to the first checked language alphabetically as described in Settings.
+
+Allow the user to override the language in the picker. Use canonical aliases in saved markup. An empty checked-language list continues to disable the editor action.
+
+### Per-deck language memory
+
+- Add the authoring setting `anki_editor_syntax_highlighting_remember_language_per_deck`, defaulting to false. Disabling it stops both lookups and writes but preserves remembered choices for later re-enabling.
+- Keep memory reads and writes in `addon/desktop/syntax_highlighting/language_memory.py`. The editor feature resolves the deck and supplies its ID; the renderer remains independent of decks and collection state.
+- Store a mapping of stringified deck IDs to canonical language aliases under the namespaced collection configuration key `anki_global_kit.syntax_highlighting.deck_languages`, using supported collection configuration APIs. This scopes memory to the collection, survives deck renames, and allows it to sync with the collection. Keep the map out of add-on release defaults, generated media, and the ordinary settings-dialog save payload.
+- Resolve the deck when the highlighting action runs, not from the main window's globally selected deck. In the Add window, use that window's currently selected destination deck. When editing a specific card, use its original deck for a filtered card and its current deck otherwise. Without a specific card context, use the note's deck only if all its cards resolve to the same original/nonfiltered deck. If the context is ambiguous or unavailable, use normal language fallback without reading or writing deck memory.
+- Treat each deck independently; do not inherit preferences from parent decks. If a deck is deleted, ignore its stored entry. A renamed deck keeps its preference because its ID is unchanged.
+- Record a preference only after the user explicitly chooses a language and highlighting is successfully applied to the still-current target. A dropdown change alone, canceled/failed/stale operation, automatic Topic detection, or an ordinary refresh of an existing block must not change the preference. An explicit language change while updating an existing block can establish a new preference.
+- Keep the configured global default unchanged when a deck preference is recorded. Read the latest mapping and update only the resolved deck's entry, preserving other entries and unrelated collection configuration.
+- If a remembered language becomes unchecked, retain its entry but skip it during fallback until it is checked again. Ignore unsupported or malformed stored entries. Recorded languages in existing blocks and explicit Markdown fence languages remain independent of deck memory.
+- Resetting feature settings restores the memory toggle to its default and preserves the collection's learned map. Memory is authoring metadata; do not rewrite notes or regenerate CSS when it changes.
 
 ### Saved markup and repeated highlighting
 
@@ -134,7 +155,7 @@ For an existing block, preselect its recorded language. For a new block, presele
 Implement in reviewable stages, each with appropriate validation and a separate commit on a non-main branch:
 
 1. Add the vendored dependency, import adapter, pure rendering/theme services, and package coverage.
-2. Add editor targeting and insertion, the Python coordinator, language picker, and configurable action.
+2. Add editor targeting and insertion, the Python coordinator, language picker, configurable action, and per-deck language-memory service and deck resolution.
 3. Add the dedicated Syntax Highlighting settings tab, grouped language checklist, theme settings/previews, shared styling, generated media delivery, and the confirmed note-type styling action.
 4. Integrate Desktop Markdown rendering, document migration and limitations, and complete cross-client verification.
 
@@ -146,6 +167,10 @@ Automated coverage:
 - Verify repeated highlighting updates the same block without duplicated wrappers or line numbers. Cover native undo/redo through browser or live integration checks where DOM-only tests cannot establish behavior.
 - Verify settings defaults/types, shortcut conflicts and modifier labels, theme generation/scoping, and light/dark selection.
 - Verify that checked and unchecked language groups are separate and each alphabetically sorted; toggling moves items between groups without duplicates or focus loss. Cover persistence, reset, default-language changes, an empty enabled list, and existing blocks using hidden languages.
+- Verify language priority: existing block, enabled Topic language, enabled remembered deck language, then enabled default. Cover disabled memory, hidden remembered languages, unsupported stored aliases, and an empty enabled list.
+- Verify memory updates only after successful explicit language application, preserves the global default and other decks' entries, survives reopening/renaming, and is isolated between collections. Cover cancel/failure, automatic detection, ordinary block refresh, and a deck change while rendering.
+- Verify deck resolution for the Add window's destination versus the main window's current deck, a specific edited card, filtered cards' original decks, notes whose cards share one deck, and ambiguous notes with cards in multiple decks. Verify independent parent/child deck choices and safe behavior for deleted or unavailable decks.
+- Verify settings saves and resets do not erase learned collection preferences, disabling/re-enabling retains them, and memory writes do not alter notes or managed media. Verify collection sync behavior manually between Desktop installations.
 - Verify `_syntax-highlighting.css` is the exact media filename everywhere and the new feature's names do not reuse third-party branding.
 - Verify confirmed styling installation is additive and idempotent and that cancellation leaves the note type unchanged.
 - Verify managed-media updates preserve unrelated files and the archive includes Pygments and notices but excludes local metadata and user data.
