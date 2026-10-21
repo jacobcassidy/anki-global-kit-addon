@@ -17,7 +17,7 @@ from aqt.qt import (
     QWidget,
 )
 
-from ....config.constants import NOTE_TYPES_ROW_PADDING, ZERO_MARGINS
+from ....ui.constants import NOTE_TYPES_ROW_PADDING, ZERO_MARGINS
 from ....ui.theme import get_theme_color
 
 

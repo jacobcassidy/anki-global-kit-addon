@@ -68,7 +68,7 @@ class CardShortcutInputTests(unittest.TestCase):
         qt.QKeySequence = Sequence
         utils = ModuleType("aqt.utils")
         utils.is_mac = True
-        constants = ModuleType("kit.desktop.config.constants")
+        constants = ModuleType("kit.desktop.ui.constants")
         for name in (
             "COLOR_TRANSPARENT",
             "NESTED_INDENT",
@@ -95,7 +95,7 @@ class CardShortcutInputTests(unittest.TestCase):
         modules = {
             "aqt.qt": qt,
             "aqt.utils": utils,
-            "kit.desktop.config.constants": constants,
+            "kit.desktop.ui.constants": constants,
             "kit.desktop.ui.theme": theme,
             "kit.desktop.shortcuts.formatting": shortcuts,
         }

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed Desktop add-on startup after the project restructure by importing user stylesheet paths from their new module. Added coverage that imports the full add-on with Anki and Qt stubs and checks that startup registrations occur once.
+
 ## [1.1.1] - 2026-10-12
 
 ### Added

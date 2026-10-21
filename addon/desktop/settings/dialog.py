@@ -18,7 +18,6 @@ from aqt.qt import (
     QVBoxLayout,
 )
 
-from ..config.constants import SECTION_SPACING
 from ..config.defaults import DEFAULT_SETTINGS
 from ..config.service import get_editor_settings, get_settings
 from ..paths import ICON_ASSET_DIR
@@ -32,6 +31,7 @@ from ..shortcuts.formatting import (
     reserved_shortcut_warnings,
     shortcut_has_required_modifier,
 )
+from ..ui.constants import SECTION_SPACING
 from ..ui.shortcut_rows import style_shortcut_option
 from ..ui.theme import get_theme_color
 from .bindings import (

@@ -8,7 +8,8 @@ from aqt.qt import (
     QWidget,
 )
 
-from ....config.constants import ADDON_DIR, SECTION_SPACING
+from ....paths import ADDON_DIR
+from ....ui.constants import SECTION_SPACING
 from ....ui.layouts import add_button_row
 from ....ui.markdown import make_markdown_browser
 

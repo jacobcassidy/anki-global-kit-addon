@@ -14,8 +14,9 @@ from aqt.qt import (
 )
 from aqt.utils import openFolder
 
-from ....config.constants import USER_FILES_DIR, ZERO_MARGINS
 from ....config.defaults import DEFAULT_SETTINGS
+from ....paths import USER_FILES_DIR
+from ....ui.constants import ZERO_MARGINS
 from ....ui.help import HelpIndicator
 from ....ui.layouts import add_checkbox_row
 from ....ui.shortcut_input import CardShortcutInput, make_reset_link

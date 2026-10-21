@@ -2,7 +2,7 @@
 
 from aqt.qt import QTextBrowser, QTextCursor, QWidget
 
-from ..config.constants import MARKDOWN_BLOCK_SPACING
+from .constants import MARKDOWN_BLOCK_SPACING
 
 
 def make_markdown_browser(parent: QWidget, markdown: str) -> QTextBrowser:

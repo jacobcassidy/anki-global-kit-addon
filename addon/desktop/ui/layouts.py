@@ -13,7 +13,7 @@ from aqt.qt import (
     QWidget,
 )
 
-from ..config.constants import ZERO_MARGINS
+from .constants import ZERO_MARGINS
 from .help import HelpIndicator
 from .theme import get_theme_color
 

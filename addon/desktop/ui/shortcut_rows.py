@@ -4,8 +4,8 @@ from dataclasses import dataclass
 
 from aqt.qt import QCheckBox, QHBoxLayout, QLabel, QSizePolicy, Qt, QVBoxLayout, QWidget
 
-from ..config.constants import NESTED_INDENT, ZERO_MARGINS
 from ..config.defaults import DEFAULT_SETTINGS
+from .constants import NESTED_INDENT, ZERO_MARGINS
 from .shortcut_input import CardShortcutInput, make_reset_link
 from .theme import get_theme_color
 

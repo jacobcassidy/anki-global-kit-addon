@@ -13,7 +13,7 @@ The add-on can create missing topic and format note types in the active profile.
   - `bootstrap.py` owns startup and hook registration; `paths.py` contains shared filesystem paths.
   - `config/`, `media/`, `note_types/`, and `shortcuts/` own Desktop configuration, asset installation, note-type operations, and shortcut handling.
   - `settings/pages/` contains Settings presentation; `settings/bindings.py`, `settings/save.py`, and `settings/dialog.py` coordinate controls and saving.
-  - `ui/` contains reusable Qt controls; `editor/` contains editor integration and feature coordination.
+  - `ui/` contains reusable Qt controls and presentation constants; `editor/` contains editor integration and feature coordination.
 - `addon/assets/icons/` — SVG icons shared by the card toolbar, Desktop editor, and settings UI.
 - `addon/assets/fonts/` — Packaged shared card and editor fonts.
 - `addon/assets/cards/` — Built card assets grouped into `css/` and `js/`. The installer copies managed files into the active profile's `collection.media` root under their public filenames.
@@ -66,7 +66,7 @@ Useful project scripts:
 
 - Use token or variable-based colors throughout the project; do not add static hardcoded colors. Anki Desktop settings and other Qt components must use Anki color tokens, while webview components must use CSS variables.
 - Put review-time behavior in `src/cards/` when it needs to run across Anki clients. Put editor behavior in `src/editor/` and use `addon/desktop/editor/` for its Desktop integration. Do not assume Python add-on code runs outside Anki Desktop.
-- Use the Python add-on for Desktop installation, configuration, and collection operations. Settings modules are grouped under `addon/desktop/settings/{features,services,ui,helpers,configs}/`. Connect to Anki through documented hooks and APIs instead of patching internal functions when a supported hook exists.
+- Use the Python add-on for Desktop installation, configuration, and collection operations. Settings presentation lives in `addon/desktop/settings/pages/`, coordinated by `dialog.py`, `bindings.py`, and `save.py`. Shared services live in the Desktop `config/`, `media/`, `note_types/`, and `shortcuts/` packages; reusable Qt controls and presentation constants live in `desktop/ui/`. Connect to Anki through documented hooks and APIs instead of patching internal functions when a supported hook exists.
 - When adding a button or keyboard shortcut to Anki Global Kit, add the corresponding control or configuration to Anki Global Kit Settings as appropriate.
 - Reserve every new fixed editor shortcut against configurable shortcuts. Add fixed bindings to `EDITOR_BLOCK_SHORTCUTS` and ensure Settings rejects conflicting assignments.
 - Keep release defaults in `addon/config.json`, including `note_type_selections`. Anki manages `addon/meta.json` as local installation metadata and saved configuration; leave it untracked and excluded from release archives. Do not copy local selections or platform-specific saved shortcuts into release defaults.

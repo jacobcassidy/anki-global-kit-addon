@@ -12,7 +12,6 @@ from aqt.qt import (
 )
 from aqt.utils import is_mac
 
-from ..config.constants import COLOR_TRANSPARENT
 from ..shortcuts.formatting import (
     SHORTCUT_MODIFIER_HINT,
     format_shortcut,
@@ -20,6 +19,7 @@ from ..shortcuts.formatting import (
     reserved_shortcut_warnings,
     split_shortcut,
 )
+from .constants import COLOR_TRANSPARENT
 from .theme import get_theme_color
 
 SHORTCUT_MIN_WIDTH = 80
