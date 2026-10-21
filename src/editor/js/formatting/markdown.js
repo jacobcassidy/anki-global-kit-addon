@@ -36,7 +36,7 @@ export function highlightMarkdownCodeBlocks(html, topicText = '') {
     if (!language) return;
 
     code.innerHTML = highlightCodeText(code.textContent || '', language);
-    code.classList.add('shigeSyntax', `language-${language}`);
+    code.classList.add('syntax-highlights', `language-${language}`);
   });
 
   return container.innerHTML;

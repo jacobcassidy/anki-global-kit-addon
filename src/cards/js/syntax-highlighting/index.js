@@ -20,7 +20,7 @@ export function watchSubmittedCodeBlocks() {
     if (!language) return;
 
     code.innerHTML = highlightCodeText(code.textContent, language);
-    code.classList.add('shigeSyntax', `language-${language}`);
+    code.classList.add('syntax-highlights', `language-${language}`);
     code.dataset.syntaxHighlighted = 'true';
   };
 

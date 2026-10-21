@@ -27,7 +27,7 @@ test('paste highlighting uses the explicit fence language and records normalized
     container.innerHTML = highlight('```js\nconst answer = 42;\n```', 'Python');
     const code = container.querySelector('pre > code');
     assert.equal(code.dataset.language, 'js');
-    assert.ok(code.classList.contains('shigeSyntax'));
+    assert.ok(code.classList.contains('syntax-highlights'));
     assert.ok(code.classList.contains('language-javascript'));
     assert.ok(code.querySelector('.k'));
   });
