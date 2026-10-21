@@ -81,12 +81,13 @@ Built-in topics include Command Line, CSS, Git, JavaScript, PHP, Python, React, 
 
 - **Create** adds a missing note type. Existing types are detected and checked automatically.
 - **Replace** updates an existing type's first card template and styling after explicit selection and confirmation. Notes and fields are kept, and missing kit fields are added. For standard note types, additional card templates and their associated cards are removed, including those cards' scheduling. The confirmation lists the affected note types, additional template names, and template and card removal counts.
+- **Enable Code Styling…** adds only the `_syntax-highlighting.css` import to a selected note type after confirmation. It does not change fields, templates, notes, or cards, and works with ordinary note types that do not use the kit layout.
 - Replacement requires the existing type to match the selected format: a standard note type for **Advance**, or a Cloze note type for **Cloze**. A type's name alone does not determine its format.
 - **Delete** removes an empty note type or an uncreated custom topic. Types containing notes cannot be deleted through this panel.
 
 Choose **Update Selected Note Types** to apply these actions. The kit rechecks the active collection, selected note types, and template and card removal counts after confirmation. If they have changed, it stops and asks you to review and confirm again. Anki refreshes after applied note type changes. **Save** applies settings separately; **Cancel** does not undo confirmed note type changes. Pending action checkboxes are not retained across restarts, while custom topics remain available.
 
-The **Note Types** tab lists the available topics and lets you choose which Advance or Cloze types to create, replace, or delete. Use **+** to add a custom topic.
+The **Note Types** tab lists the available topics and lets you choose which Advance or Cloze types to create, replace, or delete. Use **+** to add a custom topic. Choose **Enable Code Styling…** to add the standalone syntax stylesheet to another note type without replacing its templates or styling.
 
 ![Note Types settings tab showing topic rows and Create, Replace, and Delete options for Advance and Cloze note types](docs/reference/screenshots/settings-note-types-tab.png)
 

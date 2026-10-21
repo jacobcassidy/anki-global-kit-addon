@@ -6,10 +6,12 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from anki.collection import Collection, OpChanges
+from aqt import mw
 from aqt.operations import CollectionOp
-from aqt.qt import QWidget
+from aqt.qt import QInputDialog, QWidget
 from aqt.utils import askUser, showInfo, showWarning
 
+from ....media.manifest import SYNTAX_CSS_ASSET_NAME
 from ....note_types.service import (
     DeletionValidationError,
     MissingTemplateFilesError,
@@ -18,8 +20,11 @@ from ....note_types.service import (
     NoteTypeChangePlan,
     NoteTypeChangeResult,
     NoteTypeServiceError,
+    SyntaxStyleAlreadyEnabledError,
     apply_note_type_changes,
+    apply_syntax_style_import,
     plan_note_type_changes,
+    plan_syntax_style_import,
 )
 
 
@@ -162,6 +167,56 @@ def apply_selected_note_type_changes(
     CollectionOp(parent=parent, op=lambda col: _apply_plan(col, plan)).success(
         success
     ).failure(failure).run_in_background()
+
+
+def enable_syntax_styling(parent: QWidget) -> None:
+    """Confirm and add the standalone syntax stylesheet to one note type."""
+    if mw.col is None:
+        showWarning("Open an Anki profile before enabling syntax styling.")
+        return
+
+    names = sorted(item.name for item in mw.col.models.all_names_and_ids())
+    if not names:
+        showInfo("Create a note type before enabling syntax styling.")
+        return
+
+    name, accepted = QInputDialog.getItem(
+        parent, "Enable Code Styling", "Note type:", names, 0, False
+    )
+    if not accepted:
+        return
+
+    try:
+        plan = plan_syntax_style_import(name)
+    except SyntaxStyleAlreadyEnabledError as error:
+        showInfo(str(error))
+        return
+    except NoteTypeServiceError as error:
+        _show_note_type_service_error(error)
+        return
+
+    change = f'@import url("{SYNTAX_CSS_ASSET_NAME}");'
+    if not askUser(
+        f"Enable code styling for {name}?\n\n"
+        f"Styling change:\n+  + {change}\n\n"
+        "This adds only the syntax stylesheet import. It does not change fields, "
+        "card templates, notes, or cards."
+    ):
+        return
+
+    def success(_changes) -> None:
+        showInfo(f"Enabled code styling for {name}.")
+
+    def failure(error: Exception) -> None:
+        if isinstance(error, NoteTypeServiceError):
+            _show_note_type_service_error(error)
+        else:
+            showWarning(f"Could not enable code styling for {name}: {error}")
+
+    operation = CollectionOp(
+        parent=parent, op=lambda col: apply_syntax_style_import(plan, col)
+    )
+    operation.success(success).failure(failure).run_in_background()
 
 
 def _show_note_type_result(result: NoteTypeChangeResult) -> None:

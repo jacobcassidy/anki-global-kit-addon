@@ -218,6 +218,35 @@ class NoteTypeTests(unittest.TestCase):
             self.service.plan_note_type_changes({}, deletions={"Python": {"Advance"}})
         self.assertEqual(self.models.writes, [])
 
+    def test_confirmed_syntax_style_update_adds_only_one_import(self):
+        before = deepcopy(self.models.by_name("Python (Advance)"))
+        plan = self.service.plan_syntax_style_import("Python (Advance)")
+        changes = self.service.apply_syntax_style_import(plan, self.col)
+        updated = self.models.by_name("Python (Advance)")
+
+        self.assertTrue(changes.notetype)
+        self.assertEqual(
+            updated["css"],
+            '@import url("_syntax-highlighting.css");\nuser CSS',
+        )
+        before["css"] = updated["css"]
+        self.assertEqual(updated, before)
+        self.assertEqual(self.models.writes, [("update", "Python (Advance)")])
+
+    def test_syntax_style_update_is_idempotent_and_revalidates_confirmed_state(self):
+        plan = self.service.plan_syntax_style_import("Python (Advance)")
+        self.models.types["Python (Advance)"]["css"] = "changed by another editor"
+
+        with self.assertRaises(self.service.NoteTypePlanChangedError):
+            self.service.apply_syntax_style_import(plan, self.col)
+        self.assertEqual(self.models.writes, [])
+
+        self.models.types["Python (Advance)"]["css"] = (
+            '@import url("_syntax-highlighting.css");'
+        )
+        with self.assertRaises(self.service.SyntaxStyleAlreadyEnabledError):
+            self.service.plan_syntax_style_import("Python (Advance)")
+
     def test_delete_revalidates_notes_and_identity_after_confirmation(self):
         for change in ("notes", "identity"):
             with self.subTest(change=change):

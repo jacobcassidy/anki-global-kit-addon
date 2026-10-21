@@ -11,6 +11,7 @@ JS_ASSET_NAME = "_anki-global-kit.min.js"
 CSS_ASSET_NAME = "_anki-global-kit.min.css"
 FONT_ASSET_NAME = "_meslolgl-nf.woff2"
 FONT_LICENSE_ASSET_NAME = "_meslolgl-nf-license.txt"
+SYNTAX_CSS_ASSET_NAME = "_syntax-highlighting.css"
 
 ASSET_PATHS = {
     JS_ASSET_NAME: CARD_ASSET_DIR / "js" / JS_ASSET_NAME,

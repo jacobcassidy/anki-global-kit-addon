@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added generated `_syntax-highlighting.css` media for new Kit note types and a confirmed **Enable Code Styling…** action that adds only the stylesheet import to an existing note type.
+- Added optional per-deck language memory storage and upgraded review highlighting to a pinned, locally bundled highlight.js grammar set with per-answer processing limits.
+
 ### Changed
 
 - Moved About and Help content beside their Settings pages and the AnkiWeb listing description into publishing documentation. Updated guide links and package validation for the new locations.

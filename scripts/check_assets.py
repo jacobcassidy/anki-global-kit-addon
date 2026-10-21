@@ -134,6 +134,8 @@ def validate_assets(package_files: list[Path]) -> str:
             "Generated Cassidy Dark CSS is missing or stale; run npm run build:addon."
         )
     packaged_paths = {path.resolve() for path in package_files}
+    if manifest.SYNTAX_CSS_ASSET_NAME in manifest.ASSET_PATHS:
+        raise ValueError("The selected syntax stylesheet must be generated at runtime")
 
     pygments_root = ROOT / "addon/vendor/pygments"
     pygments_license = ROOT / "addon/vendor/pygments-LICENSE"
@@ -227,6 +229,18 @@ def validate_assets(package_files: list[Path]) -> str:
         read_source(parts / "styling/imports.css"),
     ):
         raise ValueError(f"Card templates do not reference {manifest.CSS_ASSET_NAME}")
+    if not re.search(
+        r"@import\s+" + css_asset_url(manifest.SYNTAX_CSS_ASSET_NAME),
+        read_source(parts / "styling/imports.css"),
+    ):
+        raise ValueError(
+            f"Card templates do not reference {manifest.SYNTAX_CSS_ASSET_NAME}"
+        )
+    installer = read_source(ROOT / "addon/desktop/media/install.py")
+    if "SYNTAX_CSS_ASSET_NAME" not in installer:
+        raise ValueError(
+            "The generated syntax stylesheet is not installed as managed media"
+        )
     for stylesheet in (
         ROOT / "src/shared/css/fonts.css",
         manifest.ASSET_PATHS[manifest.CSS_ASSET_NAME],

@@ -49,6 +49,10 @@ def load_settings_services(*, mac=False, config=None):
             "addon/desktop/media/manifest.py",
         )
         load_module(
+            f"{DESKTOP_PACKAGE}.syntax_highlighting.themes",
+            "addon/desktop/syntax_highlighting/themes.py",
+        )
+        load_module(
             f"{DESKTOP_PACKAGE}.config.constants",
             "addon/desktop/config/constants.py",
         )
@@ -197,6 +201,8 @@ def load_note_type_service(collection):
 
 
 def load_note_type_actions(service):
+    aqt = ModuleType("aqt")
+    aqt.mw = SimpleNamespace(col=None)
     operations = ModuleType("aqt.operations")
     operation = Mock()
     operation.success.return_value = operation
@@ -204,6 +210,7 @@ def load_note_type_actions(service):
     operations.CollectionOp = Mock(return_value=operation)
     qt = ModuleType("aqt.qt")
     qt.QWidget = object
+    qt.QInputDialog = Mock()
     utils = ModuleType("aqt.utils")
     utils.askUser = Mock(return_value=False)
     utils.showInfo = Mock()
@@ -214,6 +221,7 @@ def load_note_type_actions(service):
     with patch.dict(
         sys.modules,
         {
+            "aqt": aqt,
             "aqt.operations": operations,
             "aqt.qt": qt,
             "aqt.utils": utils,

@@ -89,6 +89,25 @@ class NoteTypeActionTests(unittest.TestCase):
         self.assertIs(outcome.error, error)
         self.assertIsNone(outcome.result)
 
+    def test_additive_syntax_styling_requires_explicit_confirmation(self):
+        self.ui.actions.mw.col = self.col
+        self.ui.actions.QInputDialog.getItem.return_value = (
+            "Python (Advance)",
+            True,
+        )
+        self.ui.confirm.return_value = True
+
+        self.ui.actions.enable_syntax_styling(object())
+
+        confirmation = self.ui.confirm.call_args.args[0]
+        self.assertIn("Python (Advance)", confirmation)
+        self.assertIn('+ @import url("_syntax-highlighting.css");', confirmation)
+        self.assertIn(
+            "does not change fields, card templates, notes, or cards", confirmation
+        )
+        self.ui.factory.assert_called_once()
+        self.ui.operation.run_in_background.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()
