@@ -141,6 +141,11 @@ class SyntaxRenderingTests(unittest.TestCase):
             themes.generate_theme_pair_css(stored["light"], stored["dark"]),
         )
         self.assertEqual(collection.config["unrelated"], "preserved")
+        preferences.set_themes(collection, stored)
+        self.assertEqual(preferences.get_themes(collection)["light"]["revision"], 1)
+        preferences.set_themes(collection, stored, {"light"})
+        self.assertEqual(preferences.get_themes(collection)["light"]["revision"], 2)
+        self.assertEqual(preferences.get_themes(collection)["dark"]["revision"], 1)
         malformed = dict(
             preset,
             colors={**preset["colors"], "background": "url(example)"},

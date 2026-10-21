@@ -55,7 +55,9 @@ def get_themes(collection) -> dict[str, dict]:
     return result
 
 
-def set_themes(collection, themes: dict[str, dict]) -> None:
+def set_themes(
+    collection, themes: dict[str, dict], force_modes: set[str] | None = None
+) -> None:
     """Store a complete validated light/dark theme pair in collection config."""
     if not isinstance(themes, dict) or set(themes) != {"light", "dark"}:
         raise ValueError("Both light and dark theme records are required.")
@@ -63,12 +65,21 @@ def set_themes(collection, themes: dict[str, dict]) -> None:
     from .themes import validate_resolved_theme
 
     validated = {}
+    force_modes = force_modes or set()
     for mode in ("light", "dark"):
         record = validate_resolved_theme(themes[mode])
         previous = get_themes(collection).get(mode, {})
-        record["revision"] = (
-            max(int(previous.get("revision", 0)), int(record.get("revision", 0))) + 1
+        unchanged = all(
+            record[key] == previous.get(key)
+            for key in ("id", "name", "colors", "styles")
         )
+        if unchanged and mode not in force_modes:
+            record["revision"] = previous.get("revision", 0)
+        else:
+            record["revision"] = (
+                max(int(previous.get("revision", 0)), int(record.get("revision", 0)))
+                + 1
+            )
         validated[mode] = record
 
     collection.set_config(THEMES_KEY, {"version": THEME_FORMAT_VERSION, **validated})

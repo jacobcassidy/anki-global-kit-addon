@@ -9,6 +9,7 @@ from aqt.qt import (
     QLineEdit,
     QListWidget,
     QListWidgetItem,
+    QPushButton,
     QSpinBox,
     Qt,
     QTextBrowser,
@@ -286,6 +287,18 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
     update_theme_preview()
     layout.addWidget(QLabel("Theme preview", page))
     layout.addWidget(theme_preview)
+    publish_modes = set()
+    publish_button = QPushButton("Update Shared Theme from This Installation", page)
+    publish_button.setToolTip(
+        "Stage the selected local theme definitions for collection sync when you save."
+    )
+
+    def stage_theme_publication():
+        publish_modes.update(theme_controls)
+        publish_button.setText("Shared Theme Update Staged")
+
+    publish_button.clicked.connect(stage_theme_publication)
+    layout.addWidget(publish_button)
 
     theme_snapshot = {
         mode: {
@@ -310,4 +323,5 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
         },
         theme_controls,
         theme_snapshot,
+        publish_modes,
     )

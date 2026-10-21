@@ -15,12 +15,15 @@ def save_settings(
     settings: dict[str, object],
     selected_themes: dict[str, str] | None = None,
     theme_snapshot: dict[str, dict] | None = None,
+    publish_modes: set[str] | None = None,
 ) -> None:
     from aqt import mw
 
     from ..editor.integration import refresh_open_editors
 
     previous_local = mw.addonManager.getConfig(ADDON_PACKAGE_NAME) or {}
+    if not isinstance(previous_local, dict):
+        previous_local = {}
     previous_themes = (
         mw.col.get_config("anki_global_kit.syntax_highlighting.themes", {})
         if mw.col is not None
@@ -29,13 +32,19 @@ def save_settings(
     updated_themes = None
     if selected_themes and mw.col is not None:
         raw = previous_themes
-        if isinstance(raw, dict) and raw.get("version", 1) > 1:
+        if (
+            isinstance(raw, dict)
+            and type(raw.get("version", 1)) is int
+            and raw.get("version", 1) > 1
+        ):
             showWarning(
                 "This collection has syntax theme data from a newer Kit version. Update Anki Global Kit before changing themes."
             )
             return
         current_themes = get_themes(mw.col)
-        updated_themes = {}
+        candidate_themes = {}
+        changed_modes = set()
+        publish_modes = publish_modes or set()
         for mode in ("light", "dark"):
             current = current_themes.get(mode)
             selected = selected_themes.get(mode, "cassidy-dark")
@@ -53,14 +62,21 @@ def save_settings(
                     "Close Settings, reopen it, and review the current theme before saving."
                 )
                 return
-            if current is not None and current["id"] == selected:
-                updated_themes[mode] = current
+            if (
+                current is not None
+                and current["id"] == selected
+                and mode not in publish_modes
+            ):
+                candidate_themes[mode] = current
             else:
-                updated_themes[mode] = resolve_preset(selected)
+                candidate_themes[mode] = resolve_preset(selected)
+                changed_modes.add(mode)
+        if changed_modes:
+            updated_themes = candidate_themes
 
     try:
         if updated_themes is not None:
-            set_themes(mw.col, updated_themes)
+            set_themes(mw.col, updated_themes, publish_modes)
         merged_local = dict(previous_local)
         merged_local.update(settings)
         write_settings(merged_local)

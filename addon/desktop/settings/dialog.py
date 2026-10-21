@@ -82,6 +82,7 @@ def open_settings() -> None:
         syntax_controls,
         theme_controls,
         theme_snapshot,
+        publish_modes,
     ) = build_syntax_highlighting_tab(dialog, current_settings, syntax_themes)
     tabs.addTab(syntax_widget, "Syntax Highlighting")
 
@@ -416,7 +417,7 @@ def open_settings() -> None:
         selected_themes = {
             mode: selector.currentData() for mode, selector in theme_controls.items()
         }
-        save_settings(dialog, settings, selected_themes, theme_snapshot)
+        save_settings(dialog, settings, selected_themes, theme_snapshot, publish_modes)
 
     save_button.clicked.connect(save_current_settings)
     buttons_layout = QHBoxLayout()
