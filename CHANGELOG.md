@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Added the default editor placeholder "Leave blank unless compare is wanted" to empty Compare fields in Kit note types, preserving custom descriptions and saved field values.
 - Replaced the Paste Markdown as HTML button icon with the official Markdown Mark, retaining its proportions and using the toolbar's theme color.
 - Grouped the custom editor toolbar into syntax highlighting, formatting, and inline code, with gaps that adjust to hidden buttons.
 - Enlarged and thickened the editor's syntax-highlighting lightning bolt icon, with a downward-sloping middle for a clearer bolt shape.

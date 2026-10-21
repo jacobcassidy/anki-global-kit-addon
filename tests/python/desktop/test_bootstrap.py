@@ -51,6 +51,11 @@ class BootstrapTests(unittest.TestCase):
                             ).reset_editor_language_context,
                             reviewer._register_editor_webview,
                         ],
+                        "editor_will_load_note": [
+                            module(
+                                "editor.features.field_descriptions"
+                            ).add_compare_placeholder
+                        ],
                         "webview_did_receive_js_message": [
                             module("editor.features.syntax_highlighting")._on_message,
                             reviewer._on_webview_message,

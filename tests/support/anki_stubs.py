@@ -118,6 +118,7 @@ def load_editor_integration(settings, *, mac=False):
     paths.USER_FILES_DIR = ROOT / "addon/user_files"
     paths.ICON_ASSET_DIR = ROOT / "addon/assets/icons"
     manifest = ModuleType(f"{DESKTOP_PACKAGE}.media.manifest")
+    manifest.JS_ASSET_NAME = "_anki-global-kit.min.js"
     manifest.EDITOR_ASSET_PATHS = {
         "editor.min.js": ROOT / "addon/assets/editor/js/editor.min.js",
         "editor-fields.min.css": ROOT / "addon/assets/editor/css/editor-fields.min.css",

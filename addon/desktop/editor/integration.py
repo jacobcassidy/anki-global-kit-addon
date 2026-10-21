@@ -15,7 +15,7 @@ from ..shortcuts.formatting import EDITOR_BLOCK_SHORTCUTS as BLOCK_SHORTCUTS
 from ..shortcuts.formatting import editor_fixed_shortcut_action, normalize_shortcut
 from ..shortcuts.labels import shortcut_label
 from .buttons import toolbar_button
-from .features import syntax_highlighting
+from .features import field_descriptions, syntax_highlighting
 
 EDITOR_ASSET = EDITOR_ASSET_PATHS["editor.min.js"]
 EDITOR_STYLES_DIR = EDITOR_ASSET_PATHS["editor-ui.min.css"].parent
@@ -302,6 +302,7 @@ def initialize() -> None:
     syntax_highlighting.initialize()
     gui_hooks.editor_did_init_buttons.append(_add_button)
     gui_hooks.editor_did_init_shortcuts.append(_add_shortcut)
+    gui_hooks.editor_will_load_note.append(field_descriptions.add_compare_placeholder)
     gui_hooks.editor_did_load_note.append(_inject_features)
     gui_hooks.editor_did_load_note.append(
         syntax_highlighting.reset_editor_language_context
