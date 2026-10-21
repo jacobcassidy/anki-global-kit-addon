@@ -19,9 +19,10 @@ Include:
 - Consistent styling in editor fields and on cards, including synced clients.
 - An explicit action to enable syntax styling on ordinary, non-Kit note types.
 - Route Desktop Markdown code-block highlighting through the same rendering service.
+- Upgrade review-time JavaScript highlighting across Desktop, AnkiWeb, AnkiMobile, and AnkiDroid to share the new theme styling and broader common-language coverage.
 - A lighting bolt icon for the editor toolbar button.
 
-Do not include automatic collection-wide conversion, automatic changes to existing note types, or separate font-size and centering controls in the initial implementation. Preserve existing content and legacy stylesheets. Expanding the JavaScript review highlighter's language coverage is a separate change.
+Do not include automatic collection-wide conversion, automatic changes to existing note types, or separate font-size and centering controls in the initial implementation. Preserve existing content and legacy stylesheets. JavaScript review highlighting is included, with consistent theme roles and a defined common language set; exact tokenization parity with every Pygments lexer is not a requirement.
 
 ## Source structure and responsibilities
 
@@ -49,9 +50,13 @@ addon/
 └── config.json                     # Release defaults
 
 src/
+├── cards/js/syntax-highlighting/
+│   ├── index.js                    # Review-time targeting and observation
+│   ├── engine.js                   # Bundled JavaScript engine adapter
+│   ├── languages.js                # Supported review languages and aliases
+│   └── tokens.js                   # Engine scopes to shared theme roles
 ├── editor/js/formatting/
 │   └── code-block.js               # Editor extraction and block updates
-├── shared/js/syntax-highlighting/  # Existing JS tokenizer while shared
 └── shared/css/
     └── syntax-highlighting.css     # Shared token rules and block styling
 ```
@@ -81,7 +86,7 @@ src/
 - Add a dedicated **Syntax Highlighting** tab to Settings. Put all settings for this feature there: toolbar visibility, shortcut enable/binding, editor language visibility, default language, **Remember last language per deck**, line-number enable/start, theme selections, and a preview. Integrate it with the existing settings dialog's loading, saving, reset, and validation behavior.
 - Show all available languages in a checkable list with two distinct groups: **Shown in editor** for checked languages first, followed by **Other languages** for unchecked languages. Sort both groups alphabetically by display name, ignoring case. Checking or unchecking a language moves it immediately to the correct alphabetical position in the other group, without duplicates and while preserving keyboard focus.
 - Persist language choices using canonical language identifiers. Limit the editor language picker and default-language choices to checked languages. If the configured default is unchecked, select the first checked language alphabetically; if none are checked, disable highlighting and show an explanation directing the user to this tab. Keep that empty selection valid and reversible.
-- Treat this list as editor visibility configuration, not a limit on Pygments' renderer. Changing the checked languages must not rewrite existing blocks, remove their language metadata, or stop supported explicit Markdown fence languages from rendering. Existing blocks retain their recorded language when highlighted again, even if that language is hidden from the picker.
+- Treat this list as editor visibility configuration, not a limit on either rendering engine. Changing the checked languages must not rewrite existing blocks, remove their language metadata, or disable supported review languages or explicit Markdown fence languages. Existing blocks retain their recorded language when highlighted again, even if that language is hidden from the picker.
 - Keep release defaults in `addon/config.json` and align the Python and browser fallback defaults. Extend existing configuration reading, validation, and saving rather than adding another persistence mechanism.
 - Use `anki_editor_` settings for authoring controls. Store theme choices as shared syntax settings because they affect both editor and review presentation; make them available to the theme service as well as the settings UI.
 - Keep previews read-only. Saving settings refreshes editor presentation and managed theme media without rewriting note fields.
@@ -137,9 +142,20 @@ Allow the user to override the language in the picker. Use canonical aliases in 
 
 - Route Desktop Paste Markdown as HTML code blocks through the Python rendering service, then apply the complete insertion as one undoable edit.
 - Respect an explicit supported fence language. For an unlabeled fence, use a recognized Topic language; leave unsupported explicit languages and unresolved unlabeled blocks as escaped plain code.
-- Move the current JavaScript tokenizer and language definitions under `src/shared/js/syntax-highlighting/` while both card and editor code consume them. Update imports and keep card-specific observation logic under `src/cards/`.
-- Once Desktop Markdown rendering uses Pygments, remove its dependency on the JavaScript tokenizer if it has no remaining editor consumer. Keep review-time highlighting in JavaScript.
-- Saved Pygments HTML and its CSS display across clients. Pygments itself runs only on Desktop; answers newly typed on AnkiWeb or mobile retain the JavaScript engine's language coverage.
+- Remove Desktop Markdown's dependency on the current JavaScript tokenizer after routing it through Pygments. Replace that tokenizer with the review engine described below, keeping its adapter and card observation logic under `src/cards/js/syntax-highlighting/`. Move code into `src/shared/js/` only if another runtime actually consumes it.
+- Saved Pygments HTML and its CSS display across clients. Pygments itself runs only on Desktop; newly typed answers use the upgraded JavaScript engine on every review client, including Desktop.
+
+### Review-time JavaScript highlighting
+
+- Replace the current hand-written tokenizer with a pinned highlight.js core and individually imported language modules. Bundle the engine, required language dependencies, and notices into the existing managed card JavaScript asset; do not use a CDN, network requests, or runtime package loading.
+- Support the current Python, JavaScript, TypeScript, Java, C, C++, C#, SQL, Bash/shell, JSON, Ruby, Go, Rust, and PHP languages, plus HTML, CSS, Markdown, PowerShell, and Kotlin. Resolve Pygments and JavaScript aliases through an explicit mapping, including HTML's mapping to the JavaScript engine's markup grammar. Do not imply that every Pygments lexer is available during review.
+- Use an explicit supported fence language first, otherwise a recognized Topic language for unlabeled code. Do not use source-code auto-detection. An unsupported explicit label remains escaped plain code rather than falling through to Topic; unresolved languages and engine failures also leave readable, escaped source.
+- Keep the checked-language list scoped to editor visibility. Review language support is determined by the bundled modules and is unchanged when languages are unchecked. Do not apply per-deck authoring memory or the editor's default language to review-time answers.
+- Keep `index.js` responsible for targeting and observing submitted-answer code blocks. Preserve the existing review highlighting enable setting, detect newly rendered answers, and make repeated initialization idempotent. Do not globally highlight every `<pre>` or retokenize existing saved Pygments spans.
+- Map JavaScript token scopes to the same theme roles used for Pygments in `tokens.js`, covering comments, keywords, strings, numbers, functions, classes, built-ins, operators, and punctuation where the grammar distinguishes them. Use the base code foreground for unclassified content. Preserve nested token structure and source text.
+- Generate CSS for both engines' token selectors from the selected theme definitions in `_syntax-highlighting.css`, using shared CSS variables. Cassidy Dark remains the default in both modes. Maintain consistent colors and font styles for equivalent roles without promising identical token boundaries or distinctions between the two engines.
+- Keep styling separate from answer comparison. Highlighting must not alter persisted answers, source whitespace, comparison results, or difference markers. Preserve existing saved markup and avoid nesting duplicate highlight spans during rerenders.
+- Measure card bundle size and review latency before and after the change. Import only the planned language set and its dependencies, and validate long and multiline snippets on mobile rather than assuming Desktop performance carries over.
 
 ## Themes, assets, and compatibility
 
@@ -164,7 +180,8 @@ Implement in reviewable stages, each with appropriate validation and a separate 
 1. Add the vendored dependency, import adapter, pure rendering/theme services, the initial Cassidy Dark preset, and package coverage.
 2. Add editor targeting and insertion, the Python coordinator, language picker, configurable action, and per-deck language-memory service and deck resolution.
 3. Add the dedicated Syntax Highlighting settings tab, grouped language checklist, theme settings/previews, shared styling, generated media delivery, and the confirmed note-type styling action.
-4. Integrate Desktop Markdown rendering, document migration and limitations, and complete cross-client verification.
+4. Integrate Desktop Markdown rendering and replace the review tokenizer with the bundled JavaScript engine, language registry, and shared theme-role mapping.
+5. Document migration, supported review languages, and tokenization differences; complete cross-client and performance verification.
 
 Automated coverage:
 
@@ -174,6 +191,9 @@ Automated coverage:
 - Verify repeated highlighting updates the same block without duplicated wrappers or line numbers. Cover native undo/redo through browser or live integration checks where DOM-only tests cannot establish behavior.
 - Verify settings defaults/types, shortcut conflicts and modifier labels, theme generation/scoping, and light/dark selection.
 - Verify Cassidy Dark appears in both mode selectors, starts from the existing Kit syntax appearance, and produces the same palette and token styles in both modes. Cover fresh settings, missing/empty/unsupported selections, reset, persistence of explicit alternatives, and regeneration after a preset-definition edit without rewriting note fields.
+- Render shared fixtures through Pygments and JavaScript for all planned review languages. Check equivalent theme roles where both engines classify them, exact source preservation, and intentional tokenization differences without requiring identical HTML.
+- Cover review aliases, explicit-fence versus Topic priority, unsupported explicit labels, engine failures, disabled highlighting, editor-hidden languages, and review behavior independent of deck memory.
+- Cover dynamically submitted answers, repeated initialization/rerendering, preserved saved Pygments spans, HTML-like source, multiline Unicode text, and unchanged answer-comparison results and difference markers.
 - Verify that checked and unchecked language groups are separate and each alphabetically sorted; toggling moves items between groups without duplicates or focus loss. Cover persistence, reset, default-language changes, an empty enabled list, and existing blocks using hidden languages.
 - Verify language priority: existing block, enabled Topic language, enabled remembered deck language, then enabled default. Cover disabled memory, hidden remembered languages, unsupported stored aliases, and an empty enabled list.
 - Verify memory updates only after successful explicit language application, preserves the global default and other decks' entries, survives reopening/renaming, and is isolated between collections. Cover cancel/failure, automatic detection, ordinary block refresh, and a deck change while rendering.
@@ -181,11 +201,11 @@ Automated coverage:
 - Verify settings saves and resets do not erase learned collection preferences, disabling/re-enabling retains them, and memory writes do not alter notes or managed media. Verify collection sync behavior manually between Desktop installations.
 - Verify `_syntax-highlighting.css` is the exact media filename everywhere and the new feature's names do not reuse third-party branding.
 - Verify confirmed styling installation is additive and idempotent and that cancellation leaves the note type unchanged.
-- Verify managed-media updates preserve unrelated files and the archive includes Pygments and notices but excludes local metadata and user data.
+- Verify managed-media updates preserve unrelated files and the archive includes Pygments, the bundled JavaScript engine, and their required notices but excludes local metadata and user data. Check the generated card bundle has no external runtime imports or language fetches.
 
 Run focused tests while developing, then the project test suites, relevant lint/format checks, `npm run build:addon`, `npm run check:assets`, and package validation. Do not present isolated tests as live Anki verification.
 
-Manual acceptance should cover Anki Desktop 26.05 and a current supported release, Add/Browse editors, note switching while rendering, native undo/redo, light/dark mode, and synced display on AnkiWeb, AnkiMobile, and AnkiDroid. Confirm behavior against official minimum-version APIs before using new hooks or collection operations.
+Manual acceptance should cover Anki Desktop 26.05 and a current supported release, Add/Browse editors, note switching while rendering, native undo/redo, light/dark mode, and synced display on AnkiWeb, AnkiMobile, and AnkiDroid. On every review client, compare saved reference code with newly submitted code under Cassidy Dark and an alternative preset. Record bundle-size changes and mobile responsiveness for long answers. Confirm behavior against official minimum-version APIs before using new hooks or collection operations.
 
 ### Dependency measurements and references
 
@@ -198,5 +218,7 @@ A standalone local benchmark for approximately 4,300 characters of Python took a
 - [Pygments styles](https://pygments.org/docs/styles/)
 - [Pygments license](https://github.com/pygments/pygments/blob/master/LICENSE)
 - [Pygments execution-time considerations](https://pygments.org/docs/security/)
+- [highlight.js language imports and bundling](https://highlightjs.org/)
+- [highlight.js explicit-language API](https://highlightjs.readthedocs.io/en/latest/api.html)
 - [Anki hooks and filters](https://addon-docs.ankiweb.net/hooks-and-filters.html)
 - [Anki collection APIs](https://addon-docs.ankiweb.net/the-anki-module.html)
