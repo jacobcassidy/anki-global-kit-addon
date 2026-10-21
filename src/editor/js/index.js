@@ -6,6 +6,7 @@ import { installMarkdownHighlighting, pasteMarkdownAsHtml } from './formatting/m
 import { installCodeBlockHighlighting } from './formatting/code-block.js';
 import { installClozeShortcuts } from './cloze/shortcuts.js';
 import { installEditorStyles } from './styles.js';
+import { refreshEditorToolbar } from './toolbar.js';
 import {
   installBlockFormatting,
   toggleEditorBlock,
@@ -37,3 +38,4 @@ globalThis.ankiGlobalKitEditor.pasteMarkdownAsHtml = pasteMarkdownAsHtml;
 installMarkdownHighlighting();
 
 installEditorStyles();
+refreshEditorToolbar();

@@ -39,7 +39,6 @@ from .bindings import (
     read_control_value,
     restore_control_defaults,
 )
-from .pages.about import build_about_tab
 from .pages.cards import SHORTCUT_DEFINITIONS, build_cards_tab
 from .pages.changelog import build_changelog_tab
 from .pages.editor import build_editor_tab
@@ -96,7 +95,6 @@ def open_settings() -> None:
     note_types = build_note_types_tab(dialog)
     tabs.addTab(note_types.widget, "Note Types")
     tabs.addTab(build_changelog_tab(dialog), "Changelog")
-    tabs.addTab(build_about_tab(dialog), "About")
     tabs.addTab(build_help_tab(dialog), "Help")
 
     def update_sync_note_visibility(index: int) -> None:

@@ -7,6 +7,33 @@ from tests.support.anki_stubs import load_editor_integration, load_settings_serv
 
 
 class EditorBindingsTests(unittest.TestCase):
+    def test_hidden_toolbar_keeps_actions_registered_and_shortcuts_active(self):
+        settings = load_settings_services(
+            config={"anki_editor_toolbar_enabled": False}
+        ).config.get_editor_settings()
+        integration = load_editor_integration(settings)
+        editor = Mock(currentField=0)
+        editor.addButton.side_effect = lambda **kwargs: (
+            f'<button data-command="{kwargs["cmd"]}"></button>'
+        )
+        buttons = []
+        integration._add_button(buttons, editor)
+        self.assertEqual(len(buttons), 6)
+        self.assertTrue(all('style="display: none;"' in button for button in buttons))
+        integration._add_shortcut([], editor)
+        self.assertTrue(
+            editor._anki_global_kit_shortcuts["anki_editor_inline_code_shortcut"][
+                0
+            ].isEnabled()
+        )
+
+        settings["anki_editor_toolbar_enabled"] = True
+        settings["anki_editor_syntax_highlighting_button"] = False
+        buttons.clear()
+        integration._add_button(buttons, editor)
+        self.assertTrue(all("display: none" in button for button in buttons[:3]))
+        self.assertTrue(all("display: none" not in button for button in buttons[3:]))
+
     def bindings(self, overrides):
         settings = load_settings_services(config=overrides).config.get_editor_settings()
         integration = load_editor_integration(settings)

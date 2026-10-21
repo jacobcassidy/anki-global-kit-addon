@@ -18,9 +18,9 @@ Choose **Update Selected Note Types** and confirm the listed collection changes.
 
 ## Customizing editor styles
 
-To customize field contents, open **Tools > Anki Global Kit Settings... > Editor**. In **Editor Fields**, use **Enable custom Editor fields stylesheet** to turn your custom field CSS on or off, and click **View Stylesheet** to open `user_files`, where you can edit `editor-fields.css`. Custom field styles are enabled by default and appended after the kit defaults. Restart Anki after editing the stylesheet to reload it.
+To customize field contents, open **Tools > Anki Global Kit Settings... > Editor**. In **Editor Stylesheets**, use **Enable custom editor fields stylesheet** to turn your custom field CSS on or off, and click **View Stylesheet** to open `user_files`, where you can edit `editor-fields.css`. Custom field styles are enabled by default and appended after the kit defaults. Restart Anki after editing the stylesheet to reload it.
 
-In **Editor UI**, use **Enable custom Editor UI stylesheet** to turn interface CSS on or off, and click **View Stylesheet** to open the same folder and edit `editor-ui.css`. Custom UI styles are also enabled by default. To find these files through the add-ons dialog, open **Tools > Add-ons**, select **Anki Global Kit**, and click **View Files**, then open `user_files`. The `user_files/README.txt` file is also included with the add-on.
+In the same **Editor Stylesheets** section, use **Enable custom editor UI stylesheet** to turn interface CSS on or off, and click **View Stylesheet** to open the same folder and edit `editor-ui.css`. Custom UI styles are also enabled by default. To find these files through the add-ons dialog, open **Tools > Add-ons**, select **Anki Global Kit**, and click **View Files**, then open `user_files`. The `user_files/README.txt` file is also included with the add-on.
 
 ## Build and install for development
 
@@ -39,4 +39,4 @@ The **Cards** settings tab controls question-input Markdown shortcuts and indent
 
 After building, run `npm run package:addon` from the repository root. The script regenerates the combined font notice and checks required files and asset paths before writing `dist/anki-global-kit.ankiaddon`.
 
-The archive contains `__init__.py`, `desktop/`, `assets/`, `templates/`, `user_files/`, `config.json`, `manifest.json`, `README.md`, and the canonical repository-root `CHANGELOG.md` and `LICENSE`. About and Help content lives beside its Settings pages at `desktop/settings/pages/about/about-content.md` and `desktop/settings/pages/help/help-content.md`. These paths are at the archive root, without an enclosing `addon/` folder. Packaging requires both repository-root files and the Settings content files to exist as files before opening the output archive.
+The archive contains `__init__.py`, `desktop/`, `assets/`, `templates/`, `user_files/`, `config.json`, `manifest.json`, `README.md`, and the canonical repository-root `CHANGELOG.md` and `LICENSE`. Help content, including the project description, lives beside its Settings page at `desktop/settings/pages/help/help-content.md`. These paths are at the archive root, without an enclosing `addon/` folder. Packaging requires both repository-root files and the Settings content files to exist as files before opening the output archive.

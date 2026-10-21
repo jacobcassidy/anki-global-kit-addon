@@ -11,6 +11,7 @@ from aqt.qt import QApplication
 from ...config.service import get_editor_settings
 from ...paths import ICON_ASSET_DIR
 from ...shortcuts.labels import shortcut_label
+from ..buttons import toolbar_button
 
 ICON = ICON_ASSET_DIR / "lightning.svg"
 OPTIONS_ICON = ICON_ASSET_DIR / "code-block.svg"
@@ -22,13 +23,13 @@ _INSTALLED = False
 _PENDING_EXPLICIT_APPLIES: dict[str, tuple[Editor, int | None, str]] = {}
 
 
-def add_button(buttons: list, editor: Editor) -> None:
-    settings = get_editor_settings()
-    if not settings.get("anki_editor_syntax_highlighting_button", True):
-        return
-
+def add_button(buttons: list, editor: Editor, settings: dict | None = None) -> None:
+    settings = get_editor_settings() if settings is None else settings
     buttons.append(
-        editor.addButton(
+        toolbar_button(
+            editor,
+            settings,
+            "anki_editor_syntax_highlighting_button",
             icon=str(ICON),
             cmd="anki_global_kit_syntax_highlighting",
             func=lambda editor: highlight_selection(editor),
@@ -36,7 +37,10 @@ def add_button(buttons: list, editor: Editor) -> None:
         )
     )
     buttons.append(
-        editor.addButton(
+        toolbar_button(
+            editor,
+            settings,
+            "anki_editor_syntax_highlighting_button",
             icon=None,
             cmd="anki_global_kit_syntax_language",
             func=show_language_menu,
@@ -46,7 +50,10 @@ def add_button(buttons: list, editor: Editor) -> None:
         )
     )
     buttons.append(
-        editor.addButton(
+        toolbar_button(
+            editor,
+            settings,
+            "anki_editor_syntax_highlighting_button",
             icon=str(OPTIONS_ICON),
             cmd="anki_global_kit_code_block_options",
             func=open_code_block_options,

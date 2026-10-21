@@ -4,6 +4,7 @@ from aqt.qt import (
     QCheckBox,
     QColor,
     QComboBox,
+    QFrame,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -147,16 +148,6 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
         row.addWidget(control)
         layout.addLayout(row)
 
-    enable_review = QCheckBox("Enable syntax highlighting for submitted answers", page)
-    enable_review.setChecked(current_settings["card_review_syntax_highlighting"])
-    add_checkbox_row(
-        layout,
-        enable_review,
-        "Highlight supported code languages in submitted answers. This setting does not control the Desktop editor.",
-    )
-    button = QCheckBox("Show Highlight Code toolbar button", page)
-    button.setChecked(current_settings["anki_editor_syntax_highlighting_button"])
-    add_checkbox_row(layout, button)
     remember = QCheckBox("Remember last language per deck", page)
     remember.setChecked(
         current_settings["anki_editor_syntax_highlighting_remember_language_per_deck"]
@@ -290,6 +281,7 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
     rebuild()
 
     default_language = QComboBox(page)
+    default_language.setFixedWidth(220)
     desired_default = current_settings[
         "anki_editor_syntax_highlighting_default_language"
     ]
@@ -297,7 +289,7 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
     def update_default_languages(*_args):
         selected = default_language.currentData()
         default_language.clear()
-        default_language.addItem("No language selected", "")
+        default_language.addItem("None selected", "")
         for alias in sorted(checked, key=lambda value: rows[value][0].casefold()):
             default_language.addItem(rows[alias][0], alias)
         index = default_language.findData(selected or desired_default)
@@ -309,12 +301,18 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
     add_field_row("Default language", default_language)
 
     theme_controls = {}
-    theme_preview = QTextBrowser(page)
+    theme_preview_frame = QFrame(page)
+    theme_preview_frame.setObjectName("syntaxThemePreview")
+    theme_preview_frame.setFixedHeight(225)
+    preview_layout = QVBoxLayout(theme_preview_frame)
+    preview_layout.setContentsMargins(6, 6, 6, 6)
+    theme_preview = QTextBrowser(theme_preview_frame)
     theme_preview.setReadOnly(True)
-    theme_preview.setMaximumHeight(150)
+    preview_layout.addWidget(theme_preview)
     choices = available_themes()
     for mode in ("light", "dark"):
         selector = QComboBox(page)
+        selector.setFixedWidth(220)
         selected = (themes or {}).get(mode, {}).get("id", "cassidy-dark")
         for theme_id, name in choices:
             selector.addItem(name, theme_id)
@@ -337,12 +335,17 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
         preset = (
             shared if shared and shared["id"] == theme_id else resolve_preset(theme_id)
         )
-        theme_preview.setStyleSheet(
-            "QTextBrowser { "
+        theme_preview_frame.setStyleSheet(
+            "QFrame#syntaxThemePreview { "
             f"background-color: {preset['colors']['background']}; "
             f"color: {preset['colors']['foreground']}; "
             f"border: 1px solid {get_theme_color('BORDER_SUBTLE')}; "
             "border-radius: 6px; }"
+        )
+        theme_preview.setStyleSheet(
+            "QTextBrowser { border: none; "
+            f"background-color: {preset['colors']['background']}; "
+            f"color: {preset['colors']['foreground']}; }}"
         )
         theme_preview.setHtml(theme_preview_html(preset))
 
@@ -352,7 +355,7 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
         )
     update_theme_preview()
     layout.addWidget(QLabel("Theme preview", page))
-    layout.addWidget(theme_preview)
+    layout.addWidget(theme_preview_frame)
     publish_modes = set()
     publish_button = QPushButton("Update Shared Theme from This Installation", page)
     publish_button.setAutoDefault(False)
@@ -390,8 +393,6 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
     return (
         make_scroll_area(parent, page),
         {
-            "card_review_syntax_highlighting": enable_review,
-            "anki_editor_syntax_highlighting_button": button,
             "anki_editor_syntax_highlighting_remember_language_per_deck": remember,
             "anki_editor_syntax_highlighting_line_numbers": line_numbers,
             "anki_editor_syntax_highlighting_line_number_start": start,

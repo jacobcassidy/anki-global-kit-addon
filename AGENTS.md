@@ -13,7 +13,7 @@ The add-on can create missing topic and format note types in the active profile.
   - `bootstrap.py` owns startup and hook registration; `paths.py` contains shared filesystem paths.
   - `config/`, `media/`, `note_types/`, and `shortcuts/` own Desktop configuration, asset installation, note-type operations, and shortcut handling.
   - `settings/pages/` contains Settings presentation; `settings/bindings.py`, `settings/save.py`, and `settings/dialog.py` coordinate controls and saving.
-  - About and Help Markdown lives beside its Settings page as `about/about-content.md` and `help/help-content.md`.
+  - Help Markdown, including the project description, lives beside its Settings page as `help/help-content.md`.
   - `ui/` contains reusable Qt controls and presentation constants; `editor/` contains editor integration and feature coordination.
 - `addon/assets/icons/` — SVG icons shared by the card toolbar, Desktop editor, and settings UI.
 - `addon/assets/fonts/` — Packaged shared card and editor fonts.

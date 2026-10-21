@@ -7,17 +7,13 @@ from aqt.qt import (
     QGroupBox,
     QHBoxLayout,
     QLabel,
-    QPushButton,
     Qt,
     QVBoxLayout,
     QWidget,
 )
-from aqt.utils import openFolder
 
 from ....config.defaults import DEFAULT_SETTINGS
-from ....paths import USER_FILES_DIR
 from ....ui.constants import ZERO_MARGINS
-from ....ui.help import HelpIndicator
 from ....ui.layouts import add_checkbox_row
 from ....ui.shortcut_input import CardShortcutInput, make_reset_link
 from ....ui.shortcut_rows import ShortcutRows, build_shortcut_rows
@@ -147,34 +143,6 @@ def build_editor_fields_section(
         section, tab_indentation, INDENTATION_SHORTCUT_DEFINITIONS, current_settings
     )
     layout.addWidget(indentation_rows.widget)
-    custom_styles = QCheckBox("Enable custom editor fields stylesheet", section)
-    custom_styles.setChecked(
-        current_settings.get(
-            "anki_editor_custom_fields_styles",
-            DEFAULT_SETTINGS["anki_editor_custom_fields_styles"],
-        )
-    )
-    view_stylesheet = QPushButton("View Stylesheet", section)
-    view_stylesheet.setAutoDefault(False)
-    view_stylesheet.setToolTip("Open user_files, which contains editor-fields.css.")
-
-    def view_stylesheet_folder() -> None:
-        USER_FILES_DIR.mkdir(parents=True, exist_ok=True)
-        openFolder(str(USER_FILES_DIR))
-
-    view_stylesheet.clicked.connect(view_stylesheet_folder)
-    stylesheet_controls = QWidget(section)
-    stylesheet_controls_layout = QHBoxLayout(stylesheet_controls)
-    stylesheet_controls_layout.setContentsMargins(*ZERO_MARGINS)
-    stylesheet_controls_layout.addWidget(view_stylesheet)
-    stylesheet_controls_layout.addWidget(
-        HelpIndicator(
-            custom_styles.text(),
-            "Controls the appearance of text fields in the Desktop editor, including fonts, colors, spacing, and field borders.",
-            stylesheet_controls,
-        )
-    )
-    add_checkbox_row(layout, custom_styles, trailing_widget=stylesheet_controls)
     return EditorFieldsSection(
         section,
         {
@@ -183,7 +151,6 @@ def build_editor_fields_section(
             **{f"{key}_enabled": pair[0] for key, pair in action_shortcuts.items()},
             **{key: pair[1] for key, pair in action_shortcuts.items()},
             "anki_editor_tab_indentation": tab_indentation,
-            "anki_editor_custom_fields_styles": custom_styles,
             **indentation_rows.shortcut_inputs,
             **indentation_rows.shortcut_enabled,
         },

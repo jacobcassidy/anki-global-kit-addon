@@ -14,6 +14,7 @@ from ..paths import ICON_ASSET_DIR, USER_FILES_DIR
 from ..shortcuts.formatting import EDITOR_BLOCK_SHORTCUTS as BLOCK_SHORTCUTS
 from ..shortcuts.formatting import editor_fixed_shortcut_action, normalize_shortcut
 from ..shortcuts.labels import shortcut_label
+from .buttons import toolbar_button
 from .features import syntax_highlighting
 
 EDITOR_ASSET = EDITOR_ASSET_PATHS["editor.min.js"]
@@ -131,32 +132,35 @@ def _change_indentation(editor: Editor, action: str) -> None:
 
 def _add_button(buttons: list, editor: Editor) -> None:
     settings = get_editor_settings()
-    syntax_highlighting.add_button(buttons, editor)
+    syntax_highlighting.add_button(buttons, editor, settings)
 
-    if settings["anki_editor_blockquote_button"]:
-        buttons.append(
-            editor.addButton(
-                icon=str(BLOCKQUOTE_ICON),
-                cmd="anki_global_kit_blockquote",
-                func=lambda editor: _toggle_block(editor, "blockquote"),
-                tip=_button_tip(
-                    "Blockquote", "anki_editor_blockquote_shortcut", settings
-                ),
-            )
-        )
-    if settings["anki_editor_paste_markdown_as_html_button"]:
-        buttons.append(
-            editor.addButton(
-                icon=str(PASTE_MARKDOWN_ICON),
-                cmd="anki_global_kit_paste_markdown_as_html",
-                func=_paste_markdown_as_html,
-                tip="Paste Markdown as HTML",
-            )
-        )
-    if not settings["anki_editor_inline_code_button"]:
-        return
     buttons.append(
-        editor.addButton(
+        toolbar_button(
+            editor,
+            settings,
+            "anki_editor_blockquote_button",
+            icon=str(BLOCKQUOTE_ICON),
+            cmd="anki_global_kit_blockquote",
+            func=lambda editor: _toggle_block(editor, "blockquote"),
+            tip=_button_tip("Blockquote", "anki_editor_blockquote_shortcut", settings),
+        )
+    )
+    buttons.append(
+        toolbar_button(
+            editor,
+            settings,
+            "anki_editor_paste_markdown_as_html_button",
+            icon=str(PASTE_MARKDOWN_ICON),
+            cmd="anki_global_kit_paste_markdown_as_html",
+            func=_paste_markdown_as_html,
+            tip="Paste Markdown as HTML",
+        )
+    )
+    buttons.append(
+        toolbar_button(
+            editor,
+            settings,
+            "anki_editor_inline_code_button",
             icon=str(ICON_ASSET),
             cmd="anki_global_kit_inline_code",
             func=_toggle_inline_code,

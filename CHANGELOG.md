@@ -17,9 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Grouped custom editor styles under **Editor Stylesheets**, added an **Editor Toolbar** parent switch with indented button options and live visibility updates, and moved review highlighting back to **Cards → Card Reviews**.
+- Matched and widened syntax selectors, enlarged the rounded theme preview, and merged About into Help under **Description**.
 - Standardized shortcut action capitalization and syntax Settings spacing, aligned inputs and language support labels, and added help for shared theme updates and enabling note type code styling.
 - Renamed syntax classes and variables to `global-kit`, scoped `.code-line` inside code blocks, and kept authoring metadata on `<pre>` only. Existing highlighted fields from earlier development builds need their markup updated or recreated from source with **Highlight Code**.
-- Moved About and Help content beside their Settings pages and the AnkiWeb listing description into publishing documentation. Updated guide links and package validation for the new locations.
+- Moved Help content beside its Settings page and the AnkiWeb listing description into publishing documentation. Updated guide links and package validation for the new locations.
 
 ### Fixed
 

@@ -20,10 +20,7 @@ PACKAGE_DIRECTORIES = (
     "vendor",
 )
 PACKAGE_PATHS = PACKAGE_FILES + PACKAGE_DIRECTORIES
-REQUIRED_SETTINGS_FILES = (
-    "desktop/settings/pages/about/about-content.md",
-    "desktop/settings/pages/help/help-content.md",
-)
+REQUIRED_SETTINGS_FILES = ("desktop/settings/pages/help/help-content.md",)
 REQUIRED_USER_FILES = (
     "user_files/README.txt",
     "user_files/editor-fields.css",
