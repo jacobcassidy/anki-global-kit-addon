@@ -1,38 +1,64 @@
-import { getSyntaxLanguage, highlightCodeText } from './tokenizer.js';
+import { highlightReviewCode } from './engine.js';
+import { getSyntaxLanguage } from './languages.js';
 import { settings } from '../runtime/settings.js';
 import { observers } from '../runtime/state.js';
+
+const MAX_BLOCK_CHARACTERS = 10_000;
+const MAX_ANSWER_CHARACTERS = 20_000;
+const MAX_ANSWER_BLOCKS = 20;
 
 /** Highlight current and subsequently rendered answer code blocks. */
 export function watchSubmittedCodeBlocks() {
   observers.submittedCode?.disconnect();
   observers.submittedCode = null;
   if (!settings.cardReviewSyntaxHighlighting || !document.body) return null;
-  const submittedCodeSelector = '.user-answer .box__content pre > code';
 
-  const highlightCode = (code) => {
-    if (!(code instanceof Element) || code.dataset.syntaxHighlighted === 'true') return;
-    if (!code.matches(submittedCodeSelector)) return;
+  const submittedCodeSelector = ':scope pre > code';
+  const processAnswer = (answer) => {
+    let totalCharacters = 0;
+    let processedBlocks = 0;
+    const blocks = [...answer.querySelectorAll(submittedCodeSelector)].filter(
+      (code) => !code.closest('.agk-code-block') && code.dataset.syntaxHighlighted !== 'true',
+    );
 
-    const topic = document.querySelector('.topic');
-    const language =
-      getSyntaxLanguage(code.dataset.language) ||
-      (code.dataset.language ? null : getSyntaxLanguage(topic ? topic.textContent : ''));
-    if (!language) return;
+    for (const code of blocks) {
+      if (processedBlocks >= MAX_ANSWER_BLOCKS || totalCharacters >= MAX_ANSWER_CHARACTERS) break;
+      processedBlocks += 1;
 
-    code.innerHTML = highlightCodeText(code.textContent, language);
-    code.classList.add('syntax-highlights', `language-${language}`);
-    code.dataset.syntaxHighlighted = 'true';
+      const source = code.textContent || '';
+      const explicitLanguage =
+        code.dataset.language ||
+        [...code.classList].find((name) => name.startsWith('language-'))?.slice('language-'.length);
+      const language = explicitLanguage
+        ? getSyntaxLanguage(explicitLanguage)
+        : getSyntaxLanguage(document.querySelector('.topic')?.textContent || '');
+
+      if (source.length > MAX_BLOCK_CHARACTERS) continue;
+
+      if (!language) continue;
+      if (totalCharacters + source.length > MAX_ANSWER_CHARACTERS) break;
+
+      totalCharacters += source.length;
+      const highlighted = highlightReviewCode(source, language);
+      if (highlighted === null) continue;
+
+      code.innerHTML = highlighted;
+      code.classList.add('syntax-highlights', `language-${language}`);
+      code.dataset.syntaxHighlighted = 'true';
+    }
   };
 
-  const scan = (node) => {
+  const processNode = (node) => {
     if (!(node instanceof Element)) return;
-    highlightCode(node);
-    node.querySelectorAll(submittedCodeSelector).forEach(highlightCode);
+    const answers = [];
+    if (node.matches('.user-answer .box__content')) answers.push(node);
+    answers.push(...node.querySelectorAll('.user-answer .box__content'));
+    answers.forEach(processAnswer);
   };
 
-  document.querySelectorAll(submittedCodeSelector).forEach(highlightCode);
+  document.querySelectorAll('.user-answer .box__content').forEach(processAnswer);
   const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => mutation.addedNodes.forEach(scan));
+    mutations.forEach((mutation) => mutation.addedNodes.forEach(processNode));
   });
   observer.observe(document.body, { childList: true, subtree: true });
   observers.submittedCode = observer;

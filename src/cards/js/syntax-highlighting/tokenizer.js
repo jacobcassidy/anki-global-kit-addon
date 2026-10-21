@@ -1,4 +1,4 @@
-import { syntaxLanguageAliases, syntaxLanguageRules } from './languages.js';
+import { syntaxLanguageAliases, syntaxLanguageRules } from './legacy-languages.js';
 
 export function getSyntaxLanguage(topicText) {
   const topic = (topicText || '').trim();
