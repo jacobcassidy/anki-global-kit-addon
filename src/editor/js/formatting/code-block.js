@@ -1,9 +1,12 @@
 import { getEditorSelection } from '../helpers/selection.js';
 import { editWithNativeUndo } from '../helpers/edit-transaction.js';
+import { getSyntaxLanguage } from '../../../shared/js/syntax-highlighting/languages.js';
 
 const CODE_SELECTOR = 'pre.agk-code-block > code';
 const pending = new Map();
 let requestId = 0;
+let explicitLanguage = null;
+let rememberedLanguage = null;
 
 function element(node) {
   return node?.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement;
@@ -115,6 +118,17 @@ function requestHighlight(clipboardText, language) {
   }
   clozeMode ||= 'active';
 
+  const enabled = globalThis.ankiGlobalKitEditorSettings?.anki_editor_syntax_highlighting_languages || [];
+  if (explicitLanguage && !enabled.includes(explicitLanguage)) explicitLanguage = null;
+  const topicText = currentTopicText();
+  const topicLanguage = getSyntaxLanguage(topicText);
+  const automaticLanguage =
+    target.language ||
+    (enabled.includes(topicLanguage) ? topicLanguage : null) ||
+    (enabled.includes(rememberedLanguage) ? rememberedLanguage : null) ||
+    language;
+  const selectedLanguage = explicitLanguage || automaticLanguage;
+
   const id = String(++requestId);
   target.selection = {
     getRangeAt: () => target.range,
@@ -127,7 +141,12 @@ function requestHighlight(clipboardText, language) {
     `anki-global-kit:syntax-highlight:${JSON.stringify({
       id,
       source: target.source,
-      language: target.language || language || 'python',
+      language: selectedLanguage || 'python',
+      explicitLanguage: Boolean(explicitLanguage),
+      automaticLanguage: automaticLanguage || 'python',
+      topicLanguage: topicLanguage || '',
+      topicText,
+      existingLanguage: target.language || '',
       clozeMode,
       lineNumbers: target.block
         ? target.block.dataset.lineNumbers === 'true'
@@ -140,13 +159,45 @@ function requestHighlight(clipboardText, language) {
   return true;
 }
 
+function currentTopicText() {
+  const fields = globalThis.require?.('anki/NoteEditor')?.instances?.[0]?.fields;
+  const topic = fields?.find((field) =>
+    [field.name, field.fieldName, field.field?.name].some(
+      (name) => typeof name === 'string' && name.trim().toLowerCase() === 'topic',
+    ),
+  );
+  let html;
+  topic?.editingArea?.content?.subscribe?.((value) => {
+    html = value;
+  })?.();
+  if (typeof html !== 'string') return '';
+  const content = document.createElement('template');
+  content.innerHTML = html;
+  return content.content.textContent || '';
+}
+
+function setExplicitLanguage(language) {
+  explicitLanguage = typeof language === 'string' ? language : null;
+}
+
+function setLanguageContext(explicit, remembered) {
+  explicitLanguage = typeof explicit === 'string' ? explicit : null;
+  rememberedLanguage = typeof remembered === 'string' ? remembered : null;
+}
+
 function applyHighlightResult(id, source, language, tokenHtml, lineNumbers, lineStart, clozeMode = 'active') {
   const target = pending.get(String(id));
   pending.delete(String(id));
-  if (!target || !target.field.isConnected || target.field.innerHTML !== target.fieldSnapshot) return false;
-  if (target.block && textFromCode(target.block.querySelector('code')) !== target.source) return false;
+  if (!target || !target.field.isConnected || target.field.innerHTML !== target.fieldSnapshot) {
+    reportApplyResult(id, language, false);
+    return false;
+  }
+  if (target.block && textFromCode(target.block.querySelector('code')) !== target.source) {
+    reportApplyResult(id, language, false);
+    return false;
+  }
 
-  return Boolean(
+  const applied = Boolean(
     editWithNativeUndo(target.field, target.selection, (field, selection) => {
       const replacement = selection.getRangeAt(0);
       const pre = document.createElement('pre');
@@ -168,6 +219,16 @@ function applyHighlightResult(id, source, language, tokenHtml, lineNumbers, line
       selection.addRange(replacement);
     }),
   );
+  reportApplyResult(id, language, applied);
+  return applied;
+}
+
+function reportApplyResult(id, language, applied) {
+  globalThis.pycmd?.(`anki-global-kit:syntax-highlight-applied:${JSON.stringify({ id, language, applied })}`);
+}
+
+function cancelHighlightResult(id) {
+  pending.delete(String(id));
 }
 
 function openCodeBlockOptions() {
@@ -258,6 +319,9 @@ export function installCodeBlockHighlighting() {
   api.highlightCode = requestHighlight;
   api.applyHighlightResult = applyHighlightResult;
   api.openCodeBlockOptions = openCodeBlockOptions;
+  api.setExplicitLanguage = setExplicitLanguage;
+  api.setLanguageContext = setLanguageContext;
+  api.cancelHighlightResult = cancelHighlightResult;
 }
 
 export { applyHighlightResult, requestHighlight };

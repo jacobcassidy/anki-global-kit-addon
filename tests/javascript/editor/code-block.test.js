@@ -11,6 +11,7 @@ function withEditor(html, callback) {
     Node: globalThis.Node,
     InputEvent: globalThis.InputEvent,
     pycmd: globalThis.pycmd,
+    require: globalThis.require,
     api: globalThis.ankiGlobalKitEditor,
     settings: globalThis.ankiGlobalKitEditorSettings,
   };
@@ -23,6 +24,7 @@ function withEditor(html, callback) {
   globalThis.ankiGlobalKitEditorSettings = {
     anki_editor_syntax_highlighting_line_numbers: true,
     anki_editor_syntax_highlighting_line_number_start: 50,
+    anki_editor_syntax_highlighting_languages: ['python', 'javascript', 'bash'],
   };
   installCodeBlockHighlighting();
 
@@ -51,7 +53,9 @@ test('highlight action submits selection and applies returned tokens as one edit
     selectText(document, window, field.querySelector('p'));
     let request;
     globalThis.pycmd = (message) => {
-      request = JSON.parse(message.slice(message.indexOf('{')));
+      if (message.startsWith('anki-global-kit:syntax-highlight:')) {
+        request = JSON.parse(message.slice(message.indexOf('{')));
+      }
     };
 
     assert.equal(globalThis.ankiGlobalKitEditor.highlightCode('', 'javascript'), true);
@@ -136,5 +140,38 @@ test('multiline blocks preserve source and their starting line number when refre
     assert.equal(request.source, 'first\nsecond');
     assert.equal(request.lineNumbers, true);
     assert.equal(request.lineStart, 50);
+  });
+});
+
+test('language priority is explicit choice, existing block, Topic, remembered, then default', () => {
+  withEditor('<pre class="agk-code-block"><code data-language="python">print(1)</code></pre>', (document, window) => {
+    const field = document.querySelector('anki-editable');
+    selectText(document, window, field.querySelector('code'));
+    let requests = [];
+    globalThis.pycmd = (message) => {
+      requests.push(JSON.parse(message.slice(message.indexOf('{'))));
+    };
+    globalThis.require = () => ({
+      instances: [
+        {
+          fields: [
+            {
+              name: 'Topic',
+              editingArea: { content: { subscribe: (callback) => (callback('JavaScript'), () => {}) } },
+            },
+          ],
+        },
+      ],
+    });
+    globalThis.ankiGlobalKitEditor.setLanguageContext(null, 'bash');
+
+    globalThis.ankiGlobalKitEditor.highlightCode('', 'python');
+    assert.equal(requests[0].language, 'python');
+    assert.equal(requests[0].explicitLanguage, false);
+
+    globalThis.ankiGlobalKitEditor.setExplicitLanguage('javascript');
+    globalThis.ankiGlobalKitEditor.highlightCode('', 'python');
+    assert.equal(requests[1].language, 'javascript');
+    assert.equal(requests[1].explicitLanguage, true);
   });
 });

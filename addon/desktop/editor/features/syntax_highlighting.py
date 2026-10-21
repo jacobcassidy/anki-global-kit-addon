@@ -15,8 +15,10 @@ ICON = ICON_ASSET_DIR / "lightning.svg"
 OPTIONS_ICON = ICON_ASSET_DIR / "code-block.svg"
 _MESSAGE_PREFIX = "anki-global-kit:syntax-highlight:"
 _MARKDOWN_MESSAGE_PREFIX = "anki-global-kit:markdown-highlight:"
+_APPLIED_MESSAGE_PREFIX = "anki-global-kit:syntax-highlight-applied:"
 _BUSY = False
 _INSTALLED = False
+_PENDING_EXPLICIT_APPLIES: dict[str, tuple[Editor, int | None, str]] = {}
 
 
 def add_button(buttons: list, editor: Editor) -> None:
@@ -34,11 +36,235 @@ def add_button(buttons: list, editor: Editor) -> None:
     )
     buttons.append(
         editor.addButton(
+            icon=None,
+            cmd="anki_global_kit_syntax_language",
+            func=show_language_menu,
+            label=f"Language: {_language_button_label(settings)}",
+            id="anki_global_kit_syntax_language",
+            tip="Choose the language used for this note",
+        )
+    )
+    buttons.append(
+        editor.addButton(
             icon=str(OPTIONS_ICON),
             cmd="anki_global_kit_code_block_options",
             func=open_code_block_options,
             tip="Code Block Options…",
         )
+    )
+
+
+def _language_button_label(settings: dict, language: str | None = None) -> str:
+    alias = language or settings.get(
+        "anki_editor_syntax_highlighting_default_language", "python"
+    )
+    if alias not in settings.get("anki_editor_syntax_highlighting_languages", []):
+        try:
+            from ...syntax_highlighting.rendering import select_editor_language
+
+            alias = select_editor_language(
+                settings.get(
+                    "anki_editor_syntax_highlighting_default_language", "python"
+                ),
+                settings.get("anki_editor_syntax_highlighting_languages", []),
+            )
+        except ModuleNotFoundError:
+            alias = None
+    try:
+        from ...syntax_highlighting.rendering import available_languages
+
+        names = {item[1]: item[0] for item in available_languages()}
+    except ModuleNotFoundError:
+        names = {}
+    return f"{names.get(alias, alias or 'Choose language')} ▾"
+
+
+def _set_language_choice(editor: Editor, language: str) -> None:
+    settings = get_editor_settings()
+    enabled = settings.get("anki_editor_syntax_highlighting_languages", [])
+    if language not in enabled:
+        return
+
+    editor._anki_global_kit_language_override = language
+    editor._anki_global_kit_language_deck_id = _resolve_editor_deck_id(editor)
+    if editor.web is not None:
+        editor.web.eval(
+            "globalThis.ankiGlobalKitEditor?.setExplicitLanguage("
+            f"{json.dumps(language)});"
+            "const button = document.querySelector('[data-command=\"anki_global_kit_syntax_language\"]');"
+            f"if (button) button.textContent = {json.dumps('Language: ' + _language_button_label(settings, language))};"
+        )
+
+
+def show_language_menu(editor: Editor) -> None:
+    from aqt.qt import QMenu
+
+    from ...syntax_highlighting.rendering import (
+        available_languages,
+        select_editor_language,
+    )
+
+    settings = get_editor_settings()
+    enabled = settings.get("anki_editor_syntax_highlighting_languages", [])
+    if not enabled:
+        from aqt.utils import showWarning
+
+        showWarning(
+            "Choose at least one language in the Syntax Highlighting settings tab to enable code highlighting."
+        )
+        return
+
+    names = {alias: name for name, alias, _aliases in available_languages()}
+    selected = getattr(editor, "_anki_global_kit_language_override", None)
+    if selected not in enabled:
+        selected = select_editor_language(
+            settings.get("anki_editor_syntax_highlighting_default_language", "python"),
+            enabled,
+        )
+    ordered = sorted(
+        (alias for alias in enabled if alias in names),
+        key=lambda alias: (alias != selected, names[alias].casefold()),
+    )
+    menu = QMenu(editor.parentWindow)
+    for language in ordered:
+        action = menu.addAction(names[language])
+        action.setCheckable(True)
+        action.setChecked(language == selected)
+        action.triggered.connect(
+            lambda _checked=False, alias=language: _set_language_choice(editor, alias)
+        )
+    menu.exec()
+
+
+def set_editor_language_context(editor: Editor, *, reset: bool = False) -> None:
+    """Refresh transient choices and collection memory after loading a note."""
+    settings = get_editor_settings()
+    enabled = settings.get("anki_editor_syntax_highlighting_languages", [])
+    override = getattr(editor, "_anki_global_kit_language_override", None)
+    if reset:
+        override = None
+        editor._anki_global_kit_language_override = None
+        editor._anki_global_kit_language_deck_id = None
+    if override not in enabled:
+        override = None
+        editor._anki_global_kit_language_override = None
+    deck_id = _resolve_editor_deck_id(editor)
+    editor._anki_global_kit_language_context_deck_id = deck_id
+    remembered = None
+    if deck_id is not None and settings.get(
+        "anki_editor_syntax_highlighting_remember_language_per_deck"
+    ):
+        from ...syntax_highlighting.language_memory import remembered_language
+
+        remembered = remembered_language(editor.mw.col, deck_id, enabled)
+    if editor.web is not None:
+        editor.web.eval(
+            "globalThis.ankiGlobalKitEditor?.setLanguageContext("
+            f"{json.dumps(override)}, {json.dumps(remembered)});"
+        )
+        label = _language_button_label(settings, override)
+        editor.web.eval(
+            "const button = document.querySelector('[data-command=\"anki_global_kit_syntax_language\"]');"
+            f"if (button) button.textContent = {json.dumps('Language: ' + label)};"
+        )
+
+
+def reset_editor_language_context(editor: Editor) -> None:
+    set_editor_language_context(editor, reset=True)
+
+
+def _resolve_editor_deck_id(editor: Editor) -> int | None:
+    if getattr(editor, "addMode", False):
+        chooser = getattr(editor.parentWindow, "deck_chooser", None)
+        return _positive_id(getattr(chooser, "selected_deck_id", None))
+
+    card = getattr(editor, "card", None)
+    if card is not None:
+        deck_id = _positive_id(getattr(card, "odid", 0)) or _positive_id(
+            getattr(card, "did", None)
+        )
+        return deck_id
+
+    note = getattr(editor, "note", None)
+    collection = getattr(editor.mw, "col", None)
+    note_id = _positive_id(getattr(note, "id", None))
+    if note_id is None or collection is None:
+        return None
+    try:
+        deck_ids = collection.db.list(
+            "select distinct case when odid > 0 then odid else did end from cards where nid = ?",
+            note_id,
+        )
+    except (AttributeError, RuntimeError):
+        return None
+
+    return int(deck_ids[0]) if len(deck_ids) == 1 else None
+
+
+def _positive_id(value) -> int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int) and value > 0:
+        return int(value)
+    if isinstance(value, str) and value.isdecimal() and int(value) > 0:
+        return int(value)
+    return None
+
+
+def _resolve_authoring_language(
+    request: dict, editor: Editor, deck_id: int | None, explicit: bool
+) -> tuple[str, bool]:
+    from ...syntax_highlighting.rendering import (
+        available_languages,
+        select_editor_language,
+    )
+
+    settings = get_editor_settings()
+    enabled = settings.get("anki_editor_syntax_highlighting_languages", [])
+    rows = available_languages()
+    supported = {alias for _name, alias, _aliases in rows}
+    requested = request.get("language")
+    if explicit and requested in enabled and requested in supported:
+        return requested, True
+
+    existing = request.get("existingLanguage")
+    if isinstance(existing, str) and existing in supported:
+        return existing, False
+
+    topic_text = request.get("topicText")
+    if isinstance(topic_text, str):
+        matches = []
+        for name, alias, aliases in rows:
+            if alias not in enabled:
+                continue
+            for candidate in {name, *aliases}:
+                if re.search(
+                    rf"(?<![a-z0-9]){re.escape(candidate)}(?![a-z0-9])",
+                    topic_text,
+                    re.IGNORECASE,
+                ):
+                    matches.append((len(candidate), alias))
+        if matches:
+            return max(matches)[1], False
+
+    if (
+        deck_id is not None
+        and settings.get("anki_editor_syntax_highlighting_remember_language_per_deck")
+        and editor.mw.col is not None
+    ):
+        from ...syntax_highlighting.language_memory import remembered_language
+
+        remembered = remembered_language(editor.mw.col, deck_id, enabled)
+        if remembered in supported:
+            return remembered, False
+
+    return (
+        select_editor_language(
+            settings.get("anki_editor_syntax_highlighting_default_language", "python"),
+            enabled,
+        )
+        or "python",
+        False,
     )
 
 
@@ -80,13 +306,25 @@ def _on_success(
     line_numbers: bool,
     line_start: int,
     cloze_mode: str,
+    explicit_language: bool,
+    deck_id: int | None,
 ) -> None:
     global _BUSY
     _BUSY = False
     if editor.web is None:
         return
 
+    if _resolve_editor_deck_id(editor) != deck_id:
+        editor.web.eval(
+            "globalThis.ankiGlobalKitEditor?.cancelHighlightResult("
+            f"{json.dumps(request_id)});"
+        )
+        set_editor_language_context(editor, reset=True)
+        return
+
     token_html, language = result
+    if explicit_language:
+        _PENDING_EXPLICIT_APPLIES[request_id] = (editor, deck_id, language)
     editor.web.eval(
         "globalThis.ankiGlobalKitEditor?.applyHighlightResult("
         f"{json.dumps(request_id)}, {json.dumps(source)}, "
@@ -174,6 +412,8 @@ def _on_markdown_message(message: str, context: Editor):
         request = json.loads(message[len(_MARKDOWN_MESSAGE_PREFIX) :])
     except (TypeError, json.JSONDecodeError):
         return (True, None)
+    if not isinstance(request, dict):
+        return (True, None)
 
     request_id = request.get("id")
     html = request.get("html")
@@ -242,6 +482,9 @@ def _on_message(handled: tuple[bool, object], message: str, context):
     if message.startswith(_MARKDOWN_MESSAGE_PREFIX) and isinstance(context, Editor):
         return _on_markdown_message(message, context)
 
+    if message.startswith(_APPLIED_MESSAGE_PREFIX) and isinstance(context, Editor):
+        return _on_highlight_applied(message, context)
+
     if not message.startswith(_MESSAGE_PREFIX) or not isinstance(context, Editor):
         return handled
 
@@ -249,10 +492,14 @@ def _on_message(handled: tuple[bool, object], message: str, context):
         request = json.loads(message[len(_MESSAGE_PREFIX) :])
     except (TypeError, json.JSONDecodeError):
         return (True, None)
+    if not isinstance(request, dict):
+        return (True, None)
 
     request_id = request.get("id")
     source = request.get("source")
     language = request.get("language")
+    explicit_language = request.get("explicitLanguage") is True
+    request_deck_id = _resolve_editor_deck_id(context)
     cloze_mode = request.get("clozeMode")
     if cloze_mode not in {"active", "literal"}:
         cloze_mode = "active"
@@ -270,6 +517,29 @@ def _on_message(handled: tuple[bool, object], message: str, context):
         return (True, None)
     if not source:
         return (True, None)
+    if context.web is None:
+        return (True, None)
+
+    context_deck_id = getattr(
+        context, "_anki_global_kit_language_context_deck_id", request_deck_id
+    )
+    deck_changed = context_deck_id != request_deck_id
+    explicit_deck_id = getattr(
+        context, "_anki_global_kit_language_deck_id", context_deck_id
+    )
+    if deck_changed:
+        if explicit_deck_id != request_deck_id:
+            explicit_language = False
+            context._anki_global_kit_language_override = None
+            context._anki_global_kit_language_deck_id = None
+    language, explicit_language = _resolve_authoring_language(
+        request, context, request_deck_id, explicit_language
+    )
+    if deck_changed or (
+        request.get("explicitLanguage") is True and not explicit_language
+    ):
+        set_editor_language_context(context, reset=not explicit_language)
+
     from ...syntax_highlighting.rendering import MAX_SOURCE_CHARACTERS
 
     if len(source) > MAX_SOURCE_CHARACTERS:
@@ -307,9 +577,51 @@ def _on_message(handled: tuple[bool, object], message: str, context):
             line_numbers,
             line_start,
             cloze_mode,
+            explicit_language,
+            request_deck_id,
         ),
     )
     operation.failure(_on_failure).without_collection().run_in_background()
+    return (True, None)
+
+
+def _on_highlight_applied(message: str, context: Editor):
+    try:
+        request = json.loads(message[len(_APPLIED_MESSAGE_PREFIX) :])
+    except (TypeError, json.JSONDecodeError):
+        return (True, None)
+    if not isinstance(request, dict):
+        return (True, None)
+    request_id = request.get("id")
+    if not isinstance(request_id, str):
+        return (True, None)
+
+    pending = _PENDING_EXPLICIT_APPLIES.pop(request_id, None)
+    if pending is None:
+        return (True, None)
+    editor, deck_id, language = pending
+    if (
+        editor is not context
+        or request.get("applied") is not True
+        or request.get("language") != language
+        or deck_id is None
+        or _resolve_editor_deck_id(editor) != deck_id
+    ):
+        return (True, None)
+
+    settings = get_editor_settings()
+    collection = getattr(editor.mw, "col", None)
+    if collection is None or not settings.get(
+        "anki_editor_syntax_highlighting_remember_language_per_deck"
+    ):
+        return (True, None)
+
+    from ...syntax_highlighting.language_memory import remember_language
+    from ...syntax_highlighting.rendering import available_languages
+
+    supported = {alias for _name, alias, _aliases in available_languages()}
+    remember_language(collection, deck_id, language, supported)
+    set_editor_language_context(editor)
     return (True, None)
 
 

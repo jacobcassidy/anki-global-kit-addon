@@ -97,9 +97,11 @@ class EditorBindingsTests(unittest.TestCase):
             shortcut,
         )
         self.assertEqual(shortcut.key, "Alt+K")
-        self.assertIn(
-            '"anki_editor_inline_code_shortcut":"Alt+K"',
-            editor.web.eval.call_args.args[0],
+        self.assertTrue(
+            any(
+                '"anki_editor_inline_code_shortcut":"Alt+K"' in call.args[0]
+                for call in editor.web.eval.call_args_list
+            )
         )
         editor.web.eval.reset_mock()
         shortcut.callback()

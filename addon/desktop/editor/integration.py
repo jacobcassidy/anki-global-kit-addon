@@ -75,6 +75,7 @@ def _inject_features(editor: Editor) -> None:
         f"button.title = {json.dumps(_inline_code_tip(editor_settings))};"
         "}"
     )
+    syntax_highlighting.set_editor_language_context(editor)
 
 
 def _read_editor_styles(
@@ -281,3 +282,6 @@ def initialize() -> None:
     gui_hooks.editor_did_init_buttons.append(_add_button)
     gui_hooks.editor_did_init_shortcuts.append(_add_shortcut)
     gui_hooks.editor_did_load_note.append(_inject_features)
+    gui_hooks.editor_did_load_note.append(
+        syntax_highlighting.reset_editor_language_context
+    )

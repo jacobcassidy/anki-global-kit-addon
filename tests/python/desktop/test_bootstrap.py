@@ -46,6 +46,9 @@ class BootstrapTests(unittest.TestCase):
                         ],
                         "editor_did_load_note": [
                             editor._inject_features,
+                            module(
+                                "editor.features.syntax_highlighting"
+                            ).reset_editor_language_context,
                             reviewer._register_editor_webview,
                         ],
                         "webview_did_receive_js_message": [

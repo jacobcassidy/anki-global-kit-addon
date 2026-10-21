@@ -1,5 +1,6 @@
 """Tests for the headless, isolated syntax renderer."""
 
+import json
 import sys
 import unittest
 
@@ -137,6 +138,148 @@ class SyntaxRenderingTests(unittest.TestCase):
         self.assertEqual(rendered[0]["language"], "python")
         self.assertIn("&lt;", rendered[0]["html"])
         self.assertEqual(oversized, 1)
+
+    def test_deck_resolution_uses_add_destination_and_filtered_card_original_deck(self):
+        integration = load_editor_integration({})
+        feature = integration.syntax_highlighting
+        add_editor = type(
+            "Editor",
+            (),
+            {
+                "addMode": True,
+                "parentWindow": type(
+                    "AddWindow",
+                    (),
+                    {
+                        "deck_chooser": type(
+                            "DeckChooser", (), {"selected_deck_id": 19}
+                        )()
+                    },
+                )(),
+            },
+        )()
+        filtered_editor = type(
+            "Editor",
+            (),
+            {"addMode": False, "card": type("Card", (), {"odid": 7, "did": 88})()},
+        )()
+
+        self.assertEqual(feature._resolve_editor_deck_id(add_editor), 19)
+        self.assertEqual(feature._resolve_editor_deck_id(filtered_editor), 7)
+
+    def test_language_memory_is_written_only_after_current_successful_explicit_apply(
+        self,
+    ):
+        settings = {
+            "anki_editor_syntax_highlighting_remember_language_per_deck": True,
+            "anki_editor_syntax_highlighting_languages": ["python"],
+        }
+        integration = load_editor_integration(settings)
+        feature = integration.syntax_highlighting
+        load_module("kit.desktop.paths", "addon/desktop/paths.py")
+        load_module(
+            "kit.desktop.syntax_highlighting",
+            "addon/desktop/syntax_highlighting/__init__.py",
+        )
+
+        class Collection:
+            def __init__(self):
+                self.config = {}
+
+            def get_config(self, key, default=None):
+                return self.config.get(key, default)
+
+            def set_config(self, key, value):
+                self.config[key] = value
+
+        collection = Collection()
+        editor = type(
+            "Editor",
+            (),
+            {
+                "addMode": True,
+                "web": None,
+                "mw": type("Anki", (), {"col": collection})(),
+                "parentWindow": type(
+                    "AddWindow",
+                    (),
+                    {"deck_chooser": type("Chooser", (), {"selected_deck_id": 19})()},
+                )(),
+            },
+        )()
+        feature._PENDING_EXPLICIT_APPLIES["41"] = (editor, 19, "python")
+        feature._on_highlight_applied(
+            "anki-global-kit:syntax-highlight-applied:"
+            + json.dumps({"id": "41", "language": "python", "applied": False}),
+            editor,
+        )
+        self.assertEqual(collection.config, {})
+
+        feature._PENDING_EXPLICIT_APPLIES["42"] = (editor, 19, "python")
+
+        feature._on_highlight_applied(
+            "anki-global-kit:syntax-highlight-applied:"
+            + json.dumps({"id": "42", "language": "python", "applied": True}),
+            editor,
+        )
+
+        self.assertEqual(
+            collection.config["anki_global_kit.syntax_highlighting.deck_languages"][
+                "19"
+            ],
+            "python",
+        )
+
+    def test_editor_language_priority_includes_full_pygments_topic_aliases(self):
+        settings = {
+            "anki_editor_syntax_highlighting_languages": ["python", "cpp"],
+            "anki_editor_syntax_highlighting_default_language": "python",
+            "anki_editor_syntax_highlighting_remember_language_per_deck": False,
+        }
+        integration = load_editor_integration(settings)
+        feature = integration.syntax_highlighting
+        load_module("kit.desktop.paths", "addon/desktop/paths.py")
+        load_module(
+            "kit.desktop.syntax_highlighting",
+            "addon/desktop/syntax_highlighting/__init__.py",
+        )
+        editor = type("Editor", (), {"mw": type("Anki", (), {"col": None})()})()
+
+        language, explicit = feature._resolve_authoring_language(
+            {
+                "language": "python",
+                "topicText": "C++ Language Notes",
+                "existingLanguage": "",
+            },
+            editor,
+            None,
+            False,
+        )
+        self.assertEqual((language, explicit), ("cpp", False))
+
+        language, explicit = feature._resolve_authoring_language(
+            {
+                "language": "python",
+                "topicText": "Python",
+                "existingLanguage": "rust",
+            },
+            editor,
+            None,
+            False,
+        )
+        self.assertEqual((language, explicit), ("rust", False))
+
+        language, explicit = feature._resolve_authoring_language(
+            {
+                "language": "cpp",
+                "topicText": "Python",
+                "existingLanguage": "rust",
+            },
+            editor,
+            None,
+            True,
+        )
+        self.assertEqual((language, explicit), ("cpp", True))
 
 
 if __name__ == "__main__":

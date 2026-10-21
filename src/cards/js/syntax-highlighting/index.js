@@ -26,6 +26,7 @@ export function watchSubmittedCodeBlocks() {
       processedBlocks += 1;
 
       const source = code.textContent || '';
+      const sourceLength = Array.from(source).length;
       const explicitLanguage =
         code.dataset.language ||
         [...code.classList].find((name) => name.startsWith('language-'))?.slice('language-'.length);
@@ -33,12 +34,12 @@ export function watchSubmittedCodeBlocks() {
         ? getSyntaxLanguage(explicitLanguage)
         : getSyntaxLanguage(document.querySelector('.topic')?.textContent || '');
 
-      if (source.length > MAX_BLOCK_CHARACTERS) continue;
+      if (sourceLength > MAX_BLOCK_CHARACTERS) continue;
 
       if (!language) continue;
-      if (totalCharacters + source.length > MAX_ANSWER_CHARACTERS) break;
+      if (totalCharacters + sourceLength > MAX_ANSWER_CHARACTERS) break;
 
-      totalCharacters += source.length;
+      totalCharacters += sourceLength;
       const highlighted = highlightReviewCode(source, language);
       if (highlighted === null) continue;
 

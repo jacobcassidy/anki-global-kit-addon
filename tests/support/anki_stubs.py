@@ -90,6 +90,7 @@ def load_editor_integration(settings, *, mac=False):
     editor.Editor = object
     qt = ModuleType("aqt.qt")
     qt.QApplication = Mock()
+    qt.QMenu = Mock()
     qt.QKeySequence = str
     qt.sip = SimpleNamespace(isdeleted=lambda _widget: False)
 

@@ -49,6 +49,13 @@ test('review highlighting enforces per-block, per-answer, and block-count budget
     assert.equal(blocks[0].dataset.syntaxHighlighted, undefined);
     assert.equal(blocks[1].dataset.syntaxHighlighted, 'true');
 
+    blocks = answer(code('😃'.repeat(10_000)));
+    assert.equal(blocks[0].dataset.syntaxHighlighted, 'true');
+
+    blocks = answer(code('😃'.repeat(10_001)) + code('print(1)'));
+    assert.equal(blocks[0].dataset.syntaxHighlighted, undefined);
+    assert.equal(blocks[1].dataset.syntaxHighlighted, 'true');
+
     blocks = answer(code('x'.repeat(10_000)) + code('x'.repeat(10_000)) + code('x'));
     assert.equal(blocks[0].dataset.syntaxHighlighted, 'true');
     assert.equal(blocks[1].dataset.syntaxHighlighted, 'true');
