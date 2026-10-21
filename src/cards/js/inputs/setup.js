@@ -11,16 +11,16 @@ import { handleTabIndentation, changeTextareaIndentation } from './tab-navigatio
 import { reportQuestionShortcutFocus } from './shortcut-focus.js';
 import { settings } from '../runtime/settings.js';
 import { splitKeyboardShortcut } from '../../../shared/js/keyboard-shortcuts.js';
-import boldIcon from '../../../../addon/shared/assets/icons/text-bold.svg';
-import italicIcon from '../../../../addon/shared/assets/icons/text-italic.svg';
-import strikethroughIcon from '../../../../addon/shared/assets/icons/text-strikethrough.svg';
-import codeBlockIcon from '../../../../addon/shared/assets/icons/code-block.svg';
-import inlineCodeIcon from '../../../../addon/shared/assets/icons/code-inline.svg';
-import unorderedListIcon from '../../../../addon/shared/assets/icons/list-unordered.svg';
-import orderedListIcon from '../../../../addon/shared/assets/icons/list-ordered.svg';
-import indentIncreaseIcon from '../../../../addon/shared/assets/icons/indent-increase.svg';
-import indentDecreaseIcon from '../../../../addon/shared/assets/icons/indent-decrease.svg';
-import blockquoteIcon from '../../../../addon/shared/assets/icons/blockquote.svg';
+import boldIcon from '../../../../addon/assets/icons/text-bold.svg';
+import italicIcon from '../../../../addon/assets/icons/text-italic.svg';
+import strikethroughIcon from '../../../../addon/assets/icons/text-strikethrough.svg';
+import codeBlockIcon from '../../../../addon/assets/icons/code-block.svg';
+import inlineCodeIcon from '../../../../addon/assets/icons/code-inline.svg';
+import unorderedListIcon from '../../../../addon/assets/icons/list-unordered.svg';
+import orderedListIcon from '../../../../addon/assets/icons/list-ordered.svg';
+import indentIncreaseIcon from '../../../../addon/assets/icons/indent-increase.svg';
+import indentDecreaseIcon from '../../../../addon/assets/icons/indent-decrease.svg';
+import blockquoteIcon from '../../../../addon/assets/icons/blockquote.svg';
 
 /**
  * Watch question textareas and connect their editing and submission handlers.

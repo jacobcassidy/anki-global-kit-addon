@@ -65,13 +65,13 @@
     "lint:py:fix": "uv run --locked ruff check --fix .",
     "lint:scripts": "npx eslint",
     "lint:scripts:fix": "npx eslint --fix",
-    "lint:styles": "npx stylelint \"**/*.{css,scss}\" --ignore-path .gitignore",
-    "lint:styles:fix": "npx stylelint \"**/*.{css,scss}\" --ignore-path .gitignore --fix",
+    "lint:styles": "npx stylelint \"**/*.{css,scss}\" --ignore-path .gitignore --allow-empty-input",
+    "lint:styles:fix": "npx stylelint \"**/*.{css,scss}\" --ignore-path .gitignore --allow-empty-input --fix",
     "package:addon": "python3 scripts/package_addon.py",
     "py:setup": "uv sync --locked",
     "test": "npm run test:scripts && npm run test:python",
-    "test:python": "python3 -m unittest discover -s scripts/tests -p \"test_*.py\"",
-    "test:scripts": "node --test \"scripts/tests/*.test.js\"",
+    "test:python": "python3 -m unittest discover -s tests/python -t . -p \"test_*.py\"",
+    "test:scripts": "node --test \"tests/javascript/**/*.test.js\"",
     "watch": "node scripts/watch.js"
   },
   "engines": {

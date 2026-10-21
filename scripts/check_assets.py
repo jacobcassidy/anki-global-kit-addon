@@ -1,4 +1,4 @@
-"""Check card/editor assets, shared icons, templates, and their package paths."""
+"""Check card/editor assets, icons, templates, and their package paths."""
 
 import ast
 import importlib.util
@@ -8,6 +8,11 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+
+try:
+    from scripts.addon_module_loader import load_addon_module
+except ModuleNotFoundError:
+    from addon_module_loader import load_addon_module
 
 
 def load_script_module(path: Path, name: str):
@@ -59,20 +64,24 @@ def validate_icons(packaged_paths: set[Path]) -> int:
         ):
             icons.add((source.parent / reference).resolve())
 
-    # Desktop controls refer to shared icons by filename. Read literals rather
+    # Desktop controls refer to icons by filename. Read literals rather
     # than importing Qt modules, so this command runs outside Anki.
     for source in (ROOT / "addon/desktop").rglob("*.py"):
         for node in ast.walk(ast.parse(read_source(source), filename=str(source))):
             if isinstance(node, ast.Constant) and isinstance(node.value, str):
-                if node.value.endswith(".svg") and Path(node.value).name == node.value:
-                    icons.add(ROOT / "addon/shared/assets/icons" / node.value)
+                if (
+                    node.value.endswith(".svg")
+                    and Path(node.value).name == node.value
+                    and "*" not in node.value
+                ):
+                    icons.add(ROOT / "addon/assets/icons" / node.value)
     for icon in sorted(icons):
         require_packaged(icon, packaged_paths)
     return len(icons)
 
 
 def validate_templates(packaged_paths: set[Path]) -> int:
-    service = ROOT / "addon/desktop/settings/services/note_types.py"
+    service = ROOT / "addon/desktop/note_types/service.py"
     definitions = {}
     for node in ast.parse(read_source(service), filename=str(service)).body:
         if isinstance(node, ast.Assign):
@@ -115,10 +124,7 @@ def validate_assets(package_files: list[Path]) -> str:
             f"Project versions must match across package metadata: {details}"
         )
 
-    manifest = load_script_module(
-        ROOT / "addon/desktop/settings/configs/asset_manifest.py",
-        "anki_global_kit_asset_manifest",
-    )
+    manifest = load_addon_module("desktop.media.manifest")
     packaged_paths = {path.resolve() for path in package_files}
     categories = {".js": "js", ".css": "css"}
     for media_name, source_path in manifest.ASSET_PATHS.items():
@@ -126,9 +132,9 @@ def validate_assets(package_files: list[Path]) -> str:
             media_name == manifest.FONT_LICENSE_ASSET_NAME
             and source_path.suffix == ".txt"
         ):
-            expected_parent = ROOT / "addon/shared/assets/fonts"
+            expected_parent = manifest.FONT_ASSET_DIR
         elif source_path.suffix in categories:
-            expected_parent = ROOT / "addon/web/assets" / categories[source_path.suffix]
+            expected_parent = manifest.CARD_ASSET_DIR / categories[source_path.suffix]
         else:
             raise ValueError(f"Unsupported card asset type: {media_name}")
         if source_path.parent != expected_parent:
@@ -165,7 +171,7 @@ def validate_assets(package_files: list[Path]) -> str:
         ),
     ):
         validate_build_target(
-            build_config, target, entry, f"${{addonWebAssets}}/{category}/{asset_name}"
+            build_config, target, entry, f"${{cardAssets}}/{category}/{asset_name}"
         )
 
     integration = read_source(ROOT / "addon/desktop/editor/integration.py")
@@ -183,7 +189,7 @@ def validate_assets(package_files: list[Path]) -> str:
         ),
     )
     for target, entry, relative_output in editor_assets:
-        output = f"addon/desktop/editor/assets/{relative_output}"
+        output = f"addon/assets/editor/{relative_output}"
         require_packaged(ROOT / output, packaged_paths)
         validate_build_target(build_config, target, entry, f"${{root}}{output}")
         if f'"{Path(relative_output).name}"' not in integration:
@@ -205,7 +211,7 @@ def validate_assets(package_files: list[Path]) -> str:
     for stylesheet in (
         ROOT / "src/shared/css/fonts.css",
         manifest.ASSET_PATHS[manifest.CSS_ASSET_NAME],
-        ROOT / "addon/desktop/editor/assets/css/editor-ui.min.css",
+        ROOT / "addon/assets/editor/css/editor-ui.min.css",
     ):
         if not re.search(
             css_asset_url(manifest.FONT_ASSET_NAME), read_source(stylesheet)
@@ -214,18 +220,16 @@ def validate_assets(package_files: list[Path]) -> str:
                 f"{stylesheet.relative_to(ROOT)} does not reference {manifest.FONT_ASSET_NAME}"
             )
 
-    editor_ui_css = read_source(
-        ROOT / "addon/desktop/editor/assets/css/editor-ui.min.css"
-    )
+    editor_ui_css = read_source(ROOT / "addon/assets/editor/css/editor-ui.min.css")
     editor_fields_css = read_source(
-        ROOT / "addon/desktop/editor/assets/css/editor-fields.min.css"
+        ROOT / "addon/assets/editor/css/editor-fields.min.css"
     )
     if "@font-face" not in editor_ui_css or "@font-face" in editor_fields_css:
         raise ValueError(
             "Editor font faces must be declared in the document UI stylesheet, not field shadow roots"
         )
 
-    installer = read_source(ROOT / "addon/desktop/settings/services/assets.py")
+    installer = read_source(ROOT / "addon/desktop/media/install.py")
     required_installer_paths = (
         "ASSET_PATHS[name].read_bytes()",
         "Path(mw.col.media.dir()) / name",
@@ -238,7 +242,7 @@ def validate_assets(package_files: list[Path]) -> str:
 
     return (
         f"Validated {len(manifest.ASSET_PATHS)} card assets, {len(editor_assets)} editor assets, "
-        f"{icon_count} shared icons, and {template_count} template parts across source, "
+        f"{icon_count} icons, and {template_count} template parts across source, "
         "build, package, and media paths."
     )
 

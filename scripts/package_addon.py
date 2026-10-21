@@ -16,8 +16,7 @@ PACKAGE_FILES = (
 )
 PACKAGE_DIRECTORIES = (
     "desktop",
-    "shared",
-    "web",
+    "assets",
     "templates",
     "user_files",
 )

@@ -4,7 +4,7 @@ import { clearStoredAnswers, readStoredAnswer } from '../runtime/answer-storage.
 import { hasVisibleContent } from '../helpers/dom.js';
 import { showBonusQuestion, showTypeHint } from './type-hints.js';
 import { getRenderedAnswerText, diffAnswerCharacters } from './answer-comparison.js';
-import { markdownToHtml } from '../markdown/render.js';
+import { markdownToHtml } from '../../../shared/js/markdown/render.js';
 import { settings } from '../runtime/settings.js';
 
 /**

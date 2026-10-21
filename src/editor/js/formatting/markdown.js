@@ -1,4 +1,4 @@
-import { markdownToHtml } from '../../../cards/js/markdown/render.js';
+import { markdownToHtml } from '../../../shared/js/markdown/render.js';
 import { getSyntaxLanguage, highlightCodeText } from '../../../cards/js/syntax-highlighting/tokenizer.js';
 import { getEditorSelection } from '../helpers/selection.js';
 import { editWithNativeUndo } from '../helpers/edit-transaction.js';

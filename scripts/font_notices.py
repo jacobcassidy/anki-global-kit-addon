@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-FONT_DIR = ROOT / "addon/shared/assets/fonts"
+FONT_DIR = ROOT / "addon/assets/fonts"
 
 
 def font_notice_sources() -> list[Path]:
@@ -32,7 +32,7 @@ def render_font_notice() -> bytes:
     """Return deterministic UTF-8 text, preserving all attribution and licenses."""
     sections = [
         "MESLOLGL NERD FONT — SOURCE, ATTRIBUTION, AND LICENSES\n\n"
-        "Generated from the add-on's shared/assets/fonts/FONT-LICENSES.md "
+        "Generated from the add-on's assets/fonts/FONT-LICENSES.md "
         "and licenses/ folder.\n"
         "Keep this notice with _meslolgl-nf.woff2 when sharing or syncing the font.\n"
         "Full license texts follow the attribution, labelled by source filename."
@@ -53,15 +53,12 @@ def render_font_notice() -> bytes:
 
 
 def write_font_notice() -> Path:
-    if __package__:
-        from .check_assets import load_script_module
-    else:
-        from check_assets import load_script_module
+    try:
+        from scripts.addon_module_loader import load_addon_module
+    except ModuleNotFoundError:
+        from addon_module_loader import load_addon_module
 
-    manifest = load_script_module(
-        ROOT / "addon/desktop/settings/configs/asset_manifest.py",
-        "anki_global_kit_font_notice_manifest",
-    )
+    manifest = load_addon_module("desktop.media.manifest")
     path = manifest.ASSET_PATHS[manifest.FONT_LICENSE_ASSET_NAME]
     data = render_font_notice()
     if not path.is_file() or path.read_bytes() != data:

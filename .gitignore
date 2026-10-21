@@ -3,6 +3,7 @@
 /.ruff_cache/
 /.venv/
 /dist/
+/addon/vendor/
 __pycache__
 node_modules
 

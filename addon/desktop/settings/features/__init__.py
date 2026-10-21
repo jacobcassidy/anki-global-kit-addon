@@ -1,1 +1,0 @@
-"""Settings panel tab builders."""

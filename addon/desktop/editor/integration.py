@@ -2,28 +2,22 @@
 
 import json
 from functools import partial
-from pathlib import Path
 from weakref import WeakSet, ref
 
 from aqt import gui_hooks
 from aqt.editor import Editor
 from aqt.qt import QApplication, QKeySequence, QShortcut, sip
 
-from ..settings import get_editor_settings
-from ..settings.configs.constants import USER_FILES_DIR
-from ..settings.helpers.shortcuts import (
-    EDITOR_BLOCK_SHORTCUTS as BLOCK_SHORTCUTS,
-)
-from ..settings.helpers.shortcuts import (
-    editor_fixed_shortcut_action,
-    normalize_shortcut,
-)
-from .features.shortcuts.labels import shortcut_label
+from ..config.service import get_editor_settings
+from ..media.manifest import EDITOR_ASSET_PATHS
+from ..paths import ICON_ASSET_DIR, USER_FILES_DIR
+from ..shortcuts.formatting import EDITOR_BLOCK_SHORTCUTS as BLOCK_SHORTCUTS
+from ..shortcuts.formatting import editor_fixed_shortcut_action, normalize_shortcut
+from ..shortcuts.labels import shortcut_label
 
-ADDON_DIR = Path(__file__).resolve().parents[2]
-EDITOR_ASSET = ADDON_DIR / "desktop" / "editor" / "assets" / "js" / "editor.min.js"
-EDITOR_STYLES_DIR = ADDON_DIR / "desktop" / "editor" / "assets" / "css"
-ICON_ASSET = ADDON_DIR / "shared" / "assets" / "icons" / "code-inline.svg"
+EDITOR_ASSET = EDITOR_ASSET_PATHS["editor.min.js"]
+EDITOR_STYLES_DIR = EDITOR_ASSET_PATHS["editor-ui.min.css"].parent
+ICON_ASSET = ICON_ASSET_DIR / "code-inline.svg"
 BLOCKQUOTE_ICON = ICON_ASSET.with_name("blockquote.svg")
 PASTE_MARKDOWN_ICON = ICON_ASSET.with_name("markdown.svg")
 _open_editors = WeakSet()

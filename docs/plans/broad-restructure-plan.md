@@ -6,7 +6,7 @@ Organize the repository around runtime responsibilities, shared Desktop services
 
 Make Settings a consumer of Desktop functionality rather than the owner of configuration, media installation, note-type operations, and shortcut utilities. Service ownership and Settings separation have the highest priority for the upcoming [syntax highlighting integration](syntax-highlighting-plan.md). Asset consolidation and test relocation need not block that feature.
 
-This document records proposed work. The reorganization has not been implemented or verified in live Anki.
+The structural reorganization is implemented. Automated build, asset-path, packaging, and lint checks pass. The JavaScript suite passes; the Python suite still reports four editor-binding failures that were present before the structural moves. Live Anki and cross-client acceptance have not been performed, so this plan does not claim live verification.
 
 ## Target layout
 
