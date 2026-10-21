@@ -3,6 +3,7 @@ import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { context, formatMessages } from 'esbuild';
+import { formatBuildMessage } from './build_logging.js';
 import { updateDevAddonName } from './dev_metadata.js';
 import {
   cardsCssBuildOptions,
@@ -131,7 +132,7 @@ function createWatchPlugin(outfile) {
         }
 
         if (!wasInitialBuild && !hasErrors && changedOutputs.delete(outfile)) {
-          console.log(colorize(`Rebuilt: ${outfile}`, colors.green));
+          console.log(colorize(formatBuildMessage(`Rebuilt: ${outfile}`), colors.green));
         }
       });
     },
