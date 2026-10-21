@@ -4,8 +4,7 @@ from aqt.qt import QCheckBox, QGroupBox, QHBoxLayout, QPushButton, QVBoxLayout, 
 from aqt.utils import openFolder
 
 from ....paths import USER_FILES_DIR
-from ....ui.constants import ZERO_MARGINS
-from ....ui.help import HelpIndicator
+from ....ui.constants import NESTED_INDENT
 from ....ui.layouts import add_checkbox_row
 
 STYLESHEET_SETTINGS = (
@@ -24,8 +23,8 @@ STYLESHEET_SETTINGS = (
 )
 
 
-def build_editor_stylesheets_section(parent: QWidget, current_settings: dict):
-    section = QGroupBox("Editor Stylesheets", parent)
+def build_editor_styles_section(parent: QWidget, current_settings: dict):
+    section = QGroupBox("Editor Styles", parent)
     layout = QVBoxLayout(section)
     controls = {}
 
@@ -36,15 +35,17 @@ def build_editor_stylesheets_section(parent: QWidget, current_settings: dict):
     for key, label, filename, description in STYLESHEET_SETTINGS:
         enabled = QCheckBox(label, section)
         enabled.setChecked(current_settings[key])
-        view_stylesheet = QPushButton("View Stylesheet", section)
+        name = "Editor Fields" if filename == "editor-fields.css" else "Editor UI"
+        view_stylesheet = QPushButton(f"View {name} stylesheet", section)
         view_stylesheet.setAutoDefault(False)
         view_stylesheet.setToolTip(f"Open user_files, which contains {filename}.")
         view_stylesheet.clicked.connect(view_stylesheet_folder)
         row = QWidget(section)
         row_layout = QHBoxLayout(row)
-        row_layout.setContentsMargins(*ZERO_MARGINS)
+        row_layout.setContentsMargins(NESTED_INDENT, 0, 0, 0)
         row_layout.addWidget(view_stylesheet)
-        row_layout.addWidget(HelpIndicator(label, description, row))
-        add_checkbox_row(layout, enabled, trailing_widget=row)
+        row_layout.addStretch()
+        add_checkbox_row(layout, enabled, description)
+        layout.addWidget(row)
         controls[key] = enabled
     return section, controls

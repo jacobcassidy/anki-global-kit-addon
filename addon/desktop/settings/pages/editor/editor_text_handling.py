@@ -1,12 +1,12 @@
-"""Settings section for editor formatting behavior."""
+"""Settings section for editor text handling."""
 
 from aqt.qt import QCheckBox, QGroupBox, QVBoxLayout, QWidget
 
 from ....ui.layouts import add_checkbox_row
 
 
-def build_editor_formatting_section(parent: QWidget, current_settings: dict):
-    section = QGroupBox("Editor Formatting", parent)
+def build_editor_text_handling_section(parent: QWidget, current_settings: dict):
+    section = QGroupBox("Editor Text Handling", parent)
     layout = QVBoxLayout(section)
 
     copy_source_html = QCheckBox("Copy selected source HTML", section)

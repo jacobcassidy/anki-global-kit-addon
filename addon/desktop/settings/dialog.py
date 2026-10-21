@@ -42,7 +42,10 @@ from .bindings import (
 from .pages.cards import SHORTCUT_DEFINITIONS, build_cards_tab
 from .pages.changelog import build_changelog_tab
 from .pages.editor import build_editor_tab
-from .pages.editor.editor_fields import INDENTATION_SHORTCUT_DEFINITIONS
+from .pages.editor.editor_fields import (
+    EDITOR_SHORTCUT_DEFINITIONS,
+    INDENTATION_SHORTCUT_DEFINITIONS,
+)
 from .pages.help import build_help_tab
 from .pages.note_types import build_note_types_tab
 from .save import save_settings
@@ -111,27 +114,12 @@ def open_settings() -> None:
     markdown_shortcut_checkboxes = fields.shortcut_enabled
     markdown_shortcut_option_checkboxes = fields.shortcut_option_checkboxes
     question_markdown_shortcuts = fields.master_toggle
-    editor_inline_code_shortcut = editor_fields.shortcut_input
-    editor_inline_code_shortcut_enabled = editor_fields.shortcut_toggle
-
-    editor_definitions = (
-        ("anki_editor_inline_code_shortcut", "Inline Code"),
-        ("anki_editor_blockquote_shortcut", "Blockquote"),
-        ("anki_editor_syntax_highlighting_shortcut", "Highlight Code"),
-    ) + INDENTATION_SHORTCUT_DEFINITIONS
+    editor_definitions = EDITOR_SHORTCUT_DEFINITIONS + INDENTATION_SHORTCUT_DEFINITIONS
     editor_inputs = {
-        "anki_editor_inline_code_shortcut": editor_inline_code_shortcut,
-        "anki_editor_syntax_highlighting_shortcut": syntax_controls[
-            "anki_editor_syntax_highlighting_shortcut"
-        ],
         **{key: pair[1] for key, pair in editor_fields.action_shortcuts.items()},
         **editor_fields.indentation_rows.shortcut_inputs,
     }
     editor_checks = {
-        "anki_editor_inline_code_shortcut_enabled": editor_inline_code_shortcut_enabled,
-        "anki_editor_syntax_highlighting_shortcut_enabled": syntax_controls[
-            "anki_editor_syntax_highlighting_shortcut_enabled"
-        ],
         **{
             f"{key}_enabled": pair[0]
             for key, pair in editor_fields.action_shortcuts.items()

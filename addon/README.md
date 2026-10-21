@@ -18,9 +18,9 @@ Choose **Update Selected Note Types** and confirm the listed collection changes.
 
 ## Customizing editor styles
 
-To customize field contents, open **Tools > Anki Global Kit Settings... > Editor**. In **Editor Stylesheets**, use **Enable custom editor fields stylesheet** to turn your custom field CSS on or off, and click **View Stylesheet** to open `user_files`, where you can edit `editor-fields.css`. Custom field styles are enabled by default and appended after the kit defaults. Restart Anki after editing the stylesheet to reload it.
+To customize field contents, open **Tools > Anki Global Kit Settings... > Editor**. In **Editor Styles**, use **Enable custom editor fields stylesheet** to turn your custom field CSS on or off, and click **View Editor Fields stylesheet** to open `user_files`, where you can edit `editor-fields.css`. Custom field styles are enabled by default and appended after the kit defaults. Restart Anki after editing the stylesheet to reload it.
 
-In the same **Editor Stylesheets** section, use **Enable custom editor UI stylesheet** to turn interface CSS on or off, and click **View Stylesheet** to open the same folder and edit `editor-ui.css`. Custom UI styles are also enabled by default. To find these files through the add-ons dialog, open **Tools > Add-ons**, select **Anki Global Kit**, and click **View Files**, then open `user_files`. The `user_files/README.txt` file is also included with the add-on.
+In the same **Editor Styles** section, use **Enable custom editor UI stylesheet** to turn interface CSS on or off, and click **View Editor UI stylesheet** to open the same folder and edit `editor-ui.css`. Custom UI styles are also enabled by default. To find these files through the add-ons dialog, open **Tools > Add-ons**, select **Anki Global Kit**, and click **View Files**, then open `user_files`. The `user_files/README.txt` file is also included with the add-on.
 
 ## Build and install for development
 

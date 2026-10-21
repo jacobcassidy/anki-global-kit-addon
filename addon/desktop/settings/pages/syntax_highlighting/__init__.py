@@ -23,18 +23,16 @@ from aqt.qt import (
     QWidget,
 )
 
-from ....config.defaults import DEFAULT_SETTINGS
 from ....syntax_highlighting.rendering import available_languages
 from ....syntax_highlighting.themes import (
     available_themes,
     resolve_preset,
     theme_preview_html,
 )
-from ....ui.constants import ZERO_MARGINS
+from ....ui.constants import SECTION_SPACING, ZERO_MARGINS
 from ....ui.help import HelpIndicator
 from ....ui.input_styles import style_settings_input
 from ....ui.layouts import add_checkbox_row, make_scroll_area
-from ....ui.shortcut_input import CardShortcutInput, make_reset_link
 from ....ui.theme import get_theme_color
 
 DEFAULT_LANGUAGES = {
@@ -139,72 +137,38 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
     page = QWidget(parent)
     layout = QVBoxLayout(page)
     layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+    layout.setSpacing(SECTION_SPACING)
+    languages_section = QGroupBox("Languages", page)
+    language_layout = QVBoxLayout(languages_section)
+    lines_section = QGroupBox("Lines", page)
+    lines_layout = QVBoxLayout(lines_section)
+    themes_section = QGroupBox("Themes", page)
+    themes_layout = QVBoxLayout(themes_section)
+    layout.addWidget(languages_section)
+    layout.addWidget(lines_section)
+    layout.addWidget(themes_section)
 
-    def add_field_row(label: str, control: QWidget) -> None:
+    def add_field_row(parent_layout, label: str, control: QWidget) -> None:
         row = QHBoxLayout()
         row.setContentsMargins(*ZERO_MARGINS)
-        row.addWidget(QLabel(label, page))
+        row.addWidget(QLabel(label, parent_layout.parentWidget()))
         row.addStretch()
         row.addWidget(control)
-        layout.addLayout(row)
+        parent_layout.addLayout(row)
 
-    remember = QCheckBox("Remember last language per deck", page)
+    remember = QCheckBox("Remember last language per deck", languages_section)
     remember.setChecked(
         current_settings["anki_editor_syntax_highlighting_remember_language_per_deck"]
     )
-    add_checkbox_row(layout, remember)
-    line_numbers = QCheckBox("Show line numbers on new code blocks", page)
-    line_numbers.setChecked(
-        current_settings["anki_editor_syntax_highlighting_line_numbers"]
-    )
-    add_checkbox_row(layout, line_numbers)
-    start = QSpinBox(page)
-    start.setRange(1, 1_000_000)
-    start.setValue(
-        current_settings["anki_editor_syntax_highlighting_line_number_start"]
-    )
-    start.setMinimumWidth(80)
-    add_field_row("Starting line number", start)
-
-    shortcut = QCheckBox("Enable Highlight Code shortcut", page)
-    shortcut.setChecked(
-        current_settings["anki_editor_syntax_highlighting_shortcut_enabled"]
-    )
-    shortcut_input = CardShortcutInput(
-        current_settings["anki_editor_syntax_highlighting_shortcut"], page
-    )
-    shortcut_row = QWidget(page)
-    shortcut_row_layout = QHBoxLayout(shortcut_row)
-    shortcut_row_layout.setContentsMargins(*ZERO_MARGINS)
-    shortcut_reset = make_reset_link(
-        shortcut_row,
-        shortcut_input,
-        DEFAULT_SETTINGS["anki_editor_syntax_highlighting_shortcut"],
-    )
-    shortcut_row_layout.addWidget(shortcut_reset)
-    shortcut_row_layout.addWidget(shortcut_input)
-    validation = QLabel(page)
-    validation.setWordWrap(True)
-    validation.setStyleSheet(
-        f"color: {get_theme_color('ACCENT_DANGER', 'FLAG_1', 'FG')};"
-    )
-    validation.hide()
-    shortcut_input.set_validation_label(validation)
-    add_checkbox_row(
-        layout, shortcut, trailing_widget=shortcut_row, validation_label=validation
-    )
-    shortcut_row.setEnabled(shortcut.isChecked())
-    shortcut.toggled.connect(shortcut_row.setEnabled)
-
-    search = QLineEdit(page)
+    add_checkbox_row(language_layout, remember)
+    search = QLineEdit(languages_section)
     search.setPlaceholderText("Search languages and aliases")
-    input_height = shortcut_input.sizeHint().height()
-    style_settings_input(start, input_height)
+    input_height = page.fontMetrics().height() + 6
     style_settings_input(search, input_height)
-    layout.addWidget(search)
+    language_layout.addWidget(search)
     groups_layout = QHBoxLayout()
-    shown_box = QGroupBox("Shown in editor", page)
-    other_box = QGroupBox("Other languages", page)
+    shown_box = QGroupBox("Shown in editor", languages_section)
+    other_box = QGroupBox("Other languages", languages_section)
     shown_layout = QVBoxLayout(shown_box)
     other_layout = QVBoxLayout(other_box)
     shown_list = QListWidget(shown_box)
@@ -216,7 +180,7 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
     other_layout.addWidget(other_list)
     groups_layout.addWidget(shown_box)
     groups_layout.addWidget(other_box)
-    layout.addLayout(groups_layout)
+    language_layout.addLayout(groups_layout)
 
     rows = {
         alias: (name, aliases)
@@ -280,7 +244,7 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
     search.textChanged.connect(lambda _text: rebuild())
     rebuild()
 
-    default_language = QComboBox(page)
+    default_language = QComboBox(languages_section)
     default_language.setFixedWidth(220)
     desired_default = current_settings[
         "anki_editor_syntax_highlighting_default_language"
@@ -298,12 +262,51 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
     language_control = LanguageListControl(shown_list, other_list, checked, rebuild)
     language_control.add_change_listener(update_default_languages)
     update_default_languages()
-    add_field_row("Default language", default_language)
+    add_field_row(language_layout, "Default language", default_language)
+
+    line_numbers = QCheckBox("Show line numbers on new code blocks", lines_section)
+    line_numbers.setChecked(
+        current_settings["anki_editor_syntax_highlighting_line_numbers"]
+    )
+    add_checkbox_row(lines_layout, line_numbers)
+    start = QSpinBox(lines_section)
+    start.setRange(1, 1_000_000)
+    start.setValue(
+        current_settings["anki_editor_syntax_highlighting_line_number_start"]
+    )
+    start.setMinimumWidth(80)
+    start.setButtonSymbols(QSpinBox.ButtonSymbols.NoButtons)
+    style_settings_input(start, input_height)
+    start_control = QWidget(lines_section)
+    start_layout = QHBoxLayout(start_control)
+    start_layout.setContentsMargins(*ZERO_MARGINS)
+    start_layout.setSpacing(4)
+    decrease = QPushButton("−", start_control)
+    increase = QPushButton("+", start_control)
+    for button, name in ((decrease, "Decrease"), (increase, "Increase")):
+        button.setAutoDefault(False)
+        button.setAutoRepeat(True)
+        button.setFixedSize(input_height, input_height)
+        button.setAccessibleName(f"{name} starting line number")
+        button.setToolTip(f"{name} starting line number")
+    decrease.clicked.connect(start.stepDown)
+    increase.clicked.connect(start.stepUp)
+    start_layout.addWidget(decrease)
+    start_layout.addWidget(start)
+    start_layout.addWidget(increase)
+
+    def update_line_step_buttons(*_args):
+        decrease.setEnabled(start.value() > start.minimum())
+        increase.setEnabled(start.value() < start.maximum())
+
+    start.valueChanged.connect(update_line_step_buttons)
+    update_line_step_buttons()
+    add_field_row(lines_layout, "Starting line number", start_control)
 
     theme_controls = {}
-    theme_preview_frame = QFrame(page)
+    theme_preview_frame = QFrame(themes_section)
     theme_preview_frame.setObjectName("syntaxThemePreview")
-    theme_preview_frame.setFixedHeight(225)
+    theme_preview_frame.setFixedHeight(150)
     preview_layout = QVBoxLayout(theme_preview_frame)
     preview_layout.setContentsMargins(6, 6, 6, 6)
     theme_preview = QTextBrowser(theme_preview_frame)
@@ -311,7 +314,7 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
     preview_layout.addWidget(theme_preview)
     choices = available_themes()
     for mode in ("light", "dark"):
-        selector = QComboBox(page)
+        selector = QComboBox(themes_section)
         selector.setFixedWidth(220)
         selected = (themes or {}).get(mode, {}).get("id", "cassidy-dark")
         for theme_id, name in choices:
@@ -326,8 +329,16 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
         selector.setCurrentIndex(
             index if index >= 0 else selector.findData("cassidy-dark")
         )
-        add_field_row(f"{mode.title()} theme", selector)
+        add_field_row(themes_layout, f"{mode.title()} theme", selector)
         theme_controls[mode] = selector
+
+    preview_heading = QHBoxLayout()
+    preview_heading.addWidget(QLabel("Theme preview", themes_section))
+    preview_heading.addStretch()
+    preview_name = QLabel(themes_section)
+    preview_name.setObjectName("syntaxThemePreviewName")
+    preview_name.setTextFormat(Qt.TextFormat.PlainText)
+    preview_heading.addWidget(preview_name)
 
     def update_theme_preview(mode="light", *_args):
         theme_id = theme_controls[mode].currentData()
@@ -348,16 +359,19 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
             f"color: {preset['colors']['foreground']}; }}"
         )
         theme_preview.setHtml(theme_preview_html(preset))
+        preview_name.setText(theme_controls[mode].currentText())
 
     for mode, selector in theme_controls.items():
         selector.currentIndexChanged.connect(
             lambda _index, mode=mode: update_theme_preview(mode)
         )
     update_theme_preview()
-    layout.addWidget(QLabel("Theme preview", page))
-    layout.addWidget(theme_preview_frame)
+    themes_layout.addLayout(preview_heading)
+    themes_layout.addWidget(theme_preview_frame)
     publish_modes = set()
-    publish_button = QPushButton("Update Shared Theme from This Installation", page)
+    publish_button = QPushButton(
+        "Update Shared Theme from This Installation", themes_section
+    )
     publish_button.setAutoDefault(False)
     publish_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
     publication_help = (
@@ -376,10 +390,10 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
     publication_row = QHBoxLayout()
     publication_row.addWidget(publish_button)
     publication_row.addWidget(
-        HelpIndicator("Update Shared Theme", publication_help, page)
+        HelpIndicator("Update Shared Theme", publication_help, themes_section)
     )
     publication_row.addStretch()
-    layout.addLayout(publication_row)
+    themes_layout.addLayout(publication_row)
     layout.addStretch()
 
     theme_snapshot = {
@@ -396,8 +410,6 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
             "anki_editor_syntax_highlighting_remember_language_per_deck": remember,
             "anki_editor_syntax_highlighting_line_numbers": line_numbers,
             "anki_editor_syntax_highlighting_line_number_start": start,
-            "anki_editor_syntax_highlighting_shortcut_enabled": shortcut,
-            "anki_editor_syntax_highlighting_shortcut": shortcut_input,
             "anki_editor_syntax_highlighting_languages": language_control,
             "anki_editor_syntax_highlighting_default_language": default_language,
         },

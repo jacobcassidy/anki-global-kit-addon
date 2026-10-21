@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from html import escape
 
 from .custom_themes import PRESETS
 from .rendering import _with_bundled_modules
@@ -221,7 +220,7 @@ def theme_preview_html(preset: dict) -> str:
         rules.append(f"{selectors} {{ {' '.join(declarations)} }}")
     return (
         f"<html><head><style>{' '.join(rules)}</style></head>"
-        f"<body><p>{escape(preset['name'])}</p><pre>"
+        "<body><pre>"
         "<span class='k'>def</span> <span class='nf'>highlight</span>():\n"
         "    <span class='c1'># a small preview</span>\n"
         "    <span class='k'>return</span> <span class='s1'>'Anki Global Kit'</span>"
