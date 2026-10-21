@@ -238,6 +238,8 @@ Use canonical aliases in saved markup. An empty checked-language list continues 
 
 ## Delivery and validation
 
+Before building out the full interface, use focused prototypes to prove isolated Pygments loading, active/literal cloze preservation, native undo/redo, and review responsiveness on representative mobile clients. Use these results to validate the proposed architecture and provisional limits early; do not defer the first feasibility checks until final acceptance.
+
 Implement in reviewable stages, each with appropriate validation and a separate commit on a non-main branch:
 
 1. Establish isolated dependency loading and prove coexistence in both load orders, then add the pure rendering/theme services, initial Cassidy Dark preset, headless pre-esbuild export, and package/freshness coverage.
@@ -250,10 +252,13 @@ Automated coverage:
 
 - Render representative existing languages and newly supported HTML, CSS, Markdown, PowerShell, and Kotlin; validate aliases and invalid-language failures.
 - Verify exact source preservation, escaping, Unicode, indentation, trailing newlines, literal template-like syntax, and cloze handling.
+- Verify saved-content round trips: save/reopen notes, switch between rich-text and HTML editing, and sync to another client. Confirm language metadata, per-block numbering, cloze-handling mode, active/literal cloze behavior, source whitespace, and subsequent re-highlighting survive Anki's persistence and HTML normalization. Use live acceptance where isolated tests cannot establish these behaviors.
 - Cover selection, clipboard, existing-block targeting, highlighted spans, empty input, invalid selections, and stale background results.
+- Cover code insertion and editing inside lists, blockquotes, and table cells. Preserve surrounding structure and unselected content; reject unsupported conversions without changing the field.
 - Verify the split highlighting button, its menu and adjacent language dropdown, options disabled outside a block, current-block dialog values, one-edit Apply to Block, Cancel, and stale-target rejection.
 - Verify repeated highlighting updates the same block without duplicated wrappers or line numbers. Cover native undo/redo through browser or live integration checks where DOM-only tests cannot establish behavior.
 - Cover Enter on ordinary and empty final lines, Arrow Down exiting to an existing or newly created paragraph, Tab/Shift+Tab focus navigation, configured indentation shortcuts, and plain-text paste. Verify ordinary editing does not automatically retokenize or damage block metadata.
+- Cover input-method composition, including Japanese and Chinese input. Enter used to confirm composition must not trigger the code-block newline/exit handlers, and formatting shortcuts must not interrupt active composition. Verify committed text, caret/selection, and undo after composition finishes.
 - Verify per-block line-number visibility and starting numbers survive re-highlighting and global-default changes. Cover a start number of 50, explicit block-option edits, source preservation, and undo/redo.
 - Verify long lines wrap in editor and review at narrow widths, line numbers align only with each source line's first visual row, and copied/extracted code has no added line breaks.
 - Verify settings defaults/types, shortcut conflicts and modifier labels, theme generation/scoping, and light/dark selection.
@@ -285,6 +290,8 @@ Automated coverage:
 Run focused tests while developing, then the project test suites, relevant lint/format checks, `npm run build:addon`, `npm run check:assets`, and package validation. Do not present isolated tests as live Anki verification.
 
 Manual acceptance should cover Anki Desktop 26.05 and a current supported release, Add/Browse editors, note switching while rendering, native undo/redo, light/dark mode, and synced display on AnkiWeb, AnkiMobile, and AnkiDroid. On every review client, compare saved reference code with newly submitted code under Cassidy Dark and an alternative preset. Record bundle-size changes and mobile responsiveness for long answers. Confirm behavior against official minimum-version APIs before using new hooks or collection operations.
+
+Include live save/reopen and rich-text/HTML round trips, synchronized block metadata and source, input-method composition, and code within surrounding lists, blockquotes, and table cells in that acceptance pass. Report any untested client or editor context explicitly.
 
 ### Dependency measurements and references
 
