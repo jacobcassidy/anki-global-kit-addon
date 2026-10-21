@@ -15,6 +15,7 @@ Include:
 - Apply highlighting again to an existing code block, including blocks containing highlighted spans.
 - Optional line numbers with a configurable starting number.
 - Theme presets with independent light and dark selections and a preview.
+- A built-in **Cassidy Dark** theme, initialized from the existing Kit syntax appearance and used by default in both light and dark mode.
 - Consistent styling in editor fields and on cards, including synced clients.
 - An explicit action to enable syntax styling on ordinary, non-Kit note types.
 - Route Desktop Markdown code-block highlighting through the same rendering service.
@@ -31,6 +32,9 @@ addon/
 ├── desktop/
 │   ├── syntax_highlighting/
 │   │   ├── __init__.py              # Public service interface
+│   │   ├── custom_themes/
+│   │   │   ├── __init__.py          # Kit-owned preset registration
+│   │   │   └── cassidy_dark.py      # Editable Cassidy Dark definition
 │   │   ├── language_memory.py       # Collection-scoped per-deck preferences
 │   │   ├── rendering.py             # Language lookup and token HTML
 │   │   └── themes.py                # Preset discovery and theme CSS
@@ -139,7 +143,10 @@ Allow the user to override the language in the picker. Use canonical aliases in 
 
 ## Themes, assets, and compatibility
 
-- Let `themes.py` enumerate Pygments presets and generate the selected light and dark definitions. Include the existing Kit appearance as the default preset so installation does not unexpectedly recolor existing Kit content.
+- Let `themes.py` combine Kit-owned presets with Pygments presets and generate the selected light and dark definitions. Register the built-in **Cassidy Dark** preset under the stable identifier `cassidy-dark`.
+- Keep Cassidy Dark's definition in `addon/desktop/syntax_highlighting/custom_themes/cassidy_dark.py`, separate from the vendored dependency. Initialize its palette, code-block foreground/background, and token font styles from the existing shared syntax stylesheet and syntax color variables. Use this same appearance in both modes; do not create a lighter variant or introduce a separate Kit Classic preset. This is the starter definition for the user's later theme edits.
+- Default both light and dark theme settings to `cassidy-dark` in release defaults and runtime fallbacks. A missing, empty, or unsupported selection falls back to Cassidy Dark for that mode. Reset restores Cassidy Dark for both modes. Preserve valid explicitly selected alternatives across restarts and upgrades, and retain independent mode selectors so users can choose different presets later.
+- Render Cassidy Dark through the same preview, CSS-variable generation, editor injection, and `_syntax-highlighting.css` delivery path as other presets. Later edits to its definition must take effect through normal theme generation and media refresh without changing the preset identifier or rewriting class-based note content.
 - Represent theme colors with CSS variables, including token foreground/background colors and code-block foreground/background colors. Preserve bold, italic, and inherited token styles. Qt controls use Anki color tokens.
 - Scope new rules to Kit code blocks. Do not inject global rules for short classes such as `.k` or `.s` into unrelated content.
 - Reuse the shared stylesheet for token presentation and layout. Separate palette selection from tokenization so compatible class-based snippets can change themes without rewriting their fields.
@@ -154,7 +161,7 @@ Allow the user to override the language in the picker. Use canonical aliases in 
 
 Implement in reviewable stages, each with appropriate validation and a separate commit on a non-main branch:
 
-1. Add the vendored dependency, import adapter, pure rendering/theme services, and package coverage.
+1. Add the vendored dependency, import adapter, pure rendering/theme services, the initial Cassidy Dark preset, and package coverage.
 2. Add editor targeting and insertion, the Python coordinator, language picker, configurable action, and per-deck language-memory service and deck resolution.
 3. Add the dedicated Syntax Highlighting settings tab, grouped language checklist, theme settings/previews, shared styling, generated media delivery, and the confirmed note-type styling action.
 4. Integrate Desktop Markdown rendering, document migration and limitations, and complete cross-client verification.
@@ -166,6 +173,7 @@ Automated coverage:
 - Cover selection, clipboard, existing-block targeting, highlighted spans, empty input, invalid selections, and stale background results.
 - Verify repeated highlighting updates the same block without duplicated wrappers or line numbers. Cover native undo/redo through browser or live integration checks where DOM-only tests cannot establish behavior.
 - Verify settings defaults/types, shortcut conflicts and modifier labels, theme generation/scoping, and light/dark selection.
+- Verify Cassidy Dark appears in both mode selectors, starts from the existing Kit syntax appearance, and produces the same palette and token styles in both modes. Cover fresh settings, missing/empty/unsupported selections, reset, persistence of explicit alternatives, and regeneration after a preset-definition edit without rewriting note fields.
 - Verify that checked and unchecked language groups are separate and each alphabetically sorted; toggling moves items between groups without duplicates or focus loss. Cover persistence, reset, default-language changes, an empty enabled list, and existing blocks using hidden languages.
 - Verify language priority: existing block, enabled Topic language, enabled remembered deck language, then enabled default. Cover disabled memory, hidden remembered languages, unsupported stored aliases, and an empty enabled list.
 - Verify memory updates only after successful explicit language application, preserves the global default and other decks' entries, survives reopening/renaming, and is isolated between collections. Cover cancel/failure, automatic detection, ordinary block refresh, and a deck change while rendering.
