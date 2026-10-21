@@ -34,6 +34,16 @@ class _RoundedScrollArea(QScrollArea):
         self.horizontalScrollBar().rangeChanged.connect(self._update_header)
         self.verticalScrollBar().rangeChanged.connect(self._update_header)
 
+    def sizeHint(self):
+        size = super().sizeHint()
+        if self._header is not None and self.widget() is not None:
+            size.setHeight(
+                self.widget().sizeHint().height()
+                + self._header.sizeHint().height()
+                + 2 * self.frameWidth()
+            )
+        return size
+
     def set_table_header(
         self, header: QWidget, header_grid: QGridLayout, body_grid: QGridLayout
     ) -> None:

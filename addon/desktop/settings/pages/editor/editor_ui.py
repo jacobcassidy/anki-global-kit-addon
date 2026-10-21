@@ -13,12 +13,12 @@ from ....ui.layouts import add_checkbox_row
 def build_editor_ui_section(parent: QWidget, current_settings: dict):
     section = QGroupBox("Editor UI", parent)
     layout = QVBoxLayout(section)
-    inline_code_button = QCheckBox("Show inline code button in editor toolbar", section)
+    inline_code_button = QCheckBox("Show Inline Code button in editor toolbar", section)
     inline_code_button.setChecked(current_settings["anki_editor_inline_code_button"])
     add_checkbox_row(
         layout,
         inline_code_button,
-        "Add an inline code button to the Desktop editor toolbar for formatting selected text or starting an inline code span.",
+        "Add an Inline Code button to the Desktop editor toolbar for formatting selected text or starting an Inline Code span.",
     )
     blockquote_button = QCheckBox("Show Blockquote button in editor toolbar", section)
     blockquote_button.setChecked(current_settings["anki_editor_blockquote_button"])

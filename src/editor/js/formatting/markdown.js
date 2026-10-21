@@ -118,13 +118,13 @@ function applyMarkdownHighlightResult(id, html, renderedBlocks) {
     const code = container.querySelectorAll('pre > code')[rendered.index];
     if (!code || typeof rendered.language !== 'string') continue;
     const pre = code.closest('pre');
-    pre.className = 'agk-code-block';
+    pre.className = 'global-kit-code-block';
     pre.dataset.language = rendered.language;
     pre.dataset.lineNumbers = 'false';
     pre.dataset.lineStart = '1';
     pre.dataset.clozeMode = 'active';
-    code.className = `language-${rendered.language}`;
-    code.dataset.language = rendered.language;
+    code.removeAttribute('class');
+    code.removeAttribute('data-language');
     code.innerHTML = rendered.html;
   }
 

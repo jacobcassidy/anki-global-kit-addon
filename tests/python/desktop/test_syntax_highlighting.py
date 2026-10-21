@@ -3,6 +3,8 @@
 import json
 import sys
 import unittest
+from types import ModuleType
+from unittest.mock import Mock, patch
 
 import pygments
 
@@ -100,7 +102,7 @@ class SyntaxRenderingTests(unittest.TestCase):
     def test_theme_services_import_without_qt(self):
         themes = load_addon_module("desktop.syntax_highlighting.themes")
 
-        self.assertIn("--agk-syntax-background", themes.generate_theme_css())
+        self.assertIn("--global-kit-syntax-background", themes.generate_theme_css())
         available = themes.available_themes()
         self.assertIn(("cassidy-dark", "Cassidy Dark"), available)
         self.assertEqual(
@@ -108,12 +110,65 @@ class SyntaxRenderingTests(unittest.TestCase):
         )
         for theme_id, _name in available:
             css = themes.generate_theme_css(theme_id)
-            self.assertIn(".agk-code-block", css)
-            self.assertRegex(css, r"--agk-syntax-background: #[0-9a-fA-F]{6};")
+            self.assertIn(".global-kit-code-block", css)
+            self.assertRegex(css, r"--global-kit-syntax-background: #[0-9a-fA-F]{6};")
 
         self.assertFalse(
             any(name == "aqt" or name.startswith("aqt.") for name in sys.modules)
         )
+
+    def test_theme_labels_and_preview_use_the_resolved_palette(self):
+        themes = load_addon_module("desktop.syntax_highlighting.themes")
+        choices = dict(themes.available_themes())
+        self.assertEqual(choices["pygments:github-dark"], "GitHub Dark")
+        self.assertEqual(choices["pygments:friendly_grayscale"], "Friendly Grayscale")
+        self.assertEqual(choices["pygments:one-dark"], "One Dark")
+        for theme_id in ("pygments:monokai", "pygments:dracula"):
+            preset = themes.resolve_preset(theme_id)
+            html = themes.theme_preview_html(preset)
+            self.assertIn(f"background-color: {preset['colors']['background']}", html)
+            self.assertIn(f"color: {preset['colors']['keyword']}", html)
+            self.assertNotIn("var(", html)
+            self.assertNotIn(":is(", html)
+
+    def test_highlight_button_tooltip_uses_the_enabled_shortcut(self):
+        settings = {
+            "anki_editor_syntax_highlighting_shortcut_enabled": True,
+            "anki_editor_syntax_highlighting_shortcut": "Alt+S",
+        }
+        feature = load_editor_integration(settings).syntax_highlighting
+        self.assertEqual(feature.highlight_code_tip(settings), "Highlight Code (Alt+S)")
+        settings["anki_editor_syntax_highlighting_shortcut_enabled"] = False
+        self.assertEqual(feature.highlight_code_tip(settings), "Highlight Code")
+
+    def test_language_menu_is_anchored_below_button_with_webview_zoom(self):
+        settings = {
+            "anki_editor_syntax_highlighting_languages": ["python"],
+            "anki_editor_syntax_highlighting_default_language": "python",
+        }
+        feature = load_editor_integration(settings).syntax_highlighting
+        load_module(
+            "kit.desktop.syntax_highlighting.rendering",
+            "addon/desktop/syntax_highlighting/rendering.py",
+        )
+        qt = ModuleType("aqt.qt")
+        qt.QMenu = Mock()
+        qt.QCursor = Mock()
+        qt.QPoint = lambda x, y: (x, y)
+        editor = Mock()
+        editor._anki_global_kit_language_override = None
+        editor.web.zoomFactor.return_value = 1.5
+        editor.web.mapToGlobal.return_value = (515, 645)
+        with (
+            patch.dict(sys.modules, {"aqt.qt": qt}),
+            patch.object(feature, "get_editor_settings", return_value=settings),
+        ):
+            feature.show_language_menu(editor)
+            callback = editor.web.evalWithCallback.call_args.args[1]
+            qt.QMenu.return_value.exec.assert_not_called()
+            callback([10, 30])
+        editor.web.mapToGlobal.assert_called_once_with((15, 45))
+        qt.QMenu.return_value.exec.assert_called_once_with((515, 645))
 
     def test_resolved_themes_are_validated_and_collection_scoped(self):
         preferences = load_addon_module("desktop.syntax_highlighting.preferences")

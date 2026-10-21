@@ -82,6 +82,12 @@ def _inject_features(editor: Editor) -> None:
         "\nfor (const button of document.querySelectorAll('[data-command=\"anki_global_kit_inline_code\"]')) {"
         f"button.title = {json.dumps(_inline_code_tip(editor_settings))};"
         "}"
+        "\nfor (const button of document.querySelectorAll('[data-command=\"anki_global_kit_syntax_highlighting\"]')) {"
+        f"button.title = {json.dumps(syntax_highlighting.highlight_code_tip(editor_settings))};"
+        "}"
+        "\nfor (const button of document.querySelectorAll('[data-command=\"anki_global_kit_blockquote\"]')) {"
+        f"button.title = {json.dumps(_button_tip('Blockquote', 'anki_editor_blockquote_shortcut', editor_settings))};"
+        "}"
     )
     syntax_highlighting.set_editor_language_context(editor)
 

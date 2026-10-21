@@ -117,7 +117,7 @@ def open_settings() -> None:
     editor_inline_code_shortcut_enabled = editor_fields.shortcut_toggle
 
     editor_definitions = (
-        ("anki_editor_inline_code_shortcut", "inline code"),
+        ("anki_editor_inline_code_shortcut", "Inline Code"),
         ("anki_editor_blockquote_shortcut", "Blockquote"),
         ("anki_editor_syntax_highlighting_shortcut", "Highlight Code"),
     ) + INDENTATION_SHORTCUT_DEFINITIONS
@@ -413,6 +413,14 @@ def open_settings() -> None:
         settings["note_type_selections"] = note_types.collect_selections()
         refresh_shortcut_warnings()
         if any(validation_state.values()):
+            from aqt.utils import showWarning
+
+            showWarning(
+                "Settings could not be saved. Resolve the highlighted shortcut "
+                "conflicts or invalid shortcuts in Cards, Editor, and Syntax Highlighting, "
+                "or disable those shortcuts, then save again.",
+                parent=dialog,
+            )
             return
         selected_themes = {
             mode: selector.currentData() for mode, selector in theme_controls.items()

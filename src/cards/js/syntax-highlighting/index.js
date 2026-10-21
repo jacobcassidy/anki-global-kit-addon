@@ -18,7 +18,7 @@ export function watchSubmittedCodeBlocks() {
     let totalCharacters = 0;
     let processedBlocks = 0;
     const blocks = [...answer.querySelectorAll(submittedCodeSelector)].filter(
-      (code) => !code.closest('.agk-code-block') && code.dataset.syntaxHighlighted !== 'true',
+      (code) => !code.closest('.global-kit-code-block') && code.dataset.syntaxHighlighted !== 'true',
     );
 
     for (const code of blocks) {

@@ -18,6 +18,7 @@ class EditorBindingsTests(unittest.TestCase):
     def test_every_custom_action_leaves_fixed_block_shortcuts_available(self):
         for key in (
             "anki_editor_inline_code_shortcut",
+            "anki_editor_blockquote_shortcut",
             "anki_editor_indent_increase_shortcut",
             "anki_editor_indent_decrease_shortcut",
         ):
@@ -25,7 +26,6 @@ class EditorBindingsTests(unittest.TestCase):
                 ("Ctrl+Alt+8", "unordered-list"),
                 ("Ctrl+Alt+9", "ordered-list"),
                 ("Ctrl+Alt+0", "no-list"),
-                ("Ctrl+/", "blockquote"),
             ):
                 with self.subTest(setting=key, shortcut=keys):
                     integration, bindings, editor = self.bindings({key: keys})
@@ -121,11 +121,32 @@ class EditorBindingsTests(unittest.TestCase):
             set(editor._anki_global_kit_shortcuts),
             {
                 "anki_editor_inline_code_shortcut",
+                "anki_editor_blockquote_shortcut",
                 "anki_editor_indent_increase_shortcut",
                 "anki_editor_indent_decrease_shortcut",
                 "anki_editor_syntax_highlighting_shortcut",
             },
         )
+
+    def test_blockquote_default_is_configurable_and_can_be_disabled(self):
+        settings = load_settings_services().config.get_editor_settings()
+        integration = load_editor_integration(settings)
+        editor = Mock(currentField=0)
+        bindings = []
+        integration._add_shortcut(bindings, editor)
+        shortcut, keys = editor._anki_global_kit_shortcuts[
+            "anki_editor_blockquote_shortcut"
+        ]
+        self.assertEqual(keys, "Ctrl+/")
+        self.assertIsNone(integration.editor_fixed_shortcut_action(keys))
+        shortcut.callback()
+        editor.web.eval.assert_called_once_with(
+            'globalThis.ankiGlobalKitEditor?.toggleBlock("blockquote");'
+        )
+        settings["anki_editor_blockquote_shortcut_enabled"] = False
+        integration.refresh_open_editors()
+        self.assertFalse(shortcut.isEnabled())
+        self.assertNotIn("Ctrl+/", [keys for keys, _callback in bindings])
 
     def test_refresh_preserves_fixed_actions_and_prunes_deleted_editors(self):
         settings = load_settings_services().config.get_editor_settings()

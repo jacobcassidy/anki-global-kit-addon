@@ -24,8 +24,8 @@ from ....ui.shortcut_rows import ShortcutRows, build_shortcut_rows
 from ....ui.theme import get_theme_color
 
 INDENTATION_SHORTCUT_DEFINITIONS = (
-    ("anki_editor_indent_increase_shortcut", "increase indent"),
-    ("anki_editor_indent_decrease_shortcut", "decrease indent"),
+    ("anki_editor_indent_increase_shortcut", "Increase Indent"),
+    ("anki_editor_indent_decrease_shortcut", "Decrease Indent"),
 )
 
 
@@ -47,7 +47,7 @@ def build_editor_fields_section(
     section = QGroupBox("Editor Fields", parent)
     layout = QVBoxLayout(section)
     layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-    shortcut_enabled = QCheckBox("Enable inline code shortcut", section)
+    shortcut_enabled = QCheckBox("Enable Inline Code shortcut", section)
     shortcut_enabled.setChecked(
         current_settings["anki_editor_inline_code_shortcut_enabled"]
     )
@@ -134,7 +134,7 @@ def build_editor_fields_section(
         )
         action_shortcuts[key] = (enabled, input_widget)
 
-    tab_indentation = QCheckBox("Enable indentation shortcuts", section)
+    tab_indentation = QCheckBox("Enable Indentation shortcuts", section)
     tab_indentation.setChecked(
         current_settings.get("anki_editor_tab_indentation", True)
     )

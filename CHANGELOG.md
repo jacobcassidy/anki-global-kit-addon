@@ -17,10 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Standardized shortcut action capitalization and syntax Settings spacing, aligned inputs and language support labels, and added help for shared theme updates and enabling note type code styling.
+- Renamed syntax classes and variables to `global-kit`, scoped `.code-line` inside code blocks, and kept authoring metadata on `<pre>` only. Existing highlighted fields from earlier development builds need their markup updated or recreated from source with **Highlight Code**.
 - Moved About and Help content beside their Settings pages and the AnkiWeb listing description into publishing documentation. Updated guide links and package validation for the new locations.
 
 ### Fixed
 
+- Fixed Settings Save being blocked by the default Blockquote shortcut conflicting with itself, and added feedback when shortcut validation prevents saving.
+- Fixed Highlight Code shortcut tooltips, language menu positioning and labels, and the filled lightning icon.
+- Fixed light and dark theme previews with Qt-compatible palette rendering, added readable theme names, and kept Note Types content at fixed vertical spacing.
 - Fixed Desktop add-on startup after the project restructure by importing user stylesheet paths from their new module. Added coverage that imports the full add-on with Anki and Qt stubs and checks that startup registrations occur once.
 
 ## [1.1.1] - 2026-10-12

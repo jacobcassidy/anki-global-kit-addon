@@ -10,6 +10,7 @@ from aqt.qt import QApplication
 
 from ...config.service import get_editor_settings
 from ...paths import ICON_ASSET_DIR
+from ...shortcuts.labels import shortcut_label
 
 ICON = ICON_ASSET_DIR / "lightning.svg"
 OPTIONS_ICON = ICON_ASSET_DIR / "code-block.svg"
@@ -31,7 +32,7 @@ def add_button(buttons: list, editor: Editor) -> None:
             icon=str(ICON),
             cmd="anki_global_kit_syntax_highlighting",
             func=lambda editor: highlight_selection(editor),
-            tip="Highlight Code",
+            tip=highlight_code_tip(settings),
         )
     )
     buttons.append(
@@ -39,7 +40,7 @@ def add_button(buttons: list, editor: Editor) -> None:
             icon=None,
             cmd="anki_global_kit_syntax_language",
             func=show_language_menu,
-            label=f"Language: {_language_button_label(settings)}",
+            label=_language_button_label(settings),
             id="anki_global_kit_syntax_language",
             tip="Choose the language used for this note",
         )
@@ -52,6 +53,14 @@ def add_button(buttons: list, editor: Editor) -> None:
             tip="Code Block Options…",
         )
     )
+
+
+def highlight_code_tip(settings: dict) -> str:
+    tip = "Highlight Code"
+    shortcut = settings.get("anki_editor_syntax_highlighting_shortcut")
+    if settings.get("anki_editor_syntax_highlighting_shortcut_enabled") and shortcut:
+        tip += f" ({shortcut_label(shortcut)})"
+    return tip
 
 
 def _language_button_label(settings: dict, language: str | None = None) -> str:
@@ -91,13 +100,14 @@ def _set_language_choice(editor: Editor, language: str) -> None:
         editor.web.eval(
             "globalThis.ankiGlobalKitEditor?.setExplicitLanguage("
             f"{json.dumps(language)});"
-            "const button = document.querySelector('[data-command=\"anki_global_kit_syntax_language\"]');"
-            f"if (button) button.textContent = {json.dumps('Language: ' + _language_button_label(settings, language))};"
+            "(() => { const button = document.querySelector('[data-command=\"anki_global_kit_syntax_language\"]');"
+            f"if (button) button.textContent = {json.dumps(_language_button_label(settings, language))};"
+            "})();"
         )
 
 
 def show_language_menu(editor: Editor) -> None:
-    from aqt.qt import QMenu
+    from aqt.qt import QCursor, QMenu, QPoint
 
     from ...syntax_highlighting.rendering import (
         available_languages,
@@ -133,7 +143,26 @@ def show_language_menu(editor: Editor) -> None:
         action.triggered.connect(
             lambda _checked=False, alias=language: _set_language_choice(editor, alias)
         )
-    menu.exec()
+
+    def open_menu(rect) -> None:
+        if editor.web is None:
+            return
+        position = QCursor.pos()
+        if isinstance(rect, list) and len(rect) == 2:
+            zoom = editor.web.zoomFactor()
+            position = editor.web.mapToGlobal(
+                QPoint(round(rect[0] * zoom), round(rect[1] * zoom))
+            )
+        menu.exec(position)
+
+    if editor.web is not None:
+        editor.web.evalWithCallback(
+            "(() => { const button = document.querySelector("
+            "'[data-command=\"anki_global_kit_syntax_language\"]');"
+            "if (!button) return null; const rect = button.getBoundingClientRect();"
+            "return [rect.left, rect.bottom]; })()",
+            open_menu,
+        )
 
 
 def set_editor_language_context(editor: Editor, *, reset: bool = False) -> None:
@@ -164,8 +193,9 @@ def set_editor_language_context(editor: Editor, *, reset: bool = False) -> None:
         )
         label = _language_button_label(settings, override)
         editor.web.eval(
-            "const button = document.querySelector('[data-command=\"anki_global_kit_syntax_language\"]');"
-            f"if (button) button.textContent = {json.dumps('Language: ' + label)};"
+            "(() => { const button = document.querySelector('[data-command=\"anki_global_kit_syntax_language\"]');"
+            f"if (button) button.textContent = {json.dumps(label)};"
+            "})();"
         )
 
 

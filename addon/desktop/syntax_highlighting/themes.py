@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from html import escape
 
 from .custom_themes import PRESETS
 from .rendering import _with_bundled_modules
@@ -113,15 +114,41 @@ def validate_resolved_theme(record: dict) -> dict:
 def available_themes() -> list[tuple[str, str]]:
     """Return stable identifiers and display names for bundled presets."""
     with _with_bundled_modules():
-        styles = __import__("pygments.styles", fromlist=["get_all_styles"])
-        pygments_styles = styles.get_all_styles()
+        styles = __import__(
+            "pygments.styles", fromlist=["get_all_styles", "get_style_by_name"]
+        )
+        pygments_styles = [
+            (f"pygments:{name}", _theme_display_name(styles.get_style_by_name(name)))
+            for name in styles.get_all_styles()
+        ]
     return sorted(
         [
             ("cassidy-dark", "Cassidy Dark"),
-            *[(f"pygments:{name}", name) for name in pygments_styles],
+            *pygments_styles,
         ],
         key=lambda item: item[1].casefold(),
     )
+
+
+def _theme_display_name(style) -> str:
+    """Use the upstream style class name to retain word boundaries."""
+    display_names = {
+        "abap": "ABAP",
+        "algol": "ALGOL",
+        "algol_nu": "ALGOL Nu",
+        "bw": "Black and White",
+        "github-dark": "GitHub Dark",
+        "inkpot": "Inkpot",
+        "lilypond": "LilyPond",
+        "rrt": "RRT",
+        "sas": "SAS",
+        "staroffice": "StarOffice",
+    }
+    if style.name in display_names:
+        return display_names[style.name]
+    name = style.__name__.removesuffix("Style")
+    name = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", name)
+    return name.replace("_", " ").replace("Git Hub", "GitHub")
 
 
 def _resolve_pygments_preset(style_name: str) -> dict:
@@ -162,7 +189,7 @@ def _resolve_pygments_preset(style_name: str) -> dict:
 
     return {
         "id": f"pygments:{style_name}",
-        "name": style_name,
+        "name": _theme_display_name(style),
         "colors": colors,
         "styles": {"bold": bold, "italic": italic},
     }
@@ -178,6 +205,30 @@ def _style_color(value: str | None, fallback: str) -> str:
     return fallback
 
 
+def theme_preview_html(preset: dict) -> str:
+    """Render the shared palette with CSS supported by Qt's rich text engine."""
+    preset = validate_resolved_theme(preset)
+    colors = preset["colors"]
+    rules = [
+        f"body {{ background-color: {colors['background']}; color: {colors['foreground']}; }}"
+    ]
+    for role, selectors in _TOKEN_SELECTORS.items():
+        declarations = [f"color: {colors[role]};"]
+        if role in preset["styles"]["bold"]:
+            declarations.append("font-weight: 700;")
+        if role in preset["styles"]["italic"]:
+            declarations.append("font-style: italic;")
+        rules.append(f"{selectors} {{ {' '.join(declarations)} }}")
+    return (
+        f"<html><head><style>{' '.join(rules)}</style></head>"
+        f"<body><p>{escape(preset['name'])}</p><pre>"
+        "<span class='k'>def</span> <span class='nf'>highlight</span>():\n"
+        "    <span class='c1'># a small preview</span>\n"
+        "    <span class='k'>return</span> <span class='s1'>'Anki Global Kit'</span>"
+        "</pre></body></html>"
+    )
+
+
 def generate_theme_css(
     preset_id: str = "cassidy-dark", resolved: dict | None = None
 ) -> str:
@@ -190,32 +241,34 @@ def generate_theme_css(
     colors = preset["colors"]
     css = [
         ":root,\nanki-editable {",
-        f"  --agk-syntax-background: {colors['background']};",
-        f"  --agk-syntax-foreground: {colors['foreground']};",
+        f"  --global-kit-syntax-background: {colors['background']};",
+        f"  --global-kit-syntax-foreground: {colors['foreground']};",
     ]
     for role, color in colors.items():
         if role not in {"background", "foreground"}:
-            css.append(f"  --agk-syntax-{role}: {color};")
+            css.append(f"  --global-kit-syntax-{role}: {color};")
     css.extend(
         [
             "}",
             "",
-            ".agk-code-block {",
+            ".global-kit-code-block {",
             "  overflow-inline: auto;",
-            "  background: var(--agk-syntax-background);",
-            "  color: var(--agk-syntax-foreground);",
+            "  background: var(--global-kit-syntax-background);",
+            "  color: var(--global-kit-syntax-foreground);",
             "  white-space: pre;",
             "}",
         ]
     )
 
     for role, selectors in _TOKEN_SELECTORS.items():
-        declarations = [f"  color: var(--agk-syntax-{role});"]
+        declarations = [f"  color: var(--global-kit-syntax-{role});"]
         if role in preset["styles"].get("bold", []):
             declarations.append("  font-weight: 700;")
         if role in preset["styles"].get("italic", []):
             declarations.append("  font-style: italic;")
-        css.extend(["", f".agk-code-block :is({selectors}) {{", *declarations, "}"])
+        css.extend(
+            ["", f".global-kit-code-block :is({selectors}) {{", *declarations, "}"]
+        )
 
     return "\n".join(css) + "\n"
 

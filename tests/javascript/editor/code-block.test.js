@@ -76,7 +76,9 @@ test('highlight action submits selection and applies returned tokens as one edit
       ),
       true,
     );
-    assert.equal(field.querySelector('pre.agk-code-block').dataset.language, 'javascript');
+    assert.equal(field.querySelector('pre.global-kit-code-block').dataset.language, 'javascript');
+    assert.equal(field.querySelectorAll('[data-language]').length, 1);
+    assert.equal(field.querySelector('code').attributes.length, 0);
     assert.equal(field.querySelector('code').textContent, request.source);
   });
 });
@@ -127,51 +129,55 @@ test('multiline blocks preserve source and their starting line number when refre
       ),
       true,
     );
-    const block = field.querySelector('pre.agk-code-block');
+    const block = field.querySelector('pre.global-kit-code-block');
     assert.equal(block.dataset.lineNumbers, 'true');
     assert.equal(block.dataset.lineStart, '50');
     assert.deepEqual(
-      [...block.querySelectorAll('.agk-code-line')].map((line) => line.dataset.lineNumber),
+      [...block.querySelectorAll('.code-line')].map((line) => line.dataset.lineNumber),
       ['50', '51'],
     );
 
     selectText(document, window, block.querySelector('code'));
     globalThis.ankiGlobalKitEditor.highlightCode('', 'javascript');
     assert.equal(request.source, 'first\nsecond');
+    assert.equal(request.existingLanguage, 'python');
     assert.equal(request.lineNumbers, true);
     assert.equal(request.lineStart, 50);
   });
 });
 
 test('language priority is explicit choice, existing block, Topic, remembered, then default', () => {
-  withEditor('<pre class="agk-code-block"><code data-language="python">print(1)</code></pre>', (document, window) => {
-    const field = document.querySelector('anki-editable');
-    selectText(document, window, field.querySelector('code'));
-    let requests = [];
-    globalThis.pycmd = (message) => {
-      requests.push(JSON.parse(message.slice(message.indexOf('{'))));
-    };
-    globalThis.require = () => ({
-      instances: [
-        {
-          fields: [
-            {
-              name: 'Topic',
-              editingArea: { content: { subscribe: (callback) => (callback('JavaScript'), () => {}) } },
-            },
-          ],
-        },
-      ],
-    });
-    globalThis.ankiGlobalKitEditor.setLanguageContext(null, 'bash');
+  withEditor(
+    '<pre class="global-kit-code-block" data-language="python"><code>print(1)</code></pre>',
+    (document, window) => {
+      const field = document.querySelector('anki-editable');
+      selectText(document, window, field.querySelector('code'));
+      let requests = [];
+      globalThis.pycmd = (message) => {
+        requests.push(JSON.parse(message.slice(message.indexOf('{'))));
+      };
+      globalThis.require = () => ({
+        instances: [
+          {
+            fields: [
+              {
+                name: 'Topic',
+                editingArea: { content: { subscribe: (callback) => (callback('JavaScript'), () => {}) } },
+              },
+            ],
+          },
+        ],
+      });
+      globalThis.ankiGlobalKitEditor.setLanguageContext(null, 'bash');
 
-    globalThis.ankiGlobalKitEditor.highlightCode('', 'python');
-    assert.equal(requests[0].language, 'python');
-    assert.equal(requests[0].explicitLanguage, false);
+      globalThis.ankiGlobalKitEditor.highlightCode('', 'python');
+      assert.equal(requests[0].language, 'python');
+      assert.equal(requests[0].explicitLanguage, false);
 
-    globalThis.ankiGlobalKitEditor.setExplicitLanguage('javascript');
-    globalThis.ankiGlobalKitEditor.highlightCode('', 'python');
-    assert.equal(requests[1].language, 'javascript');
-    assert.equal(requests[1].explicitLanguage, true);
-  });
+      globalThis.ankiGlobalKitEditor.setExplicitLanguage('javascript');
+      globalThis.ankiGlobalKitEditor.highlightCode('', 'python');
+      assert.equal(requests[1].language, 'javascript');
+      assert.equal(requests[1].explicitLanguage, true);
+    },
+  );
 });

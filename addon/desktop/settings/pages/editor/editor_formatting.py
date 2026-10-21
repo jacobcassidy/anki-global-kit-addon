@@ -16,14 +16,14 @@ def build_editor_formatting_section(parent: QWidget, current_settings: dict):
         copy_source_html,
         "When copying selected content from an editor field, include its HTML formatting on the clipboard alongside plain text.",
     )
-    normalize_code_spaces = QCheckBox("Normalize spaces around inline code", section)
+    normalize_code_spaces = QCheckBox("Normalize spaces around Inline Code", section)
     normalize_code_spaces.setChecked(
         current_settings["anki_editor_normalize_code_spaces"]
     )
     add_checkbox_row(
         layout,
         normalize_code_spaces,
-        "Replace non-breaking spaces adjacent to inline code with regular spaces so typing and spacing around code stays predictable.",
+        "Replace non-breaking spaces adjacent to Inline Code with regular spaces so typing and spacing around code stays predictable.",
     )
     return section, {
         "anki_editor_copy_source_html": copy_source_html,

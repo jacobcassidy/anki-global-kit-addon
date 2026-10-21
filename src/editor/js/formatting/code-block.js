@@ -2,7 +2,7 @@ import { getEditorSelection } from '../helpers/selection.js';
 import { editWithNativeUndo } from '../helpers/edit-transaction.js';
 import { getSyntaxLanguage } from '../../../shared/js/syntax-highlighting/languages.js';
 
-const CODE_SELECTOR = 'pre.agk-code-block > code';
+const CODE_SELECTOR = 'pre.global-kit-code-block > code';
 const pending = new Map();
 let requestId = 0;
 let explicitLanguage = null;
@@ -13,7 +13,7 @@ function element(node) {
 }
 
 function textFromCode(node) {
-  const numberedLines = node.querySelectorAll(':scope > .agk-code-line');
+  const numberedLines = node.querySelectorAll(':scope > .code-line');
   return numberedLines.length
     ? [...numberedLines].map((line) => line.textContent || '').join('\n')
     : node.textContent || '';
@@ -54,7 +54,7 @@ function tokenHtmlByLine(tokenHtml, start) {
     for (const continuation of nodeLines.slice(1)) lines.push(continuation);
   }
   return lines
-    .map((line, index) => `<span class="agk-code-line" data-line-number="${start + index}">${line}</span>`)
+    .map((line, index) => `<span class="code-line" data-line-number="${start + index}">${line}</span>`)
     .join('');
 }
 
@@ -89,7 +89,7 @@ function readSelectionTarget(clipboardText) {
       liveSelection: selection,
       range: targetRange,
       source,
-      language: code.dataset.language,
+      language: block.dataset.language,
       block,
     };
   }
@@ -201,14 +201,12 @@ function applyHighlightResult(id, source, language, tokenHtml, lineNumbers, line
     editWithNativeUndo(target.field, target.selection, (field, selection) => {
       const replacement = selection.getRangeAt(0);
       const pre = document.createElement('pre');
-      pre.className = 'agk-code-block';
+      pre.className = 'global-kit-code-block';
       pre.dataset.language = language;
       pre.dataset.lineNumbers = String(Boolean(lineNumbers));
       pre.dataset.lineStart = String(Math.max(1, Number.parseInt(lineStart, 10) || 1));
       pre.dataset.clozeMode = clozeMode === 'literal' ? 'literal' : 'active';
       const code = document.createElement('code');
-      code.className = `language-${language}`;
-      code.dataset.language = language;
       code.innerHTML = tokenHtmlByLine(tokenHtml, Number(pre.dataset.lineStart));
       pre.append(code);
       replacement.deleteContents();
@@ -243,7 +241,7 @@ function openCodeBlockOptions() {
   if (!field || !pre) return false;
   const fieldSnapshot = field.innerHTML;
   const dialog = document.createElement('dialog');
-  dialog.className = 'agk-code-options';
+  dialog.className = 'global-kit-code-options';
   dialog.innerHTML = `
     <form method="dialog">
       <h2>Code Block Options</h2>
@@ -255,7 +253,7 @@ function openCodeBlockOptions() {
           <option value="literal">Literal code</option>
         </select>
       </label>
-      <div class="agk-code-options-actions">
+      <div class="global-kit-code-options-actions">
         <button value="cancel">Cancel</button>
         <button value="apply">Apply to Block</button>
       </div>
@@ -299,7 +297,7 @@ function openCodeBlockOptions() {
       clonedPre.dataset.lineNumbers = String(lineNumbers.checked);
       clonedPre.dataset.lineStart = String(nextStart);
       clonedPre.dataset.clozeMode = clozeMode.value;
-      clonedPre.querySelectorAll(':scope > code > .agk-code-line').forEach((line, index) => {
+      clonedPre.querySelectorAll(':scope > code > .code-line').forEach((line, index) => {
         line.dataset.lineNumber = String(nextStart + index);
       });
       const nextRange = document.createRange();
