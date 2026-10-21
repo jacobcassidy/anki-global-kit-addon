@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Renamed the theme update action to **Update Synced Theme**, shortened both theme action help texts, and aligned **Add Syntax Styles…** on the right of the same row.
 - Renamed **Enable Code Styling…** to **Add Syntax Styles…** and added a checkbox picker with **Select All** and **Clear Selection** to update multiple note types after one confirmation. Types that already include the stylesheet are omitted, and all selected targets are revalidated before changes begin.
 - Capitalized Settings section titles, renamed **Card Fields** to **Card Inputs**, and alphabetized Editor sections.
 - Added independent switches for the default Editor Field and Editor UI styles, retained separate custom CSS controls, and renamed the custom stylesheet buttons. Disabled styles are removed from open editors when saving.

@@ -355,51 +355,45 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
     themes_layout.addWidget(preview_title)
     themes_layout.addWidget(theme_preview_frame)
     publish_modes = set()
-    publish_button = QPushButton(
-        "Update Shared Theme from This Installation", themes_section
-    )
+    publish_button = QPushButton("Update Synced Theme", themes_section)
     publish_button.setAutoDefault(False)
     publish_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
     publication_help = (
-        "Stage the selected local theme definitions for collection sync when you save."
-        " This replaces the shared light and dark palettes with this installation's "
-        "bundled definitions, even if the theme names have not changed. "
-        "Other devices receive the updated palettes after syncing."
+        "Use this installation's colors for the selected light and dark themes, "
+        "even if their names haven't changed. Click Save, then sync to update "
+        "your other devices."
     )
     publish_button.setToolTip(publication_help)
 
     def stage_theme_publication():
         publish_modes.update(theme_controls)
-        publish_button.setText("Shared Theme Update Staged")
+        publish_button.setText("Synced Theme Update Staged")
 
     publish_button.clicked.connect(stage_theme_publication)
-    publication_row = QHBoxLayout()
-    publication_row.addWidget(publish_button)
-    publication_row.addWidget(
-        HelpIndicator("Update Shared Theme", publication_help, themes_section)
+    theme_actions_row = QHBoxLayout()
+    theme_actions_row.addWidget(publish_button)
+    theme_actions_row.addWidget(
+        HelpIndicator("Update Synced Theme", publication_help, themes_section)
     )
-    publication_row.addStretch()
-    themes_layout.addLayout(publication_row)
+    theme_actions_row.addStretch()
     syntax_style_button = QPushButton("Add Syntax Styles…", themes_section)
     syntax_style_button.setAutoDefault(False)
+    syntax_style_button.setSizePolicy(
+        QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed
+    )
     syntax_style_button.setToolTip("Add syntax theme styles to selected note types")
     syntax_style_button.clicked.connect(lambda: enable_syntax_styling(parent))
-    syntax_style_row = QHBoxLayout()
-    syntax_style_row.addWidget(syntax_style_button)
-    syntax_style_row.addWidget(
+    theme_actions_row.addWidget(syntax_style_button)
+    theme_actions_row.addWidget(
         HelpIndicator(
             "Add Syntax Styles",
-            "Check one or more existing note types, then confirm once to add the syntax "
-            "highlighting stylesheet import. This lets saved Highlight Code blocks "
-            "use your selected themes during card review. Note types that already "
-            "include the stylesheet are omitted. Notes, fields, card "
-            "templates, and other styling are preserved. Sync afterward to apply "
-            "the stylesheet on other devices.",
+            "Add theme support to selected note types for saved code blocks during "
+            "review. Confirm, then sync. Notes, fields, templates, cards, and "
+            "existing styling are preserved.",
             themes_section,
         )
     )
-    syntax_style_row.addStretch()
-    themes_layout.addLayout(syntax_style_row)
+    themes_layout.addLayout(theme_actions_row)
     layout.addStretch()
 
     theme_snapshot = {
