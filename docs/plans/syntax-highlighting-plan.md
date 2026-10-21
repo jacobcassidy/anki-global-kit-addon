@@ -58,7 +58,11 @@ src/
 ├── editor/js/formatting/
 │   └── code-block.js               # Editor extraction and block updates
 └── shared/css/
+    ├── generated/cassidy-dark.css  # Headless-generated fallback palette/rules
     └── syntax-highlighting.css     # Shared token rules and block styling
+
+scripts/
+└── export_syntax_themes.py         # Headless theme export and freshness checks
 ```
 
 ### Dependency and rendering service
@@ -75,6 +79,8 @@ src/
 ### Desktop editor integration
 
 - Keep toolbar, shortcut, language-selection UI, clipboard access, and service orchestration in `editor/features/syntax_highlighting.py`.
+- Use a split highlighting button: the main lightning-icon action highlights immediately, and its adjacent arrow opens a menu containing **Highlight Code** and **Code Block Options…**. Keep the language dropdown next to the button. Disable Code Block Options when the caret or selection is outside a recognized code block.
+- Code Block Options opens a dialog for the current block with line-number visibility, starting number, and cloze-handling controls. **Apply to Block** updates only that block as one undoable edit; Cancel leaves it unchanged. Keep the main highlighting action direct and reject application if the target block or note changes while the dialog is open.
 - Use the existing `editor/integration.py` to register the feature through supported hooks and refresh saved settings in open editors. Avoid growing that file into the rendering implementation.
 - Extend existing shortcut validation and conflict handling. Respect Qt's macOS modifier mapping and the separate standard browser-event mapping.
 - Let `code-block.js` own target capture, plain-text extraction, block markup, line-number decorations, and application of returned token HTML.
@@ -89,6 +95,7 @@ src/
 - Show all available languages in a checkable list with two distinct groups: **Shown in editor** for checked languages first, followed by **Other languages** for unchecked languages. Sort both groups alphabetically by display name, ignoring case. Checking or unchecking a language moves it immediately to the correct alphabetical position in the other group, without duplicates and while preserving keyboard focus.
 - Add search by display name or alias across both groups. Search filters visibility without changing check states; clearing it restores the full alphabetically sorted groups. Support keyboard navigation and checkbox activation. Label each language **Review supported** or **Desktop only**, based on the bundled JavaScript language registry rather than its editor check state.
 - In the editor dropdown, place the currently selected language first and sort the remaining enabled languages alphabetically, ignoring case. Keep both Settings groups fully alphabetical; do not pin the selected language there.
+- If an existing block's recorded language is supported but unchecked and no active manual override supersedes it, show a read-only current entry such as **Java (current block; hidden)** at the top of the dropdown. It is a current-block label, not a selectable enabled language; show checked alternatives below it. Re-highlighting retains the recorded language unless the user explicitly chooses an alternative. Do not re-check the hidden language automatically. An entirely empty checked list still disables the highlighting action.
 - Persist language choices using canonical language identifiers. Limit the editor language picker and default-language choices to checked languages. If the configured default is unchecked, select the first checked language alphabetically; if none are checked, disable highlighting and show an explanation directing the user to this tab. Keep that empty selection valid and reversible.
 - Treat this list as editor visibility configuration, not a limit on either rendering engine. Changing the checked languages must not rewrite existing blocks, remove their language metadata, or disable supported review languages or explicit Markdown fence languages. Existing blocks retain their recorded language when highlighted again, even if that language is hidden from the picker.
 - Keep release defaults in `addon/config.json` and align the Python and browser fallback defaults. Extend existing configuration reading, validation, and saving rather than adding another persistence mechanism.
@@ -101,7 +108,7 @@ src/
 
 ### Settings save and stylesheet recovery
 
-- Generate and validate the requested theme CSS before committing staged settings. Keep the previous local settings, collection theme preferences, and working stylesheet available for recovery during the save.
+- Generate and validate the requested theme CSS before committing staged settings. Keep the previous local settings, complete shared theme records and revisions, and working stylesheet available for recovery during the save. Re-read current shared records before committing so stale dialog state cannot silently overwrite a newer synchronized theme revision.
 - Treat settings persistence and stylesheet installation as one successful Save from the user's perspective. If installation or another application step fails, preserve or restore the previous working settings and stylesheet, leave the dialog open with staged edits intact, and explain the error with a retry path. Do not report success or close the dialog after a failed save.
 - If a partial write requires restoration, verify that restoration succeeded. If recovery itself fails, report the actual state and recovery error clearly rather than claiming the previous working state was preserved. Keep unrelated settings and media outside the operation.
 
@@ -146,6 +153,7 @@ Use canonical aliases in saved markup. An empty checked-language list continues 
 - Keep Tab and Shift+Tab as normal focus navigation. Apply the existing configured indentation shortcuts inside code, preserving source whitespace and the caret/selection.
 - Paste into a code block as plain text, preserving line breaks and indentation while discarding clipboard HTML formatting.
 - Do not automatically retokenize on every keystroke or paste. Users refresh highlighting through the existing Highlight Code action; ordinary editing must preserve source, block metadata, and native undo/redo.
+- Preserve the existing visual wrapping behavior in editor fields and on cards. Wrapped continuations have no additional line number; show the source line's number only beside its first visual row. Visual wrapping must not introduce newline characters into copied or extracted source.
 
 ### Per-deck language memory
 
@@ -167,7 +175,7 @@ Use canonical aliases in saved markup. An empty checked-language list continues 
 - Replace old token children rather than nesting a new highlighted wrapper inside the previous one.
 - Keep line numbers outside the source text. They must not enter copied code or subsequent rendering input, and wrapped lines must retain alignment.
 - Save line-number visibility and the starting number in each block's metadata. Re-highlighting preserves those options rather than reapplying current Settings defaults; a block starting at 50 must still start at 50 afterward.
-- Provide explicit access to the current block's numbering options so users can change visibility or the starting number without changing defaults for new blocks. Apply the change as one undoable block edit, preserving source, language, and cloze-handling metadata.
+- Expose the current block's numbering options through the highlighting button's **Code Block Options…** dialog so users can change visibility or the starting number without changing defaults for new blocks. Apply the change as one undoable block edit, preserving source, language, and cloze-handling metadata.
 - Preserve intentional Anki cloze content by default, including contiguous delimiters, cloze numbers, answer content, hints, and supported nesting. Highlighting must not split cloze markers across token spans or change their meaning.
 - When cloze-like syntax such as `{{c1::answer::hint}}` occurs in a new or unclassified block, offer **Preserve Anki clozes** by default and an explicit **Literal code** alternative for code intended to display that syntax. Save the selected handling mode in the code block's metadata and reuse it when highlighting again, without repeated prompts. Do not infer literal-versus-active intent from syntax alone.
 - In Literal code mode, preserve the visible/copied source but ensure that Anki does not interpret those sequences as active clozes. Keep the protection compatible with text extraction and repeated highlighting. If either handling mode cannot preserve the structure safely, explain the problem and leave the original field unchanged.
@@ -206,10 +214,12 @@ Use canonical aliases in saved markup. An empty checked-language list continues 
 
 - Let `themes.py` combine Kit-owned presets with Pygments presets and generate the selected light and dark definitions. Register the built-in **Cassidy Dark** preset under the stable identifier `cassidy-dark`.
 - Keep Cassidy Dark's definition in `addon/desktop/syntax_highlighting/custom_themes/cassidy_dark.py`, separate from the vendored dependency. Initialize its palette, code-block foreground/background, and token font styles from the existing shared syntax stylesheet and syntax color variables. Use this same appearance in both modes; do not create a lighter variant or introduce a separate Kit Classic preset. This is the starter definition for the user's later theme edits.
-- Default both light and dark theme settings to `cassidy-dark` in release defaults and runtime fallbacks. A missing, empty, or unsupported selection falls back to Cassidy Dark for that mode. Reset restores Cassidy Dark for both modes. Preserve valid explicitly selected alternatives across restarts and upgrades, and retain independent mode selectors so users can choose different presets later.
-- Store the light/dark preset identifiers in collection configuration under `anki_global_kit.syntax_highlighting.themes`, using supported collection configuration APIs. Sync this pair with the collection so Desktop installations use the same choices when generating the shared media file. Keep local authoring controls outside that synced preference and regenerate theme media after a saved or synchronized theme selection changes.
+- Default both light and dark theme settings to `cassidy-dark` in release defaults and runtime fallbacks. A missing or empty selection with no usable shared definition falls back to Cassidy Dark for that mode. Reset stages the Cassidy Dark selection and definition for both modes. Preserve valid explicitly selected alternatives across restarts and upgrades, and retain independent mode selectors so users can choose different presets later.
+- Store a light/dark pair of shared theme records in collection configuration under `anki_global_kit.syntax_highlighting.themes`, using supported collection configuration APIs. Each record includes the preset identifier, display name, resolved token/palette/style data, and a revision, with a versioned data format. Sync these records with the collection so installations with different local preset definitions generate CSS from the same shared data. Keep local authoring controls outside this synced preference. Sync only validated colors and style data, never Python code or arbitrary executable content.
+- Profile open and sync refresh read and apply compatible shared definitions without republishing local preset definitions. If a preset is absent from the local registry but its shared definition is compatible, use the shared data. If an installation cannot interpret a newer shared format, leave the shared stylesheet and preferences intact, report the compatibility issue, and use the existing stylesheet or bundled fallback locally. Never overwrite a newer shared definition merely because local preset code differs.
+- Selecting a different preset stages its resolved definition and publishes it with a new revision on a successful Settings save. Add **Update Shared Theme from This Installation** in Syntax Highlighting settings for explicitly replacing the definition of an already selected preset, including after later Cassidy Dark edits. This action stages the local definition for preview and publication; Cancel discards it. An unrelated settings save must not republish the same preset from stale local code. Regenerate media after a successful publication or a compatible synchronized definition change.
 - Bundle readable Cassidy Dark fallback variables and scoped rules with the review assets and editor styles, generated from the same preset definition. Use them when `_syntax-highlighting.css` is missing, has not downloaded, or cannot load; let the generated selected-theme stylesheet take precedence when available. Do not maintain a separate hand-edited fallback palette.
-- Render Cassidy Dark through the same preview, CSS-variable generation, editor injection, and `_syntax-highlighting.css` delivery path as other presets. Later edits to its definition must take effect through normal theme generation and media refresh without changing the preset identifier or rewriting class-based note content.
+- Render Cassidy Dark through the same preview, CSS-variable generation, editor injection, and `_syntax-highlighting.css` delivery path as other presets. Later local definition edits update build-time fallback output through theme export, and update the shared selected theme through the explicit publication action. Neither requires changing the preset identifier or rewriting class-based note content.
 - Represent theme colors with CSS variables, including token foreground/background colors and code-block foreground/background colors. Preserve bold, italic, and inherited token styles. Qt controls use Anki color tokens.
 - Scope new rules to Kit code blocks. Do not inject global rules for short classes such as `.k` or `.s` into unrelated content.
 - Reuse the shared stylesheet for token presentation and layout. Separate palette selection from tokenization so compatible class-based snippets can change themes without rewriting their fields.
@@ -220,11 +230,17 @@ Use canonical aliases in saved markup. An empty checked-language list continues 
 - Preserve existing legacy class styling until compatibility tests justify narrowing it. Do not overwrite or delete third-party stylesheets, their note-type imports, or unrelated media. Do not reuse third-party branding in feature filenames, CSS classes, identifiers, or documentation.
 - Extend the asset manifest, build/package validation, and archive contents for the generated stylesheet, vendored dependency, and notices. No runtime Python dependency is copied into `collection.media`.
 
+### Headless theme generation
+
+- Add `scripts/export_syntax_themes.py` to generate `src/shared/css/generated/cassidy-dark.css` from the canonical Python preset and shared CSS-generation logic. Import the pure theme modules without running the Anki add-on entry point or Qt-bound package initializers. Require no running Anki instance or active profile.
+- Run export before esbuild in the normal build pipeline so both card and editor CSS consume fresh fallback output. Preserve one source for Cassidy Dark's token styles and palette; do not hand-maintain a second CSS definition. Profile-specific selected-theme media remains a runtime product of the shared collection definitions.
+- Provide a deterministic freshness check for the generated output and include it in asset/package validation and CI. Fail the build on export errors and fail freshness checks on missing or stale output rather than shipping old styling.
+
 ## Delivery and validation
 
 Implement in reviewable stages, each with appropriate validation and a separate commit on a non-main branch:
 
-1. Establish isolated dependency loading and prove coexistence in both load orders, then add the pure rendering/theme services, initial Cassidy Dark preset, and package coverage.
+1. Establish isolated dependency loading and prove coexistence in both load orders, then add the pure rendering/theme services, initial Cassidy Dark preset, headless pre-esbuild export, and package/freshness coverage.
 2. Add editor targeting and insertion, the Python coordinator, language picker, configurable action, and per-deck language-memory service and deck resolution.
 3. Add the dedicated Syntax Highlighting settings tab, grouped language checklist, theme settings/previews, shared styling, generated media delivery, and the confirmed note-type styling action.
 4. Integrate Desktop Markdown rendering and replace the review tokenizer with the bundled JavaScript engine, language registry, and shared theme-role mapping.
@@ -235,20 +251,23 @@ Automated coverage:
 - Render representative existing languages and newly supported HTML, CSS, Markdown, PowerShell, and Kotlin; validate aliases and invalid-language failures.
 - Verify exact source preservation, escaping, Unicode, indentation, trailing newlines, literal template-like syntax, and cloze handling.
 - Cover selection, clipboard, existing-block targeting, highlighted spans, empty input, invalid selections, and stale background results.
+- Verify the split highlighting button, its menu and adjacent language dropdown, options disabled outside a block, current-block dialog values, one-edit Apply to Block, Cancel, and stale-target rejection.
 - Verify repeated highlighting updates the same block without duplicated wrappers or line numbers. Cover native undo/redo through browser or live integration checks where DOM-only tests cannot establish behavior.
 - Cover Enter on ordinary and empty final lines, Arrow Down exiting to an existing or newly created paragraph, Tab/Shift+Tab focus navigation, configured indentation shortcuts, and plain-text paste. Verify ordinary editing does not automatically retokenize or damage block metadata.
 - Verify per-block line-number visibility and starting numbers survive re-highlighting and global-default changes. Cover a start number of 50, explicit block-option edits, source preservation, and undo/redo.
+- Verify long lines wrap in editor and review at narrow widths, line numbers align only with each source line's first visual row, and copied/extracted code has no added line breaks.
 - Verify settings defaults/types, shortcut conflicts and modifier labels, theme generation/scoping, and light/dark selection.
 - Verify the exact 13-language checked defaults, Python selection, selected-first editor ordering versus fully alphabetical Settings groups, Alt+S/Option+S registration and conflict handling, and line numbers off with a starting number of 1.
 - Cover typed dropdown/list/integer saving, Cancel, Reset, change detection, individual fallback for malformed saved fields, per-entry language validation, invalid UI input blocking Save, and preservation of unrelated stored settings.
 - Verify the submitted-answer highlighting toggle appears only in Syntax Highlighting, retains its existing key/value/default, and leaves the Markdown rendering toggle under Cards.
 - Inject CSS-generation, validation, installation, and settings-persistence failures. Verify no false successful save, the previous working settings/style are preserved or restored, staged edits remain in the open dialog for retry, and recovery failures are reported accurately.
-- Verify Cassidy Dark appears in both mode selectors, starts from the existing Kit syntax appearance, and produces the same palette and token styles in both modes. Cover fresh settings, missing/empty/unsupported selections, reset, persistence of explicit alternatives, and regeneration after a preset-definition edit without rewriting note fields.
-- Verify synced collection theme selections produce consistent media across Desktop installations, local editor controls remain local, and missing or delayed theme CSS uses Cassidy Dark until the selected stylesheet loads.
+- Verify Cassidy Dark appears in both mode selectors, starts from the existing Kit syntax appearance, and produces the same palette and token styles in both modes. Cover fresh settings, missing/empty/unusable definitions, reset, persistence of explicit alternatives, and explicit publication after a local preset-definition edit without rewriting note fields.
+- Verify synced resolved definitions and revisions produce consistent media across installations with different local preset definitions. Cover ordinary preset changes, explicit same-preset updates, Cancel, unrelated saves, stale dialog revisions, profile-open/sync refresh without republication, and an unavailable local preset with compatible shared data. Verify unsupported newer formats preserve shared CSS/preferences and that missing or delayed media uses the bundled fallback. Confirm local editor controls remain local.
 - Render shared fixtures through Pygments and JavaScript for all planned review languages. Check equivalent theme roles where both engines classify them, exact source preservation, and intentional tokenization differences without requiring identical HTML.
 - Cover review aliases, explicit-fence versus Topic priority, unsupported explicit labels, engine failures, disabled highlighting, editor-hidden languages, and review behavior independent of deck memory.
 - Cover dynamically submitted answers, repeated initialization/rerendering, preserved saved Pygments spans, HTML-like source, multiline Unicode text, and unchanged answer-comparison results and difference markers.
 - Verify that checked and unchecked language groups are separate and each alphabetically sorted; toggling moves items between groups without duplicates or focus loss. Cover persistence, reset, default-language changes, an empty enabled list, and existing blocks using hidden languages. Verify name/alias search filters both groups without changing check states, clearing search restores both groups, keyboard navigation works, and support labels reflect the review registry.
+- Verify a supported hidden block language appears as a read-only current entry, checked alternatives remain selectable, re-highlighting retains the hidden language unless explicitly overridden, and no language is automatically checked. Retain the disabled-action behavior for an entirely empty checked list.
 - Verify language priority: current explicit dropdown choice, existing block, enabled Topic language, enabled remembered deck language, then enabled default. Verify manual choices survive repeated actions on the same note, reset on note/deck changes, and are invalidated if hidden or unsupported. Cover disabled memory, hidden remembered languages, unsupported stored aliases, and an empty enabled list.
 - Verify memory updates only after successful explicit language application, preserves the global default and other decks' entries, survives reopening/renaming, and is isolated between collections. Cover cancel/failure, automatic detection, ordinary block refresh, and a deck change while rendering.
 - Verify deck resolution for the Add window's destination versus the main window's current deck, a specific edited card, filtered cards' original decks, notes whose cards share one deck, and ambiguous notes with cards in multiple decks. Verify independent parent/child deck choices and safe behavior for deleted or unavailable decks.
@@ -261,6 +280,7 @@ Automated coverage:
 - Verify isolated Pygments loading with another version loaded before and after the Kit, and clear dependency-load failure without user-installed packages or field mutation.
 - Verify external Pygments plugins cannot appear in discovery or be resolved through lookup, while bundled lexers/themes and Kit-owned presets remain available and consistent across installations of the same release.
 - Verify managed-media updates preserve unrelated files and the archive includes Pygments, the bundled JavaScript engine, and their required notices but excludes local metadata and user data. Check the generated card bundle has no external runtime imports or language fetches.
+- Verify theme export runs headlessly before bundling, produces deterministic fallback output from the Python definition, and is shared by card/editor builds. Cover clean builds, definition edits, missing/stale generated CSS, failed export, and package/CI freshness enforcement without Anki or Qt.
 
 Run focused tests while developing, then the project test suites, relevant lint/format checks, `npm run build:addon`, `npm run check:assets`, and package validation. Do not present isolated tests as live Anki verification.
 
