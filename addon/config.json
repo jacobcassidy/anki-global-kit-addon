@@ -64,8 +64,7 @@
     "typescript"
   ],
   "anki_editor_syntax_highlighting_default_language": "python",
-  "anki_editor_syntax_highlighting_remember_language_per_deck": false,
-  "anki_editor_syntax_highlighting_remember_language_per_deck": false,
+  "anki_editor_syntax_highlighting_remember_language_per_deck": true,
   "anki_editor_syntax_highlighting_line_numbers": false,
   "note_type_selections": {
     "Command Line": {
