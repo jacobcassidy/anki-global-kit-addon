@@ -6,11 +6,17 @@ anki-editable {
   --global-kit-syntax-punctuation: #929292;
   --global-kit-syntax-muted: #c4c4c4;
   --global-kit-syntax-builtin: #f8f8f8;
+  --global-kit-syntax-builtin-constant: #d6aaea;
   --global-kit-syntax-keyword: #ef9182;
   --global-kit-syntax-declaration: #92c1fd;
   --global-kit-syntax-function: #89dfdf;
+  --global-kit-syntax-method: #f8f8f8;
   --global-kit-syntax-class: #89dfdf;
+  --global-kit-syntax-namespace: #d6aaea;
+  --global-kit-syntax-parameter: #eeae7b;
   --global-kit-syntax-attribute: #a2cd8b;
+  --global-kit-syntax-variable: #fcb7cb;
+  --global-kit-syntax-library-variable: #d1d1d1;
   --global-kit-syntax-constant: #d6aaea;
   --global-kit-syntax-operator: #ef9182;
   --global-kit-syntax-string: #efddac;
@@ -23,16 +29,28 @@ anki-editable {
   --global-kit-syntax-muted-style: normal;
   --global-kit-syntax-builtin-weight: 400;
   --global-kit-syntax-builtin-style: normal;
+  --global-kit-syntax-builtin-constant-weight: 400;
+  --global-kit-syntax-builtin-constant-style: normal;
   --global-kit-syntax-keyword-weight: 400;
   --global-kit-syntax-keyword-style: normal;
   --global-kit-syntax-declaration-weight: 400;
   --global-kit-syntax-declaration-style: normal;
   --global-kit-syntax-function-weight: 400;
   --global-kit-syntax-function-style: normal;
+  --global-kit-syntax-method-weight: 400;
+  --global-kit-syntax-method-style: normal;
   --global-kit-syntax-class-weight: 400;
   --global-kit-syntax-class-style: normal;
+  --global-kit-syntax-namespace-weight: 400;
+  --global-kit-syntax-namespace-style: normal;
+  --global-kit-syntax-parameter-weight: 400;
+  --global-kit-syntax-parameter-style: normal;
   --global-kit-syntax-attribute-weight: 400;
   --global-kit-syntax-attribute-style: normal;
+  --global-kit-syntax-variable-weight: 400;
+  --global-kit-syntax-variable-style: normal;
+  --global-kit-syntax-library-variable-weight: 400;
+  --global-kit-syntax-library-variable-style: normal;
   --global-kit-syntax-constant-weight: 400;
   --global-kit-syntax-constant-style: normal;
   --global-kit-syntax-operator-weight: 400;
@@ -50,79 +68,115 @@ anki-editable {
   white-space: pre;
 }
 
-.global-kit-code-block :is(.c, .c1, .cm, .cs, .hljs-comment, .hljs-quote) {
+:is(.global-kit-code-block, .syntax-highlights) :is(.c, .c1, .cm, .cs, .hljs-comment, .hljs-quote) {
   color: var(--global-kit-syntax-comment);
   font-style: var(--global-kit-syntax-comment-style);
   font-weight: var(--global-kit-syntax-comment-weight);
 }
 
-.global-kit-code-block :is(.p, .hljs-punctuation) {
+:is(.global-kit-code-block, .syntax-highlights) :is(.p, .hljs-punctuation) {
   color: var(--global-kit-syntax-punctuation);
   font-style: var(--global-kit-syntax-punctuation-style);
   font-weight: var(--global-kit-syntax-punctuation-weight);
 }
 
-.global-kit-code-block :is(.x, .go, .gt, .hljs-text) {
+:is(.global-kit-code-block, .syntax-highlights) :is(.x, .go, .gt, .hljs-text) {
   color: var(--global-kit-syntax-muted);
   font-style: var(--global-kit-syntax-muted-style);
   font-weight: var(--global-kit-syntax-muted-weight);
 }
 
-.global-kit-code-block :is(.nb, .bp, .hljs-built_in, .hljs-literal) {
+:is(.global-kit-code-block, .syntax-highlights) :is(.nb, .ne, .hljs-built_in) {
   color: var(--global-kit-syntax-builtin);
   font-style: var(--global-kit-syntax-builtin-style);
   font-weight: var(--global-kit-syntax-builtin-weight);
 }
 
-.global-kit-code-block :is(.k, .kn, .kp, .kr, .kt, .hljs-keyword) {
+:is(.global-kit-code-block, .syntax-highlights) :is(.kc, .hljs-literal) {
+  color: var(--global-kit-syntax-builtin-constant);
+  font-style: var(--global-kit-syntax-builtin-constant-style);
+  font-weight: var(--global-kit-syntax-builtin-constant-weight);
+}
+
+:is(.global-kit-code-block, .syntax-highlights) :is(.k, .kn, .kp, .kr, .kt, .hljs-keyword) {
   color: var(--global-kit-syntax-keyword);
   font-style: var(--global-kit-syntax-keyword-style);
   font-weight: var(--global-kit-syntax-keyword-weight);
 }
 
-.global-kit-code-block :is(.kd) {
+:is(.global-kit-code-block, .syntax-highlights) :is(.kd) {
   color: var(--global-kit-syntax-declaration);
   font-style: var(--global-kit-syntax-declaration-style);
   font-weight: var(--global-kit-syntax-declaration-weight);
 }
 
-.global-kit-code-block :is(.nf, .fm, .hljs-title.function_, .hljs-function) {
+:is(.global-kit-code-block, .syntax-highlights) :is(.nf, .hljs-title.function_, .hljs-function) {
   color: var(--global-kit-syntax-function);
   font-style: var(--global-kit-syntax-function-style);
   font-weight: var(--global-kit-syntax-function-weight);
 }
 
-.global-kit-code-block :is(.nc, .nn, .hljs-title.class_) {
+:is(.global-kit-code-block, .syntax-highlights) :is(.fm) {
+  color: var(--global-kit-syntax-method);
+  font-style: var(--global-kit-syntax-method-style);
+  font-weight: var(--global-kit-syntax-method-weight);
+}
+
+:is(.global-kit-code-block, .syntax-highlights) :is(.nc, .hljs-title.class_) {
   color: var(--global-kit-syntax-class);
   font-style: var(--global-kit-syntax-class-style);
   font-weight: var(--global-kit-syntax-class-weight);
 }
 
-.global-kit-code-block :is(.na, .nl, .hljs-attr, .hljs-attribute) {
+:is(.global-kit-code-block, .syntax-highlights) :is(.nn) {
+  color: var(--global-kit-syntax-namespace);
+  font-style: var(--global-kit-syntax-namespace-style);
+  font-weight: var(--global-kit-syntax-namespace-weight);
+}
+
+:is(.global-kit-code-block, .syntax-highlights) :is(.hljs-params) {
+  color: var(--global-kit-syntax-parameter);
+  font-style: var(--global-kit-syntax-parameter-style);
+  font-weight: var(--global-kit-syntax-parameter-weight);
+}
+
+:is(.global-kit-code-block, .syntax-highlights) :is(.na, .nl, .hljs-attr, .hljs-attribute, .hljs-property) {
   color: var(--global-kit-syntax-attribute);
   font-style: var(--global-kit-syntax-attribute-style);
   font-weight: var(--global-kit-syntax-attribute-weight);
 }
 
-.global-kit-code-block :is(.m, .no, .kc, .hljs-number, .hljs-symbol) {
+:is(.global-kit-code-block, .syntax-highlights) :is(.n, .nx, .nv, .vc, .vg, .vi, .hljs-variable) {
+  color: var(--global-kit-syntax-variable);
+  font-style: var(--global-kit-syntax-variable-style);
+  font-weight: var(--global-kit-syntax-variable-weight);
+}
+
+:is(.global-kit-code-block, .syntax-highlights) :is(.vm, .bp, .hljs-variable.language_) {
+  color: var(--global-kit-syntax-library-variable);
+  font-style: var(--global-kit-syntax-library-variable-style);
+  font-weight: var(--global-kit-syntax-library-variable-weight);
+}
+
+:is(.global-kit-code-block, .syntax-highlights) :is(.m, .no, .hljs-number, .hljs-symbol) {
   color: var(--global-kit-syntax-constant);
   font-style: var(--global-kit-syntax-constant-style);
   font-weight: var(--global-kit-syntax-constant-weight);
 }
 
-.global-kit-code-block :is(.o, .ow, .hljs-operator) {
+:is(.global-kit-code-block, .syntax-highlights) :is(.o, .ow, .hljs-operator) {
   color: var(--global-kit-syntax-operator);
   font-style: var(--global-kit-syntax-operator-style);
   font-weight: var(--global-kit-syntax-operator-weight);
 }
 
-.global-kit-code-block :is(.s, .s1, .s2, .sb, .sc, .sh, .hljs-string, .hljs-regexp) {
+:is(.global-kit-code-block, .syntax-highlights) :is(.s, .s1, .s2, .sb, .sc, .sh, .hljs-string, .hljs-regexp) {
   color: var(--global-kit-syntax-string);
   font-style: var(--global-kit-syntax-string-style);
   font-weight: var(--global-kit-syntax-string-weight);
 }
 
-.global-kit-code-block :is(.err, .hljs-invalid) {
+:is(.global-kit-code-block, .syntax-highlights) :is(.err, .hljs-invalid) {
   color: var(--global-kit-syntax-error);
   font-style: var(--global-kit-syntax-error-style);
   font-weight: var(--global-kit-syntax-error-weight);

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { JSDOM } from 'jsdom';
 import { highlightReviewCode, reviewLanguageAliases } from '../../../src/cards/js/syntax-highlighting/engine.js';
@@ -19,6 +20,40 @@ test('topic language matching recognizes planned aliases without autodetection',
   assert.equal(getSyntaxLanguage('JavaScript'), 'javascript');
   assert.equal(getSyntaxLanguage('a Pythonic example'), null);
   assert.equal(getSyntaxLanguage('unlabeled source'), null);
+});
+
+test('shared theme rules reach token categories emitted in typed answers', () => {
+  const css = readFileSync(new URL('../../../src/shared/css/generated/cassidy-dark.css', import.meta.url), 'utf8');
+  const python = highlightReviewCode('def example(value):\n return True, str(value), self', 'python');
+  const javascript = highlightReviewCode('object.property = true;', 'javascript');
+  const dom = new JSDOM(
+    `<style>${css}</style><pre><code class="syntax-highlights">${python}\n${javascript}</code></pre>`,
+  );
+
+  try {
+    const rules = [...dom.window.document.styleSheets[0].cssRules];
+    const expected = [
+      ['.hljs-literal', 'builtin-constant'],
+      ['.hljs-built_in', 'builtin'],
+      ['.hljs-params', 'parameter'],
+      ['.hljs-variable.language_', 'library-variable'],
+      ['.hljs-property', 'attribute'],
+    ];
+
+    for (const [selector, role] of expected) {
+      const token = dom.window.document.querySelector(selector);
+
+      assert.ok(token, `highlight.js must emit ${selector}`);
+      assert.ok(
+        rules.some(
+          (rule) => rule.style.color === `var(--global-kit-syntax-${role})` && token.matches(rule.selectorText),
+        ),
+        `the shared theme must style ${selector} as ${role}`,
+      );
+    }
+  } finally {
+    dom.window.close();
+  }
 });
 
 test('review highlighting enforces per-block, per-answer, and block-count budgets', async () => {

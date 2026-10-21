@@ -68,6 +68,8 @@ The **Editor** settings tab controls inline code and indentation shortcuts, sour
 
 Highlighted blocks use `pre.global-kit-code-block` with language, line numbering, and cloze attributes on the `<pre>` element. Line wrappers use `.code-line` inside that block. Existing highlighted fields from earlier development builds need to be recreated from their source with **Highlight Code**, or updated in Anki's HTML editor to use this markup. Updating the add-on assets does not rewrite saved notes.
 
+Cassidy Dark colors the token categories exposed by each highlighter. The editor cannot reliably distinguish Python parameters, properties, ordinary methods, or standard-library membership, so VS Code semantic theme settings cannot be reproduced exactly. Typed-answer highlighting can distinguish some additional categories, including parameters. To publish updated Cassidy Dark colors, choose **Update Synced Theme**, then **Save** and sync.
+
 ![Editor settings tab showing shortcut controls and the custom stylesheet setting](docs/reference/screenshots/settings-editor-tab.png)
 
 ## Setup

@@ -8,7 +8,7 @@ from .custom_themes import PRESETS
 from .rendering import _with_bundled_modules
 
 _COLOR = re.compile(r"#[0-9a-fA-F]{6}\Z")
-_COLOR_ROLES = {
+_BASE_COLOR_ROLES = {
     "background",
     "foreground",
     "comment",
@@ -16,7 +16,6 @@ _COLOR_ROLES = {
     "muted",
     "builtin",
     "keyword",
-    "declaration",
     "function",
     "class",
     "attribute",
@@ -25,18 +24,34 @@ _COLOR_ROLES = {
     "string",
     "error",
 }
+_ROLE_FALLBACKS = {
+    "declaration": "keyword",
+    "builtin-constant": "constant",
+    "method": "function",
+    "namespace": "class",
+    "parameter": "foreground",
+    "variable": "foreground",
+    "library-variable": "builtin",
+}
+_COLOR_ROLES = _BASE_COLOR_ROLES | set(_ROLE_FALLBACKS)
 _STYLE_ROLES = _COLOR_ROLES - {"background", "foreground"}
 _TOKEN_SELECTORS = {
     "comment": ".c, .c1, .cm, .cs, .hljs-comment, .hljs-quote",
     "punctuation": ".p, .hljs-punctuation",
     "muted": ".x, .go, .gt, .hljs-text",
-    "builtin": ".nb, .bp, .hljs-built_in, .hljs-literal",
+    "builtin": ".nb, .ne, .hljs-built_in",
+    "builtin-constant": ".kc, .hljs-literal",
     "keyword": ".k, .kn, .kp, .kr, .kt, .hljs-keyword",
     "declaration": ".kd",
-    "function": ".nf, .fm, .hljs-title.function_, .hljs-function",
-    "class": ".nc, .nn, .hljs-title.class_",
-    "attribute": ".na, .nl, .hljs-attr, .hljs-attribute",
-    "constant": ".m, .no, .kc, .hljs-number, .hljs-symbol",
+    "function": ".nf, .hljs-title.function_, .hljs-function",
+    "method": ".fm",
+    "class": ".nc, .hljs-title.class_",
+    "namespace": ".nn",
+    "parameter": ".hljs-params",
+    "attribute": ".na, .nl, .hljs-attr, .hljs-attribute, .hljs-property",
+    "variable": ".n, .nx, .nv, .vc, .vg, .vi, .hljs-variable",
+    "library-variable": ".vm, .bp, .hljs-variable.language_",
+    "constant": ".m, .no, .hljs-number, .hljs-symbol",
     "operator": ".o, .ow, .hljs-operator",
     "string": ".s, .s1, .s2, .sb, .sc, .sh, .hljs-string, .hljs-regexp",
     "error": ".err, .hljs-invalid",
@@ -89,7 +104,7 @@ def validate_resolved_theme(record: dict) -> dict:
         or not name
         or len(name) > 128
         or not isinstance(colors, dict)
-        or set(colors) not in (_COLOR_ROLES, _COLOR_ROLES - {"declaration"})
+        or not _BASE_COLOR_ROLES <= set(colors) <= _COLOR_ROLES
         or any(
             not isinstance(color, str) or not _COLOR.fullmatch(color)
             for color in colors.values()
@@ -109,12 +124,13 @@ def validate_resolved_theme(record: dict) -> dict:
         raise ValueError("Theme data is invalid or unsupported.")
     colors = dict(colors)
     styles = {key: list(styles[key]) for key in ("bold", "italic")}
-    if "declaration" not in colors:
-        # Earlier palettes and bundled Pygments presets shared keyword styling.
-        colors["declaration"] = colors["keyword"]
-        for roles in styles.values():
-            if "keyword" in roles:
-                roles.append("declaration")
+    # Fill new roles from older palettes without replacing their saved colors.
+    for role, fallback in _ROLE_FALLBACKS.items():
+        if role not in colors:
+            colors[role] = colors[fallback]
+            for roles in styles.values():
+                if fallback in roles:
+                    roles.append(role)
     return {
         "id": preset_id,
         "name": name,
@@ -291,7 +307,12 @@ def generate_theme_css(
             f"  font-weight: var(--global-kit-syntax-{role}-weight);",
         ]
         css.extend(
-            ["", f".global-kit-code-block :is({selectors}) {{", *declarations, "}"]
+            [
+                "",
+                f":is(.global-kit-code-block, .syntax-highlights) :is({selectors}) {{",
+                *declarations,
+                "}",
+            ]
         )
 
     return "\n".join(css) + "\n"

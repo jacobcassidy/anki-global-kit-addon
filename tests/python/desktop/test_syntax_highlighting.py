@@ -138,7 +138,9 @@ class SyntaxRenderingTests(unittest.TestCase):
         self.assertEqual(preset["colors"]["keyword"], "#ef9182")
         self.assertEqual(preset["colors"]["declaration"], "#92c1fd")
         css = themes.generate_theme_css()
-        declaration_rule = css.split(".global-kit-code-block :is(.kd) {", 1)[1]
+        declaration_rule = css.split(
+            ":is(.global-kit-code-block, .syntax-highlights) :is(.kd) {", 1
+        )[1]
         declaration_rule = declaration_rule.split("}", 1)[0]
         self.assertIn("color: var(--global-kit-syntax-declaration);", declaration_rule)
         keyword_selectors = themes._TOKEN_SELECTORS["keyword"].split(", ")
@@ -153,7 +155,8 @@ class SyntaxRenderingTests(unittest.TestCase):
         themes = load_addon_module("desktop.syntax_highlighting.themes")
         preferences = load_addon_module("desktop.syntax_highlighting.preferences")
         legacy = themes.resolve_preset("cassidy-dark")
-        legacy["colors"].pop("declaration")
+        for role in themes._ROLE_FALLBACKS:
+            legacy["colors"].pop(role)
         legacy["colors"]["keyword"] = "#92c1fd"
         legacy["styles"] = {"bold": ["keyword"], "italic": []}
         legacy["revision"] = 7
@@ -171,7 +174,9 @@ class SyntaxRenderingTests(unittest.TestCase):
         self.assertIn("declaration", migrated["light"]["styles"]["bold"])
         self.assertEqual(legacy, original)
         preferences.set_themes(collection, migrated)
-        self.assertEqual(config[preferences.THEMES_KEY]["version"], 2)
+        self.assertEqual(
+            config[preferences.THEMES_KEY]["version"], preferences.THEME_FORMAT_VERSION
+        )
         self.assertEqual(preferences.get_themes(collection)["light"]["revision"], 7)
 
         updated = themes.resolve_preset("cassidy-dark")
@@ -180,8 +185,68 @@ class SyntaxRenderingTests(unittest.TestCase):
         self.assertEqual(
             preferences.get_themes(collection)["light"]["colors"], updated["colors"]
         )
-        config[preferences.THEMES_KEY]["version"] = 3
+        config[preferences.THEMES_KEY]["version"] = preferences.THEME_FORMAT_VERSION + 1
         self.assertEqual(preferences.get_themes(collection), {})
+
+    def test_version_two_palettes_fill_new_roles_without_losing_saved_choices(self):
+        themes = load_addon_module("desktop.syntax_highlighting.themes")
+        preferences = load_addon_module("desktop.syntax_highlighting.preferences")
+        legacy = themes.resolve_preset("cassidy-dark")
+        for role in themes._ROLE_FALLBACKS:
+            if role != "declaration":
+                legacy["colors"].pop(role)
+        legacy["styles"] = {"bold": ["function"], "italic": ["class"]}
+        legacy["revision"] = 4
+        original = deepcopy(legacy)
+        config = {"version": 2, "light": legacy, "dark": legacy}
+        collection = SimpleNamespace(get_config=lambda _key, _default: config)
+
+        migrated = preferences.get_themes(collection)["dark"]
+        self.assertEqual(migrated["colors"]["declaration"], "#92c1fd")
+        self.assertEqual(migrated["colors"]["method"], legacy["colors"]["function"])
+        self.assertIn("method", migrated["styles"]["bold"])
+        self.assertIn("namespace", migrated["styles"]["italic"])
+        self.assertEqual(migrated["revision"], 4)
+        self.assertEqual(legacy, original)
+        malformed = deepcopy(legacy)
+        malformed["colors"]["unknown-role"] = "#ffffff"
+        with self.assertRaises(ValueError):
+            themes.validate_resolved_theme(malformed)
+
+    def test_cassidy_semantic_palette_maps_available_python_tokens(self):
+        themes = load_addon_module("desktop.syntax_highlighting.themes")
+        colors = themes.resolve_preset("cassidy-dark")["colors"]
+        expected = {
+            "builtin-constant": "#d6aaea",
+            "class": "#89dfdf",
+            "builtin": "#f8f8f8",
+            "function": "#89dfdf",
+            "keyword": "#ef9182",
+            "method": "#f8f8f8",
+            "namespace": "#d6aaea",
+            "parameter": "#eeae7b",
+            "attribute": "#a2cd8b",
+            "variable": "#fcb7cb",
+            "library-variable": "#d1d1d1",
+        }
+        for role, color in expected.items():
+            self.assertEqual(colors[role], color)
+        highlighted, _language = self.renderer.render_code(
+            "import math\nclass Demo:\n def __str__(self):\n"
+            "  result = str(True)\n  return result, __name__\n",
+            "python",
+        )
+        expected_tokens = {
+            "nn": "math",
+            "nc": "Demo",
+            "fm": "__str__",
+            "n": "result",
+            "nb": "str",
+            "kc": "True",
+            "vm": "__name__",
+        }
+        for token, text in expected_tokens.items():
+            self.assertIn(f'<span class="{token}">{text}</span>', highlighted)
 
     def test_mode_themes_do_not_repeat_block_and_token_rules(self):
         themes = load_addon_module("desktop.syntax_highlighting.themes")
@@ -196,7 +261,10 @@ class SyntaxRenderingTests(unittest.TestCase):
         self.assertEqual(combined.count(".global-kit-code-block {"), 1)
         for selectors in themes._TOKEN_SELECTORS.values():
             self.assertEqual(
-                combined.count(f".global-kit-code-block :is({selectors}) {{"), 1
+                combined.count(
+                    f":is(.global-kit-code-block, .syntax-highlights) :is({selectors}) {{"
+                ),
+                1,
             )
         light_css, dark_css = overrides.split(".nightMode,", 1)
         self.assertIn(

@@ -3,7 +3,7 @@
 PREFERENCES_KEY = "anki_global_kit.syntax_highlighting"
 DECK_LANGUAGES_KEY = f"{PREFERENCES_KEY}.deck_languages"
 THEMES_KEY = f"{PREFERENCES_KEY}.themes"
-THEME_FORMAT_VERSION = 2
+THEME_FORMAT_VERSION = 3
 
 
 def get_deck_languages(collection) -> dict[str, str]:
@@ -40,6 +40,7 @@ def get_themes(collection) -> dict[str, dict]:
     value = collection.get_config(THEMES_KEY, {})
     if not isinstance(value, dict) or value.get("version") not in (
         1,
+        2,
         THEME_FORMAT_VERSION,
     ):
         return {}
