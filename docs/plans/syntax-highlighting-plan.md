@@ -285,9 +285,11 @@ Use canonical aliases in saved markup. An empty checked-language list continues 
 ### Headless theme generation
 
 - Add `scripts/export_syntax_themes.py` to generate `src/shared/css/generated/cassidy-dark.css` from the canonical Python preset and shared CSS-generation logic. Import the pure theme modules without running the Anki add-on entry point or Qt-bound package initializers. Require no running Anki instance or active profile.
+- Use the broad refactor's documented headless loading path for the exporter and pure-module tests. Importing through `addon` normally runs startup; verify the actual exporter in a fresh process without Anki or Qt installed, with no Anki/Qt adapter imports or hook registration. Reuse canonical definitions rather than copying them or adding an exporter-specific import workaround.
 - Run export before esbuild in the normal build pipeline so both card and editor CSS consume fresh fallback output. Preserve one source for Cassidy Dark's token styles and palette; do not hand-maintain a second CSS definition. Profile-specific selected-theme media remains a runtime product of the shared collection definitions.
 - Provide a deterministic freshness check for the generated output and include it in asset/package validation and CI. Fail the build on export errors and fail freshness checks on missing or stale output rather than shipping old styling.
 - Apply the broad refactor's tooling policy: exclude `addon/vendor/` from first-party formatters, linters, and automatic hook rewrites, while checking pinned dependency presence and notices. Validate generated fallback CSS through its exporter and freshness check rather than independently editing or formatting it. Keep the tracked-output workflow and clean-checkout build checks aligned with any asset-path moves.
+- Verify those exclusions for explicit filename arguments and staged-file hooks as well as repository-wide runs. Use Ruff's `force-exclude` with the relevant exclusions or filter excluded paths before invocation. Confirm vendored files and generated fallback CSS remain byte-for-byte unchanged by formatting/lint hooks, while first-party checks and exporter freshness validation still run.
 
 ## Delivery and validation
 
