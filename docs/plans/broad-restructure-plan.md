@@ -80,6 +80,7 @@ docs/
    - Keep shared filesystem paths in `desktop/paths.py` and startup coordination in `desktop/bootstrap.py`. Preserve the required add-on entry point.
    - Have Settings pages invoke these services. Keep feature-specific collection preferences with their feature, including syntax highlighting's deck-language memory and theme preferences.
    - Keep release defaults in `addon/config.json` and preserve existing setting keys and stored values.
+   - Treat `addon/config.json` as authoritative for release defaults. Check Python and browser fallback definitions against it, documenting intentional runtime differences and preserving platform-specific shortcut translation. Record existing behavioral inconsistencies as separate fixes rather than changing them during structural moves.
 2. Consolidate shipped assets:
    - Move card assets from `addon/web/assets/` into `addon/assets/cards/`, retaining `js/` and `css/` subdivisions.
    - Move editor assets from `addon/desktop/editor/assets/` into `addon/assets/editor/`, also retaining `js/` and `css/` subdivisions.
@@ -98,6 +99,7 @@ docs/
    - Group JavaScript tests by cards, editor, shared behavior, and tooling. Group Python tests by Desktop behavior and tooling.
    - Move Anki stubs and other test helpers into `tests/support/`; put common source examples in `tests/fixtures/` so Python and JavaScript highlighting tests can share them.
    - Update test discovery, helper imports, repository-root calculations, and CI so all existing tests continue to run.
+   - Use recursive JavaScript test discovery and make Python test subdirectories discoverable packages. Give test helpers explicit package imports rather than depending on the old test directory being on the import path.
 6. Preserve browser-source boundaries:
    - Move the shared Markdown renderer into `src/shared/js/markdown/` and update its card, editor, and test consumers.
    - Keep review observation, answer budgets, and review language modules under cards. Keep selection, native undo, and editor block manipulation under editor.
@@ -106,13 +108,29 @@ docs/
    - Use `docs/plans/` consistently and move publishing and dependency instructions into `docs/development/`.
    - Normalize the highlighting restructuring document's name to `highlighting-restructure-plan.md` under `docs/plans/`.
    - Update documentation links, source-tree descriptions, and `AGENTS.md` as each move lands. In particular, explicitly replace the existing guidance that locates note-type operations under Settings when relocating that service.
+   - Before implementing affected stages, reconcile both the syntax highlighting integration plan and the narrower highlighting restructuring plan with this document. This broad plan is authoritative for directory ownership, including `settings/bindings.py` and `settings/save.py`; the integration plan remains authoritative for feature behavior.
+8. Define vendored and generated-file tooling policy:
+   - Exclude `addon/vendor/` from first-party formatting, linting, and automatic pre-commit rewrites. Preserve pinned upstream dependency files and their notices; continue checking dependency presence and package inclusion.
+   - Validate generated files through their generators and freshness checks. Keep each output's generator and inputs explicit rather than editing or independently formatting generated content.
+
+## Dependency and compatibility contracts
+
+- Desktop services must not import Settings pages or the settings dialog. Reusable UI must not import feature pages; pages and feature coordinators consume services and shared UI.
+- Keep pure rendering, paths, and configuration definitions importable without Qt. Keep Anki-dependent persistence and UI adapters separate from those definitions.
+- Keep package `__init__.py` files lightweight, except for the required add-on entry point's startup call. Put explicit startup coordination in `desktop/bootstrap.py`, preserving initialization order and assigning each hook and event filter one registration owner.
+- Preserve JavaScript globals, Python–JavaScript bridge commands, saved HTML classes and data attributes, and the add-on package/configuration identity as well as public media filenames and settings keys. Internal module moves must not require rewriting existing notes or templates.
+- Preserve hook and event-filter registration counts through startup changes. Verify initialization does not introduce duplicate callbacks, controls, or shortcut handlers.
 
 ## Delivery and validation
 
-- Deliver separate stages for tests/documentation, Desktop services, Settings/shortcuts, and asset paths. Use reviewable commits on a non-main branch and preserve behavior at each stage.
-- Run the existing JavaScript and Python suites after relevant moves, ensuring test discovery has not silently omitted nested tests.
+- Deliver separate stages for tests/documentation, Desktop services, Settings/shortcuts, and asset paths. Use reviewable commits on a non-main branch. Each commit must preserve behavior and independently build, test, and package successfully without temporary dependence on both layouts.
+- Record a before/after inventory of discovered JavaScript and Python tests, accounting for renamed tests explicitly. Run the existing suites after relevant moves and verify nested tests and shared helpers are discovered.
+- Add startup/import smoke coverage that exercises package initialization and bootstrap with suitable Anki stubs, rather than loading only individual modules by file path. Verify pure modules import without Qt and startup registers the expected hooks and event filters once.
 - Run relevant lint and formatting checks, the add-on build, asset checks, and package validation. Verify that the archive contains all required resources and notices, and excludes local metadata and user data.
+- Update the hardcoded generated-file paths in `.github/workflows/tests.yml` alongside asset moves. From a clean checkout, build and regenerate all tracked outputs and require no resulting diff, including font notices and theme fallbacks once introduced. Ensure freshness checks actually cover the new output locations.
 - Verify the development symlink still points to a directly usable `addon/` package. Check profile asset installation, editor asset injection, and template resource resolution after path changes.
+- Test both a clean installation from an extracted release archive and an upgrade from the previous package layout. Inspect how the supported installer handles obsolete files and document the result; verify old package paths cannot affect imports or resource loading. If cleanup is required, restrict it to explicitly identified obsolete Kit-owned files rather than deleting directories broadly.
+- Verify upgrades preserve `meta.json`, saved configuration, collection preferences, and user styles. Include saved markup, existing templates, browser globals, and bridge commands in compatibility checks.
 - Preserve note-type confirmation requirements, managed-media scope, native undo behavior, and cross-client functionality. Do not mix structural moves with feature changes.
 - Report automated checks separately from live Anki and cross-client verification. Live acceptance should cover startup, Settings, editor controls, reviewer shortcuts, and managed-media refresh.
 
@@ -121,4 +139,4 @@ docs/
 - Keep Python source inside the installable add-on rather than introducing a separate Python staging build.
 - Keep generated bundles tracked initially, preserving the existing development and packaging workflow while ownership changes settle.
 - Retain `addon/templates/`, `addon/user_files/`, and root development commands. Do not relocate or overwrite local user customizations.
-- Treat this as the broad target layout. Reconcile narrower highlighting plans with it as the relevant stages are implemented; do not create unused directories solely to match the diagram.
+- Treat this as the broad target layout and resolve narrower plans' directory conflicts before implementing affected stages. Do not create unused directories solely to match the diagram.
