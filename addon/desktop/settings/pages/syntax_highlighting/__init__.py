@@ -319,16 +319,10 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
         selector.setCurrentIndex(
             index if index >= 0 else selector.findData("cassidy-dark")
         )
-        add_field_row(themes_layout, f"{mode.title()} theme", selector)
+        add_field_row(themes_layout, f"Theme for {mode.title()} Mode", selector)
         theme_controls[mode] = selector
 
-    preview_heading = QHBoxLayout()
-    preview_heading.addWidget(QLabel("Theme preview", themes_section))
-    preview_heading.addStretch()
-    preview_name = QLabel(themes_section)
-    preview_name.setObjectName("syntaxThemePreviewName")
-    preview_name.setTextFormat(Qt.TextFormat.PlainText)
-    preview_heading.addWidget(preview_name)
+    preview_title = QLabel(themes_section)
 
     def update_theme_preview(mode="light", *_args):
         theme_id = theme_controls[mode].currentData()
@@ -349,14 +343,15 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
             f"color: {preset['colors']['foreground']}; }}"
         )
         theme_preview.setHtml(theme_preview_html(preset))
-        preview_name.setText(theme_controls[mode].currentText())
+        preview_title.setText(f"{mode.title()} Mode Theme Preview")
 
     for mode, selector in theme_controls.items():
         selector.currentIndexChanged.connect(
             lambda _index, mode=mode: update_theme_preview(mode)
         )
+        selector.activated.connect(lambda _index, mode=mode: update_theme_preview(mode))
     update_theme_preview()
-    themes_layout.addLayout(preview_heading)
+    themes_layout.addWidget(preview_title)
     themes_layout.addWidget(theme_preview_frame)
     publish_modes = set()
     publish_button = QPushButton(
