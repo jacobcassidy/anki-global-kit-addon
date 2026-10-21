@@ -74,15 +74,32 @@ Useful project scripts:
 - On macOS, Anki's Qt/webview keyboard handling swaps the usual modifier names: Anki's `Ctrl` setting corresponds to physical Command (⌘), while `Meta` corresponds to physical Control (⌃). Browser keyboard events use the standard mapping: Command sets `event.metaKey`, and physical Control sets `event.ctrlKey`. Do not apply the Qt modifier swap to browser events. Keep shortcut labels consistent with that mapping. Use `event.key` when matching the character produced by the current keyboard layout; use `event.code` only when a shortcut intentionally targets a physical key regardless of layout (for example, the physical C key).
 - If changing required template markup or CSS imports, update the applicable runtime parts under `addon/templates/note-types/parts/` and document any user migration in `README.md` or the changelog. Existing note types receive the change only after the user selects Replace and confirms.
 
+## Repository guidance
+
+- Finish each task or feature by committing its completed changes after appropriate validation.
+- Match the existing commit message style and formatting; use a plain, sentence-case imperative subject without adding prefixes or changing the format.
+- When relevant, document completed tasks or features in `CHANGELOG.md` and/or `README.md`.
+
+## Code Spacing Rules
+
+- Put a blank line before each JSDoc block, except at the start of a file.
+- Separate a control-flow statement from the preceding statement at the same level with a blank line. This includes `if`, loops, `switch`, `try`, `return`, `throw`, `break`, and `continue`. Do not pad the start of a block or detach `else`, `catch`, `finally`, or `do...while` continuations.
+- Put a blank line after a completed block, control-flow statement, or multiline expression statement when another statement follows at the same level. Keep function-call arguments and chained expressions together.
+- Put a blank line after a standalone `let`, `const`, or `var` when the next statement is not another variable declaration. Keep consecutive variable declarations together; do not pad before closing syntax or inside loop headers.
+- Put a blank line after every export declaration, including `export const`, before any following code or comment.
+- Separate a `const` declaration spanning more than three source lines from neighboring statements with blank lines, including adjacent variable declarations.
+
+Exceptions to these spacing rules:
+
+- Keep a `const` and the single-line statement that immediately precedes its block’s closing syntax together, even when the `const` spans multiple lines. Retain any required blank line before the `const`.
+- If every statement directly inside a code block fits on one source line, omit blank lines between them. Apply this separately to nested blocks. Keep comments attached to their code and preserve spacing before JSDoc blocks.
+
 ## Git commits
 
 - Never create or amend commits on `main`. Check the current branch immediately
   before committing. If a commit is requested while `main` is checked out,
   including an explicit request to commit to `main`, ask the user whether to
   switch to `dev` or another branch and wait for their choice before committing.
-- Create a Git commit for each completed new feature, fix, refactor, or other
-  logical change after appropriate validation.
-- Use a concise, descriptive commit message explaining the change.
 - Stage only files belonging to that change. Do not include unrelated user work.
 - Check the repository root before committing, especially when accessing this
   directory through a symlink. If no repository is available, report that and
