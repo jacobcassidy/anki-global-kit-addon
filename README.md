@@ -48,6 +48,8 @@ Use the optional formatting toolbar above card inputs or configure shortcuts in 
 
 Code blocks use the language written after the opening backticks, such as `python`, or infer a language from the topic. Review highlighting supports Python, JavaScript/Node, TypeScript, Java, C, C++, C#, SQL, Bash/shell, JSON, Ruby, Go, Rust, PHP, HTML, CSS, Markdown, PowerShell, and Kotlin. Unsupported explicit labels remain plain code. Comparison and syntax highlighting are bundled with the kit.
 
+In **Syntax Highlighting → Languages**, **Auto** marks languages that also highlight typed answers during review. All listed languages support saved highlighting created in the Desktop editor and displayed on cards.
+
 The **Cards** settings tab controls review-time Markdown formatting shortcuts and indentation behavior.
 
 ![Cards settings tab showing Markdown and indentation shortcut options](docs/reference/screenshots/settings-cards-tab.png)

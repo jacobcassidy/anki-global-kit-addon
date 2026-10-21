@@ -75,10 +75,12 @@ REVIEW_LANGUAGES = {
 
 
 class LanguageStatusDelegate(QStyledItemDelegate):
-    """Keep native checkbox/keyboard behavior with a separate right-aligned status."""
+    """Keep native checkboxes and reserve a trailing column for Auto badges."""
 
     def sizeHint(self, option, index):
         size = super().sizeHint(option, index)
+        # Let rows fit the viewport instead of widening for long language names.
+        size.setWidth(0)
         size.setHeight(max(size.height(), option.fontMetrics.height() + 8))
         return size
 
@@ -86,8 +88,10 @@ class LanguageStatusDelegate(QStyledItemDelegate):
         option = QStyleOptionViewItem(option)
         self.initStyleOption(option, index)
         status = index.data(Qt.ItemDataRole.UserRole + 2) or ""
-        status_width = option.fontMetrics.horizontalAdvance(status) + 12
-        text_rect = option.widget.style().subElementRect(
+        badge_width = option.fontMetrics.horizontalAdvance("Auto") + 12
+        status_width = badge_width + 8
+        style = option.widget.style()
+        text_rect = style.subElementRect(
             QStyle.SubElement.SE_ItemViewItemText, option, option.widget
         )
         option.text = option.fontMetrics.elidedText(
@@ -95,16 +99,22 @@ class LanguageStatusDelegate(QStyledItemDelegate):
             Qt.TextElideMode.ElideRight,
             max(0, text_rect.width() - status_width),
         )
-        super().paint(painter, option, index)
-        painter.save()
-        painter.setPen(
-            option.palette.highlightedText().color()
-            if option.state & QStyle.StateFlag.State_Selected
-            else QColor(get_theme_color("FG_DISABLED"))
+        # QStyledItemDelegate.paint() would restore the model's unelided text.
+        style.drawControl(
+            QStyle.ControlElement.CE_ItemViewItem, option, painter, option.widget
         )
+        if not status:
+            return
+        badge_rect = option.rect.adjusted(0, 3, -4, -3)
+        badge_rect.setLeft(badge_rect.right() - badge_width + 1)
+        painter.save()
+        painter.setPen(QColor(get_theme_color("BORDER_SUBTLE")))
+        painter.setBrush(QColor(get_theme_color("BUTTON_BG", "CANVAS_ELEVATED")))
+        painter.drawRoundedRect(badge_rect, 3, 3)
+        painter.setPen(QColor(get_theme_color("FG_SUBTLE")))
         painter.drawText(
-            option.rect.adjusted(0, 0, -4, 0),
-            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+            badge_rect,
+            Qt.AlignmentFlag.AlignCenter,
             status,
         )
         painter.restore()
@@ -176,12 +186,20 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
     other_list = QListWidget(other_box)
     for widget in (shown_list, other_list):
         widget.setMinimumHeight(160)
+        widget.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         widget.setItemDelegate(LanguageStatusDelegate(widget))
     shown_layout.addWidget(shown_list)
     other_layout.addWidget(other_list)
     groups_layout.addWidget(shown_box)
     groups_layout.addWidget(other_box)
     language_layout.addLayout(groups_layout)
+    language_note = QLabel(
+        "All languages support saved highlighting on cards. "
+        "Auto languages also highlight typed answers during review.",
+        languages_section,
+    )
+    language_note.setWordWrap(True)
+    language_layout.addWidget(language_note)
 
     rows = {
         alias: (name, aliases)
@@ -195,14 +213,16 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
         widget.clear()
         for alias in aliases:
             name, lexer_aliases = rows[alias]
-            review_label = (
-                "Card review supported" if alias in REVIEW_LANGUAGES else "Desktop only"
-            )
+            review_label = "Auto" if alias in REVIEW_LANGUAGES else ""
             item = QListWidgetItem(name, widget)
             item.setData(Qt.ItemDataRole.UserRole, alias)
             item.setData(Qt.ItemDataRole.UserRole + 1, lexer_aliases)
             item.setData(Qt.ItemDataRole.UserRole + 2, review_label)
-            item.setToolTip(f"{name} — {review_label}")
+            item.setToolTip(
+                f"{name}\nAutomatically highlights typed answers during review."
+                if review_label
+                else name
+            )
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
             item.setCheckState(
                 Qt.CheckState.Checked if alias in checked else Qt.CheckState.Unchecked

@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Replaced language support labels with an **Auto** badge for typed-answer highlighting and explained that all languages support saved highlighting on cards. Reserved a badge column and shortened long language names with ellipses to prevent overlap; full names remain available on hover.
 - Moved **Enable Code Styling…** and its help to **Syntax Highlighting → Themes**, and renamed the Note Types action to **Apply Selected Changes**.
 - Alphabetized editor shortcuts, moved Syntax Highlighting shortcut settings into Editor Fields, renamed Editor Formatting to **Editor Text Handling**, and placed **Editor Styles** below Editor Toolbar with named stylesheet buttons below their options.
 - Grouped Syntax Highlighting settings into **Languages**, **Lines**, and **Themes**, added minus/plus starting-line controls, and reduced the preview to 150px with its theme name beside the title.
