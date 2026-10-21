@@ -109,7 +109,6 @@ def clean_paste_mime(mime, editor_web_view, internal, extended, drop_event):
         or not get_editor_settings()["anki_editor_paste_cleanup"]
     ):
         return mime
-    editor_web_view.eval("globalThis.ankiGlobalKitEditor?.beginPasteLayout();")
     original = mime.html()
     cleaned = clean_paste_html(original)
     if cleaned == original:
@@ -119,7 +118,3 @@ def clean_paste_mime(mime, editor_web_view, internal, extended, drop_event):
         result.setData(mime_type, mime.data(mime_type))
     result.setHtml(cleaned)
     return result
-
-
-def finish_paste_layout(editor, html, internal, extended):
-    editor.web.eval("globalThis.ankiGlobalKitEditor?.finishPasteLayout();")

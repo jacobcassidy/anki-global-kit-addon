@@ -92,7 +92,6 @@ def load_editor_integration(settings, *, mac=False):
     constants.USER_FILES_DIR = ROOT / "addon/user_files"
     paste = ModuleType("kit.desktop.editor.features.paste.cleanup")
     paste.clean_paste_mime = Mock()
-    paste.finish_paste_layout = Mock()
     labels = ModuleType("kit.desktop.editor.features.shortcuts.labels")
     labels.shortcut_label = lambda keys: keys
     helpers = load_shortcut_helpers(mac=mac)

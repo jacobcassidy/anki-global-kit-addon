@@ -4,7 +4,6 @@ import { toggleInlineCode } from './formatting/inline-code.js';
 import { installCopySource } from './clipboard/copy-source.js';
 import { pasteMarkdownAsHtml } from './formatting/markdown.js';
 import { installClozeShortcuts } from './cloze/shortcuts.js';
-import { beginPasteLayout, finishPasteLayout } from './paste/layout.js';
 import { installEditorStyles } from './styles.js';
 import {
   installBlockFormatting,
@@ -25,8 +24,6 @@ if (!globalThis.ankiGlobalKitEditor) {
     toggleBlock: toggleEditorBlock,
     toggleInlineCode,
     pasteMarkdownAsHtml,
-    beginPasteLayout,
-    finishPasteLayout,
   };
 }
 
