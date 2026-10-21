@@ -247,6 +247,61 @@ class NoteTypeTests(unittest.TestCase):
         with self.assertRaises(self.service.SyntaxStyleAlreadyEnabledError):
             self.service.plan_syntax_style_import("Python (Advance)")
 
+    def syntax_style_plans(self):
+        extra = existing_type("Basic")
+        extra["id"] = 43
+        self.models.types["Basic"] = extra
+        return tuple(
+            self.service.plan_syntax_style_import(name)
+            for name in ("Python (Advance)", "Basic")
+        )
+
+    def test_batch_syntax_styles_preserve_everything_except_selected_css(self):
+        plans = self.syntax_style_plans()
+        before = deepcopy(self.models.types)
+        changes = self.service.apply_syntax_style_imports(plans, self.col)
+        self.assertTrue(changes.notetype)
+        for name, notetype in before.items():
+            notetype["css"] = (
+                '@import url("_syntax-highlighting.css");\n' + notetype["css"]
+            )
+            self.assertEqual(self.models.types[name], notetype)
+        self.assertEqual(len(self.models.writes), 2)
+
+    def test_batch_syntax_styles_validate_all_targets_before_any_write(self):
+        for change in ("css", "identity", "missing", "collection"):
+            with self.subTest(change=change):
+                self.setUp()
+                plans = self.syntax_style_plans()
+                collection = self.col
+                if change == "css":
+                    self.models.types["Basic"]["css"] = "changed while confirming"
+                elif change == "identity":
+                    self.models.types["Basic"]["id"] = 99
+                elif change == "missing":
+                    del self.models.types["Basic"]
+                else:
+                    collection = SimpleNamespace(models=self.models)
+                with self.assertRaises(self.service.NoteTypePlanChangedError):
+                    self.service.apply_syntax_style_imports(plans, collection)
+                self.assertEqual(self.models.writes, [])
+
+    def test_batch_syntax_styles_report_partial_writes_for_anki_refresh(self):
+        plans = self.syntax_style_plans()
+        update = self.models.update_dict
+
+        def fail_second(notetype):
+            if notetype["name"] == "Basic":
+                raise OSError("write failed")
+            return update(notetype)
+
+        with patch.object(self.models, "update_dict", side_effect=fail_second):
+            with self.assertRaises(self.service.NoteTypeApplyError) as raised:
+                self.service.apply_syntax_style_imports(plans, self.col)
+        self.assertEqual(raised.exception.applied_names, ("Python (Advance)",))
+        self.assertTrue(raised.exception.changes.notetype)
+        self.assertEqual(self.models.types["Basic"]["css"], "user CSS")
+
     def test_delete_revalidates_notes_and_identity_after_confirmation(self):
         for change in ("notes", "identity"):
             with self.subTest(change=change):

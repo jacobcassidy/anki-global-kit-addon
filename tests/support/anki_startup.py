@@ -36,6 +36,8 @@ def make_startup_stubs(*, mac: bool):
         "QKeySequence",
         "QLabel",
         "QLineEdit",
+        "QListWidget",
+        "QListWidgetItem",
         "QPainterPath",
         "QPixmap",
         "QPoint",

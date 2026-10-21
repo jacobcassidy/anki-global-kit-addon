@@ -212,7 +212,18 @@ def load_note_type_actions(service):
     operations.CollectionOp = Mock(return_value=operation)
     qt = ModuleType("aqt.qt")
     qt.QWidget = object
-    qt.QInputDialog = Mock()
+    for name in (
+        "QDialog",
+        "QDialogButtonBox",
+        "QHBoxLayout",
+        "QLabel",
+        "QListWidget",
+        "QListWidgetItem",
+        "QPushButton",
+        "Qt",
+        "QVBoxLayout",
+    ):
+        setattr(qt, name, Mock())
     utils = ModuleType("aqt.utils")
     utils.askUser = Mock(return_value=False)
     utils.showInfo = Mock()
@@ -241,4 +252,5 @@ def load_note_type_actions(service):
         factory=operations.CollectionOp,
         confirm=utils.askUser,
         warning=utils.showWarning,
+        info=utils.showInfo,
     )

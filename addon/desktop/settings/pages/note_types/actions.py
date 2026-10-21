@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from anki.collection import Collection, OpChanges
 from aqt import mw
 from aqt.operations import CollectionOp
-from aqt.qt import QInputDialog, QWidget
+from aqt.qt import QWidget
 from aqt.utils import askUser, showInfo, showWarning
 
 from ....media.manifest import SYNTAX_CSS_ASSET_NAME
@@ -21,11 +21,13 @@ from ....note_types.service import (
     NoteTypeChangeResult,
     NoteTypeServiceError,
     SyntaxStyleAlreadyEnabledError,
+    SyntaxStyleImportPlan,
     apply_note_type_changes,
-    apply_syntax_style_import,
+    apply_syntax_style_imports,
     plan_note_type_changes,
     plan_syntax_style_import,
 )
+from .selection import select_note_types
 
 
 @dataclass(frozen=True)
@@ -170,7 +172,7 @@ def apply_selected_note_type_changes(
 
 
 def enable_syntax_styling(parent: QWidget) -> None:
-    """Confirm and add the standalone syntax stylesheet to one note type."""
+    """Confirm and add the standalone syntax stylesheet to checked note types."""
     if mw.col is None:
         showWarning("Open an Anki profile before enabling syntax styling.")
         return
@@ -180,43 +182,63 @@ def enable_syntax_styling(parent: QWidget) -> None:
         showInfo("Create a note type before enabling syntax styling.")
         return
 
-    name, accepted = QInputDialog.getItem(
-        parent, "Enable Code Styling", "Note type:", names, 0, False
-    )
-    if not accepted:
-        return
-
+    available = {}
     try:
-        plan = plan_syntax_style_import(name)
-    except SyntaxStyleAlreadyEnabledError as error:
-        showInfo(str(error))
-        return
+        for name in names:
+            try:
+                available[name] = plan_syntax_style_import(name)
+            except SyntaxStyleAlreadyEnabledError:
+                continue
     except NoteTypeServiceError as error:
         _show_note_type_service_error(error)
         return
 
+    if not available:
+        showInfo("All note types already include the syntax stylesheet.")
+        return
+    selected = select_note_types(parent, list(available))
+    if not selected:
+        return
+    plans = tuple(available[name] for name in selected)
+    selected_names = "\n".join(f"• {name}" for name in selected)
+    type_count = f"{len(plans)} note type{'s' if len(plans) != 1 else ''}"
     change = f'@import url("{SYNTAX_CSS_ASSET_NAME}");'
     if not askUser(
-        f"Enable code styling for {name}?\n\n"
-        f"Styling change:\n+  + {change}\n\n"
+        f"Add syntax styles to {type_count}?\n{selected_names}\n\n"
+        f"Styling change for each note type:\n+ {change}\n\n"
         "This adds only the syntax stylesheet import. It does not change fields, "
         "card templates, notes, or cards."
     ):
         return
 
-    def success(_changes) -> None:
-        showInfo(f"Enabled code styling for {name}.")
+    def success(outcome: _OperationResult) -> None:
+        if outcome.error is not None:
+            _show_note_type_service_error(outcome.error)
+            return
+        showInfo(
+            f"Added syntax styles to {type_count}:\n{selected_names}\n\n"
+            "Sync this profile to apply the styles on other devices."
+        )
 
     def failure(error: Exception) -> None:
         if isinstance(error, NoteTypeServiceError):
             _show_note_type_service_error(error)
         else:
-            showWarning(f"Could not enable code styling for {name}: {error}")
+            showWarning(f"Could not add syntax styles: {error}")
 
     operation = CollectionOp(
-        parent=parent, op=lambda col: apply_syntax_style_import(plan, col)
+        parent=parent, op=lambda col: _apply_syntax_style_plans(col, plans)
     )
     operation.success(success).failure(failure).run_in_background()
+
+
+def _apply_syntax_style_plans(
+    col: Collection, plans: tuple[SyntaxStyleImportPlan, ...]
+) -> _OperationResult:
+    try:
+        return _OperationResult(changes=apply_syntax_style_imports(plans, col))
+    except NoteTypeApplyError as error:
+        return _OperationResult(changes=error.changes, error=error)
 
 
 def _show_note_type_result(result: NoteTypeChangeResult) -> None:

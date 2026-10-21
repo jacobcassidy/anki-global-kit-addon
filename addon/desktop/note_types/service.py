@@ -192,10 +192,7 @@ def plan_syntax_style_import(
     return SyntaxStyleImportPlan(col, name, notetype["id"], css)
 
 
-def apply_syntax_style_import(
-    plan: SyntaxStyleImportPlan, col: Collection
-) -> OpChanges:
-    """Revalidate and add only the generated syntax stylesheet import."""
+def _validate_syntax_style_import(plan: SyntaxStyleImportPlan, col: Collection) -> dict:
     if col is not plan.collection:
         raise NoteTypePlanChangedError(
             "The active Anki collection changed after confirmation. Select the note type again."
@@ -210,10 +207,35 @@ def apply_syntax_style_import(
         raise NoteTypePlanChangedError(
             f"The styling for {plan.name} changed after confirmation. Review the action again."
         )
+    return notetype
+
+
+def apply_syntax_style_import(
+    plan: SyntaxStyleImportPlan, col: Collection
+) -> OpChanges:
+    """Revalidate and add only the generated syntax stylesheet import."""
+    notetype = _validate_syntax_style_import(plan, col)
 
     updated = deepcopy(notetype)
-    updated["css"] = f'@import url("{SYNTAX_CSS_ASSET_NAME}");\n{current_css}'
+    updated["css"] = f'@import url("{SYNTAX_CSS_ASSET_NAME}");\n{plan.previous_css}'
     return col.models.update_dict(updated)
+
+
+def apply_syntax_style_imports(
+    plans: tuple[SyntaxStyleImportPlan, ...], col: Collection
+) -> OpChanges:
+    """Check all confirmed targets before writing and preserve partial results."""
+    for plan in plans:
+        _validate_syntax_style_import(plan, col)
+    changes = OpChanges()
+    applied = []
+    try:
+        for plan in plans:
+            changes.MergeFrom(apply_syntax_style_import(plan, col))
+            applied.append(plan.name)
+    except Exception as error:
+        raise NoteTypeApplyError(tuple(applied), error, changes) from error
+    return changes
 
 
 def _card_template(filename: str, topic: str, script: str) -> str:

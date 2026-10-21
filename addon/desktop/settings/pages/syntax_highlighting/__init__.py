@@ -380,20 +380,19 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
     )
     publication_row.addStretch()
     themes_layout.addLayout(publication_row)
-    syntax_style_button = QPushButton("Enable Code Styling…", themes_section)
+    syntax_style_button = QPushButton("Add Syntax Styles…", themes_section)
     syntax_style_button.setAutoDefault(False)
-    syntax_style_button.setToolTip(
-        "Add only the syntax stylesheet import to an existing note type"
-    )
+    syntax_style_button.setToolTip("Add syntax theme styles to selected note types")
     syntax_style_button.clicked.connect(lambda: enable_syntax_styling(parent))
     syntax_style_row = QHBoxLayout()
     syntax_style_row.addWidget(syntax_style_button)
     syntax_style_row.addWidget(
         HelpIndicator(
-            "Enable Code Styling",
-            "Choose an existing note type and confirm to add the shared syntax "
+            "Add Syntax Styles",
+            "Check one or more existing note types, then confirm once to add the syntax "
             "highlighting stylesheet import. This lets saved Highlight Code blocks "
-            "use your selected themes during card review. Notes, fields, card "
+            "use your selected themes during card review. Note types that already "
+            "include the stylesheet are omitted. Notes, fields, card "
             "templates, and other styling are preserved. Sync afterward to apply "
             "the stylesheet on other devices.",
             themes_section,

@@ -55,7 +55,7 @@ Under **Editor Styles**, the two **Enable Anki Global Kit's default … styles**
 
 Under **Editor Styles**, choose **View custom Editor Fields stylesheet** or **View custom Editor UI stylesheet** to open `user_files`. Edit `editor-fields.css` for note fields or `editor-ui.css` for the surrounding interface. Enable the corresponding stylesheet setting and restart Anki to reload edits. These files survive add-on upgrades.
 
-Under **Syntax Highlighting > Themes**, choose **Enable Code Styling…** to add the shared syntax stylesheet to an existing note type after confirmation. This preserves its notes, fields, templates, cards, and other styling.
+Under **Syntax Highlighting > Themes**, choose **Add Syntax Styles…**, check one or more note types, then confirm once to add the syntax stylesheet to all selected types. **Select All** checks every listed type; types that already include the stylesheet are omitted. This preserves notes, fields, templates, cards, and other styling. Sync afterward to apply the styles on other devices.
 
 ## If Something Does Not Work
 
