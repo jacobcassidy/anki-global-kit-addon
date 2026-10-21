@@ -132,7 +132,8 @@ function createWatchPlugin(outfile) {
         }
 
         if (!wasInitialBuild && !hasErrors && changedOutputs.delete(outfile)) {
-          console.log(colorize(formatBuildMessage(`Rebuilt: ${outfile}`), colors.green));
+          const file = relative(fileURLToPath(new URL('../', import.meta.url)), outfile);
+          console.log(colorize(formatBuildMessage(`Rebuilt: ${file}`), colors.green));
         }
       });
     },
