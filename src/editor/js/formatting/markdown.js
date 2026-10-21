@@ -1,6 +1,6 @@
 import { markdownToHtml } from '../../../shared/js/markdown/render.js';
 import { getSyntaxLanguage } from '../../../shared/js/syntax-highlighting/languages.js';
-import { getEditorSelection } from '../helpers/selection.js';
+import { getEditorRangeText, getEditorSelection } from '../helpers/selection.js';
 import { editWithNativeUndo } from '../helpers/edit-transaction.js';
 import { enhanceHighlightHtml } from '../../../shared/js/syntax-highlighting/classification/markup.js';
 import { createClassificationBudget } from '../../../shared/js/syntax-highlighting/classification/index.js';
@@ -81,10 +81,14 @@ function markdownBlocks(html, topic) {
   return { container, blocks };
 }
 
-export function pasteMarkdownAsHtml(markdown) {
-  if (!markdown) return false;
+export function convertMarkdown(clipboardText) {
   const target = selectedTarget();
+
   if (!target) return false;
+
+  const markdown = target.range.collapsed ? clipboardText : getEditorRangeText(target.range);
+
+  if (!markdown) return false;
 
   const html = markdownToHtml(markdown);
   const { container, blocks } = markdownBlocks(html, getTopicText());
@@ -140,7 +144,7 @@ function failMarkdownHighlight(id) {
 
 export function installMarkdownHighlighting() {
   const api = (globalThis.ankiGlobalKitEditor ||= {});
-  api.pasteMarkdownAsHtml = pasteMarkdownAsHtml;
+  api.convertMarkdown = convertMarkdown;
   api.applyMarkdownHighlightResult = applyMarkdownHighlightResult;
   api.failMarkdownHighlight = failMarkdownHighlight;
 }

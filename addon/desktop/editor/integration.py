@@ -121,10 +121,10 @@ def _toggle_block(editor: Editor, format_name: str) -> None:
     )
 
 
-def _paste_markdown_as_html(editor: Editor) -> None:
+def _convert_markdown(editor: Editor) -> None:
     markdown = QApplication.clipboard().text()
     editor.web.eval(
-        f"globalThis.ankiGlobalKitEditor?.pasteMarkdownAsHtml({json.dumps(markdown)});"
+        f"globalThis.ankiGlobalKitEditor?.convertMarkdown({json.dumps(markdown)});"
     )
 
 
@@ -156,8 +156,8 @@ def _add_button(buttons: list, editor: Editor) -> None:
             "anki_editor_paste_markdown_as_html_button",
             icon=str(PASTE_MARKDOWN_ICON),
             cmd="anki_global_kit_paste_markdown_as_html",
-            func=_paste_markdown_as_html,
-            tip="Paste Markdown as HTML",
+            func=_convert_markdown,
+            tip="Convert Markdown",
         )
     )
     custom_buttons.append(
@@ -175,8 +175,7 @@ def _add_button(buttons: list, editor: Editor) -> None:
         toolbar_groups(
             [
                 ("syntax-highlighting", "Syntax Highlighting", custom_buttons[:3]),
-                ("formatting", "Formatting", custom_buttons[3:5]),
-                ("inline-code", "Inline Code", custom_buttons[5:]),
+                ("formatting", "Formatting", custom_buttons[3:]),
             ]
         )
     )

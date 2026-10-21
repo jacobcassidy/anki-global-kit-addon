@@ -1,4 +1,4 @@
-import { getEditorSelection } from '../helpers/selection.js';
+import { getEditorRangeText, getEditorSelection } from '../helpers/selection.js';
 import { editWithNativeUndo } from '../helpers/edit-transaction.js';
 import { getSyntaxLanguage } from '../../../shared/js/syntax-highlighting/languages.js';
 import { enhanceHighlightHtml } from '../../../shared/js/syntax-highlighting/classification/markup.js';
@@ -98,14 +98,6 @@ function preserveClozeMode(code, mode) {
   }
 }
 
-function sourceFromFragment(node) {
-  if (node.nodeType === Node.TEXT_NODE) return node.nodeValue || '';
-  if (node.nodeName === 'BR') return '\n';
-  const children = [...node.childNodes].map(sourceFromFragment);
-  const content = children.join('');
-  return node !== node.ownerDocument && /^(DIV|P|LI|BLOCKQUOTE)$/.test(node.nodeName) ? `${content}\n` : content;
-}
-
 function readSelectionTarget(clipboardText) {
   const selection = getEditorSelection();
   if (!selection?.rangeCount) return null;
@@ -137,8 +129,7 @@ function readSelectionTarget(clipboardText) {
   if (intersectedCode.length) return null;
 
   if (!range.collapsed) {
-    const fragment = range.cloneContents();
-    const source = sourceFromFragment(fragment).replace(/\n$/, '');
+    const source = getEditorRangeText(range);
     return source ? { field, liveSelection: selection, range: range.cloneRange(), source } : null;
   }
 

@@ -10,6 +10,33 @@ from tests.support.anki_stubs import load_editor_integration, load_settings_serv
 
 
 class EditorBindingsTests(unittest.TestCase):
+    def test_toolbar_defaults_and_theme_inheriting_icons(self):
+        settings = load_settings_services().config.get_editor_settings()
+        self.assertFalse(settings["anki_editor_blockquote_button"])
+        integration = load_editor_integration(settings)
+        editor = Mock()
+        editor.addButton.side_effect = lambda **kwargs: (
+            f'<button data-command="{kwargs["cmd"]}">'
+            '<img class="topbut" src="data:image/svg+xml;base64,PHN2Zy8+">'
+            "</button>"
+        )
+        buttons = []
+        integration._add_button(buttons, editor)
+        toolbar = ElementTree.fromstring(buttons[0])
+        self.assertEqual([len(group) for group in toolbar], [3, 3])
+        self.assertIn("display: none;", toolbar[1][0].attrib["style"])
+        self.assertEqual(len(list(toolbar.iter("img"))), 0)
+        for icon in toolbar.iter("button"):
+            self.assertIn("background-color: currentColor", icon[0].attrib["style"])
+            self.assertIn("mask: url(", icon[0].attrib["style"])
+        markdown = editor.addButton.call_args_list[4].kwargs
+        self.assertEqual(markdown["tip"], "Convert Markdown")
+        integration.QApplication.clipboard.return_value.text.return_value = "**text**"
+        markdown["func"](editor)
+        editor.web.eval.assert_called_once_with(
+            'globalThis.ankiGlobalKitEditor?.convertMarkdown("**text**");'
+        )
+
     def test_default_and_custom_styles_can_be_selected_independently(self):
         settings = load_settings_services().config.get_editor_settings()
         integration = load_editor_integration(settings)
@@ -60,7 +87,7 @@ class EditorBindingsTests(unittest.TestCase):
         self.assertEqual(len(buttons), 1)
         self.assertEqual(editor.addButton.call_count, 6)
         toolbar = ElementTree.fromstring(buttons[0])
-        self.assertEqual([len(group) for group in toolbar], [3, 2, 1])
+        self.assertEqual([len(group) for group in toolbar], [3, 3])
         self.assertTrue(
             all(group.attrib["style"] == "display: none;" for group in toolbar)
         )
@@ -78,12 +105,13 @@ class EditorBindingsTests(unittest.TestCase):
         )
 
         settings["anki_editor_toolbar_enabled"] = True
+        settings["anki_editor_blockquote_button"] = True
         settings["anki_editor_syntax_highlighting_button"] = False
         buttons.clear()
         integration._add_button(buttons, editor)
         toolbar = ElementTree.fromstring(buttons[0])
         self.assertIn(
-            "column-gap: var(--anki-global-kit-toolbar-group-gap, 8px)",
+            "column-gap: var(--anki-global-kit-toolbar-group-gap, 0.3rem)",
             toolbar.attrib["style"],
         )
         self.assertEqual(toolbar[0].attrib["style"], "display: none;")
@@ -108,15 +136,7 @@ class EditorBindingsTests(unittest.TestCase):
         self.assertIn("--border-left-radius: 0", toolbar[1][1].attrib["style"])
         self.assertIn(
             "--border-right-radius: var(--anki-global-kit-toolbar-group-radius, 5px)",
-            toolbar[1][1].attrib["style"],
-        )
-        self.assertIn(
-            "--border-left-radius: var(--anki-global-kit-toolbar-group-radius, 5px)",
-            toolbar[2][0].attrib["style"],
-        )
-        self.assertIn(
-            "--border-right-radius: var(--anki-global-kit-toolbar-group-radius, 5px)",
-            toolbar[2][0].attrib["style"],
+            toolbar[1][2].attrib["style"],
         )
 
     def bindings(self, overrides):

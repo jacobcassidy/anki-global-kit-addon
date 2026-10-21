@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Renamed **Paste Markdown as HTML** to **Convert Markdown**. It converts selected text, or inserts converted clipboard text at the caret when nothing is selected.
+- Combined Blockquote, Convert Markdown, and Inline Code into one editor toolbar group, matched Anki's group spacing, joined the syntax controls with square inner corners, and made disabled icons inherit Anki's disabled color. The Blockquote toolbar button is now off by default; existing saved choices are retained.
 - Added the default editor placeholder "Leave blank unless compare is wanted" to empty Compare fields in Kit note types, preserving custom descriptions and saved field values.
 - Stopped treating generic Pygments `Name` and `Name.Other` tokens as variables. Unclassified names use the foreground color; parser-classified identifiers use normalized theme roles. Classification preserves clozes and source text, recovers incomplete snippets, and falls back to basic syntax highlighting when its work budget is exhausted.
 - Replaced the Paste Markdown as HTML button icon with the official Markdown Mark, retaining its proportions and using the toolbar's theme color.

@@ -81,7 +81,7 @@ print(''.join(buttons))
     const toolbar = document.querySelector('[data-anki-global-kit-toolbar]');
     const radius = 'var(--anki-global-kit-toolbar-group-radius, 5px)';
 
-    assert.equal(toolbar.style.columnGap, 'var(--anki-global-kit-toolbar-group-gap, 8px)');
+    assert.equal(toolbar.style.columnGap, 'var(--anki-global-kit-toolbar-group-gap, 0.3rem)');
 
     const checkGroups = (expected) => {
       refreshEditorToolbar();
@@ -97,6 +97,10 @@ print(''.join(buttons))
         const visible = [...group.querySelectorAll('button')].filter((button) => button.style.display !== 'none');
 
         for (const button of visible) {
+          assert.equal(
+            button.style.borderRadius,
+            'var(--border-left-radius) var(--border-right-radius) var(--border-right-radius) var(--border-left-radius)',
+          );
           assert.equal(button.style.getPropertyValue('--border-left-radius'), button === visible[0] ? radius : '0');
           assert.equal(
             button.style.getPropertyValue('--border-right-radius'),
@@ -108,23 +112,25 @@ print(''.join(buttons))
       assert.equal(document.querySelector('[data-command="bold"]').className, '');
     };
 
-    checkGroups(['syntax-highlighting', 'formatting', 'inline-code']);
+    checkGroups(['syntax-highlighting', 'formatting']);
     settings.anki_editor_blockquote_button = false;
-    checkGroups(['syntax-highlighting', 'formatting', 'inline-code']);
+    checkGroups(['syntax-highlighting', 'formatting']);
     settings.anki_editor_paste_markdown_as_html_button = false;
-    checkGroups(['syntax-highlighting', 'inline-code']);
+    checkGroups(['syntax-highlighting', 'formatting']);
     settings.anki_editor_syntax_highlighting_button = false;
-    checkGroups(['inline-code']);
+    checkGroups(['formatting']);
     settings.anki_editor_blockquote_button = true;
-    checkGroups(['formatting', 'inline-code']);
+    checkGroups(['formatting']);
     settings.anki_editor_inline_code_button = false;
     checkGroups(['formatting']);
+    settings.anki_editor_blockquote_button = false;
+    checkGroups([]);
     settings.anki_editor_toolbar_enabled = false;
     checkGroups([]);
     settings.anki_editor_toolbar_enabled = true;
     settings.anki_editor_inline_code_button = true;
     settings.anki_editor_syntax_highlighting_button = true;
-    checkGroups(['syntax-highlighting', 'formatting', 'inline-code']);
+    checkGroups(['syntax-highlighting', 'formatting']);
   } finally {
     globalThis.document = previousDocument;
     globalThis.ankiGlobalKitEditorSettings = previousSettings;

@@ -1,5 +1,7 @@
 """Register editor buttons with their initial settings visibility."""
 
+import re
+
 from aqt.editor import Editor
 
 GROUP_RADIUS = "var(--anki-global-kit-toolbar-group-radius, 5px)"
@@ -8,6 +10,16 @@ GROUP_RADIUS = "var(--anki-global-kit-toolbar-group-radius, 5px)"
 def toolbar_button(editor: Editor, settings: dict, setting: str, **kwargs) -> str:
     """Keep each action registered so saving settings can reveal it immediately."""
     html = editor.addButton(**kwargs)
+    # Masks inherit Anki's foreground, including --fg-disabled, in both themes.
+    html = re.sub(
+        r'<img class="topbut" src="([^"]+)">',
+        lambda match: (
+            '<span aria-hidden="true" style="position: absolute; inset: 4px; '
+            "background-color: currentColor; "
+            f"mask: url('{match[1]}') center / contain no-repeat;\"></span>"
+        ),
+        html,
+    )
     if not settings.get("anki_editor_toolbar_enabled", True) or not settings.get(
         setting, True
     ):
@@ -28,7 +40,11 @@ def toolbar_groups(groups: list[tuple[str, str, list[str]]]) -> str:
         for index, button in enumerate(buttons):
             left = GROUP_RADIUS if visible and index == visible[0] else "0"
             right = GROUP_RADIUS if visible and index == visible[-1] else "0"
-            styles = f"--border-left-radius: {left}; --border-right-radius: {right}; "
+            styles = (
+                f"--border-left-radius: {left}; --border-right-radius: {right}; "
+                "border-radius: var(--border-left-radius) var(--border-right-radius) "
+                "var(--border-right-radius) var(--border-left-radius); "
+            )
             if '<button style="' in button:
                 button = button.replace(
                     '<button style="', f'<button style="{styles}', 1
@@ -45,6 +61,6 @@ def toolbar_groups(groups: list[tuple[str, str, list[str]]]) -> str:
     return (
         '<span data-anki-global-kit-toolbar="" role="group" aria-label="Anki Global Kit" '
         'style="display: inline-flex; align-items: center; '
-        'column-gap: var(--anki-global-kit-toolbar-group-gap, 8px);">'
+        'column-gap: var(--anki-global-kit-toolbar-group-gap, 0.3rem);">'
         f"{''.join(rendered)}</span>"
     )

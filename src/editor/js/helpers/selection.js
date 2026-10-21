@@ -52,3 +52,16 @@ export function getEditorSelection() {
     ? selection
     : null;
 }
+
+function textFromFragment(node) {
+  if (node.nodeType === Node.TEXT_NODE) return node.nodeValue || '';
+  if (node.nodeName === 'BR') return '\n';
+
+  const content = [...node.childNodes].map(textFromFragment).join('');
+
+  return /^(DIV|P|LI|BLOCKQUOTE|PRE|H[1-6])$/.test(node.nodeName) ? `${content}\n` : content;
+}
+
+export function getEditorRangeText(range) {
+  return textFromFragment(range.cloneContents()).replace(/\n$/, '');
+}
