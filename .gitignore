@@ -1,10 +1,11 @@
-# IGNORE
+# IGNORE DEV DIRECTORIES
 *.pyc
-.TEMP
 /.ruff_cache/
 /.venv/
-/addon/meta.json
 /dist/
-__pycache__
-docs/dev/TODO.md
 node_modules
+
+# IGNORE DEV FILES
+/addon/meta.json
+/docs/TODO.md
+__pycache__
