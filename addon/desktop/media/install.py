@@ -7,7 +7,8 @@ from aqt import mw
 from aqt.utils import showWarning
 
 from ..config.service import get_card_web_settings
-from ..syntax_highlighting.themes import generate_theme_css
+from ..syntax_highlighting.preferences import get_themes
+from ..syntax_highlighting.themes import generate_theme_pair_css
 from .manifest import ASSET_NAMES, ASSET_PATHS, JS_ASSET_NAME, SYNTAX_CSS_ASSET_NAME
 
 
@@ -31,10 +32,10 @@ def _write_managed_asset(name: str, data: bytes) -> None:
         raise
 
 
-def update_assets_for_profile() -> None:
+def update_assets_for_profile() -> bool:
     """Install or refresh the managed card assets when a profile opens."""
     if mw.col is None:
-        return
+        return False
 
     missing = [name for name in ASSET_NAMES if not ASSET_PATHS[name].is_file()]
     if missing:
@@ -42,7 +43,7 @@ def update_assets_for_profile() -> None:
             "Anki Global Kit assets have not been built. From the project folder, "
             "run `npm run build:addon`, then restart Anki and try again."
         )
-        return
+        return False
 
     try:
         for name in ASSET_NAMES:
@@ -53,8 +54,10 @@ def update_assets_for_profile() -> None:
                 data = f"globalThis.ankiGlobalKitSettings={settings};\n".encode() + data
             _write_managed_asset(name, data)
 
-        _write_managed_asset(
-            SYNTAX_CSS_ASSET_NAME, generate_theme_css().encode("utf-8")
-        )
+        themes = get_themes(mw.col)
+        css = generate_theme_pair_css(themes.get("light"), themes.get("dark"))
+        _write_managed_asset(SYNTAX_CSS_ASSET_NAME, css.encode("utf-8"))
+        return True
     except Exception as error:  # Anki's media backend reports filesystem errors here.
         showWarning(f"Could not refresh Anki Global Kit card files:\n{error}")
+        return False

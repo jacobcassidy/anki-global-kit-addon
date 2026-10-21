@@ -8,6 +8,23 @@ from .custom_themes import PRESETS
 from .rendering import _with_bundled_modules
 
 _COLOR = re.compile(r"#[0-9a-fA-F]{6}\Z")
+_COLOR_ROLES = {
+    "background",
+    "foreground",
+    "comment",
+    "punctuation",
+    "muted",
+    "builtin",
+    "keyword",
+    "function",
+    "class",
+    "attribute",
+    "constant",
+    "operator",
+    "string",
+    "error",
+}
+_STYLE_ROLES = _COLOR_ROLES - {"background", "foreground"}
 _TOKEN_SELECTORS = {
     "comment": ".c, .c1, .cm, .cs, .hljs-comment, .hljs-quote",
     "punctuation": ".p, .hljs-punctuation",
@@ -46,6 +63,50 @@ def resolve_preset(preset_id: str) -> dict:
         "name": preset["name"],
         "colors": dict(colors),
         "styles": {key: list(value) for key, value in preset["styles"].items()},
+    }
+
+
+def validate_resolved_theme(record: dict) -> dict:
+    """Validate synced theme data without accepting executable CSS or code."""
+    if not isinstance(record, dict):
+        raise ValueError("Theme data must be an object.")
+    preset_id = record.get("id")
+    name = record.get("name")
+    colors = record.get("colors")
+    styles = record.get("styles")
+    revision = record.get("revision", 0)
+    if (
+        not isinstance(preset_id, str)
+        or not preset_id
+        or len(preset_id) > 128
+        or not isinstance(name, str)
+        or not name
+        or len(name) > 128
+        or not isinstance(colors, dict)
+        or set(colors) != _COLOR_ROLES
+        or any(
+            not isinstance(color, str) or not _COLOR.fullmatch(color)
+            for color in colors.values()
+        )
+        or not isinstance(styles, dict)
+        or set(styles) != {"bold", "italic"}
+        or any(
+            not isinstance(roles, list)
+            or any(
+                not isinstance(role, str) or role not in _STYLE_ROLES for role in roles
+            )
+            for roles in styles.values()
+        )
+        or type(revision) is not int
+        or revision < 0
+    ):
+        raise ValueError("Theme data is invalid or unsupported.")
+    return {
+        "id": preset_id,
+        "name": name,
+        "colors": dict(colors),
+        "styles": {key: sorted(set(styles[key])) for key in ("bold", "italic")},
+        "revision": revision,
     }
 
 
@@ -117,9 +178,15 @@ def _style_color(value: str | None, fallback: str) -> str:
     return fallback
 
 
-def generate_theme_css(preset_id: str = "cassidy-dark") -> str:
+def generate_theme_css(
+    preset_id: str = "cassidy-dark", resolved: dict | None = None
+) -> str:
     """Generate deterministic token and block styling from a registered preset."""
-    preset = resolve_preset(preset_id)
+    preset = (
+        validate_resolved_theme(resolved)
+        if resolved is not None
+        else resolve_preset(preset_id)
+    )
     colors = preset["colors"]
     css = [
         ":root,\nanki-editable {",
@@ -151,3 +218,18 @@ def generate_theme_css(preset_id: str = "cassidy-dark") -> str:
         css.extend(["", f".agk-code-block :is({selectors}) {{", *declarations, "}"])
 
     return "\n".join(css) + "\n"
+
+
+def generate_theme_pair_css(light: dict | None, dark: dict | None) -> str:
+    """Generate scoped light/dark CSS from compatible resolved theme records."""
+    light_theme = (
+        validate_resolved_theme(light) if light else resolve_preset("cassidy-dark")
+    )
+    dark_theme = (
+        validate_resolved_theme(dark) if dark else resolve_preset("cassidy-dark")
+    )
+    light_css = generate_theme_css(light_theme["id"], light_theme)
+    dark_css = generate_theme_css(dark_theme["id"], dark_theme)
+    light_css = light_css.replace(":root,\nanki-editable {", ":root {", 1)
+    dark_css = dark_css.replace(":root,\nanki-editable {", ".nightMode {", 1)
+    return light_css + "\n" + dark_css

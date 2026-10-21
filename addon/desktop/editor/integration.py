@@ -4,7 +4,7 @@ import json
 from functools import partial
 from weakref import WeakSet, ref
 
-from aqt import gui_hooks
+from aqt import gui_hooks, mw
 from aqt.editor import Editor
 from aqt.qt import QApplication, QKeySequence, QShortcut, sip
 
@@ -60,6 +60,14 @@ def _inject_features(editor: Editor) -> None:
             include_custom=editor_settings["anki_editor_custom_fields_styles"],
         ),
     }
+    if mw.col is not None:
+        from ..syntax_highlighting.preferences import get_themes
+        from ..syntax_highlighting.themes import generate_theme_pair_css
+
+        themes = get_themes(mw.col)
+        styles["fields"] += "\n" + generate_theme_pair_css(
+            themes.get("light"), themes.get("dark")
+        )
     styles_json = json.dumps(styles, separators=(",", ":"))
     styles_json = styles_json.replace("<", "\\u003c")
     script = EDITOR_ASSET.read_text(encoding="utf-8")

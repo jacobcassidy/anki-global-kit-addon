@@ -69,15 +69,20 @@ def open_settings() -> None:
 
     current_settings = get_settings()
     current_settings.update(get_editor_settings())
+    from ..syntax_highlighting.preferences import get_themes
     from .pages.syntax_highlighting import build_syntax_highlighting_tab
 
     cards = build_cards_tab(dialog, current_settings)
     tabs.addTab(cards.widget, "Cards")
     editor = build_editor_tab(dialog, current_settings)
     tabs.addTab(editor.widget, "Editor")
-    syntax_widget, syntax_controls = build_syntax_highlighting_tab(
-        dialog, current_settings
-    )
+    syntax_themes = get_themes(mw.col) if mw.col is not None else {}
+    (
+        syntax_widget,
+        syntax_controls,
+        theme_controls,
+        theme_snapshot,
+    ) = build_syntax_highlighting_tab(dialog, current_settings, syntax_themes)
     tabs.addTab(syntax_widget, "Syntax Highlighting")
 
     settings_note = QLabel(
@@ -151,6 +156,9 @@ def open_settings() -> None:
 
     def restore_defaults(*_args) -> None:
         restore_control_defaults(all_controls)
+        for selector in theme_controls.values():
+            index = selector.findData("cassidy-dark")
+            selector.setCurrentIndex(max(index, 0))
 
     restore_button.clicked.connect(restore_defaults)
 
@@ -173,6 +181,8 @@ def open_settings() -> None:
         else:
             widget.add_change_listener(update_restore_button)
     update_restore_button()
+    for selector in theme_controls.values():
+        selector.currentIndexChanged.connect(update_restore_button)
 
     dialog_buttons = QDialogButtonBox(
         QDialogButtonBox.StandardButton.Cancel | QDialogButtonBox.StandardButton.Save,
@@ -403,7 +413,10 @@ def open_settings() -> None:
         refresh_shortcut_warnings()
         if any(validation_state.values()):
             return
-        save_settings(dialog, settings)
+        selected_themes = {
+            mode: selector.currentData() for mode, selector in theme_controls.items()
+        }
+        save_settings(dialog, settings, selected_themes, theme_snapshot)
 
     save_button.clicked.connect(save_current_settings)
     buttons_layout = QHBoxLayout()

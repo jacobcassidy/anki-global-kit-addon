@@ -11,12 +11,14 @@ from aqt.qt import (
     QListWidgetItem,
     QSpinBox,
     Qt,
+    QTextBrowser,
     QVBoxLayout,
     QWidget,
 )
 
 from ....config.defaults import DEFAULT_SETTINGS
 from ....syntax_highlighting.rendering import available_languages
+from ....syntax_highlighting.themes import available_themes, generate_theme_css
 from ....ui.constants import ZERO_MARGINS
 from ....ui.layouts import add_checkbox_row
 from ....ui.shortcut_input import CardShortcutInput, make_reset_link
@@ -83,7 +85,7 @@ class LanguageListControl:
         self.listeners.append(callback)
 
 
-def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict):
+def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, themes=None):
     page = QWidget(parent)
     layout = QVBoxLayout(page)
     layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -234,14 +236,78 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict):
     layout.addWidget(QLabel("Default language", page))
     layout.addWidget(default_language)
 
-    return page, {
-        "card_review_syntax_highlighting": enable_review,
-        "anki_editor_syntax_highlighting_button": button,
-        "anki_editor_syntax_highlighting_remember_language_per_deck": remember,
-        "anki_editor_syntax_highlighting_line_numbers": line_numbers,
-        "anki_editor_syntax_highlighting_line_number_start": start,
-        "anki_editor_syntax_highlighting_shortcut_enabled": shortcut,
-        "anki_editor_syntax_highlighting_shortcut": shortcut_input,
-        "anki_editor_syntax_highlighting_languages": language_control,
-        "anki_editor_syntax_highlighting_default_language": default_language,
+    theme_controls = {}
+    theme_preview = QTextBrowser(page)
+    theme_preview.setReadOnly(True)
+    theme_preview.setMaximumHeight(150)
+    choices = available_themes()
+    for mode in ("light", "dark"):
+        selector = QComboBox(page)
+        selected = (themes or {}).get(mode, {}).get("id", "cassidy-dark")
+        for theme_id, name in choices:
+            selector.addItem(name, theme_id)
+        index = selector.findData(selected)
+        if index < 0 and selected != "cassidy-dark":
+            selector.addItem(
+                f"{(themes or {}).get(mode, {}).get('name', selected)} (synced)",
+                selected,
+            )
+            index = selector.findData(selected)
+        selector.setCurrentIndex(
+            index if index >= 0 else selector.findData("cassidy-dark")
+        )
+        layout.addWidget(QLabel(f"{mode.title()} theme", page))
+        layout.addWidget(selector)
+        theme_controls[mode] = selector
+
+    def update_theme_preview(mode="light", *_args):
+        theme_id = theme_controls[mode].currentData()
+        shared = (themes or {}).get(mode)
+        css = (
+            generate_theme_css(theme_id, shared)
+            if shared and shared["id"] == theme_id
+            else generate_theme_css(theme_id)
+        )
+        sample = (
+            "<div class='agk-code-block'><pre><span class='k'>def</span> "
+            "<span class='nf'>highlight</span>():\n  "
+            "<span class='c1'># a small preview</span>\n  "
+            "<span class='k'>return</span> <span class='s1'>'Anki Global Kit'</span></pre></div>"
+        )
+        preview_class = "nightMode" if mode == "dark" else ""
+        theme_preview.setHtml(
+            f"<style>{css}</style><div class='{preview_class}'>{sample}</div>"
+        )
+
+    for mode, selector in theme_controls.items():
+        selector.currentIndexChanged.connect(
+            lambda _index, mode=mode: update_theme_preview(mode)
+        )
+    update_theme_preview()
+    layout.addWidget(QLabel("Theme preview", page))
+    layout.addWidget(theme_preview)
+
+    theme_snapshot = {
+        mode: {
+            "id": (themes or {}).get(mode, {}).get("id", "cassidy-dark"),
+            "revision": (themes or {}).get(mode, {}).get("revision", 0),
+        }
+        for mode in ("light", "dark")
     }
+
+    return (
+        page,
+        {
+            "card_review_syntax_highlighting": enable_review,
+            "anki_editor_syntax_highlighting_button": button,
+            "anki_editor_syntax_highlighting_remember_language_per_deck": remember,
+            "anki_editor_syntax_highlighting_line_numbers": line_numbers,
+            "anki_editor_syntax_highlighting_line_number_start": start,
+            "anki_editor_syntax_highlighting_shortcut_enabled": shortcut,
+            "anki_editor_syntax_highlighting_shortcut": shortcut_input,
+            "anki_editor_syntax_highlighting_languages": language_control,
+            "anki_editor_syntax_highlighting_default_language": default_language,
+        },
+        theme_controls,
+        theme_snapshot,
+    )

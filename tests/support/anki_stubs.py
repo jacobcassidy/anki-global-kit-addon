@@ -86,6 +86,7 @@ def load_shortcut_helpers(*, mac=False):
 def load_editor_integration(settings, *, mac=False):
     aqt = ModuleType("aqt")
     aqt.gui_hooks = SimpleNamespace()
+    aqt.mw = SimpleNamespace(col=None)
     editor = ModuleType("aqt.editor")
     editor.Editor = object
     qt = ModuleType("aqt.qt")

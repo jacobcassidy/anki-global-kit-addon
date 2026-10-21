@@ -115,6 +115,39 @@ class SyntaxRenderingTests(unittest.TestCase):
             any(name == "aqt" or name.startswith("aqt.") for name in sys.modules)
         )
 
+    def test_resolved_themes_are_validated_and_collection_scoped(self):
+        preferences = load_addon_module("desktop.syntax_highlighting.preferences")
+        themes = load_addon_module("desktop.syntax_highlighting.themes")
+
+        class Collection:
+            def __init__(self):
+                self.config = {"unrelated": "preserved"}
+
+            def get_config(self, key, default=None):
+                return self.config.get(key, default)
+
+            def set_config(self, key, value):
+                self.config[key] = value
+
+        collection = Collection()
+        preset = themes.resolve_preset("pygments:monokai")
+        preferences.set_themes(collection, {"light": preset, "dark": preset})
+        stored = preferences.get_themes(collection)
+
+        self.assertEqual(stored["light"]["id"], "pygments:monokai")
+        self.assertEqual(stored["light"]["revision"], 1)
+        self.assertIn(
+            ".nightMode",
+            themes.generate_theme_pair_css(stored["light"], stored["dark"]),
+        )
+        self.assertEqual(collection.config["unrelated"], "preserved")
+        malformed = dict(
+            preset,
+            colors={**preset["colors"], "background": "url(example)"},
+        )
+        with self.assertRaises(ValueError):
+            themes.validate_resolved_theme(malformed)
+
     def test_only_bundled_lexers_are_enumerated(self):
         languages = self.renderer.available_languages()
 

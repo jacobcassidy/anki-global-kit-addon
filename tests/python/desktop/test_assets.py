@@ -61,7 +61,16 @@ class AssetTests(unittest.TestCase):
             path.write_bytes(f"packaged content: {name}".encode())
             self.assets.ASSET_PATHS[name] = path
         self.media = Media(destination)
-        self.services.mw.col = SimpleNamespace(media=self.media)
+        self.collection_config = {}
+        self.services.mw.col = SimpleNamespace(
+            media=self.media,
+            get_config=lambda key, default=None: self.collection_config.get(
+                key, default
+            ),
+            set_config=lambda key, value: self.collection_config.__setitem__(
+                key, value
+            ),
+        )
         self.unrelated = destination / "user-picture.png"
         self.unrelated.write_bytes(b"user media")
 
