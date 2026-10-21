@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Enlarged and thickened the editor's syntax-highlighting lightning bolt icon for better visibility.
+- Enlarged and thickened the editor's syntax-highlighting lightning bolt icon, with a downward-sloping middle for a clearer bolt shape.
 - Expanded Cassidy Dark with purple builtin constants and namespaces, white recognized magic methods and builtins, orange recognized parameters, green properties, pink variable names, and light gray recognized builtin variables. Applied the shared token rules to typed-answer highlighting and documented the limits of reproducing semantic colors with syntax highlighters. Older synced palettes remain readable.
 - Changed Cassidy Dark's ordinary keywords to red and declaration keywords (`kd`) to blue. Existing synced palettes keep their colors until **Update Synced Theme** is saved and synced.
 - Removed repeated syntax block and token rules from the selected theme stylesheets. Light and dark themes now override only variables, including font styles, with support for editor field shadow roots.
