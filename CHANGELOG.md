@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Replaced the Paste Markdown as HTML button icon with the official Markdown Mark, retaining its proportions and using the toolbar's theme color.
 - Grouped the custom editor toolbar into syntax highlighting, formatting, and inline code, with gaps that adjust to hidden buttons.
 - Enlarged and thickened the editor's syntax-highlighting lightning bolt icon, with a downward-sloping middle for a clearer bolt shape.
 - Expanded Cassidy Dark with purple builtin constants and namespaces, white recognized magic methods and builtins, orange recognized parameters, green properties, pink variable names, and light gray recognized builtin variables. Applied the shared token rules to typed-answer highlighting and documented the limits of reproducing semantic colors with syntax highlighters. Older synced palettes remain readable.
