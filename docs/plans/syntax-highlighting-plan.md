@@ -68,6 +68,7 @@ src/
 - Keep `rendering.py` independent of Qt, clipboard access, editor state, and collection operations. Its interface accepts source text and a language alias and returns escaped token HTML plus the normalized language identifier.
 - Return token markup rather than editor insertion wrappers. Preserve source whitespace, blank lines, tabs, and trailing newlines; do not use the third-party add-on's `stripall=True` behavior.
 - Expose language labels and aliases for the picker, and reject invalid language identifiers without changing the field.
+- Restrict discovery and lookup to the bundled Pygments lexers/themes and explicitly registered Kit-owned presets. Exclude external plugin entry points from enumeration and resolution, including fallback lookups. Another installed package must not add, replace, or change available choices; the registry must be reproducible for a given Kit release.
 - Load Pygments on demand. Perform rendering away from the GUI thread using Anki's supported background-task facilities; keep all editor and Qt interaction on the GUI thread. Treat cancellation as cancellation of result application unless the worker actually supports termination.
 - Implement the Kit integration independently. Pygments has its own license; do not copy the third-party add-on's implementation or custom theme code into this feature.
 
@@ -83,7 +84,8 @@ src/
 
 ### Settings and note-type operations
 
-- Add a dedicated **Syntax Highlighting** tab to Settings. Put all settings for this feature there: toolbar visibility, shortcut enable/binding, editor language visibility, default language, **Remember last language per deck**, line-number enable/start, theme selections, and a preview. Integrate it with the existing settings dialog's loading, saving, reset, and validation behavior.
+- Add a dedicated **Syntax Highlighting** tab to Settings. Put all settings for this feature there: toolbar visibility, shortcut enable/binding, editor language visibility, default language, **Remember last language per deck**, line-number defaults, submitted-answer highlighting enable, theme selections, and a preview. Integrate it with the existing settings dialog's loading, saving, reset, and validation behavior.
+- Move **Enable syntax highlighting for submitted answers** from Cards → Card Reviews to Syntax Highlighting. Preserve the existing `card_review_syntax_highlighting` key, default, and saved value, and remove the old control so there is only one location. Keep **Enable Markdown to HTML rendering** under Cards → Card Reviews.
 - Show all available languages in a checkable list with two distinct groups: **Shown in editor** for checked languages first, followed by **Other languages** for unchecked languages. Sort both groups alphabetically by display name, ignoring case. Checking or unchecking a language moves it immediately to the correct alphabetical position in the other group, without duplicates and while preserving keyboard focus.
 - Add search by display name or alias across both groups. Search filters visibility without changing check states; clearing it restores the full alphabetically sorted groups. Support keyboard navigation and checkbox activation. Label each language **Review supported** or **Desktop only**, based on the bundled JavaScript language registry rather than its editor check state.
 - In the editor dropdown, place the currently selected language first and sort the remaining enabled languages alphabetically, ignoring case. Keep both Settings groups fully alphabetical; do not pin the selected language there.
@@ -93,16 +95,22 @@ src/
 - Extend the settings dialog's value reading, writing, change detection, and reset behavior beyond its current checkbox/shortcut controls. Support language/theme dropdowns, language lists, and positive integer starting numbers with explicit types. Save commits valid changes, Cancel discards staged changes, and Reset restores the defined defaults in the UI until saved.
 - Recover malformed saved values individually using defaults while retaining other valid settings. Validate list entries as supported canonical language identifiers, preserving valid entries; an intentionally empty language list remains valid. Flag invalid new UI input and block Save until corrected. Preserve unrelated stored settings and collection-scoped deck memory when saving.
 - Use `anki_editor_` settings for authoring controls and keep those controls local to the Desktop installation. Theme selections are collection-scoped, synced preferences as described below, available to the theme service and settings UI without being overwritten by an ordinary local-settings save.
-- Keep previews read-only. Saving settings refreshes editor presentation and managed theme media without rewriting note fields.
+- Keep previews read-only. A successful settings save refreshes editor presentation and managed theme media without rewriting note fields. Follow the coordinated save and recovery behavior below.
 - Add a separate confirmed note-type action to the existing note-type service: enable Kit code styling by adding only the syntax stylesheet import. Do not invoke Replace, change card templates, remove cards, or alter fields.
 - Show the target note type and exact styling change before confirmation. Re-read the current note type before applying the additive, idempotent update through documented `col.models` APIs.
+
+### Settings save and stylesheet recovery
+
+- Generate and validate the requested theme CSS before committing staged settings. Keep the previous local settings, collection theme preferences, and working stylesheet available for recovery during the save.
+- Treat settings persistence and stylesheet installation as one successful Save from the user's perspective. If installation or another application step fails, preserve or restore the previous working settings and stylesheet, leave the dialog open with staged edits intact, and explain the error with a retry path. Do not report success or close the dialog after a failed save.
+- If a partial write requires restoration, verify that restoration succeeded. If recovery itself fails, report the actual state and recovery error clearly rather than claiming the previous working state was preserved. Keep unrelated settings and media outside the operation.
 
 ### Initial defaults
 
 - Check these 13 languages by default, listed alphabetically in Settings: **Bash, CSS, Go, HTML, JavaScript, JSON, Markdown, PHP, Python, Ruby, Rust, SQL, TypeScript**. Other available languages start unchecked. This does not reduce the 19-language review engine's coverage.
 - Set the default language to **Python**. With Python selected, the initial editor dropdown order is **Python, Bash, CSS, Go, HTML, JavaScript, JSON, Markdown, PHP, Ruby, Rust, SQL, TypeScript**; selecting another language moves that language to the top and re-sorts the remainder.
 - Enable the configurable Highlight Code shortcut with the portable Qt binding `Alt+S`, displayed as **Alt+S** on Windows/Linux and **Option+S (⌥S)** on macOS. Register and validate it through the existing native shortcut machinery; browser character handling must account for the produced character if a browser handler is needed.
-- Start with line numbers **off**, and use **1** as the starting number whenever enabled. Starting numbers must be positive integers.
+- Start new blocks with line numbers **off** and a starting number of **1**. Starting numbers must be positive integers. Settings define defaults for new blocks; existing blocks retain their own saved options.
 - Use **Cassidy Dark** for both light and dark mode. Per-deck language memory remains off until enabled, as described below.
 
 ## Authoring behavior
@@ -131,6 +139,14 @@ An explicit dropdown choice overrides automatic selection for the current note, 
 
 Use canonical aliases in saved markup. An empty checked-language list continues to disable the editor action.
 
+### Editing inside code blocks
+
+- Within a Kit code block, Enter inserts a newline, including on an empty final line. It must not exit the block or trigger list continuation.
+- With a collapsed caret at the end of the block, Arrow Down moves to a following normal paragraph, creating that paragraph if needed. Keep Enter available for intentional blank lines within code.
+- Keep Tab and Shift+Tab as normal focus navigation. Apply the existing configured indentation shortcuts inside code, preserving source whitespace and the caret/selection.
+- Paste into a code block as plain text, preserving line breaks and indentation while discarding clipboard HTML formatting.
+- Do not automatically retokenize on every keystroke or paste. Users refresh highlighting through the existing Highlight Code action; ordinary editing must preserve source, block metadata, and native undo/redo.
+
 ### Per-deck language memory
 
 - Add the authoring setting `anki_editor_syntax_highlighting_remember_language_per_deck`, defaulting to false. Disabling it stops both lookups and writes but preserves remembered choices for later re-enabling.
@@ -150,6 +166,8 @@ Use canonical aliases in saved markup. An empty checked-language list continues 
 - Preserve line breaks represented by supported editor markup; a bare `textContent` call is insufficient for arbitrary `<br>` and block-element content.
 - Replace old token children rather than nesting a new highlighted wrapper inside the previous one.
 - Keep line numbers outside the source text. They must not enter copied code or subsequent rendering input, and wrapped lines must retain alignment.
+- Save line-number visibility and the starting number in each block's metadata. Re-highlighting preserves those options rather than reapplying current Settings defaults; a block starting at 50 must still start at 50 afterward.
+- Provide explicit access to the current block's numbering options so users can change visibility or the starting number without changing defaults for new blocks. Apply the change as one undoable block edit, preserving source, language, and cloze-handling metadata.
 - Preserve intentional Anki cloze content by default, including contiguous delimiters, cloze numbers, answer content, hints, and supported nesting. Highlighting must not split cloze markers across token spans or change their meaning.
 - When cloze-like syntax such as `{{c1::answer::hint}}` occurs in a new or unclassified block, offer **Preserve Anki clozes** by default and an explicit **Literal code** alternative for code intended to display that syntax. Save the selected handling mode in the code block's metadata and reuse it when highlighting again, without repeated prompts. Do not infer literal-versus-active intent from syntax alone.
 - In Literal code mode, preserve the visible/copied source but ensure that Anki does not interpret those sequences as active clozes. Keep the protection compatible with text extraction and repeated highlighting. If either handling mode cannot preserve the structure safely, explain the problem and leave the original field unchanged.
@@ -176,7 +194,9 @@ Use canonical aliases in saved markup. An empty checked-language list continues 
 
 ### Processing limits and failure behavior
 
-- Use an initial maximum of **50,000 source characters per code block** for both Desktop authoring and JavaScript review highlighting. Verify the limit against mobile benchmarks before release. Code beyond the limit stays readable as plain code, with its complete source preserved rather than truncated. The limit applies to source text, excluding token markup and line-number decorations.
+- Retain the initial Desktop authoring maximum of **50,000 source characters per code block**. Use the smaller provisional review limits below for JavaScript on all review clients, including Desktop. Limits apply to source text, excluding token markup and line-number decorations. Code beyond a limit stays readable as plain code, with its complete source preserved rather than truncated.
+- For review, allow at most **10,000 source characters per code block**, **20,000 total code characters per submitted answer**, and **20 code blocks per submitted answer**. Each submitted answer has its own budget. Process blocks in document order; skip an oversized block, and when the remaining total budget cannot fit the next eligible block or the block-count budget is reached, leave that block and all subsequent blocks as plain code. Never partially highlight or truncate a block to fit a budget.
+- Validate these provisional review limits on representative mobile devices with ordinary, malformed, and difficult language fixtures before release. Character and block-count caps bound submitted work, not execution time; do not present them as proven safe limits or guarantees against freezes. Verify any Web Worker approach in the supported Anki clients before relying on it for isolation or termination.
 - For a new Desktop insertion above the limit, insert an escaped, unhighlighted code block and explain that the highlighting limit was exceeded. For an existing block above the limit, preserve its source and apply plain-code presentation as one undoable change. Do not silently strip intentional cloze handling or its metadata when using the fallback.
 - Allow only **one active Desktop highlighting task across the add-on**, with no accumulating request queue. Repeated or concurrent actions receive clear busy feedback. Canceling a request or changing its target prevents later result application; the active worker still occupies the slot until it actually finishes or is terminated.
 - Keep the original field unchanged on Desktop rendering failure, unsafe conversion, or cancellation, and provide a clear explanation. Review-time failures fall back to escaped plain code without interrupting the review flow or changing comparison results.
@@ -216,9 +236,13 @@ Automated coverage:
 - Verify exact source preservation, escaping, Unicode, indentation, trailing newlines, literal template-like syntax, and cloze handling.
 - Cover selection, clipboard, existing-block targeting, highlighted spans, empty input, invalid selections, and stale background results.
 - Verify repeated highlighting updates the same block without duplicated wrappers or line numbers. Cover native undo/redo through browser or live integration checks where DOM-only tests cannot establish behavior.
+- Cover Enter on ordinary and empty final lines, Arrow Down exiting to an existing or newly created paragraph, Tab/Shift+Tab focus navigation, configured indentation shortcuts, and plain-text paste. Verify ordinary editing does not automatically retokenize or damage block metadata.
+- Verify per-block line-number visibility and starting numbers survive re-highlighting and global-default changes. Cover a start number of 50, explicit block-option edits, source preservation, and undo/redo.
 - Verify settings defaults/types, shortcut conflicts and modifier labels, theme generation/scoping, and light/dark selection.
 - Verify the exact 13-language checked defaults, Python selection, selected-first editor ordering versus fully alphabetical Settings groups, Alt+S/Option+S registration and conflict handling, and line numbers off with a starting number of 1.
 - Cover typed dropdown/list/integer saving, Cancel, Reset, change detection, individual fallback for malformed saved fields, per-entry language validation, invalid UI input blocking Save, and preservation of unrelated stored settings.
+- Verify the submitted-answer highlighting toggle appears only in Syntax Highlighting, retains its existing key/value/default, and leaves the Markdown rendering toggle under Cards.
+- Inject CSS-generation, validation, installation, and settings-persistence failures. Verify no false successful save, the previous working settings/style are preserved or restored, staged edits remain in the open dialog for retry, and recovery failures are reported accurately.
 - Verify Cassidy Dark appears in both mode selectors, starts from the existing Kit syntax appearance, and produces the same palette and token styles in both modes. Cover fresh settings, missing/empty/unsupported selections, reset, persistence of explicit alternatives, and regeneration after a preset-definition edit without rewriting note fields.
 - Verify synced collection theme selections produce consistent media across Desktop installations, local editor controls remain local, and missing or delayed theme CSS uses Cassidy Dark until the selected stylesheet loads.
 - Render shared fixtures through Pygments and JavaScript for all planned review languages. Check equivalent theme roles where both engines classify them, exact source preservation, and intentional tokenization differences without requiring identical HTML.
@@ -232,8 +256,10 @@ Automated coverage:
 - Verify `_syntax-highlighting.css` is the exact media filename everywhere and the new feature's names do not reuse third-party branding.
 - Verify confirmed styling installation is additive and idempotent and that cancellation leaves the note type unchanged.
 - Verify active clozes and hints remain valid, literal cloze-like source remains literal, the chosen handling mode survives highlighting again, and unsupported structures leave the original field unchanged. Cover undo/redo and copied source in both modes.
-- Cover the 50,000-character boundary, complete plain-code fallback above it, Desktop failures/cancellation leaving the field unchanged, one-task concurrency across editors, busy feedback without queued work, stale results, and review fallback without comparison changes.
+- Cover the Desktop 50,000-character boundary, complete plain-code fallback above it, Desktop failures/cancellation leaving the field unchanged, one-task concurrency across editors, busy feedback without queued work, and stale results.
+- Cover review boundaries of 10,000 characters per block, 20,000 characters per submitted answer, and 20 blocks. Verify independent answer budgets, document-order processing, oversized-block skipping, remaining-budget fallback without partial blocks or truncation, and unchanged comparison results. Benchmark difficult/malformed inputs and mobile responsiveness before accepting the provisional limits for release.
 - Verify isolated Pygments loading with another version loaded before and after the Kit, and clear dependency-load failure without user-installed packages or field mutation.
+- Verify external Pygments plugins cannot appear in discovery or be resolved through lookup, while bundled lexers/themes and Kit-owned presets remain available and consistent across installations of the same release.
 - Verify managed-media updates preserve unrelated files and the archive includes Pygments, the bundled JavaScript engine, and their required notices but excludes local metadata and user data. Check the generated card bundle has no external runtime imports or language fetches.
 
 Run focused tests while developing, then the project test suites, relevant lint/format checks, `npm run build:addon`, `npm run check:assets`, and package validation. Do not present isolated tests as live Anki verification.
