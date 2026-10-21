@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { JSDOM } from 'jsdom';
 import { highlightReviewCode, reviewLanguageAliases } from '../../../src/cards/js/syntax-highlighting/engine.js';
-import { getSyntaxLanguage } from '../../../src/cards/js/syntax-highlighting/languages.js';
+import { getSyntaxLanguage } from '../../../src/shared/js/syntax-highlighting/languages.js';
 
 test('review highlighting uses explicit bundled grammars and escapes source', () => {
   const highlighted = highlightReviewCode("print('<tag>')", 'py');

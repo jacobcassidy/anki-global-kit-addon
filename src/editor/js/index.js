@@ -2,7 +2,7 @@ import { installSelectionTracking } from './helpers/selection.js';
 import { installCodeSpaceNormalization } from './formatting/code-spaces.js';
 import { toggleInlineCode } from './formatting/inline-code.js';
 import { installCopySource } from './clipboard/copy-source.js';
-import { pasteMarkdownAsHtml } from './formatting/markdown.js';
+import { installMarkdownHighlighting, pasteMarkdownAsHtml } from './formatting/markdown.js';
 import { installCodeBlockHighlighting } from './formatting/code-block.js';
 import { installClozeShortcuts } from './cloze/shortcuts.js';
 import { installEditorStyles } from './styles.js';
@@ -34,5 +34,6 @@ if (!globalThis.ankiGlobalKitEditor) {
 globalThis.ankiGlobalKitEditor.indent = indentEditorField;
 globalThis.ankiGlobalKitEditor.unindent = unindentEditorField;
 globalThis.ankiGlobalKitEditor.pasteMarkdownAsHtml = pasteMarkdownAsHtml;
+installMarkdownHighlighting();
 
 installEditorStyles();

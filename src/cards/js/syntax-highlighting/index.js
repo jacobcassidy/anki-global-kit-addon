@@ -1,5 +1,5 @@
 import { highlightReviewCode } from './engine.js';
-import { getSyntaxLanguage } from './languages.js';
+import { getSyntaxLanguage } from '../../../shared/js/syntax-highlighting/languages.js';
 import { settings } from '../runtime/settings.js';
 import { observers } from '../runtime/state.js';
 

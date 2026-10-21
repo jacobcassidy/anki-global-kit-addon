@@ -6,6 +6,10 @@ import unittest
 import pygments
 
 from scripts.addon_module_loader import load_addon_module
+from tests.support.anki_stubs import (
+    load_editor_integration,
+    load_module,
+)
 
 
 class SyntaxRenderingTests(unittest.TestCase):
@@ -107,6 +111,32 @@ class SyntaxRenderingTests(unittest.TestCase):
         self.assertTrue(
             any(name == "Python" and alias == "python" for name, alias, _ in languages)
         )
+
+    def test_markdown_bridge_uses_pygments_and_leaves_unsupported_code_plain(self):
+        integration = load_editor_integration({})
+        feature = integration.syntax_highlighting
+        load_module("kit.desktop.paths", "addon/desktop/paths.py")
+        load_module(
+            "kit.desktop.syntax_highlighting",
+            "addon/desktop/syntax_highlighting/__init__.py",
+        )
+        rendered, oversized = feature._render_markdown_blocks(
+            [
+                {"index": 0, "source": "print('<tag>')", "language": "py"},
+                {
+                    "index": 1,
+                    "source": "<plain>",
+                    "language": "not-a-real-language",
+                },
+                {"index": 2, "source": "x" * 50_001, "language": "python"},
+            ]
+        )
+
+        self.assertEqual(len(rendered), 1)
+        self.assertEqual(rendered[0]["index"], 0)
+        self.assertEqual(rendered[0]["language"], "python")
+        self.assertIn("&lt;", rendered[0]["html"])
+        self.assertEqual(oversized, 1)
 
 
 if __name__ == "__main__":

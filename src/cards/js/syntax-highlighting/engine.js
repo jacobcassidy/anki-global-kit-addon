@@ -20,6 +20,9 @@ import rust from 'highlight.js/lib/languages/rust';
 import sql from 'highlight.js/lib/languages/sql';
 import typescript from 'highlight.js/lib/languages/typescript';
 import xml from 'highlight.js/lib/languages/xml';
+import { reviewLanguageAliases } from '../../../shared/js/syntax-highlighting/language-aliases.js';
+
+export { reviewLanguageAliases };
 
 const grammars = {
   bash,
@@ -41,42 +44,6 @@ const grammars = {
   sql,
   typescript,
   html: xml,
-};
-
-export const reviewLanguageAliases = {
-  bash: 'bash',
-  shell: 'bash',
-  sh: 'bash',
-  c: 'c',
-  cpp: 'cpp',
-  'c++': 'cpp',
-  csharp: 'csharp',
-  'c#': 'csharp',
-  css: 'css',
-  go: 'go',
-  golang: 'go',
-  java: 'java',
-  javascript: 'javascript',
-  js: 'javascript',
-  node: 'javascript',
-  json: 'json',
-  kotlin: 'kotlin',
-  markdown: 'markdown',
-  md: 'markdown',
-  html: 'html',
-  xml: 'html',
-  php: 'php',
-  powershell: 'powershell',
-  ps1: 'powershell',
-  python: 'python',
-  py: 'python',
-  ruby: 'ruby',
-  rb: 'ruby',
-  rust: 'rust',
-  rs: 'rust',
-  sql: 'sql',
-  typescript: 'typescript',
-  ts: 'typescript',
 };
 
 Object.entries(grammars).forEach(([name, grammar]) => hljs.registerLanguage(name, grammar));

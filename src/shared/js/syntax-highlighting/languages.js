@@ -1,4 +1,4 @@
-import { reviewLanguageAliases } from './engine.js';
+import { reviewLanguageAliases } from './language-aliases.js';
 
 const topicAliases = Object.entries(reviewLanguageAliases)
   .map(([alias, language]) => [new RegExp(`(?:^|[^a-z0-9])${escapeRegExp(alias)}(?=$|[^a-z0-9])`, 'i'), language])
