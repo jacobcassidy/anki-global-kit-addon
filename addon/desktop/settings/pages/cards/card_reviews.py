@@ -15,16 +15,4 @@ def build_card_reviews_section(parent: QWidget, current_settings: dict):
         markdown,
         "Render Markdown as HTML in submitted answers, including formatting such as headings, lists, links, and code blocks.",
     )
-    highlighting = QCheckBox(
-        "Enable syntax highlighting for submitted answers", section
-    )
-    highlighting.setChecked(current_settings["card_review_syntax_highlighting"])
-    add_checkbox_row(
-        layout,
-        highlighting,
-        "Apply language-aware colors to code blocks in submitted answers. A language after the opening triple backticks takes precedence; otherwise, the card topic is used when possible.",
-    )
-    return section, {
-        "card_review_markdown_rendering": markdown,
-        "card_review_syntax_highlighting": highlighting,
-    }
+    return section, {"card_review_markdown_rendering": markdown}

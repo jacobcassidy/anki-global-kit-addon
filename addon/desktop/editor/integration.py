@@ -14,6 +14,7 @@ from ..paths import ICON_ASSET_DIR, USER_FILES_DIR
 from ..shortcuts.formatting import EDITOR_BLOCK_SHORTCUTS as BLOCK_SHORTCUTS
 from ..shortcuts.formatting import editor_fixed_shortcut_action, normalize_shortcut
 from ..shortcuts.labels import shortcut_label
+from .features import syntax_highlighting
 
 EDITOR_ASSET = EDITOR_ASSET_PATHS["editor.min.js"]
 EDITOR_STYLES_DIR = EDITOR_ASSET_PATHS["editor-ui.min.css"].parent
@@ -115,6 +116,8 @@ def _change_indentation(editor: Editor, action: str) -> None:
 
 def _add_button(buttons: list, editor: Editor) -> None:
     settings = get_editor_settings()
+    syntax_highlighting.add_button(buttons, editor)
+
     if settings["anki_editor_blockquote_button"]:
         buttons.append(
             editor.addButton(
@@ -198,6 +201,10 @@ def _configured_editor_shortcuts(settings: dict) -> dict[str, str]:
         configurable["anki_editor_inline_code_shortcut"] = settings[
             "anki_editor_inline_code_shortcut"
         ]
+    if settings.get("anki_editor_syntax_highlighting_shortcut_enabled", True):
+        configurable["anki_editor_syntax_highlighting_shortcut"] = settings.get(
+            "anki_editor_syntax_highlighting_shortcut", "Alt+S"
+        )
     if settings["anki_editor_tab_indentation"]:
         for action in ("increase", "decrease"):
             key = f"anki_editor_indent_{action}_shortcut"
@@ -232,6 +239,8 @@ def _activate_editor_shortcut(editor_ref, name: str) -> None:
         _toggle_inline_code(editor)
     elif name == "anki_editor_blockquote_shortcut":
         _toggle_block(editor, "blockquote")
+    elif name == "anki_editor_syntax_highlighting_shortcut":
+        syntax_highlighting.highlight_selection(editor)
     else:
         _change_indentation(editor, "decrease" if "decrease" in name else "increase")
 
@@ -268,6 +277,7 @@ def refresh_open_editors() -> None:
 
 
 def initialize() -> None:
+    syntax_highlighting.initialize()
     gui_hooks.editor_did_init_buttons.append(_add_button)
     gui_hooks.editor_did_init_shortcuts.append(_add_shortcut)
     gui_hooks.editor_did_load_note.append(_inject_features)

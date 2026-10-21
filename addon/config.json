@@ -42,6 +42,28 @@
   "anki_editor_paste_markdown_as_html_button": true,
   "anki_editor_normalize_code_spaces": true,
   "anki_editor_copy_source_html": true,
+  "anki_editor_syntax_highlighting_button": true,
+  "anki_editor_syntax_highlighting_shortcut_enabled": true,
+  "anki_editor_syntax_highlighting_shortcut": "Alt+S",
+  "anki_editor_syntax_highlighting_languages": [
+    "bash",
+    "css",
+    "go",
+    "html",
+    "javascript",
+    "json",
+    "markdown",
+    "php",
+    "python",
+    "ruby",
+    "rust",
+    "sql",
+    "typescript"
+  ],
+  "anki_editor_syntax_highlighting_default_language": "python",
+  "anki_editor_syntax_highlighting_remember_language_per_deck": false,
+  "anki_editor_syntax_highlighting_line_numbers": false,
+  "anki_editor_syntax_highlighting_line_number_start": 1,
   "note_type_selections": {
     "Command Line": {
       "Advance": false,

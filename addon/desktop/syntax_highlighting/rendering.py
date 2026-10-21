@@ -106,6 +106,17 @@ def available_languages() -> list[tuple[str, str, tuple[str, ...]]]:
         )
 
 
+def select_editor_language(default: str, enabled: list[object]) -> str | None:
+    """Choose the enabled default, then the first enabled display name."""
+    valid = {item for item in enabled if isinstance(item, str)}
+    if default in valid:
+        return default
+    labels = {
+        alias: name for name, alias, _aliases in available_languages() if alias in valid
+    }
+    return min(labels, key=lambda alias: labels[alias].casefold()) if labels else None
+
+
 def _get_bundled_lexer(lexers, alias: str, **options):
     """Resolve only aliases in Pygments' bundled lexer registry."""
     mapping = importlib.import_module("pygments.lexers._mapping").LEXERS

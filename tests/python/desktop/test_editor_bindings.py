@@ -121,6 +121,7 @@ class EditorBindingsTests(unittest.TestCase):
                 "anki_editor_inline_code_shortcut",
                 "anki_editor_indent_increase_shortcut",
                 "anki_editor_indent_decrease_shortcut",
+                "anki_editor_syntax_highlighting_shortcut",
             },
         )
 

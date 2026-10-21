@@ -49,7 +49,8 @@ class BootstrapTests(unittest.TestCase):
                             reviewer._register_editor_webview,
                         ],
                         "webview_did_receive_js_message": [
-                            reviewer._on_webview_message
+                            module("editor.features.syntax_highlighting")._on_message,
+                            reviewer._on_webview_message,
                         ],
                         "card_will_show": [reviewer._on_card_will_show],
                         "state_did_change": [reviewer._sync_preferences_action],

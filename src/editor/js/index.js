@@ -3,6 +3,7 @@ import { installCodeSpaceNormalization } from './formatting/code-spaces.js';
 import { toggleInlineCode } from './formatting/inline-code.js';
 import { installCopySource } from './clipboard/copy-source.js';
 import { pasteMarkdownAsHtml } from './formatting/markdown.js';
+import { installCodeBlockHighlighting } from './formatting/code-block.js';
 import { installClozeShortcuts } from './cloze/shortcuts.js';
 import { installEditorStyles } from './styles.js';
 import {
@@ -13,6 +14,7 @@ import {
 } from './formatting/blocks.js';
 
 installSelectionTracking();
+installCodeBlockHighlighting();
 
 if (!globalThis.ankiGlobalKitEditor) {
   installCodeSpaceNormalization();

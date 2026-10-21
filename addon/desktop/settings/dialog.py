@@ -69,11 +69,16 @@ def open_settings() -> None:
 
     current_settings = get_settings()
     current_settings.update(get_editor_settings())
+    from .pages.syntax_highlighting import build_syntax_highlighting_tab
 
     cards = build_cards_tab(dialog, current_settings)
     tabs.addTab(cards.widget, "Cards")
     editor = build_editor_tab(dialog, current_settings)
     tabs.addTab(editor.widget, "Editor")
+    syntax_widget, syntax_controls = build_syntax_highlighting_tab(
+        dialog, current_settings
+    )
+    tabs.addTab(syntax_widget, "Syntax Highlighting")
 
     settings_note = QLabel(
         "Sync your collection with AnkiWeb to apply changes on your other devices."
@@ -89,12 +94,12 @@ def open_settings() -> None:
     tabs.addTab(build_help_tab(dialog), "Help")
 
     def update_sync_note_visibility(index: int) -> None:
-        settings_note.setVisible(index in (0, 1, 2))
+        settings_note.setVisible(index in (0, 1, 2, 3))
 
     tabs.currentChanged.connect(update_sync_note_visibility)
     update_sync_note_visibility(tabs.currentIndex())
 
-    all_controls = {**cards.controls, **editor.controls}
+    all_controls = {**cards.controls, **editor.controls, **syntax_controls}
     fields = cards.fields
     editor_fields = editor.fields
     markdown_shortcut_definitions = SHORTCUT_DEFINITIONS
@@ -108,14 +113,21 @@ def open_settings() -> None:
     editor_definitions = (
         ("anki_editor_inline_code_shortcut", "inline code"),
         ("anki_editor_blockquote_shortcut", "Blockquote"),
+        ("anki_editor_syntax_highlighting_shortcut", "Highlight Code"),
     ) + INDENTATION_SHORTCUT_DEFINITIONS
     editor_inputs = {
         "anki_editor_inline_code_shortcut": editor_inline_code_shortcut,
+        "anki_editor_syntax_highlighting_shortcut": syntax_controls[
+            "anki_editor_syntax_highlighting_shortcut"
+        ],
         **{key: pair[1] for key, pair in editor_fields.action_shortcuts.items()},
         **editor_fields.indentation_rows.shortcut_inputs,
     }
     editor_checks = {
         "anki_editor_inline_code_shortcut_enabled": editor_inline_code_shortcut_enabled,
+        "anki_editor_syntax_highlighting_shortcut_enabled": syntax_controls[
+            "anki_editor_syntax_highlighting_shortcut_enabled"
+        ],
         **{
             f"{key}_enabled": pair[0]
             for key, pair in editor_fields.action_shortcuts.items()
@@ -129,6 +141,7 @@ def open_settings() -> None:
             in (
                 "anki_editor_inline_code_shortcut",
                 "anki_editor_blockquote_shortcut",
+                "anki_editor_syntax_highlighting_shortcut",
             )
             or all_controls["anki_editor_tab_indentation"].isChecked()
         )
@@ -151,6 +164,12 @@ def open_settings() -> None:
     for widget in all_controls.values():
         if isinstance(widget, QCheckBox):
             widget.toggled.connect(update_restore_button)
+        elif hasattr(widget, "currentData"):
+            widget.currentIndexChanged.connect(update_restore_button)
+        elif hasattr(widget, "value"):
+            widget.valueChanged.connect(update_restore_button)
+        elif hasattr(widget, "add_change_listener"):
+            widget.add_change_listener(update_restore_button)
         else:
             widget.add_change_listener(update_restore_button)
     update_restore_button()
