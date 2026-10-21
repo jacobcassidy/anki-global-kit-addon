@@ -1,5 +1,7 @@
 """Build the add-on information and repository tab."""
 
+from pathlib import Path
+
 from aqt.qt import (
     QDesktopServices,
     QPushButton,
@@ -10,7 +12,6 @@ from aqt.qt import (
 
 from ....config.constants import VERSION
 from ....media.manifest import JS_ASSET_NAME
-from ....paths import ADDON_DIR
 from ....ui.constants import SECTION_SPACING
 from ....ui.layouts import add_button_row
 from ....ui.markdown import make_markdown_browser
@@ -20,7 +21,7 @@ def build_about_tab(parent: QWidget) -> QWidget:
     tab = QWidget(parent)
     layout = QVBoxLayout(tab)
     layout.setSpacing(SECTION_SPACING)
-    about_path = ADDON_DIR / "ABOUT.md"
+    about_path = Path(__file__).with_name("about-content.md")
     about_markdown = (
         about_path.read_text(encoding="utf-8")
         if about_path.is_file()

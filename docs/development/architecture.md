@@ -4,6 +4,8 @@
 
 Settings pages live in `desktop/settings/pages/`; `dialog.py`, `bindings.py`, and `save.py` coordinate presentation, controls, and saving. Filesystem paths belong to `desktop/paths.py`. Shared spacing and other presentation constants belong to `desktop/ui/constants.py`; `desktop/config/constants.py` holds package identity and the release version.
 
+About and Help Markdown lives beside its Python page as `about/about-content.md` and `help/help-content.md`. Each page reads its content relative to `__file__`, and packaging requires both files. The canonical changelog stays at the repository root and is copied to the archive root for the Changelog page. AnkiWeb listing content lives in `docs/development/ankiweb-description.md` outside the installable package.
+
 The release defaults in `addon/config.json` are authoritative. `desktop/config/defaults.py` reads them directly, excluding `note_type_selections` from ordinary controls because that selection is persisted through the note-type service. The card bundle contains fallback values for cases where no Desktop-injected settings object exists; shortcut strings and enabled defaults match the release configuration. Desktop settings translate Qt modifier names when producing browser settings, while browser key events keep the standard Command/Control mapping.
 
 Pure Desktop definitions and asset paths can be loaded by build tools without executing add-on startup or importing Anki and Qt. Use `scripts/addon_module_loader.py`:

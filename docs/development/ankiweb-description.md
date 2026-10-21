@@ -78,7 +78,7 @@ The add-on installs its card scripts, styles, and font automatically. After an u
 
 ## Help and feedback
 
-Open the **Help** tab in Anki Global Kit Settings for setup guidance, or read the [user guide](https://github.com/jacobcassidy/anki-global-kit-addon/blob/main/addon/HELP.md).
+Open the **Help** tab in Anki Global Kit Settings for setup guidance, or read the [user guide](https://github.com/jacobcassidy/anki-global-kit-addon/blob/main/addon/desktop/settings/pages/help/help-content.md).
 
 ![Help tab in Anki Global Kit Settings with setup guidance and troubleshooting information](https://raw.githubusercontent.com/jacobcassidy/anki-global-kit-addon/main/docs/reference/screenshots/setting-help-tab.png)
 

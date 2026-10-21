@@ -20,8 +20,14 @@ class PackageTests(unittest.TestCase):
             root = Path(directory)
             for name in packager.PACKAGE_DIRECTORIES:
                 (root / name).mkdir()
-            for name in (*packager.PACKAGE_FILES, *packager.REQUIRED_USER_FILES):
-                (root / name).write_text("package default", encoding="utf-8")
+            for name in (
+                *packager.PACKAGE_FILES,
+                *packager.REQUIRED_SETTINGS_FILES,
+                *packager.REQUIRED_USER_FILES,
+            ):
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("package default", encoding="utf-8")
             (root / "user_files/private-note.txt").write_text(
                 "private data", encoding="utf-8"
             )
@@ -31,6 +37,17 @@ class PackageTests(unittest.TestCase):
             )
             with patch.object(packager, "ADDON_ROOT", root):
                 files = packager.package_files()
+                for name in packager.REQUIRED_SETTINGS_FILES:
+                    self.assertIn(root / name, files)
+                    path = root / name
+                    path.unlink()
+                    with self.assertRaises(FileNotFoundError):
+                        packager.package_files()
+                    path.mkdir()
+                    with self.assertRaises(FileNotFoundError):
+                        packager.package_files()
+                    path.rmdir()
+                    path.write_text("package default", encoding="utf-8")
                 user_files = {
                     path.relative_to(root).as_posix()
                     for path in files

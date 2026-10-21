@@ -1,5 +1,7 @@
 """Build the read-only help tab."""
 
+from pathlib import Path
+
 from aqt.qt import (
     QDesktopServices,
     QPushButton,
@@ -8,7 +10,6 @@ from aqt.qt import (
     QWidget,
 )
 
-from ....paths import ADDON_DIR
 from ....ui.constants import SECTION_SPACING
 from ....ui.layouts import add_button_row
 from ....ui.markdown import make_markdown_browser
@@ -18,7 +19,7 @@ def build_help_tab(parent: QWidget) -> QWidget:
     tab = QWidget(parent)
     layout = QVBoxLayout(tab)
     layout.setSpacing(SECTION_SPACING)
-    help_path = ADDON_DIR / "HELP.md"
+    help_path = Path(__file__).with_name("help-content.md")
     browser = make_markdown_browser(
         tab,
         help_path.read_text(encoding="utf-8")
@@ -32,7 +33,7 @@ def build_help_tab(parent: QWidget) -> QWidget:
         lambda checked=False: QDesktopServices.openUrl(
             QUrl(
                 "https://github.com/jacobcassidy/anki-global-kit-addon/"
-                "blob/main/addon/HELP.md"
+                "blob/main/addon/desktop/settings/pages/help/help-content.md"
             )
         )
     )
