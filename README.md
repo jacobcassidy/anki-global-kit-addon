@@ -55,15 +55,15 @@ The **Cards** settings tab controls review-time Markdown formatting shortcuts an
 ### Desktop editor
 
 - Inline-code formatting through a configurable shortcut and optional toolbar button. Toggling a selected part of a code span removes formatting only from that selection.
-- Indentation, inline-code space normalization, source HTML copying, and rich-text paste cleanup.
+- Indentation, inline-code space normalization, and source HTML copying.
 - Bullet and numbered list buttons and shortcuts change only the outermost selected list level, preserving child styles and indentation. Plain indented rows become nested lists. **⌘+Option+.** and **⌘+Option+,** indent and unindent list items by default on macOS; use **Ctrl+Alt+.** and **Ctrl+Alt+,** on Windows and Linux. Under **Editor → Editor Fields → Enable indentation shortcuts**, enable, disable, or customize these shortcuts separately. In plain text, increase indent adds four leading spaces to the current or selected rows and decrease indent removes leading indentation. The caret stays with the original text. **Tab** and **Shift+Tab** retain native focus navigation.
 - Fixed shortcuts for bullet lists (**Command+Option+8** on macOS; **Ctrl+Alt+8** on Windows/Linux), numbered lists (**Command+Option+9** / **Ctrl+Alt+9**), **No List** (**Command+Option+0** / **Ctrl+Alt+0**), and blockquotes (**Command+/** / **Ctrl+/**). **No List** removes list formatting from selected items at every selected level, preserving inline formatting and unselected items. The blockquote action adds or removes a quote at the current indentation level. Configurable inline-code and indentation shortcuts cannot reuse these keys.
 - Physical **Control+Shift+C** for Cloze on macOS, leaving the default **Command+Shift+C** shortcut available for inline code.
 - Separate custom stylesheets for editor fields and the surrounding UI. Use **View Stylesheet** in the **Editor** tab to open `user_files/editor-fields.css` or `user_files/editor-ui.css`, then restart Anki after editing. These files are preserved during add-on upgrades.
 
-The **Editor** settings tab controls inline code and indentation shortcuts, paste cleanup, source HTML copying, and custom editor styling. Saving settings refreshes shortcuts and inline-code shortcut tooltips in open editors. List, blockquote, and inline-code formatting support native undo and redo.
+The **Editor** settings tab controls inline code and indentation shortcuts, source HTML copying, and custom editor styling. Saving settings refreshes shortcuts and inline-code shortcut tooltips in open editors. List, blockquote, and inline-code formatting support native undo and redo.
 
-![Editor settings tab showing shortcut controls, paste formatting options, and the custom stylesheet setting](docs/reference/screenshots/settings-editor-tab.png)
+![Editor settings tab showing shortcut controls and the custom stylesheet setting](docs/reference/screenshots/settings-editor-tab.png)
 
 ## Setup
 

@@ -37,7 +37,7 @@ Click a shortcut field and press the new combination. **Escape** cancels capture
 
 ## Edit notes and customize appearance
 
-Enable the inline-code button under **Editor UI** or its shortcut under **Editor Fields** to format a selection or word. On macOS, physical **Control+Shift+C** inserts Cloze; **Command+Shift+C** is the default inline-code shortcut. Turn paste cleanup off under **Editor Formatting** to keep original pasted formatting.
+Enable the inline-code button under **Editor UI** or its shortcut under **Editor Fields** to format a selection or word. On macOS, physical **Control+Shift+C** inserts Cloze; **Command+Shift+C** is the default inline-code shortcut.
 
 Choose **View Stylesheet** to open `user_files`. Edit `editor-fields.css` for note fields or `editor-ui.css` for the surrounding interface. Enable the corresponding stylesheet setting and restart Anki to reload edits. These files survive add-on upgrades.
 

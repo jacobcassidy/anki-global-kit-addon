@@ -90,8 +90,6 @@ def load_editor_integration(settings, *, mac=False):
     settings_package.get_editor_settings = lambda: settings
     constants = ModuleType(f"{SETTINGS_PACKAGE}.configs.constants")
     constants.USER_FILES_DIR = ROOT / "addon/user_files"
-    paste = ModuleType("kit.desktop.editor.features.paste.cleanup")
-    paste.clean_paste_mime = Mock()
     labels = ModuleType("kit.desktop.editor.features.shortcuts.labels")
     labels.shortcut_label = lambda keys: keys
     helpers = load_shortcut_helpers(mac=mac)
@@ -103,7 +101,6 @@ def load_editor_integration(settings, *, mac=False):
             "aqt.qt": qt,
             SETTINGS_PACKAGE: settings_package,
             constants.__name__: constants,
-            paste.__name__: paste,
             labels.__name__: labels,
             helpers.__name__: helpers,
         },

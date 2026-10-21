@@ -1,7 +1,7 @@
 # Pasted list layout repair
 
-> **Removed:** This repair is no longer part of the add-on. External rich-text
-> paste cleanup remains available under **Editor → Formatting**.
+> **Removed:** This repair and the associated rich-text paste cleanup are no
+> longer part of the add-on.
 
 Chromium can omit the final newline after a pasted list. That can leave the
 caret at the end of the last list item, so subsequent typing may continue

@@ -18,7 +18,6 @@ from ..settings.helpers.shortcuts import (
     editor_fixed_shortcut_action,
     normalize_shortcut,
 )
-from .features.paste.cleanup import clean_paste_mime
 from .features.shortcuts.labels import shortcut_label
 
 ADDON_DIR = Path(__file__).resolve().parents[2]
@@ -280,4 +279,3 @@ def initialize() -> None:
     gui_hooks.editor_did_init_buttons.append(_add_button)
     gui_hooks.editor_did_init_shortcuts.append(_add_shortcut)
     gui_hooks.editor_did_load_note.append(_inject_features)
-    gui_hooks.editor_will_process_mime.append(clean_paste_mime)

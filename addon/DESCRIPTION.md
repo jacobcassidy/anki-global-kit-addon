@@ -57,13 +57,13 @@ The **Note Types** tab lets you create missing kit types without assembling temp
 
 - Format inline code, lists, and blockquotes with toolbar buttons.
 - Customize inline-code and indentation shortcuts. List and blockquote shortcuts use fixed keys.
-- Adjust indentation and clean up rich-text pastes.
+- Adjust indentation in editor fields.
 - Copy source HTML and normalize spaces in inline code.
 - Customize editor field and interface styles with your own stylesheets.
 
 Choose the tools that fit your workflow in the **Editor** settings tab.
 
-![Editor settings tab showing formatting shortcuts, paste cleanup, and custom stylesheet options](https://raw.githubusercontent.com/jacobcassidy/anki-global-kit-addon/main/docs/reference/screenshots/settings-editor-tab.png)
+![Editor settings tab showing formatting shortcuts and custom stylesheet options](https://raw.githubusercontent.com/jacobcassidy/anki-global-kit-addon/main/docs/reference/screenshots/settings-editor-tab.png)
 
 ## Get started
 
