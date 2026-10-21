@@ -2,7 +2,7 @@
 
 ## Goal and proposed scope
 
-Bring Syntax Highlighter's useful Desktop authoring capabilities into Anki Global Kit so users can create highlighted code without installing a second add-on. Integrate with the kit's existing editor controls, settings, styling, media installation, and native undo support.
+Bring Syntax Highlighter's (/Users/Jacob/Projects/Software/First-Party/Groups/JacobCassidy/Packages/Anki/Anki Third-Party Addons Modifications/Source/_anki-third-party-addons-modifications/272582198) useful Desktop authoring capabilities into Anki Global Kit so users can create highlighted code without installing a second add-on. Integrate with the kit's existing editor controls, settings, styling, media installation, and native undo support.
 
 This document records the proposed implementation. The feature has not been implemented or verified in live Anki.
 
@@ -10,13 +10,14 @@ Include:
 
 - Highlight selected code or plain text from the clipboard through a toolbar action and configurable shortcut.
 - Choose a language from Pygments' available lexers.
-- Configure the feature in a dedicated Syntax Highlighting settings tab, including a checkable list controlling which languages appear in the editor.
+- Configure the feature in a dedicated Syntax Highlighting settings tab, including a checkable list controlling which languages appear in the editor dropdown next to the highlighting button.
 - Apply highlighting again to an existing code block, including blocks containing highlighted spans.
 - Optional line numbers with a configurable starting number.
 - Theme presets with independent light and dark selections and a preview.
 - Consistent styling in editor fields and on cards, including synced clients.
 - An explicit action to enable syntax styling on ordinary, non-Kit note types.
 - Route Desktop Markdown code-block highlighting through the same rendering service.
+- A lighting bolt icon for the editor toolbar button.
 
 Do not include automatic collection-wide conversion, automatic changes to existing note types, per-deck language memory, or separate font-size and centering controls in the initial implementation. Preserve existing content and legacy stylesheets. Expanding the JavaScript review highlighter's language coverage is a separate change.
 
