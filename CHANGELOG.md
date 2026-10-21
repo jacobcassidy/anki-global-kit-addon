@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added generated `_syntax-highlighting.css` media for new Kit note types and a confirmed **Enable Code Styling…** action that adds only the stylesheet import to an existing note type.
 - Added optional per-deck language memory storage and upgraded review highlighting to a pinned, locally bundled highlight.js grammar set with per-answer processing limits.
+- Added bundled Pygments theme choices, independent light and dark theme settings, read-only previews, collection-synced resolved palettes, and stylesheet recovery during Settings saves.
 - Routed Desktop Markdown code fences through the Pygments service and removed the handwritten browser tokenizer.
 - Added a checked-language menu beside **Highlight Code**, with Topic and per-deck fallback and collection-synced memory after successful explicit applications.
 

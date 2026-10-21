@@ -45,7 +45,7 @@ Choose **View Stylesheet** to open `user_files`. Edit `editor-fields.css` for no
 
 - **Changes are missing on another device:** save the card settings on Desktop and sync both the collection and media, then sync the other device. After updating the add-on, restart Desktop before syncing.
 - **A shortcut does nothing:** check its enable switches and conflict warning. Check whether another Anki shortcut uses the same keys.
-- **Answers show plain text:** enable Markdown rendering and syntax highlighting in **Card Reviews**. Check that code fences have matching opening and closing lines.
+- **Answers show plain text:** enable Markdown rendering in **Cards → Card Reviews** and syntax highlighting in **Syntax Highlighting**. Check that code fences have matching opening and closing lines.
 - **Cards lack the kit tools:** use a kit note type. To update an existing kit type's templates, select **Replace** in **Note Types**.
 
 For an unresolved problem, [report an issue](https://github.com/jacobcassidy/anki-global-kit-addon/issues) with your Anki version, device, steps to reproduce it, and a screenshot if useful.
