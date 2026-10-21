@@ -38,7 +38,7 @@ jobs:
       - name: Validate release metadata and changelog notes
         run: python3 scripts/release_notes.py --output dist/release-notes.md
       - name: Verify generated assets are current
-        run: git diff --exit-code -- addon/assets/cards addon/assets/editor addon/assets/fonts/_meslolgl-nf-license.txt
+        run: git diff --exit-code -- addon/assets/cards addon/assets/editor addon/assets/fonts/_meslolgl-nf-license.txt src/shared/css/generated/cassidy-dark.css
       - name: Run JavaScript and Python tests
         run: npm test
 

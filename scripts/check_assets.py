@@ -125,7 +125,26 @@ def validate_assets(package_files: list[Path]) -> str:
         )
 
     manifest = load_addon_module("desktop.media.manifest")
+    theme_service = load_addon_module("desktop.syntax_highlighting.themes")
+    fallback = ROOT / "src/shared/css/generated/cassidy-dark.css"
+    if not fallback.is_file() or fallback.read_text(encoding="utf-8") != (
+        theme_service.generate_theme_css()
+    ):
+        raise ValueError(
+            "Generated Cassidy Dark CSS is missing or stale; run npm run build:addon."
+        )
     packaged_paths = {path.resolve() for path in package_files}
+
+    pygments_root = ROOT / "addon/vendor/pygments"
+    pygments_license = ROOT / "addon/vendor/pygments-LICENSE"
+    pygments_version = (pygments_root / "__init__.py").read_text(encoding="utf-8")
+    if not re.search(r"__version__\s*=\s*['\"]2\.19\.2['\"]", pygments_version):
+        raise ValueError("The vendored Pygments dependency must be pinned to 2.19.2")
+    if not pygments_license.is_file() or pygments_license.stat().st_size == 0:
+        raise ValueError("The vendored Pygments license notice is missing")
+    require_packaged(pygments_root / "__init__.py", packaged_paths)
+    require_packaged(pygments_license, packaged_paths)
+
     categories = {".js": "js", ".css": "css"}
     for media_name, source_path in manifest.ASSET_PATHS.items():
         if source_path.suffix in {".woff", ".woff2"} or (

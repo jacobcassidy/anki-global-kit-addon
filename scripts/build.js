@@ -11,6 +11,10 @@ import {
   editorUiCssBuildOptions,
 } from './build.config.js';
 
+execFileSync('python3', [fileURLToPath(new URL('./export_syntax_themes.py', import.meta.url))], {
+  stdio: 'inherit',
+});
+
 await Promise.all([
   build(cardsJsBuildOptions),
   build(cardsCssBuildOptions),

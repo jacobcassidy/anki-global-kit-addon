@@ -17,6 +17,7 @@ PACKAGE_DIRECTORIES = (
     "assets",
     "templates",
     "user_files",
+    "vendor",
 )
 PACKAGE_PATHS = PACKAGE_FILES + PACKAGE_DIRECTORIES
 REQUIRED_SETTINGS_FILES = (
