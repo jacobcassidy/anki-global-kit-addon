@@ -3,7 +3,7 @@
 PREFERENCES_KEY = "anki_global_kit.syntax_highlighting"
 DECK_LANGUAGES_KEY = f"{PREFERENCES_KEY}.deck_languages"
 THEMES_KEY = f"{PREFERENCES_KEY}.themes"
-THEME_FORMAT_VERSION = 1
+THEME_FORMAT_VERSION = 2
 
 
 def get_deck_languages(collection) -> dict[str, str]:
@@ -38,7 +38,10 @@ def set_deck_language(collection, deck_id: int | str, language: str) -> None:
 def get_themes(collection) -> dict[str, dict]:
     """Return validated collection-synced light and dark theme records."""
     value = collection.get_config(THEMES_KEY, {})
-    if not isinstance(value, dict) or value.get("version") != THEME_FORMAT_VERSION:
+    if not isinstance(value, dict) or value.get("version") not in (
+        1,
+        THEME_FORMAT_VERSION,
+    ):
         return {}
 
     result = {}

@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Changed Cassidy Dark's ordinary keywords to red and declaration keywords (`kd`) to blue. Existing synced palettes keep their colors until **Update Synced Theme** is saved and synced.
 - Removed repeated syntax block and token rules from the selected theme stylesheets. Light and dark themes now override only variables, including font styles, with support for editor field shadow roots.
 - Renamed the theme update action to **Update Synced Theme**, shortened both theme action help texts, and aligned **Add Syntax Styles…** on the right of the same row.
 - Renamed **Enable Code Styling…** to **Add Syntax Styles…** and added a checkbox picker with **Select All** and **Clear Selection** to update multiple note types after one confirmation. Types that already include the stylesheet are omitted, and all selected targets are revalidated before changes begin.

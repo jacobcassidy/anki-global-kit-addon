@@ -6,7 +6,8 @@ anki-editable {
   --global-kit-syntax-punctuation: #929292;
   --global-kit-syntax-muted: #c4c4c4;
   --global-kit-syntax-builtin: #f8f8f8;
-  --global-kit-syntax-keyword: #92c1fd;
+  --global-kit-syntax-keyword: #ef9182;
+  --global-kit-syntax-declaration: #92c1fd;
   --global-kit-syntax-function: #89dfdf;
   --global-kit-syntax-class: #89dfdf;
   --global-kit-syntax-attribute: #a2cd8b;
@@ -24,6 +25,8 @@ anki-editable {
   --global-kit-syntax-builtin-style: normal;
   --global-kit-syntax-keyword-weight: 400;
   --global-kit-syntax-keyword-style: normal;
+  --global-kit-syntax-declaration-weight: 400;
+  --global-kit-syntax-declaration-style: normal;
   --global-kit-syntax-function-weight: 400;
   --global-kit-syntax-function-style: normal;
   --global-kit-syntax-class-weight: 400;
@@ -71,10 +74,16 @@ anki-editable {
   font-weight: var(--global-kit-syntax-builtin-weight);
 }
 
-.global-kit-code-block :is(.k, .kd, .kn, .kp, .kr, .kt, .hljs-keyword) {
+.global-kit-code-block :is(.k, .kn, .kp, .kr, .kt, .hljs-keyword) {
   color: var(--global-kit-syntax-keyword);
   font-style: var(--global-kit-syntax-keyword-style);
   font-weight: var(--global-kit-syntax-keyword-weight);
+}
+
+.global-kit-code-block :is(.kd) {
+  color: var(--global-kit-syntax-declaration);
+  font-style: var(--global-kit-syntax-declaration-style);
+  font-weight: var(--global-kit-syntax-declaration-weight);
 }
 
 .global-kit-code-block :is(.nf, .fm, .hljs-title.function_, .hljs-function) {

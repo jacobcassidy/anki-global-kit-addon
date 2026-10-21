@@ -3,7 +3,8 @@
 import json
 import sys
 import unittest
-from types import ModuleType
+from copy import deepcopy
+from types import ModuleType, SimpleNamespace
 from unittest.mock import Mock, patch
 
 import pygments
@@ -130,6 +131,57 @@ class SyntaxRenderingTests(unittest.TestCase):
             self.assertIn(f"color: {preset['colors']['keyword']}", html)
             self.assertNotIn("var(", html)
             self.assertNotIn(":is(", html)
+
+    def test_cassidy_keywords_and_declarations_have_independent_theme_colors(self):
+        themes = load_addon_module("desktop.syntax_highlighting.themes")
+        preset = themes.resolve_preset("cassidy-dark")
+        self.assertEqual(preset["colors"]["keyword"], "#ef9182")
+        self.assertEqual(preset["colors"]["declaration"], "#92c1fd")
+        css = themes.generate_theme_css()
+        declaration_rule = css.split(".global-kit-code-block :is(.kd) {", 1)[1]
+        declaration_rule = declaration_rule.split("}", 1)[0]
+        self.assertIn("color: var(--global-kit-syntax-declaration);", declaration_rule)
+        keyword_selectors = themes._TOKEN_SELECTORS["keyword"].split(", ")
+        self.assertIn(".k", keyword_selectors)
+        self.assertNotIn(".kd", keyword_selectors)
+        highlighted, _language = self.renderer.render_code(
+            "const value = 1;", "javascript"
+        )
+        self.assertIn('<span class="kd">const</span>', highlighted)
+
+    def test_legacy_synced_themes_keep_their_colors_and_styles_during_migration(self):
+        themes = load_addon_module("desktop.syntax_highlighting.themes")
+        preferences = load_addon_module("desktop.syntax_highlighting.preferences")
+        legacy = themes.resolve_preset("cassidy-dark")
+        legacy["colors"].pop("declaration")
+        legacy["colors"]["keyword"] = "#92c1fd"
+        legacy["styles"] = {"bold": ["keyword"], "italic": []}
+        legacy["revision"] = 7
+        original = deepcopy(legacy)
+        config = {
+            preferences.THEMES_KEY: {"version": 1, "light": legacy, "dark": legacy}
+        }
+        collection = SimpleNamespace(
+            get_config=lambda key, default=None: config.get(key, default),
+            set_config=lambda key, value: config.__setitem__(key, value),
+        )
+
+        migrated = preferences.get_themes(collection)
+        self.assertEqual(migrated["light"]["colors"]["declaration"], "#92c1fd")
+        self.assertIn("declaration", migrated["light"]["styles"]["bold"])
+        self.assertEqual(legacy, original)
+        preferences.set_themes(collection, migrated)
+        self.assertEqual(config[preferences.THEMES_KEY]["version"], 2)
+        self.assertEqual(preferences.get_themes(collection)["light"]["revision"], 7)
+
+        updated = themes.resolve_preset("cassidy-dark")
+        preferences.set_themes(collection, {"light": updated, "dark": updated})
+        self.assertEqual(preferences.get_themes(collection)["light"]["revision"], 8)
+        self.assertEqual(
+            preferences.get_themes(collection)["light"]["colors"], updated["colors"]
+        )
+        config[preferences.THEMES_KEY]["version"] = 3
+        self.assertEqual(preferences.get_themes(collection), {})
 
     def test_mode_themes_do_not_repeat_block_and_token_rules(self):
         themes = load_addon_module("desktop.syntax_highlighting.themes")

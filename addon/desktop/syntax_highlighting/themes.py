@@ -16,6 +16,7 @@ _COLOR_ROLES = {
     "muted",
     "builtin",
     "keyword",
+    "declaration",
     "function",
     "class",
     "attribute",
@@ -30,7 +31,8 @@ _TOKEN_SELECTORS = {
     "punctuation": ".p, .hljs-punctuation",
     "muted": ".x, .go, .gt, .hljs-text",
     "builtin": ".nb, .bp, .hljs-built_in, .hljs-literal",
-    "keyword": ".k, .kd, .kn, .kp, .kr, .kt, .hljs-keyword",
+    "keyword": ".k, .kn, .kp, .kr, .kt, .hljs-keyword",
+    "declaration": ".kd",
     "function": ".nf, .fm, .hljs-title.function_, .hljs-function",
     "class": ".nc, .nn, .hljs-title.class_",
     "attribute": ".na, .nl, .hljs-attr, .hljs-attribute",
@@ -58,12 +60,16 @@ def resolve_preset(preset_id: str) -> dict:
     ):
         raise ValueError(f"Syntax theme {preset_id} has invalid colors")
 
-    return {
-        "id": preset["id"],
-        "name": preset["name"],
-        "colors": dict(colors),
-        "styles": {key: list(value) for key, value in preset["styles"].items()},
-    }
+    resolved = validate_resolved_theme(
+        {
+            "id": preset["id"],
+            "name": preset["name"],
+            "colors": dict(colors),
+            "styles": {key: list(value) for key, value in preset["styles"].items()},
+        }
+    )
+    resolved.pop("revision")
+    return resolved
 
 
 def validate_resolved_theme(record: dict) -> dict:
@@ -83,7 +89,7 @@ def validate_resolved_theme(record: dict) -> dict:
         or not name
         or len(name) > 128
         or not isinstance(colors, dict)
-        or set(colors) != _COLOR_ROLES
+        or set(colors) not in (_COLOR_ROLES, _COLOR_ROLES - {"declaration"})
         or any(
             not isinstance(color, str) or not _COLOR.fullmatch(color)
             for color in colors.values()
@@ -101,10 +107,18 @@ def validate_resolved_theme(record: dict) -> dict:
         or revision < 0
     ):
         raise ValueError("Theme data is invalid or unsupported.")
+    colors = dict(colors)
+    styles = {key: list(styles[key]) for key in ("bold", "italic")}
+    if "declaration" not in colors:
+        # Earlier palettes and bundled Pygments presets shared keyword styling.
+        colors["declaration"] = colors["keyword"]
+        for roles in styles.values():
+            if "keyword" in roles:
+                roles.append("declaration")
     return {
         "id": preset_id,
         "name": name,
-        "colors": dict(colors),
+        "colors": colors,
         "styles": {key: sorted(set(styles[key])) for key in ("bold", "italic")},
         "revision": revision,
     }

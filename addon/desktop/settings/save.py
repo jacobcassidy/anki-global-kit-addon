@@ -6,7 +6,11 @@ from aqt.utils import showWarning
 from ..config.constants import ADDON_PACKAGE_NAME
 from ..config.service import write_settings
 from ..media.install import update_assets_for_profile
-from ..syntax_highlighting.preferences import get_themes, set_themes
+from ..syntax_highlighting.preferences import (
+    THEME_FORMAT_VERSION,
+    get_themes,
+    set_themes,
+)
 from ..syntax_highlighting.themes import resolve_preset
 
 
@@ -35,7 +39,7 @@ def save_settings(
         if (
             isinstance(raw, dict)
             and type(raw.get("version", 1)) is int
-            and raw.get("version", 1) > 1
+            and raw.get("version", 1) > THEME_FORMAT_VERSION
         ):
             showWarning(
                 "This collection has syntax theme data from a newer Kit version. Update Anki Global Kit before changing themes."
