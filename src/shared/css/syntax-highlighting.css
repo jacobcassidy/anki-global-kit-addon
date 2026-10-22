@@ -21,34 +21,6 @@
   text-align: end;
 }
 
-.global-kit-code-options {
-  background: var(--global-kit-syntax-background);
-  border: 1px solid var(--global-kit-syntax-comment);
-  border-radius: 0.5rem;
-  color: var(--global-kit-syntax-foreground);
-  max-inline-size: min(28rem, calc(100vi - 2rem));
-  padding: 1rem;
-  font: inherit;
-}
-
-.global-kit-code-options form,
-.global-kit-code-options label {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.global-kit-code-options-actions {
-  display: flex;
-  justify-content: end;
-  gap: 0.5rem;
-}
-
-.global-kit-code-options select,
-.global-kit-code-options input {
-  color: inherit;
-  font: inherit;
-}
-
 .syntax-highlights {
   padding: 0 !important;
 }

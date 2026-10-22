@@ -4,7 +4,9 @@ import { getSyntaxLanguage } from '../../../shared/js/syntax-highlighting/langua
 import { enhanceHighlightHtml } from '../../../shared/js/syntax-highlighting/classification/markup.js';
 
 const CODE_SELECTOR = 'pre.global-kit-code-block > code';
+const OPTIONS_MESSAGE_PREFIX = 'anki-global-kit:code-block-options:';
 const pending = new Map();
+const pendingOptions = new Map();
 let requestId = 0;
 let explicitLanguage = null;
 let rememberedLanguage = null;
@@ -273,90 +275,71 @@ function openCodeBlockOptions() {
   if (!field || !pre) return false;
   const fieldSnapshot = field.innerHTML;
   const blockIndex = [...field.querySelectorAll('pre.global-kit-code-block')].indexOf(pre);
-  const dialog = document.createElement('dialog');
-  dialog.className = 'global-kit-code-options';
-  dialog.innerHTML = `
-    <form method="dialog">
-      <h2>Code Block Options</h2>
-      <label><input name="lineNumbers" type="checkbox"> Show line numbers</label>
-      <label>Starting line number <input name="lineStart" type="number" min="1" step="1"></label>
-      <label>Anki cloze syntax
-        <select name="clozeMode">
-          <option value="active">Preserve Anki clozes</option>
-          <option value="literal">Literal code</option>
-        </select>
-      </label>
-      <div class="global-kit-code-options-actions">
-        <button value="cancel">Cancel</button>
-        <button value="apply">Apply to Block</button>
-      </div>
-    </form>`;
-  const root = field.getRootNode();
-  (root instanceof ShadowRoot ? root : document.body).append(dialog);
-  const lineNumbers = dialog.querySelector('[name="lineNumbers"]');
-  const lineStart = dialog.querySelector('[name="lineStart"]');
-  const clozeMode = dialog.querySelector('[name="clozeMode"]');
-  lineNumbers.checked = pre.dataset.lineNumbers === 'true';
-  lineStart.value = String(Math.max(1, Number.parseInt(pre.dataset.lineStart || '1', 10) || 1));
-  clozeMode.value = pre.dataset.clozeMode === 'literal' ? 'literal' : 'active';
+  const id = String(++requestId);
+  pendingOptions.set(id, { field, fieldSnapshot, blockIndex, selection });
+  globalThis.pycmd?.(
+    `${OPTIONS_MESSAGE_PREFIX}${JSON.stringify({
+      id,
+      lineNumbers: pre.dataset.lineNumbers === 'true',
+      lineStart: Math.max(1, Number.parseInt(pre.dataset.lineStart || '1', 10) || 1),
+      clozeMode: pre.dataset.clozeMode === 'literal' ? 'literal' : 'active',
+    })}`,
+  );
+  return true;
+}
 
-  dialog.addEventListener('close', () => dialog.remove(), { once: true });
-  dialog.querySelector('form').addEventListener('submit', (event) => {
-    if (event.submitter?.value !== 'apply') return;
-    event.preventDefault();
-    const nextStart = Number(lineStart.value);
-    if (!Number.isInteger(nextStart) || nextStart < 1) {
-      lineStart.setCustomValidity('Enter a positive whole number.');
-      lineStart.reportValidity();
-      return;
-    }
-    lineStart.setCustomValidity('');
+function applyCodeBlockOptions(id, options) {
+  const target = pendingOptions.get(String(id));
+  pendingOptions.delete(String(id));
 
-    // Modal dialogs make the field inert. Release it before focusing the field
-    // and committing the native insertHTML transaction.
-    dialog.close();
+  if (!target || !Number.isInteger(options.lineStart) || options.lineStart < 1) return false;
+  if (options.clozeMode !== 'active' && options.clozeMode !== 'literal') return false;
 
-    if (!field.isConnected || field.innerHTML !== fieldSnapshot) return;
+  const { field, fieldSnapshot, blockIndex, selection } = target;
 
-    // Anki's rich-text/HTML mirror may recreate unchanged nodes on blur. The
-    // snapshot still protects newer edits; resolve the block in the current DOM.
-    const currentPre = field.querySelectorAll('pre.global-kit-code-block')[blockIndex];
+  if (!field.isConnected || field.innerHTML !== fieldSnapshot) return false;
 
-    if (!currentPre) return;
+  // Anki may recreate unchanged field nodes while the native dialog has focus.
+  const currentPre = field.querySelectorAll('pre.global-kit-code-block')[blockIndex];
 
-    const targetRange = document.createRange();
-    targetRange.selectNode(currentPre);
-    const targetSelection = {
-      getRangeAt: () => targetRange,
-      removeAllRanges: () => selection.removeAllRanges(),
-      addRange: (nextRange) => selection.addRange(nextRange),
-    };
+  if (!currentPre) return false;
+
+  const targetRange = document.createRange();
+  targetRange.selectNode(currentPre);
+  const targetSelection = {
+    getRangeAt: () => targetRange,
+    removeAllRanges: () => selection.removeAllRanges(),
+    addRange: (nextRange) => selection.addRange(nextRange),
+  };
+  return Boolean(
     editWithNativeUndo(field, targetSelection, (_clone, stagedSelection, resolveNode) => {
       const clonedPre = resolveNode(currentPre);
       if (!clonedPre) return false;
-      clonedPre.dataset.lineNumbers = String(lineNumbers.checked);
-      clonedPre.dataset.lineStart = String(nextStart);
-      clonedPre.dataset.clozeMode = clozeMode.value;
+      clonedPre.dataset.lineNumbers = String(options.lineNumbers === true);
+      clonedPre.dataset.lineStart = String(options.lineStart);
+      clonedPre.dataset.clozeMode = options.clozeMode;
       const clonedCode = clonedPre.querySelector('code');
 
       // Markdown conversion creates highlighted blocks without line wrappers.
       if (!clonedCode.querySelector(':scope > .code-line')) {
-        clonedCode.innerHTML = tokenHtmlByLine(clonedCode.innerHTML, nextStart);
+        clonedCode.innerHTML = tokenHtmlByLine(clonedCode.innerHTML, options.lineStart);
       }
 
-      preserveClozeMode(clonedCode, clozeMode.value);
+      preserveClozeMode(clonedCode, options.clozeMode);
       clonedCode.querySelectorAll(':scope > .code-line').forEach((line, index) => {
-        line.dataset.lineNumber = String(nextStart + index);
+        line.dataset.lineNumber = String(options.lineStart + index);
       });
       const nextRange = document.createRange();
       nextRange.setStartAfter(clonedPre);
       nextRange.collapse(true);
       stagedSelection.removeAllRanges();
       stagedSelection.addRange(nextRange);
-    });
-  });
-  dialog.showModal();
-  return true;
+    }),
+  );
+}
+
+function cancelCodeBlockOptions(id) {
+  pendingOptions.delete(String(id));
 }
 
 export function installCodeBlockHighlighting() {
@@ -364,6 +347,8 @@ export function installCodeBlockHighlighting() {
   api.highlightCode = requestHighlight;
   api.applyHighlightResult = applyHighlightResult;
   api.openCodeBlockOptions = openCodeBlockOptions;
+  api.applyCodeBlockOptions = applyCodeBlockOptions;
+  api.cancelCodeBlockOptions = cancelCodeBlockOptions;
   api.setExplicitLanguage = setExplicitLanguage;
   api.setLanguageContext = setLanguageContext;
   api.cancelHighlightResult = cancelHighlightResult;

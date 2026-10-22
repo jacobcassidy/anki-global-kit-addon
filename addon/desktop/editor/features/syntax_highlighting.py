@@ -18,6 +18,7 @@ OPTIONS_ICON = ICON_ASSET_DIR / "ellipsis.svg"
 _MESSAGE_PREFIX = "anki-global-kit:syntax-highlight:"
 _MARKDOWN_MESSAGE_PREFIX = "anki-global-kit:markdown-highlight:"
 _APPLIED_MESSAGE_PREFIX = "anki-global-kit:syntax-highlight-applied:"
+_OPTIONS_MESSAGE_PREFIX = "anki-global-kit:code-block-options:"
 _BUSY = False
 _INSTALLED = False
 _PENDING_EXPLICIT_APPLIES: dict[str, tuple[Editor, int | None, str]] = {}
@@ -335,6 +336,70 @@ def open_code_block_options(editor: Editor) -> None:
     editor.web.eval("globalThis.ankiGlobalKitEditor?.openCodeBlockOptions();")
 
 
+def _show_code_block_options(editor: Editor, request: dict) -> None:
+    from aqt.qt import (
+        QCheckBox,
+        QComboBox,
+        QDialog,
+        QDialogButtonBox,
+        QFormLayout,
+        QSpinBox,
+        QVBoxLayout,
+    )
+
+    dialog = QDialog(editor.parentWindow)
+    dialog.setWindowTitle("Code Block Options")
+    layout = QVBoxLayout(dialog)
+    form = QFormLayout()
+    line_numbers = QCheckBox("Show line numbers", dialog)
+    line_numbers.setChecked(request.get("lineNumbers") is True)
+    form.addRow(line_numbers)
+    line_start = QSpinBox(dialog)
+    line_start.setRange(1, 2_147_483_647)
+    initial_start = request.get("lineStart")
+    line_start.setValue(
+        initial_start if type(initial_start) is int and initial_start > 0 else 1
+    )
+    form.addRow("Starting line number", line_start)
+    cloze_mode = QComboBox(dialog)
+    cloze_mode.addItem("Preserve Anki clozes", "active")
+    cloze_mode.addItem("Literal code", "literal")
+    cloze_mode.setCurrentIndex(1 if request.get("clozeMode") == "literal" else 0)
+    form.addRow("Anki cloze syntax", cloze_mode)
+    layout.addLayout(form)
+    buttons = QDialogButtonBox(
+        QDialogButtonBox.StandardButton.Cancel | QDialogButtonBox.StandardButton.Ok,
+        dialog,
+    )
+    apply_button = buttons.button(QDialogButtonBox.StandardButton.Ok)
+    assert apply_button is not None
+    apply_button.setText("Apply to Block")
+    buttons.accepted.connect(dialog.accept)
+    buttons.rejected.connect(dialog.reject)
+    layout.addWidget(buttons)
+
+    if dialog.exec() != QDialog.DialogCode.Accepted or editor.web is None:
+        if editor.web is not None:
+            editor.web.eval(
+                "globalThis.ankiGlobalKitEditor?.cancelCodeBlockOptions("
+                f"{json.dumps(request['id'])});"
+            )
+        dialog.deleteLater()
+        return
+
+    options = {
+        "id": request["id"],
+        "lineNumbers": line_numbers.isChecked(),
+        "lineStart": line_start.value(),
+        "clozeMode": cloze_mode.currentData(),
+    }
+    editor.web.eval(
+        "globalThis.ankiGlobalKitEditor?.applyCodeBlockOptions("
+        f"{json.dumps(options['id'])}, {json.dumps(options, separators=(',', ':'))});"
+    )
+    dialog.deleteLater()
+
+
 def _on_success(
     editor: Editor,
     request_id: str,
@@ -516,6 +581,20 @@ def _render_code(source: str, language: str, cloze_mode: str) -> tuple[str, str]
 
 def _on_message(handled: tuple[bool, object], message: str, context):
     global _BUSY
+    if message.startswith(_OPTIONS_MESSAGE_PREFIX) and isinstance(context, Editor):
+        try:
+            request = json.loads(message[len(_OPTIONS_MESSAGE_PREFIX) :])
+        except (TypeError, json.JSONDecodeError):
+            return (True, None)
+        if (
+            isinstance(request, dict)
+            and isinstance(request.get("id"), str)
+            and re.fullmatch(r"\d{1,12}", request["id"])
+            and context.web is not None
+        ):
+            _show_code_block_options(context, request)
+        return (True, None)
+
     if message.startswith(_MARKDOWN_MESSAGE_PREFIX) and isinstance(context, Editor):
         return _on_markdown_message(message, context)
 
