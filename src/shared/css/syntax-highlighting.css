@@ -246,7 +246,7 @@ pre.global-kit-code-with-header > code {
   display: block;
   inline-size: 1rem;
   block-size: 1rem;
-  background-color: var(--global-kit-syntax-foreground);
+  background-color: currentcolor;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='14' height='14' x='8' y='8' rx='2' ry='2'/%3E%3Cpath d='M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2'/%3E%3C/svg%3E")
     center / contain no-repeat;
 }
@@ -257,8 +257,13 @@ pre.global-kit-code-with-header > code {
 
 .code-block__copy:hover,
 .code-block__copy:focus-visible {
-  outline: 0.0625rem solid currentcolor;
-  background: var(--global-kit-syntax-background);
+  color: var(--global-kit-syntax-background);
+  background: var(--global-kit-syntax-function);
+}
+
+.code-block__copy:active {
+  color: var(--global-kit-syntax-background);
+  background: var(--global-kit-syntax-keyword);
 }
 
 pre.global-kit-code-with-header[data-line-numbers="true"] > code {
