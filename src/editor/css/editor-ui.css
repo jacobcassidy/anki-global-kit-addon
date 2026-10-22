@@ -28,39 +28,39 @@
   position: fixed;
   z-index: 10000;
   display: flex;
-  min-inline-size: 10rem;
   flex-direction: column;
-  padding: 0.25rem;
+  background: var(--canvas-elevated, var(--canvas));
   border: 1px solid var(--border, var(--border-subtle));
   border-radius: var(--border-radius);
-  background: var(--canvas-elevated, var(--canvas));
-  color: var(--fg);
   box-shadow: 0 0.25rem 0.75rem 0 color-mix(in srgb, var(--fg) 18%, transparent);
+  color: var(--fg);
+  min-inline-size: 10rem;
+  padding: 0.25rem;
 }
 
 .anki-global-kit-language-menu::before {
+  content: "";
   position: absolute;
   inset-block-start: -0.3125rem;
   inset-inline-start: 1.125rem;
-  inline-size: 0.625rem;
-  block-size: 0.625rem;
   transform: rotate(45deg);
+  background: var(--canvas-elevated, var(--canvas));
   border-block-start: 1px solid var(--border, var(--border-subtle));
   border-inline-start: 1px solid var(--border, var(--border-subtle));
-  background: var(--canvas-elevated, var(--canvas));
-  content: "";
+  block-size: 0.625rem;
+  inline-size: 0.625rem;
 }
 
 .anki-global-kit-language-menu__current,
 .anki-global-kit-language-menu__item {
+  cursor: pointer;
   position: relative;
-  inline-size: 100%;
   border-radius: calc(var(--border-radius) * 0.6);
   color: inherit;
-  font: inherit;
+  inline-size: 100%;
   padding: 0.25rem 0.5rem;
+  font: inherit;
   text-align: start;
-  cursor: pointer;
 }
 
 .anki-global-kit-language-menu__current {
@@ -79,11 +79,11 @@
 .anki-global-kit-language-menu__current:focus-visible {
   outline: 0;
   background: var(--button-primary-bg);
-  color: white;
+  color: #fff;
 }
 
 .anki-global-kit-language-menu__divider {
+  background: var(--border-subtle);
   block-size: 1px;
   margin: 0.1875rem 0.25rem;
-  background: var(--border-subtle);
 }
