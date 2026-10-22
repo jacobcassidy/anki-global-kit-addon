@@ -226,7 +226,7 @@ pre.has-header > code {
   background: oklch(from var(--agk-syntax-background) calc(l * 0.8) c h);
   color: var(--agk-syntax-punctuation);
   padding: 0.35rem 1rem;
-  font-size: 0.75rem;
+  font-size: var(--font-size--xx-small, 0.75rem);
   line-height: 1.4;
   white-space: normal;
 }
