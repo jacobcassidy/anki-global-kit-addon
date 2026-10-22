@@ -16,3 +16,12 @@
 @import url("./components/toolbar.css");
 @import url("./components/topic.css");
 @import url("./components/type-hint.css");
+
+/* Code block headers are an editor control; card blocks show only the source. */
+.code-block__header {
+  display: none;
+}
+
+pre.global-kit-code-with-header > code {
+  padding: 0 !important;
+}

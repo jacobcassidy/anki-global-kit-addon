@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Limited code block headers and copy controls to the Desktop editor. Cards show code without a header.
+
 - Renamed **Paste Markdown as HTML** to **Convert Markdown to HTML**. It converts selected text, or inserts converted clipboard text at the caret when nothing is selected.
 - Combined Blockquote, Convert Markdown to HTML, and Inline Code into one editor toolbar group, matched Anki's group spacing, joined the syntax controls with square inner corners, and made disabled icons inherit Anki's disabled color. The Blockquote toolbar button is now off by default; existing saved choices are retained.
 - Added the default editor placeholder "Leave blank unless compare is wanted" to empty Compare fields in Kit note types, preserving custom descriptions and saved field values.
