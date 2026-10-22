@@ -221,7 +221,7 @@ test('multiline blocks preserve source and their starting line number when refre
       assert.equal(block.dataset.lineNumbers, 'true');
       assert.equal(block.dataset.lineStart, '50');
       assert.deepEqual(
-        [...block.querySelectorAll('.code-line')].map((line) => line.dataset.lineNumber),
+        [...block.querySelectorAll('.code-line__number')].map((line) => line.textContent),
         ['50', '51'],
       );
 
@@ -253,7 +253,7 @@ test('Code Block Options changes only the selected block starting number', () =>
       assert.equal(blocks[0].dataset.lineStart, '50');
       assert.equal(blocks[0].dataset.lineNumbers, 'true');
       assert.deepEqual(
-        [...blocks[0].querySelectorAll('.code-line')].map((line) => line.dataset.lineNumber),
+        [...blocks[0].querySelectorAll('.code-line__number')].map((line) => line.textContent),
         ['50', '51'],
       );
       assert.equal(blocks[1].dataset.lineStart, '99');
@@ -288,14 +288,14 @@ test('Code Block Options numbers Markdown blocks and toggles literal clozes with
       assert.equal(block.dataset.lineNumbers, 'true');
       assert.equal(block.dataset.clozeMode, 'literal');
       assert.deepEqual(
-        [...block.querySelectorAll('.code-line')].map((line) => line.dataset.lineNumber),
+        [...block.querySelectorAll('.code-line__number')].map((line) => line.textContent),
         ['5', '6'],
       );
       assert.equal(block.querySelector('.nb').textContent, 'print');
       assert.equal(block.querySelectorAll('[data-global-kit-literal-brace]').length, 2);
       assert.doesNotMatch(block.innerHTML, /\{\{c1::/);
       assert.equal(
-        [...block.querySelectorAll('.code-line')].map((line) => line.textContent).join('\n'),
+        [...block.querySelectorAll('.code-line__content')].map((line) => line.textContent).join('\n'),
         'print({{c1::value}})\nnext',
       );
 
@@ -358,7 +358,7 @@ test('Code Block Options applies from a caret after Anki recreates unchanged fie
       assert.equal(blocks[1].dataset.lineStart, '20');
       assert.equal(blocks[1].dataset.lineNumbers, 'true');
       assert.deepEqual(
-        [...blocks[1].querySelectorAll('.code-line')].map((line) => line.dataset.lineNumber),
+        [...blocks[1].querySelectorAll('.code-line__number')].map((line) => line.textContent),
         ['20', '21'],
       );
       assert.equal(blocks[1].querySelector('.nb').textContent, 'print');
