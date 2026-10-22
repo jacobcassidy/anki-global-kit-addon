@@ -303,12 +303,12 @@ pre.has-header > code {
 .code-block__copy:focus-visible .code-block__copy-icon,
 .code-block__options:hover .code-block__options-icon,
 .code-block__options:focus-visible .code-block__options-icon {
-  filter: brightness(1.35);
+  filter: brightness(1.2);
 }
 
 .code-block__copy:active .code-block__copy-icon,
 .code-block__options:active .code-block__options-icon {
-  filter: brightness(1.6);
+  filter: brightness(0) invert(1);
 }
 
 pre.has-header[data-line-numbers="true"] > code {

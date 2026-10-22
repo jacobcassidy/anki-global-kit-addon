@@ -323,25 +323,27 @@ export function installCodeBlockControls() {
       if (copying.has(button)) return;
 
       copying.add(button);
+      const icon = button.querySelector('.code-block__copy-icon');
+
+      if (icon) {
+        icon.innerHTML = checkIcon;
+        icon.classList.add('code-block__copy-icon--copied');
+      }
+
+      button.title = 'Copied';
+      setTimeout(() => {
+        if (icon) {
+          icon.innerHTML = '';
+          icon.classList.remove('code-block__copy-icon--copied');
+        }
+
+        button.title = 'Copy Code';
+      }, 2000);
 
       try {
         await copyCodeToClipboard(button.closest('pre'));
-        button.title = 'Copied';
-
-        const icon = button.querySelector('.code-block__copy-icon');
-        icon.innerHTML = checkIcon;
-        icon.classList.add('code-block__copy-icon--copied');
-
-        setTimeout(() => {
-          icon.innerHTML = '';
-          icon.classList.remove('code-block__copy-icon--copied');
-          button.title = 'Copy Code';
-        }, 2000);
       } catch {
         button.title = 'Copy failed';
-        setTimeout(() => {
-          button.title = 'Copy Code';
-        }, 2000);
       } finally {
         copying.delete(button);
       }
