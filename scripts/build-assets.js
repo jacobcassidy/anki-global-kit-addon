@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { stdout } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import { formatBuildMessage } from './build_logging.js';
@@ -11,9 +12,25 @@ import {
   editorUiCssBuildOptions,
 } from './build.config.js';
 
-execFileSync('python3', [fileURLToPath(new URL('./export_syntax_themes.py', import.meta.url))], {
-  stdio: 'inherit',
-});
+const colors = {
+  yellow: '\u001B[33m',
+  green: '\u001B[32m',
+  reset: '\u001B[0m',
+};
+
+function runGenerator(script, { colorOutput = false } = {}) {
+  const output = execFileSync('python3', [fileURLToPath(new URL(`./${script}`, import.meta.url))], {
+    encoding: 'utf8',
+    stdio: ['inherit', 'pipe', 'inherit'],
+  });
+
+  if (output) {
+    const message = output.trimEnd();
+    stdout.write(colorOutput ? `${colors.yellow}${message}${colors.reset}\n` : output);
+  }
+}
+
+runGenerator('export_syntax_themes.py');
 
 await Promise.all([
   build(cardsJsBuildOptions),
@@ -22,6 +39,6 @@ await Promise.all([
   build(editorFieldsCssBuildOptions),
   build(editorUiCssBuildOptions),
 ]);
-execFileSync('python3', [fileURLToPath(new URL('./font_notices.py', import.meta.url))], { stdio: 'inherit' });
+runGenerator('font_notices.py', { colorOutput: true });
 await updateDevAddonName();
-console.log(formatBuildMessage('Built card and editor assets.'));
+console.log(`${colors.green}${formatBuildMessage('Built card and editor assets.')}${colors.reset}`);
