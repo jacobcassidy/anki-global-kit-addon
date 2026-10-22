@@ -22,7 +22,7 @@
 
 .global-kit-code-block[data-line-numbers="true"] .code-line__number {
   user-select: none;
-  color: var(--global-kit-syntax-comment);
+  color: var(--syntax-gray-dark);
   text-align: end;
 }
 
