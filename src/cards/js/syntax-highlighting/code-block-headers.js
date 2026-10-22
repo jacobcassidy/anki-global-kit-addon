@@ -9,14 +9,17 @@ export function watchCodeBlockHeaders() {
   observers.codeBlockHeaders?.disconnect();
   installCodeBlockControls();
 
+  const decorate = (pre) => {
+    if (pre.closest('.agk-container')) decorateCodeBlock(pre);
+  };
   const process = (node) => {
     if (node.nodeType !== 1) return;
 
     const pre = node.closest('pre');
 
-    if (pre) decorateCodeBlock(pre);
+    if (pre) decorate(pre);
 
-    node.querySelectorAll('pre').forEach((block) => decorateCodeBlock(block));
+    node.querySelectorAll('pre').forEach(decorate);
   };
 
   process(document.body);
