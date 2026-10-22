@@ -8,6 +8,6 @@
   display: none;
 }
 
-pre.agk-code-with-header > code {
+pre.has-header > code {
   padding: 0 !important;
 }

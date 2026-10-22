@@ -205,13 +205,13 @@ pre .sh /* Literal.String.Heredoc */ {
   color: var(--syntax-yellow);
 }
 
-pre.agk-code-with-header {
+pre.has-header {
   overflow: hidden;
   background: var(--global-kit-syntax-background);
   padding: 0;
 }
 
-pre.agk-code-with-header > code {
+pre.has-header > code {
   display: block;
   overflow: auto;
   padding: 0.75rem 1rem !important;
@@ -300,6 +300,6 @@ pre.agk-code-with-header > code {
   filter: brightness(1.6);
 }
 
-pre.agk-code-with-header[data-line-numbers="true"] > code {
+pre.has-header[data-line-numbers="true"] > code {
   display: grid;
 }

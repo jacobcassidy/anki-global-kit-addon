@@ -97,7 +97,7 @@ export function decorateCodeBlock(pre, { copyButton, optionsButton = false } = {
   if (!code) return;
 
   code.classList.add('code-block__source');
-  pre.classList.add('agk-code-with-header');
+  pre.classList.add('has-header');
 
   if (copyButton !== undefined) pre.dataset.copyButton = String(copyButton);
 
