@@ -54,7 +54,7 @@ def toolbar_groups(groups: list[tuple[str, str, list[str]]]) -> str:
             rounded_buttons.append(button)
         display = "inline-flex" if visible else "none"
         group_style = f"display: {display};"
-        if name == "syntax-highlighting" and visible:
+        if name == "inline-code" and visible:
             group_style += (
                 " margin-right: calc(0rem - "
                 "var(--anki-global-kit-toolbar-group-gap, 0.3rem));"
