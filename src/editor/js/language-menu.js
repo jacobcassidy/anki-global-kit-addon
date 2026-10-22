@@ -1,11 +1,13 @@
 const MENU_ID = 'anki-global-kit-language-menu';
+const LANGUAGE_BUTTON_SELECTOR = '[data-command="anki_global_kit_syntax_language"]';
 let dismissMenu;
+let suppressNextMenuResponse = false;
 let languageOptions = [];
 
 function refreshLanguageButton() {
   const language = globalThis.ankiGlobalKitEditor?.getActiveLanguage?.();
   const label = languageOptions.find(({ alias }) => alias === language)?.label;
-  const button = document.querySelector('[data-command="anki_global_kit_syntax_language"]');
+  const button = document.querySelector(LANGUAGE_BUTTON_SELECTOR);
 
   if (button && label) button.textContent = label;
 }
@@ -17,6 +19,11 @@ function closeLanguageMenu() {
 }
 
 export function showLanguageMenu(languages, current, anchor) {
+  if (suppressNextMenuResponse) {
+    suppressNextMenuResponse = false;
+    return;
+  }
+
   if (document.getElementById(MENU_ID)) {
     closeLanguageMenu();
     return;
@@ -38,7 +45,7 @@ export function showLanguageMenu(languages, current, anchor) {
   const rect = Array.isArray(anchor)
     ? anchor
     : (() => {
-        const button = document.querySelector('[data-command="anki_global_kit_syntax_language"]');
+        const button = document.querySelector(LANGUAGE_BUTTON_SELECTOR);
         const bounds = button?.getBoundingClientRect();
 
         return bounds ? [bounds.left, bounds.bottom] : null;
@@ -95,7 +102,9 @@ export function showLanguageMenu(languages, current, anchor) {
 
   document.body.append(menu);
   const dismiss = (event) => {
-    if (event.target.closest?.('[data-command="anki_global_kit_syntax_language"]')) return;
+    if (event.composedPath().some((target) => target?.matches?.(LANGUAGE_BUTTON_SELECTOR))) {
+      return;
+    }
 
     if (!menu.contains(event.target)) closeLanguageMenu();
   };
@@ -118,6 +127,26 @@ export function installLanguageMenu() {
     languageOptions = Array.isArray(languages) ? languages : [];
     refreshLanguageButton();
   };
+
+  if (!api.languageButtonToggleInstalled) {
+    api.languageButtonToggleInstalled = true;
+    document.addEventListener(
+      'click',
+      (event) => {
+        if (!event.composedPath().some((target) => target?.matches?.(LANGUAGE_BUTTON_SELECTOR))) {
+          return;
+        }
+
+        if (document.getElementById(MENU_ID)) {
+          closeLanguageMenu();
+          suppressNextMenuResponse = true;
+        } else {
+          suppressNextMenuResponse = false;
+        }
+      },
+      true,
+    );
+  }
 
   if (!api.languageButtonTrackingInstalled) {
     api.languageButtonTrackingInstalled = true;
