@@ -17,6 +17,11 @@ function closeLanguageMenu() {
 }
 
 export function showLanguageMenu(languages, current, anchor) {
+  if (document.getElementById(MENU_ID)) {
+    closeLanguageMenu();
+    return;
+  }
+
   closeLanguageMenu();
 
   const activeLanguage = globalThis.ankiGlobalKitEditor?.getActiveLanguage?.(current) || current;
