@@ -5,6 +5,8 @@ import { editWithNativeUndo } from '../helpers/edit-transaction.js';
 import { enhanceHighlightHtml } from '../../../shared/js/syntax-highlighting/classification/markup.js';
 import { createClassificationBudget } from '../../../shared/js/syntax-highlighting/classification/index.js';
 
+import { decorateCodeBlock } from '../../../shared/js/syntax-highlighting/code-block-controls.js';
+
 const MESSAGE_PREFIX = 'anki-global-kit:markdown-highlight:';
 const pending = new Map();
 let requestId = 0;
@@ -133,6 +135,9 @@ function applyMarkdownHighlightResult(id, html, renderedBlocks) {
     code.removeAttribute('class');
     code.removeAttribute('data-language');
     code.innerHTML = enhanceHighlightHtml(rendered.html, rendered.language, { budget });
+    decorateCodeBlock(pre, {
+      copyButton: globalThis.ankiGlobalKitEditorSettings?.anki_editor_syntax_highlighting_copy_button !== false,
+    });
   }
 
   return insertHtml(target, container.innerHTML);

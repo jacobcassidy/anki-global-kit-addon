@@ -1,8 +1,14 @@
 export function textFromCode(node) {
-  const numberedLines = node.querySelectorAll(':scope > .code-line');
+  const numberedLines = [...node.children].filter((line) => line.classList.contains('code-line'));
+
   return numberedLines.length
     ? [...numberedLines]
-        .map((line) => line.querySelector(':scope > .code-line__content')?.textContent ?? line.textContent ?? '')
+        .map(
+          (line) =>
+            [...line.children].find((child) => child.classList.contains('code-line__content'))?.textContent ??
+            line.textContent ??
+            '',
+        )
         .join('\n')
     : node.textContent || '';
 }
@@ -17,30 +23,40 @@ function splitTokenNode(node) {
   if (node.nodeType === Node.TEXT_NODE) {
     return (node.nodeValue || '').split('\n').map(escapeText);
   }
+
   if (node.nodeType !== Node.ELEMENT_NODE) return [''];
 
   const lines = [''];
+
   for (const child of node.childNodes) {
     const childLines = splitTokenNode(child);
+
     lines[lines.length - 1] += childLines[0] || '';
+
     for (const continuation of childLines.slice(1)) lines.push(continuation);
   }
 
   const opening = `<${node.localName}${[...node.attributes]
     .map((attribute) => ` ${attribute.name}="${attribute.value.replaceAll('"', '&quot;')}"`)
     .join('')}>`;
-  return lines.map((content) => `${opening}${content}</${node.localName}>`);
+  return lines.map((content) => (content ? `${opening}${content}</${node.localName}>` : ''));
 }
 
 export function tokenHtmlByLine(tokenHtml, start) {
   const container = document.createElement('div');
+
   container.innerHTML = tokenHtml;
+
   const lines = [''];
+
   for (const node of container.childNodes) {
     const nodeLines = splitTokenNode(node);
+
     lines[lines.length - 1] += nodeLines[0] || '';
+
     for (const continuation of nodeLines.slice(1)) lines.push(continuation);
   }
+
   return lines
     .map(
       (line, index) =>
@@ -52,7 +68,7 @@ export function tokenHtmlByLine(tokenHtml, start) {
 /** Flatten visual rows into highlighted source with real newline separators. */
 export function flattenCodeLines(code) {
   const flat = code.ownerDocument.createElement('code');
-  const lines = [...code.querySelectorAll(':scope > .code-line')];
+  const lines = [...code.children].filter((line) => line.classList.contains('code-line'));
 
   if (!lines.length) {
     flat.innerHTML = code.innerHTML;
@@ -60,7 +76,7 @@ export function flattenCodeLines(code) {
     lines.forEach((line, index) => {
       if (index) flat.append('\n');
 
-      const content = line.querySelector(':scope > .code-line__content') || line;
+      const content = [...line.children].find((child) => child.classList.contains('code-line__content')) || line;
       const clone = content.cloneNode(true);
 
       clone.querySelectorAll('.code-line__number, [data-code-placeholder]').forEach((node) => node.remove());
@@ -99,7 +115,7 @@ export function codePointAt(code, offset) {
 }
 
 export function codeCaret(code, offset) {
-  const lines = [...code.querySelectorAll(':scope > .code-line')];
+  const lines = [...code.children].filter((line) => line.classList.contains('code-line'));
 
   for (const line of lines) {
     const content = line.querySelector('.code-line__content');
@@ -112,6 +128,7 @@ export function codeCaret(code, offset) {
 
   return [code, code.childNodes.length];
 }
+
 export function preserveClozeMode(code, mode) {
   for (const guard of code.querySelectorAll('[data-global-kit-literal-brace]')) {
     guard.replaceWith(...guard.childNodes);

@@ -26,6 +26,17 @@ function selectRange(selection, range) {
   selection.addRange(range);
 }
 
+function bookmarkRange(range) {
+  for (const position of ['end', 'start']) {
+    const bookmark = document.createElement('span');
+    bookmark.setAttribute(POSITION_ATTRIBUTE, position);
+    bookmark.textContent = '\u2060';
+    const point = range.cloneRange();
+    point.collapse(position === 'start');
+    point.insertNode(bookmark);
+  }
+}
+
 function cleanEditMarkers(field) {
   const start = field.querySelector(`[${POSITION_ATTRIBUTE}="start"]`);
   const end = field.querySelector(`[${POSITION_ATTRIBUTE}="end"]`);
@@ -66,14 +77,8 @@ export function editWithNativeUndo(field, selection, edit, onInput) {
 
   // Bookmarks retain exact caret/selection boundaries when Blink normalizes
   // text nodes during insertion. Remove them before Anki reads the input.
-  for (const position of ['end', 'start']) {
-    const bookmark = document.createElement('span');
-    bookmark.setAttribute(POSITION_ATTRIBUTE, position);
-    bookmark.textContent = '\u2060';
-    const point = plannedRange.cloneRange();
-    point.collapse(position === 'start');
-    point.insertNode(bookmark);
-  }
+  bookmarkRange(plannedRange);
+
   if (!inputHandlers.has(field)) {
     field.addEventListener(
       'input',
@@ -89,6 +94,10 @@ export function editWithNativeUndo(field, selection, edit, onInput) {
   const handler = { onInput, notified: false };
   inputHandlers.set(field, handler);
   field.focus();
+
+  // Undo restores the original field as well as its selection. The native
+  // insertHTML command otherwise leaves the whole replaced field selected.
+  bookmarkRange(originalRange);
 
   // Include boundaries outside the old formatting so insertHTML can remove
   // an outer CODE, UL, or OL wrapper. Undo restores these boundaries too.

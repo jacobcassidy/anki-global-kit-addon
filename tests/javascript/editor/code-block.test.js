@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { JSDOM } from 'jsdom';
-import { codeOffset } from '../../../src/shared/js/syntax-highlighting/code-lines.js';
+import { codeOffset, textFromCode } from '../../../src/shared/js/syntax-highlighting/code-lines.js';
 import { installCodeBlockHighlighting } from '../../../src/editor/js/formatting/code-block.js';
 
 function withEditor(html, callback) {
@@ -63,9 +63,6 @@ function mockOptionsEditing(document, window) {
     };
   };
   document.execCommand = (_command, _showUi, html) => {
-    // A real modal makes the editor inert, so native insertion cannot run.
-    if (document.querySelector('dialog[open]')) return false;
-
     const range = window.getSelection().getRangeAt(0);
 
     range.deleteContents();
@@ -122,6 +119,8 @@ test('new blocks start at line 1 despite old global preferences and apply tokens
       true,
     );
     assert.equal(field.querySelector('pre.global-kit-code-block').dataset.language, 'javascript');
+    assert.equal(field.querySelector('.code-block__language').textContent, 'JavaScript');
+    assert.equal(field.querySelector('.code-block__copy').hidden, false);
     assert.equal(field.querySelectorAll('[data-language]').length, 1);
     assert.equal(field.querySelector('code').attributes.length, 0);
     assert.equal(field.querySelector('code').textContent, request.source);
@@ -167,7 +166,7 @@ test('literal clozes remain inert through HTML annotation, line wrapping, and na
 
       const block = field.querySelector('pre');
 
-      assert.equal(block.textContent, request.source);
+      assert.equal(block.querySelector('code').textContent, request.source);
       assert.doesNotMatch(block.outerHTML, /\{\{c1::/);
       assert.equal(block.querySelectorAll('[data-global-kit-literal-brace]').length, 2);
       assert.equal(block.querySelector('[data-global-kit-token="variable"]').textContent, 'value');
@@ -265,7 +264,6 @@ test('Code Block Options changes only the selected block starting number', () =>
         ['50', '51'],
       );
       assert.equal(blocks[1].dataset.lineStart, '99');
-      assert.equal(document.querySelector('dialog'), null);
     },
   );
 });
@@ -333,7 +331,6 @@ test('Code Block Options leaves newer field edits untouched', () => {
     applyOptions(document, window);
 
     assert.equal(field.innerHTML, '<p>new edits</p>');
-    assert.equal(document.querySelector('dialog'), null);
   });
 });
 
@@ -370,7 +367,6 @@ test('Code Block Options applies from a caret after Anki recreates unchanged fie
         ['20', '21'],
       );
       assert.equal(blocks[1].querySelector('.nb').textContent, 'print');
-      assert.equal(document.querySelector('dialog'), null);
     },
   );
 });
@@ -558,6 +554,41 @@ test('keyboard line selection and multiline copy omit gutters and retain source 
 
       document.querySelector('code').dispatchEvent(clipboardEvent(window, 'copy', copied));
       assert.deepEqual(copied, { 'text/plain': 'one\ntwo' });
+    },
+  );
+});
+
+test('typing after Undo restores the old caret instead of replacing the restored field', () => {
+  withEditor(
+    '<pre class="global-kit-code-block" data-line-start="1"><code>first\nsecond</code></pre>',
+    (document, window) => {
+      const field = document.querySelector('anki-editable');
+      let undoHtml;
+
+      document.execCommand = (_command, _showUi, html) => {
+        undoHtml = field.innerHTML;
+
+        const range = window.getSelection().getRangeAt(0);
+
+        range.deleteContents();
+        range.insertNode(range.createContextualFragment(html));
+
+        return true;
+      };
+      caret(document, window, document.querySelector('code').firstChild, 3);
+      editInput(document, window, 'insertParagraph');
+      field.innerHTML = undoHtml;
+      field.dispatchEvent(new window.InputEvent('input', { bubbles: true, composed: true, inputType: 'historyUndo' }));
+
+      const code = field.querySelector('code');
+      const selection = window.getSelection();
+
+      assert.equal(textFromCode(code), 'first\nsecond');
+      assert.equal(selection.isCollapsed, true);
+      assert.equal(codeOffset(code, selection.anchorNode, selection.anchorOffset), 3);
+      assert.equal(field.querySelector('[data-anki-global-kit-edit-position]'), null);
+      editInput(document, window, 'insertText', 'X');
+      assert.equal(textFromCode(field.querySelector('code')), 'firXst\nsecond');
     },
   );
 });

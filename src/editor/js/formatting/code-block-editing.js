@@ -10,8 +10,9 @@ import {
 } from '../../../shared/js/syntax-highlighting/code-lines.js';
 
 import {
-  installCodeLineSelection,
+  installCodeBlockControls,
   selectedCodeText,
+  decorateCodeBlock,
 } from '../../../shared/js/syntax-highlighting/code-block-controls.js';
 
 const INSTALLED = Symbol.for('ankiGlobalKitCodeBlockEditing');
@@ -47,6 +48,7 @@ function replaceCode(target, start, end, text) {
     clone.innerHTML = tokenHtmlByLine(flat.innerHTML, Number(clone.parentElement.dataset.lineStart) || 1);
 
     preserveClozeMode(clone, clone.parentElement.dataset.clozeMode);
+    decorateCodeBlock(clone.parentElement);
 
     const caret = document.createRange();
 
@@ -123,7 +125,7 @@ export function installCodeBlockEditing() {
   if (document[INSTALLED]) return;
 
   document[INSTALLED] = true;
-  installCodeLineSelection();
+  installCodeBlockControls();
   document.addEventListener('beforeinput', editCode, true);
   document.addEventListener(
     'focusin',
@@ -132,6 +134,8 @@ export function installCodeBlockEditing() {
 
       // Upgrade gutters in previously saved blocks when their field is opened.
       for (const code of field?.querySelectorAll(CODE_SELECTOR) || []) {
+        decorateCodeBlock(code.parentElement);
+
         const start = Number(code.parentElement.dataset.lineStart) || 1;
 
         code.querySelectorAll(':scope > .code-line').forEach((line, index) => {
@@ -157,7 +161,13 @@ export function installCodeBlockEditing() {
         const target = selectedCode();
         const text = selectedCodeText(target?.selection);
 
-        if (text === null || !event.clipboardData || target.range.collapsed) return;
+        if (
+          text === null ||
+          !event.clipboardData ||
+          target.range.collapsed ||
+          !event.composedPath().includes(target.field)
+        )
+          return;
 
         event.clipboardData.setData('text/plain', text);
         event.preventDefault();

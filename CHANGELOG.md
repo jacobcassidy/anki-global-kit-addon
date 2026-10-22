@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added a darker language header and a **Copy code** button to editor and card code blocks. Copying preserves plain source text and blank lines while excluding HTML and line numbers. **Syntax Highlighting → Lines** controls whether new blocks show the copy button.
+
 - Added clickable code block line numbers that select the line content for copying, cutting, deleting, or replacing. Code selections copy as plain text without line numbers.
 
 - Added a configurable **Convert Markdown to HTML** editor shortcut, enabled by default as **Option+M** on macOS and **Alt+M** on Windows/Linux, with the current shortcut shown in its toolbar tooltip.
@@ -49,6 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved Help content beside its Settings page and the AnkiWeb listing description into publishing documentation. Updated guide links and package validation for the new locations.
 
 ### Fixed
+
+- Preserved the original editor selection through native undo so typing after undo continues at the restored caret.
 
 - Made code block line numbers non-editable and automatically updated them when inserting, deleting, or pasting lines in the Desktop editor.
 

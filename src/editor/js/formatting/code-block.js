@@ -9,6 +9,7 @@ import {
   flattenCodeLines,
   preserveClozeMode,
 } from '../../../shared/js/syntax-highlighting/code-lines.js';
+import { decorateCodeBlock } from '../../../shared/js/syntax-highlighting/code-block-controls.js';
 import { installCodeBlockEditing } from './code-block-editing.js';
 
 const CODE_SELECTOR = 'pre.global-kit-code-block > code';
@@ -166,6 +167,11 @@ function applyHighlightResult(id, source, language, tokenHtml, lineNumbers, line
       code.innerHTML = tokenHtmlByLine(enrichedHtml, Number(pre.dataset.lineStart));
       preserveClozeMode(code, pre.dataset.clozeMode);
       pre.append(code);
+      decorateCodeBlock(pre, {
+        copyButton: target.block
+          ? target.block.dataset.copyButton !== 'false'
+          : globalThis.ankiGlobalKitEditorSettings?.anki_editor_syntax_highlighting_copy_button !== false,
+      });
       replacement.deleteContents();
       replacement.insertNode(pre);
       replacement.setStartAfter(pre);

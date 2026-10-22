@@ -294,6 +294,15 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
         line_numbers,
         "New code blocks start at line 1. Use Code Block Options in the editor to change an individual block's starting line number.",
     )
+    copy_button = QCheckBox("Show Copy code button on new code blocks", lines_section)
+    copy_button.setChecked(
+        current_settings["anki_editor_syntax_highlighting_copy_button"]
+    )
+    add_checkbox_row(
+        lines_layout,
+        copy_button,
+        "Code block headers show the language. The copy button copies plain code without line numbers, in the editor and on Kit cards.",
+    )
     theme_controls = {}
     theme_preview_frame = QFrame(themes_section)
     theme_preview_frame.setObjectName("syntaxThemePreview")
@@ -409,6 +418,7 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
         {
             "anki_editor_syntax_highlighting_remember_language_per_deck": remember,
             "anki_editor_syntax_highlighting_line_numbers": line_numbers,
+            "anki_editor_syntax_highlighting_copy_button": copy_button,
             "anki_editor_syntax_highlighting_languages": language_control,
             "anki_editor_syntax_highlighting_default_language": default_language,
         },

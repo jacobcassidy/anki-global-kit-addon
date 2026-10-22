@@ -1,3 +1,4 @@
+import { getSyntaxLanguage } from './languages.js';
 import { codeOffset, textFromCode } from './code-lines.js';
 
 const INSTALLED = Symbol.for('ankiGlobalKitCodeLineSelection');
@@ -50,6 +51,7 @@ export function installCodeLineSelection() {
         const number = lineControl(event);
 
         if (!number || (type === 'mousedown' && event.button !== 0)) return;
+
         if (type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;
 
         event.preventDefault();
@@ -58,4 +60,165 @@ export function installCodeLineSelection() {
       true,
     );
   }
+}
+
+const COPY_INSTALLED = Symbol.for('ankiGlobalKitCodeCopy');
+const copying = new WeakSet();
+const LANGUAGE_NAMES = {
+  bash: 'Bash',
+  c: 'C',
+  cpp: 'C++',
+  csharp: 'C#',
+  css: 'CSS',
+  go: 'Go',
+  html: 'HTML',
+  java: 'Java',
+  javascript: 'JavaScript',
+  json: 'JSON',
+  kotlin: 'Kotlin',
+  markdown: 'Markdown',
+  php: 'PHP',
+  powershell: 'PowerShell',
+  python: 'Python',
+  ruby: 'Ruby',
+  rust: 'Rust',
+  sql: 'SQL',
+  typescript: 'TypeScript',
+  text: 'Plain text',
+  plaintext: 'Plain text',
+};
+
+/** Add presentation outside CODE so the source never contains header text. */
+export function decorateCodeBlock(pre, { copyButton } = {}) {
+  const code = [...pre.children].find((node) => node.localName === 'code');
+
+  if (!code) return;
+
+  pre.classList.add('global-kit-code-with-header');
+
+  if (copyButton !== undefined) pre.dataset.copyButton = String(copyButton);
+
+  let header = [...pre.children].find((node) => node.classList.contains('code-block__header'));
+
+  if (!header) {
+    header = pre.ownerDocument.createElement('span');
+    header.className = 'code-block__header';
+    header.setAttribute('contenteditable', 'false');
+
+    const label = pre.ownerDocument.createElement('span');
+    const button = pre.ownerDocument.createElement('button');
+
+    label.className = 'code-block__language';
+    button.className = 'code-block__copy';
+    button.type = 'button';
+    button.textContent = 'Copy code';
+    header.append(label, button);
+    pre.prepend(header);
+  }
+
+  const language =
+    pre.dataset.language ||
+    code.dataset.language ||
+    [...code.classList].find((name) => name.startsWith('language-'))?.slice(9) ||
+    '';
+  const name = LANGUAGE_NAMES[getSyntaxLanguage(language) || language] || language || 'Code';
+  const label = header.querySelector('.code-block__language');
+  const button = header.querySelector('.code-block__copy');
+
+  if (label.textContent !== name) label.textContent = name;
+
+  button.hidden = pre.dataset.copyButton === 'false';
+  button.setAttribute('aria-label', `Copy ${name} code`);
+}
+
+function legacyCopy(text) {
+  let active = document.activeElement;
+  let selection = window.getSelection();
+
+  while (active?.shadowRoot?.activeElement) {
+    const nextSelection = active.shadowRoot.getSelection?.();
+
+    if (nextSelection?.rangeCount) selection = nextSelection;
+
+    active = active.shadowRoot.activeElement;
+  }
+
+  const ranges = Array.from({ length: selection?.rangeCount || 0 }, (_, index) =>
+    selection.getRangeAt(index).cloneRange(),
+  );
+
+  const textarea = document.createElement('textarea');
+
+  textarea.value = text;
+  textarea.setAttribute('aria-hidden', 'true');
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.append(textarea);
+
+  try {
+    textarea.focus({ preventScroll: true });
+    textarea.select();
+
+    if (!document.execCommand('copy')) throw new Error('Clipboard copy failed');
+  } finally {
+    textarea.remove();
+    active?.focus({ preventScroll: true });
+    selection?.removeAllRanges();
+
+    for (const range of ranges) selection.addRange(range);
+  }
+}
+
+export async function copyCodeToClipboard(pre) {
+  const text = textFromCode([...pre.children].find((node) => node.localName === 'code'));
+
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error('Clipboard API unavailable');
+
+    await navigator.clipboard.writeText(text);
+  } catch {
+    legacyCopy(text);
+  }
+}
+
+export function installCodeBlockControls() {
+  installCodeLineSelection();
+
+  if (document[COPY_INSTALLED]) return;
+
+  document[COPY_INSTALLED] = true;
+  document.addEventListener(
+    'mousedown',
+    (event) => {
+      if (event.composedPath().some((node) => node?.matches?.('.code-block__copy'))) event.preventDefault();
+    },
+    true,
+  );
+  document.addEventListener(
+    'click',
+    async (event) => {
+      const button = event.composedPath().find((node) => node?.matches?.('.code-block__copy'));
+
+      if (!button) return;
+
+      event.preventDefault();
+
+      if (copying.has(button)) return;
+
+      copying.add(button);
+
+      try {
+        await copyCodeToClipboard(button.closest('pre'));
+        button.textContent = 'Copied';
+      } catch {
+        button.textContent = 'Copy failed';
+      } finally {
+        copying.delete(button);
+        setTimeout(() => {
+          button.textContent = 'Copy code';
+        }, 1500);
+      }
+    },
+    true,
+  );
 }

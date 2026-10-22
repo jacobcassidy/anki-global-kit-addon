@@ -7,7 +7,7 @@ import { showNoteContainers } from '../display/notes.js';
 import { modifyAnkiWeb } from '../integrations/ankiweb.js';
 import { watchSubmittedCodeBlocks } from '../syntax-highlighting/index.js';
 
-import { installCodeLineSelection } from '../../../shared/js/syntax-highlighting/code-block-controls.js';
+import { watchCodeBlockHeaders } from '../syntax-highlighting/code-block-headers.js';
 
 function runFunctions() {
   showQuestionContainers();
@@ -20,7 +20,7 @@ function runFunctions() {
 
 /** Start card features and observe subsequent Anki card changes. */
 export function initializeGlobalKit() {
-  installCodeLineSelection();
   watchCardChanges(runFunctions);
   watchSubmittedCodeBlocks();
+  watchCodeBlockHeaders();
 }

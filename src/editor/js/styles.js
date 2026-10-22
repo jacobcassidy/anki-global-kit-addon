@@ -1,3 +1,5 @@
+import { decorateCodeBlock } from '../../shared/js/syntax-highlighting/code-block-controls.js';
+
 const UI_STYLE_ID = 'anki-global-kit-editor-ui-styles';
 const FIELD_STYLE_ID = 'anki-global-kit-editor-field-styles';
 
@@ -45,6 +47,8 @@ async function installFieldStyles() {
       const css = globalThis.ankiGlobalKitEditorStyles?.fields || '';
 
       setStyle(editable?.getRootNode(), FIELD_STYLE_ID, css);
+
+      editable?.querySelectorAll('pre.global-kit-code-block').forEach((pre) => decorateCodeBlock(pre));
     }),
   );
 }
