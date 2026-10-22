@@ -59,8 +59,7 @@
   color: inherit;
   inline-size: 100%;
   padding: 2px 8px;
-  font: inherit;
-  font-size: small;
+  font-size: var(--font-size--x-small, 0.875rem);
   text-align: start;
 }
 

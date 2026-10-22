@@ -14,7 +14,7 @@
 
 anki-editable {
   padding-inline: 4px;
-  font-size: var(--font-size--medium);
+  font-size: var(--font-size--medium, 1.125rem);
 
   > :first-child {
     margin-block-start: 0 !important;
