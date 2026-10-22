@@ -3,6 +3,7 @@ import { getSyntaxLanguage } from '../../../shared/js/syntax-highlighting/langua
 import { getEditorRangeText, getEditorSelection } from '../helpers/selection.js';
 import { editWithNativeUndo } from '../helpers/edit-transaction.js';
 import { nextEditorRequestId } from '../helpers/request-id.js';
+import { getEditorTopicText } from '../helpers/fields.js';
 import { enhanceHighlightHtml } from '../../../shared/js/syntax-highlighting/classification/markup.js';
 import { createClassificationBudget } from '../../../shared/js/syntax-highlighting/classification/index.js';
 
@@ -13,29 +14,6 @@ const pending = new Map();
 
 function element(node) {
   return node?.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement;
-}
-
-function getStoreValue(store) {
-  let value;
-  const unsubscribe = store?.subscribe?.((nextValue) => {
-    value = nextValue;
-  });
-  unsubscribe?.();
-  return value;
-}
-
-function getTopicText() {
-  const fields = globalThis.require?.('anki/NoteEditor')?.instances?.[0]?.fields;
-  const topicField = fields?.find((field) =>
-    [field.name, field.fieldName, field.field?.name].some(
-      (name) => typeof name === 'string' && name.trim().toLowerCase() === 'topic',
-    ),
-  );
-  const html = getStoreValue(topicField?.editingArea?.content);
-  if (typeof html !== 'string' || !html) return '';
-  const content = document.createElement('template');
-  content.innerHTML = html;
-  return content.content.textContent || '';
 }
 
 function selectedTarget() {
@@ -93,7 +71,7 @@ export function convertMarkdown(clipboardText) {
   if (!markdown) return false;
 
   const html = markdownToHtml(markdown);
-  const { container, blocks } = markdownBlocks(html, getTopicText());
+  const { container, blocks } = markdownBlocks(html, getEditorTopicText());
   if (!blocks.length) return insertHtml(target, container.innerHTML);
 
   const id = nextEditorRequestId();

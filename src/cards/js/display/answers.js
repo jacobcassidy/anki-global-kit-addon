@@ -149,18 +149,15 @@ export function showAnswerContainers() {
       answerContainer.append(comparisonContainerEl);
 
       // Directly output user's answer if comparison is NOT active.
-    } else {
-      if (userAnswer && !state.renderedPlainOutputs.has(userAnswer)) {
-        if (isAnkiDroid) {
-          const answer = typedAnswer || '';
-          userAnswer.innerHTML = settings.cardReviewMarkdownRendering ? markdownToHtml(answer) : escapeText(answer);
-          state.renderedPlainOutputs.add(userAnswer);
-        } else if (!isAnkiDroid && state.outputAnswers !== undefined) {
-          const answer = typedAnswer || '';
-          userAnswer.innerHTML = settings.cardReviewMarkdownRendering ? markdownToHtml(answer) : escapeText(answer);
-          state.renderedPlainOutputs.add(userAnswer);
-        }
-      }
+    } else if (
+      userAnswer &&
+      !state.renderedPlainOutputs.has(userAnswer) &&
+      (isAnkiDroid || state.outputAnswers !== undefined)
+    ) {
+      const answer = typedAnswer || '';
+
+      userAnswer.innerHTML = settings.cardReviewMarkdownRendering ? markdownToHtml(answer) : escapeText(answer);
+      state.renderedPlainOutputs.add(userAnswer);
     }
   });
 

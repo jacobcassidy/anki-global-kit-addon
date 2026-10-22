@@ -1,6 +1,7 @@
 import { getEditorRangeText, getEditorSelection } from '../helpers/selection.js';
 import { editWithNativeUndo } from '../helpers/edit-transaction.js';
 import { nextEditorRequestId } from '../helpers/request-id.js';
+import { getEditorTopicText } from '../helpers/fields.js';
 import { getSyntaxLanguage } from '../../../shared/js/syntax-highlighting/languages.js';
 import { enhanceHighlightHtml } from '../../../shared/js/syntax-highlighting/classification/markup.js';
 
@@ -77,7 +78,7 @@ function requestHighlight(clipboardText, language) {
 
   const enabled = globalThis.ankiGlobalKitEditorSettings?.anki_editor_syntax_highlighting_languages || [];
   if (explicitLanguage && !enabled.includes(explicitLanguage)) explicitLanguage = null;
-  const topicText = currentTopicText();
+  const topicText = getEditorTopicText();
   const topicLanguage = getSyntaxLanguage(topicText);
   const automaticLanguage =
     target.language ||
@@ -114,23 +115,6 @@ function requestHighlight(clipboardText, language) {
   return true;
 }
 
-function currentTopicText() {
-  const fields = globalThis.require?.('anki/NoteEditor')?.instances?.[0]?.fields;
-  const topic = fields?.find((field) =>
-    [field.name, field.fieldName, field.field?.name].some(
-      (name) => typeof name === 'string' && name.trim().toLowerCase() === 'topic',
-    ),
-  );
-  let html;
-  topic?.editingArea?.content?.subscribe?.((value) => {
-    html = value;
-  })?.();
-  if (typeof html !== 'string') return '';
-  const content = document.createElement('template');
-  content.innerHTML = html;
-  return content.content.textContent || '';
-}
-
 function setExplicitLanguage(language) {
   explicitLanguage = typeof language === 'string' ? language : null;
 }
@@ -153,7 +137,7 @@ function getActiveLanguage(fallback) {
 
   if (enabled.includes(blockLanguage)) return blockLanguage;
 
-  const topicLanguage = getSyntaxLanguage(currentTopicText());
+  const topicLanguage = getSyntaxLanguage(getEditorTopicText());
 
   if (enabled.includes(topicLanguage)) return topicLanguage;
   if (enabled.includes(rememberedLanguage)) return rememberedLanguage;

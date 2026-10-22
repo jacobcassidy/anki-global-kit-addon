@@ -2,6 +2,7 @@ import {
   decorateCodeBlock,
   installCodeBlockControls,
 } from '../../shared/js/syntax-highlighting/code-block-controls.js';
+import { getEditorFields, readStoreValue } from './helpers/fields.js';
 
 const UI_STYLE_ID = 'anki-global-kit-editor-ui-styles';
 const FIELD_STYLE_ID = 'anki-global-kit-editor-field-styles';
@@ -26,26 +27,14 @@ function setStyle(root, id, css) {
   if (style.textContent !== css) style.textContent = css;
 }
 
-function getStoreValue(store) {
-  let value;
-  const unsubscribe = store?.subscribe?.((nextValue) => {
-    value = nextValue;
-  });
-
-  unsubscribe?.();
-
-  return value;
-}
-
 async function installFieldStyles() {
-  const noteEditor = globalThis.require?.('anki/NoteEditor');
-  const fields = noteEditor?.instances?.[0]?.fields;
+  const fields = getEditorFields();
 
   if (!fields?.length) return;
 
   await Promise.all(
     fields.map(async (field) => {
-      const richText = getStoreValue(field.editingArea?.editingInputs)?.[0];
+      const richText = readStoreValue(field.editingArea?.editingInputs)?.[0];
       const editable = await richText?.element;
       const css = globalThis.ankiGlobalKitEditorStyles?.fields || '';
 
