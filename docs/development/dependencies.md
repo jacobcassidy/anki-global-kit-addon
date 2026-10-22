@@ -31,9 +31,9 @@ These four dependencies are excluded from the add-on package and its card/editor
 ```sh
 npm ls braces source-map-js smol-toml katex --all
 npm audit
-npm run lint:scripts
-npm run lint:styles
-npm run lint:docs
+npm run lint:js
+npm run lint:css
+npm run lint:md
 npm run check
 npm run build
 npm run verify:package-assets

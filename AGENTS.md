@@ -59,12 +59,13 @@ The packaged shared card and editor font is kept in `addon/assets/fonts/`. `scri
 Useful project scripts:
 
 - `npm test` — Run the JavaScript and Python test suites.
-- `npm run test:scripts` — Run JavaScript tests with Node's built-in test runner.
-- `npm run test:python` — Run Python tests with unittest and isolated Qt stubs.
-- `npm run lint:scripts` — JavaScript linting.
-- `npm run lint:styles` — CSS linting.
-- `npm run lint:docs` — Markdown linting.
-- `npm run check` — Prettier formatting check.
+- `npm run test:js` — Run JavaScript tests with Node's built-in test runner and the SVG text loader.
+- `npm run test:py` — Run Python tests with unittest and isolated Qt stubs.
+- `npm run lint:js` — JavaScript linting.
+- `npm run lint:css` — CSS linting.
+- `npm run lint:md` — Markdown linting.
+- `npm run lint:py` — Python linting.
+- `npm run check` — Prettier and Ruff formatting checks.
 
 ## Implementation boundaries
 

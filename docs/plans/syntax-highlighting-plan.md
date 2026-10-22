@@ -323,7 +323,7 @@ The structural prerequisites are complete. Implement the stages below against th
 
 Automated coverage:
 
-- Add first-party tests under `tests/javascript/{cards,editor,shared,tooling}/` and `tests/python/{desktop,tooling}/`, with new shared snippets in `tests/fixtures/` and existing Anki stubs/helpers in `tests/support/`. Use the recursive discovery in `npm run test:scripts` and `npm run test:python`; keep new Python subpackages discoverable and helper imports explicit. Extend existing bootstrap, headless-module, editor, asset, and packaging coverage rather than recreating it.
+- Add first-party tests under `tests/javascript/{cards,editor,shared,tooling}/` and `tests/python/{desktop,tooling}/`, with new shared snippets in `tests/fixtures/` and existing Anki stubs/helpers in `tests/support/`. Use the recursive discovery in `npm run test:js` and `npm run test:py`; keep new Python subpackages discoverable and helper imports explicit. Extend existing bootstrap, headless-module, editor, asset, and packaging coverage rather than recreating it.
 - Verify pure rendering/theme/path/configuration definitions import without Qt, and bootstrap/editor initialization registers each feature hook once. Include smoke tests that exercise package startup with Anki stubs and verify no service imports the Settings dialog/pages.
 - Render representative existing languages and newly supported HTML, CSS, Markdown, PowerShell, and Kotlin; validate aliases and invalid-language failures.
 - Verify exact source preservation, escaping, Unicode, indentation, trailing newlines, literal template-like syntax, and cloze handling.
