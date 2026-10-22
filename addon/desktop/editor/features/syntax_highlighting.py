@@ -201,6 +201,7 @@ def set_editor_language_context(editor: Editor, *, reset: bool = False) -> None:
 
         remembered = remembered_language(editor.mw.col, deck_id, enabled)
     editor._anki_global_kit_language_remembered = remembered
+    _watch_add_deck_chooser(editor)
     if editor.web is not None:
         editor.web.eval(
             "globalThis.ankiGlobalKitEditor?.setLanguageContext("
@@ -212,6 +213,26 @@ def set_editor_language_context(editor: Editor, *, reset: bool = False) -> None:
             f"if (button) button.textContent = {json.dumps(label)};"
             "})();"
         )
+
+
+def _watch_add_deck_chooser(editor: Editor) -> None:
+    """Refresh the displayed language when Anki finishes selecting the add deck."""
+    if not getattr(editor, "addMode", False):
+        return
+
+    chooser = getattr(editor.parentWindow, "deck_chooser", None)
+    if chooser is None or getattr(
+        editor, "_anki_global_kit_deck_chooser_watched", False
+    ):
+        return
+
+    editor._anki_global_kit_deck_chooser_watched = True
+    for signal_name in ("currentIndexChanged", "activated"):
+        signal = getattr(chooser, signal_name, None)
+        if signal is not None and hasattr(signal, "connect"):
+            signal.connect(
+                lambda *_args, target=editor: set_editor_language_context(target)
+            )
 
 
 def reset_editor_language_context(editor: Editor) -> None:
