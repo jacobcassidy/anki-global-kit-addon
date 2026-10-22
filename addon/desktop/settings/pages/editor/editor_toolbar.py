@@ -14,7 +14,7 @@ BUTTON_SETTINGS = (
     ("anki_editor_blockquote_button", "Show Blockquote button", None),
     (
         "anki_editor_paste_markdown_as_html_button",
-        "Show Convert Markdown button",
+        "Show Convert Markdown to HTML button",
         "Convert selected Markdown text to formatted HTML, or insert converted clipboard text when nothing is selected.",
     ),
     (

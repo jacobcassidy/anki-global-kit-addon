@@ -30,7 +30,7 @@ class EditorBindingsTests(unittest.TestCase):
             self.assertIn("background-color: currentColor", icon[0].attrib["style"])
             self.assertIn("mask: url(", icon[0].attrib["style"])
         markdown = editor.addButton.call_args_list[3].kwargs
-        self.assertEqual(markdown["tip"], "Convert Markdown (Alt+M)")
+        self.assertEqual(markdown["tip"], "Convert Markdown to HTML (Alt+M)")
         integration.QApplication.clipboard.return_value.text.return_value = "**text**"
         markdown["func"](editor)
         editor.web.eval.assert_called_once_with(
@@ -175,7 +175,8 @@ class EditorBindingsTests(unittest.TestCase):
                 self.assertEqual(shortcut.key, "Alt+K")
                 self.assertTrue(
                     any(
-                        'button.title = "Convert Markdown (Alt+K)";' in call.args[0]
+                        'button.title = "Convert Markdown to HTML (Alt+K)";'
+                        in call.args[0]
                         for call in editor.web.eval.call_args_list
                     )
                 )
@@ -189,7 +190,7 @@ class EditorBindingsTests(unittest.TestCase):
                 self.assertFalse(shortcut.isEnabled())
                 self.assertTrue(
                     any(
-                        'button.title = "Convert Markdown";' in call.args[0]
+                        'button.title = "Convert Markdown to HTML";' in call.args[0]
                         for call in editor.web.eval.call_args_list
                     )
                 )

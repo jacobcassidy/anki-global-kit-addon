@@ -92,7 +92,7 @@ def _inject_features(editor: Editor) -> None:
         f"button.title = {json.dumps(_button_tip('Blockquote', 'anki_editor_blockquote_shortcut', editor_settings))};"
         "}"
         "\nfor (const button of document.querySelectorAll('[data-command=\"anki_global_kit_paste_markdown_as_html\"]')) {"
-        f"button.title = {json.dumps(_button_tip('Convert Markdown', 'anki_editor_convert_markdown_shortcut', editor_settings))};"
+        f"button.title = {json.dumps(_button_tip('Convert Markdown to HTML', 'anki_editor_convert_markdown_shortcut', editor_settings))};"
         "}"
     )
     syntax_highlighting.set_editor_language_context(editor)
@@ -150,7 +150,9 @@ def _add_button(buttons: list, editor: Editor) -> None:
             cmd="anki_global_kit_paste_markdown_as_html",
             func=_convert_markdown,
             tip=_button_tip(
-                "Convert Markdown", "anki_editor_convert_markdown_shortcut", settings
+                "Convert Markdown to HTML",
+                "anki_editor_convert_markdown_shortcut",
+                settings,
             ),
         )
     )
