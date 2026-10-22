@@ -35,8 +35,8 @@ npm run lint:scripts
 npm run lint:styles
 npm run lint:docs
 npm run check
-npm run build:addon
-npm run check:assets
+npm run build
+npm run verify:package-assets
 ```
 
 The dependency audit requires access to the npm registry. The package manifest and lockfile should be updated together when changing an override.

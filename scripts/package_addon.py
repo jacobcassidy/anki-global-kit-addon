@@ -71,11 +71,11 @@ def package_files() -> list[Path]:
 
 def main() -> None:
     if __package__:
-        from .check_assets import validate_assets
         from .font_notices import write_font_notice
+        from .verify_package_assets import validate_assets
     else:
-        from check_assets import validate_assets
         from font_notices import write_font_notice
+        from verify_package_assets import validate_assets
 
     changelog = REPOSITORY_ROOT / "CHANGELOG.md"
     if not changelog.is_file():

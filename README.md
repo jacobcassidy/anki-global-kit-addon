@@ -131,18 +131,18 @@ Development supports Node.js 22.22.2 or later in the 22.x series, 24.15.0 or lat
 
 ```sh
 npm install
-npm run build:addon
-npm run check:assets
+npm run build
+npm run verify:package-assets
 npm run package:addon
 ```
 
 Install `dist/anki-global-kit.ankiaddon` through Anki Desktop's **Tools > Add-ons > Install from file**, then restart Anki. Use `npm run watch` to rebuild assets while editing; rebuild the package when reinstalling changes.
 
-For development directly from this checkout, run `npm run link:addon` after building. This creates `anki-global-kit-dev` in Anki's `addons21` folder, linked to this repository's `addon/` folder (a directory junction on Windows). The separate folder name keeps the development link separate from the package installed from a local file. Disable the packaged copy in Anki's add-on manager when using the development copy, or disable the development copy when testing the package, then restart Anki so only one copy runs.
+For development directly from this checkout, run `npm run dev:link-addon` after building. This creates `anki-global-kit-dev` in Anki's `addons21` folder, linked to this repository's `addon/` folder (a directory junction on Windows). The separate folder name keeps the development link separate from the package installed from a local file. Disable the packaged copy in Anki's add-on manager when using the development copy, or disable the development copy when testing the package, then restart Anki so only one copy runs.
 
 The development copy appears as **Anki Global Kit (dev vX.X.X)** in Anki's Add-ons list. Linking, building, and starting the watcher refresh this local name from `addon/manifest.json`; the running watcher also refreshes it when the manifest changes. Restart Anki to reload the displayed name. This label is stored in ignored `addon/meta.json`, preserving saved settings and the release name.
 
-The link command uses the standard [Anki data location](https://docs.ankiweb.net/files.html) for macOS, Windows, or Linux, including `ANKI_BASE` and Linux's `XDG_DATA_HOME` overrides. For a custom installation or Flatpak, pass the add-ons folder explicitly: `npm run link:addon -- "/path/to/Anki2/addons21"`. Repeating the command is safe; it refuses to overwrite an existing folder or a link to another checkout. Use `npm run watch` while editing assets, and restart Anki to load Python changes.
+The link command uses the standard [Anki data location](https://docs.ankiweb.net/files.html) for macOS, Windows, or Linux, including `ANKI_BASE` and Linux's `XDG_DATA_HOME` overrides. For a custom installation or Flatpak, pass the add-ons folder explicitly: `npm run dev:link-addon -- "/path/to/Anki2/addons21"`. Repeating the command is safe; it refuses to overwrite an existing folder or a link to another checkout. Use `npm run watch` while editing assets, and restart Anki to load Python changes.
 
 Run `npm test` for the JavaScript and Python suites, or `npm run test:scripts` and `npm run test:python` separately. GitHub Actions runs both suites on pushes, pull requests, and manual workflow runs using Node.js 24 and Python 3.13. The suites use Node/jsdom and isolated Anki/Qt stand-ins. They cover card and editor shortcuts, note type creation and replacement, deletion safeguards, removal confirmations, changed-plan rejection, and managed media installation and failed-write recovery. Live Anki and cross-client release checks are described in the publishing guide.
 
@@ -152,7 +152,7 @@ See the [repository architecture guide](docs/development/architecture.md) for se
 
 Merging a new version from `dev` into `main` automatically publishes a GitHub release after CI passes. The workflow reads the newest dated version section in `CHANGELOG.md`, excluding **Unreleased** and older sections, and checks that the manifest and package versions match. If that version already has a published release, publication is skipped.
 
-GitHub Actions builds the installable archive from the merged repository code by running `npm ci`, `npm run build:addon`, and `npm run package:addon`. The packaging script creates `dist/anki-global-kit.ankiaddon` from the `addon/` files, including the freshly built card and editor assets, plus the root changelog and license. The workflow attaches this archive to the GitHub release, uses the changelog section as its notes, and creates a `vX.Y.Z` tag at the exact merged commit. GitHub builds and uploads the archive automatically; updating the AnkiWeb listing still requires a manual upload. See [publishing instructions](docs/development/publishing.md) for version preparation, packaging, and AnkiWeb release steps.
+GitHub Actions builds the installable archive from the merged repository code by running `npm ci`, `npm run build`, and `npm run package:addon`. The packaging script creates `dist/anki-global-kit.ankiaddon` from the `addon/` files, including the freshly built card and editor assets, plus the root changelog and license. The workflow attaches this archive to the GitHub release, uses the changelog section as its notes, and creates a `vX.Y.Z` tag at the exact merged commit. GitHub builds and uploads the archive automatically; updating the AnkiWeb listing still requires a manual upload. See [publishing instructions](docs/development/publishing.md) for version preparation, packaging, and AnkiWeb release steps.
 
 See [development dependency notes](docs/development/dependencies.md) for patched transitive dependency overrides and the remaining `braces` advisory.
 

@@ -41,7 +41,7 @@ def update_assets_for_profile() -> bool:
     if missing:
         showWarning(
             "Anki Global Kit assets have not been built. From the project folder, "
-            "run `npm run build:addon`, then restart Anki and try again."
+            "run `npm run build`, then restart Anki and try again."
         )
         return False
 

@@ -26,7 +26,7 @@ GitHub releases provide downloadable archives. Updating the AnkiWeb listing stil
 
    ```sh
    npm install
-   npm run build:addon
+   npm run build
    ```
 
 2. Create the upload archive as described below and install it in a clean Anki Desktop 26.05 or later profile. Confirm that its assets are copied into `collection.media` automatically when the profile opens.
@@ -41,7 +41,7 @@ Anki add-ons run on Anki Desktop. Publishing this add-on does not install it on 
 The repository-root `CHANGELOG.md` is the canonical changelog, and `LICENSE` contains the project's MIT license. From the repository root, build the assets and package the add-on; the packaging script includes both files at the archive root:
 
 ```sh
-npm run build:addon
+npm run build
 npm run package:addon
 ```
 
@@ -53,7 +53,7 @@ Packaging requires every listed top-level file and folder, including the reposit
 
 Builds and packaging generate `addon/assets/fonts/_meslolgl-nf-license.txt` from `FONT-LICENSES.md` and all adjacent `licenses/*.txt` files. Python 3 is required for notice generation. The add-on installs this combined attribution and license notice into `collection.media` with the font so the notices sync to other clients. Edit the source notices and regenerate rather than editing the combined file.
 
-Packaging also runs the asset checks available through `npm run check:assets`: card and editor bundles, their source entry points and build outputs, referenced shared icons, configured note type template parts, shared font references, and the font notice and its sources must match the package paths. The combined notice must match its current sources. These checks validate the existing bundles; rebuild them before packaging changes to JavaScript or CSS.
+Packaging also runs the asset checks available through `npm run verify:package-assets`: card and editor bundles, their source entry points and build outputs, referenced shared icons, configured note type template parts, shared font references, and the font notice and its sources must match the package paths. The combined notice must match its current sources. These checks validate the existing bundles; rebuild them before packaging changes to JavaScript or CSS.
 
 The Anki add-on guide documents the required archive layout and upload process: [Sharing Add-ons](https://addon-docs.ankiweb.net/sharing.html).
 
@@ -70,7 +70,7 @@ Keep the source repository linked from the listing so users can review the code 
 ## Publish an update
 
 1. Make and review the code changes, then update the repository-root `CHANGELOG.md`, matching package versions, and supported Anki version information as needed. Follow **Automatic GitHub releases** above to publish the GitHub release when merging into `main`.
-2. Rebuild the assets with `npm run build:addon`.
+2. Rebuild the assets with `npm run build`.
 3. Test the built add-on in Anki Desktop. For changes to card behavior, also check a synced collection in the supported web and mobile clients.
 4. Recreate the `.ankiaddon` archive with `npm run package:addon`.
 5. Sign in to the AnkiWeb account that owns the existing listing, open that listing, and use its update option to upload the new archive. Updating the existing listing preserves its identity and download code.

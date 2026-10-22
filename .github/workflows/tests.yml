@@ -32,9 +32,9 @@ jobs:
       - name: Check formatting
         run: npm run check
       - name: Build generated assets
-        run: npm run build:addon
+        run: npm run build
       - name: Check asset paths
-        run: npm run check:assets
+        run: npm run verify:package-assets
       - name: Validate release metadata and changelog notes
         run: python3 scripts/release_notes.py --output dist/release-notes.md
       - name: Verify generated assets are current
@@ -96,7 +96,7 @@ jobs:
         if: steps.existing.outputs.exists == 'false'
         run: |
           npm ci
-          npm run build:addon
+          npm run build
           npm run package:addon
       - name: Publish release with changelog notes and add-on archive
         if: steps.existing.outputs.exists == 'false'

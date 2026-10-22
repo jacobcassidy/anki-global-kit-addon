@@ -23,9 +23,9 @@ function defaultAddonsFolder() {
 
 async function main() {
   const args = process.argv.slice(2);
-  if (args.length > 1) throw new Error('Usage: npm run link:addon -- [addons-folder]');
+  if (args.length > 1) throw new Error('Usage: npm run dev:link-addon -- [addons-folder]');
   if (args[0] === '--help') {
-    console.log('Usage: npm run link:addon -- [addons-folder]');
+    console.log('Usage: npm run dev:link-addon -- [addons-folder]');
     return;
   }
 
@@ -52,7 +52,7 @@ async function main() {
   await symlink(source, destination, process.platform === 'win32' ? 'junction' : 'dir');
   await updateDevAddonName({ create: true });
   console.log(`Linked: ${destination} -> ${source}`);
-  console.log('Build assets with npm run build:addon or npm run watch, then restart Anki to load Python changes.');
+  console.log('Build assets with npm run build or npm run watch, then restart Anki to load Python changes.');
 }
 
 main().catch((error) => {

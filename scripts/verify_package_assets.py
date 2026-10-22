@@ -131,7 +131,7 @@ def validate_assets(package_files: list[Path]) -> str:
         theme_service.generate_theme_css()
     ):
         raise ValueError(
-            "Generated Cassidy Dark CSS is missing or stale; run npm run build:addon."
+            "Generated Cassidy Dark CSS is missing or stale; run npm run build."
         )
     packaged_paths = {path.resolve() for path in package_files}
     if manifest.SYNTAX_CSS_ASSET_NAME in manifest.ASSET_PATHS:
@@ -197,7 +197,7 @@ def validate_assets(package_files: list[Path]) -> str:
     notice = manifest.ASSET_PATHS[manifest.FONT_LICENSE_ASSET_NAME]
     if notice.read_bytes() != font_notices.render_font_notice():
         raise ValueError(
-            "The combined font notice is out of date. Run `npm run build:addon`."
+            "The combined font notice is out of date. Run `npm run build`."
         )
 
     build_config = read_source(ROOT / "scripts/build.config.js")

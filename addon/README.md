@@ -30,7 +30,7 @@ Development supports Node.js 22.22.2 or later in the 22.x series, 24.15.0 or lat
 
 ```sh
 npm install
-npm run build:addon
+npm run build
 ```
 
 Copy the `addon` folder into Anki's add-ons folder and restart Anki. On profile open, the add-on installs or refreshes the card JavaScript, CSS, and font in that profile. In **Tools > Anki Global Kit Settings... > Note Types**, select topics and card formats, then choose **Apply Selected Changes** and confirm. Sync your collection and media before reviewing on other devices.
