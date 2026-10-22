@@ -61,5 +61,6 @@ export const editorJsBuildOptions = {
   target: ['es2020'],
   legalComments: 'none',
   minify: true,
+  loader: { '.svg': 'text' },
   banner: { js: `/*!\n${lezerLicense}\n*/` },
 };

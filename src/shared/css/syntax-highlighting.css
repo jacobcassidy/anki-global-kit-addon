@@ -275,6 +275,17 @@ pre.has-header > code {
   inline-size: 1rem;
 }
 
+.code-block__copy-icon--copied {
+  background: none;
+  mask: none;
+}
+
+.code-block__copy-icon--copied svg {
+  display: block;
+  block-size: 1rem;
+  inline-size: 1rem;
+}
+
 .code-block__options-icon {
   display: block;
   background-color: currentcolor;

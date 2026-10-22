@@ -1,5 +1,6 @@
 import { getSyntaxLanguage } from './languages.js';
 import { codeOffset, textFromCode } from './code-lines.js';
+import checkIcon from '../../../../addon/assets/icons/check.svg';
 
 const INSTALLED = Symbol.for('ankiGlobalKitCodeLineSelection');
 
@@ -326,13 +327,23 @@ export function installCodeBlockControls() {
       try {
         await copyCodeToClipboard(button.closest('pre'));
         button.title = 'Copied';
+
+        const icon = button.querySelector('.code-block__copy-icon');
+        icon.innerHTML = checkIcon;
+        icon.classList.add('code-block__copy-icon--copied');
+
+        setTimeout(() => {
+          icon.innerHTML = '';
+          icon.classList.remove('code-block__copy-icon--copied');
+          button.title = 'Copy Code';
+        }, 2000);
       } catch {
         button.title = 'Copy failed';
-      } finally {
-        copying.delete(button);
         setTimeout(() => {
           button.title = 'Copy Code';
-        }, 1500);
+        }, 2000);
+      } finally {
+        copying.delete(button);
       }
     },
     true,
