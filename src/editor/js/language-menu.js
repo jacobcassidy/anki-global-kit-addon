@@ -10,6 +10,12 @@ function closeLanguageMenu() {
 export function showLanguageMenu(languages, current, anchor) {
   closeLanguageMenu();
 
+  const activeLanguage = globalThis.ankiGlobalKitEditor?.getActiveLanguage?.(current) || current;
+  const activeLabel = languages.find(({ alias }) => alias === activeLanguage)?.label;
+  const languageButton = document.querySelector('[data-command="anki_global_kit_syntax_language"]');
+
+  if (languageButton && activeLabel) languageButton.textContent = activeLabel;
+
   const menu = document.createElement('div');
   menu.id = MENU_ID;
   menu.className = 'anki-global-kit-language-menu';
@@ -29,10 +35,10 @@ export function showLanguageMenu(languages, current, anchor) {
   menu.style.left = `${Math.max(8, Math.min(rect[0], innerWidth - 240))}px`;
   menu.style.top = `${rect[1] + 8}px`;
 
-  if (current) {
+  if (activeLanguage) {
     const selected = document.createElement('div');
     selected.className = 'anki-global-kit-language-menu__current';
-    selected.textContent = languages.find(({ alias }) => alias === current)?.label || current;
+    selected.textContent = activeLabel || activeLanguage;
     selected.setAttribute('role', 'menuitem');
     selected.tabIndex = 0;
     selected.addEventListener('mousedown', (event) => event.preventDefault());
@@ -49,7 +55,7 @@ export function showLanguageMenu(languages, current, anchor) {
   }
 
   for (const { alias, label } of languages) {
-    if (alias === current) continue;
+    if (alias === activeLanguage) continue;
 
     const item = document.createElement('div');
     item.className = 'anki-global-kit-language-menu__item';

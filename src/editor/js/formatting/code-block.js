@@ -140,6 +140,31 @@ function setLanguageContext(explicit, remembered) {
   rememberedLanguage = typeof remembered === 'string' ? remembered : null;
 }
 
+function getActiveLanguage(fallback) {
+  const settings = globalThis.ankiGlobalKitEditorSettings || {};
+  const enabled = settings.anki_editor_syntax_highlighting_languages || [];
+
+  if (enabled.includes(explicitLanguage)) return explicitLanguage;
+
+  const selection = getEditorSelection();
+  const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
+  const active = element(range?.startContainer)?.closest(`${CODE_SELECTOR},pre.global-kit-code-block`);
+  const blockLanguage = active?.closest('pre')?.dataset.language;
+
+  if (enabled.includes(blockLanguage)) return blockLanguage;
+
+  const topicLanguage = getSyntaxLanguage(currentTopicText());
+
+  if (enabled.includes(topicLanguage)) return topicLanguage;
+  if (enabled.includes(rememberedLanguage)) return rememberedLanguage;
+
+  const defaultLanguage = settings.anki_editor_syntax_highlighting_default_language;
+
+  if (enabled.includes(defaultLanguage)) return defaultLanguage;
+
+  return enabled.includes(fallback) ? fallback : enabled[0] || null;
+}
+
 function applyHighlightResult(id, source, language, tokenHtml, lineNumbers, lineStart, clozeMode = 'active') {
   const target = pending.get(String(id));
   pending.delete(String(id));
@@ -289,6 +314,7 @@ export function installCodeBlockHighlighting() {
   api.cancelCodeBlockOptions = cancelCodeBlockOptions;
   api.setExplicitLanguage = setExplicitLanguage;
   api.setLanguageContext = setLanguageContext;
+  api.getActiveLanguage = getActiveLanguage;
   api.cancelHighlightResult = cancelHighlightResult;
 }
 
