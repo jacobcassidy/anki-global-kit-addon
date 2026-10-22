@@ -1,5 +1,6 @@
 const MENU_ID = 'anki-global-kit-language-menu';
 const LANGUAGE_BUTTON_SELECTOR = '[data-command="anki_global_kit_syntax_language"]';
+const LANGUAGE_MENU_TOGGLE_SELECTOR = `${LANGUAGE_BUTTON_SELECTOR}, .code-block__language`;
 let dismissMenu;
 let suppressNextMenuResponse = false;
 let languageOptions = [];
@@ -102,7 +103,7 @@ export function showLanguageMenu(languages, current, anchor) {
 
   document.body.append(menu);
   const dismiss = (event) => {
-    if (event.composedPath().some((target) => target?.matches?.(LANGUAGE_BUTTON_SELECTOR))) {
+    if (event.composedPath().some((target) => target?.matches?.(LANGUAGE_MENU_TOGGLE_SELECTOR))) {
       return;
     }
 
@@ -133,7 +134,7 @@ export function installLanguageMenu() {
     document.addEventListener(
       'click',
       (event) => {
-        if (!event.composedPath().some((target) => target?.matches?.(LANGUAGE_BUTTON_SELECTOR))) {
+        if (!event.composedPath().some((target) => target?.matches?.(LANGUAGE_MENU_TOGGLE_SELECTOR))) {
           return;
         }
 
