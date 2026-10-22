@@ -7,6 +7,7 @@ import { installCodeBlockHighlighting } from './formatting/code-block.js';
 import { installClozeShortcuts } from './cloze/shortcuts.js';
 import { installEditorStyles } from './styles.js';
 import { refreshEditorToolbar } from './toolbar.js';
+import { installLanguageMenu } from './language-menu.js';
 import {
   installBlockFormatting,
   toggleEditorBlock,
@@ -16,6 +17,7 @@ import {
 
 installSelectionTracking();
 installCodeBlockHighlighting();
+installLanguageMenu();
 
 if (!globalThis.ankiGlobalKitEditor) {
   installCodeSpaceNormalization();
