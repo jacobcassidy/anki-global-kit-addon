@@ -21,6 +21,7 @@ function refreshCodeBlockOptions() {
   const codeBlock = element?.closest('pre');
 
   button.disabled = !codeBlock;
+  button.style.color = codeBlock ? '' : 'var(--fg-disabled)';
 }
 
 export function refreshEditorToolbar() {
