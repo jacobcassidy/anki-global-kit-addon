@@ -30,12 +30,15 @@ export function showLanguageMenu(languages, current, anchor) {
   menu.style.top = `${rect[1] + 8}px`;
 
   if (current) {
-    const selected = document.createElement('button');
-    selected.type = 'button';
+    const selected = document.createElement('div');
     selected.className = 'anki-global-kit-language-menu__current';
     selected.textContent = languages.find(({ alias }) => alias === current)?.label || current;
     selected.setAttribute('role', 'menuitem');
+    selected.tabIndex = 0;
     selected.addEventListener('click', closeLanguageMenu);
+    selected.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') closeLanguageMenu();
+    });
     menu.append(selected);
 
     const divider = document.createElement('div');
@@ -47,14 +50,23 @@ export function showLanguageMenu(languages, current, anchor) {
   for (const { alias, label } of languages) {
     if (alias === current) continue;
 
-    const item = document.createElement('button');
-    item.type = 'button';
+    const item = document.createElement('div');
     item.className = 'anki-global-kit-language-menu__item';
     item.textContent = label;
     item.setAttribute('role', 'menuitem');
-    item.addEventListener('click', () => {
+    item.tabIndex = 0;
+    const choose = () => {
       closeLanguageMenu();
       globalThis.pycmd?.(`anki-global-kit:language-choice:${JSON.stringify(alias)}`);
+    };
+    item.addEventListener('click', () => {
+      choose();
+    });
+    item.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        choose();
+      }
     });
     menu.append(item);
   }

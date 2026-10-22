@@ -55,13 +55,12 @@
 .anki-global-kit-language-menu__item {
   position: relative;
   inline-size: 100%;
-  border: 0;
   border-radius: calc(var(--border-radius) * 0.6);
-  background: transparent;
   color: inherit;
   font: inherit;
   padding: 0.375rem 0.5rem;
   text-align: start;
+  cursor: pointer;
 }
 
 .anki-global-kit-language-menu__current {
@@ -74,7 +73,8 @@
 
 .anki-global-kit-language-menu__item:hover,
 .anki-global-kit-language-menu__item:focus-visible,
-.anki-global-kit-language-menu__current:hover {
+.anki-global-kit-language-menu__current:hover,
+.anki-global-kit-language-menu__current:focus-visible {
   outline: 0;
   background: var(--canvas-inset);
 }
