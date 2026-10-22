@@ -4,8 +4,12 @@ import json
 import sys
 import unittest
 from copy import deepcopy
-from types import ModuleType, SimpleNamespace
+from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import Mock, patch
+
+# Use the same packaged Pygments modules as the add-on runtime.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "addon/vendor"))
 
 import pygments
 
@@ -301,7 +305,7 @@ class SyntaxRenderingTests(unittest.TestCase):
         settings["anki_editor_syntax_highlighting_shortcut_enabled"] = False
         self.assertEqual(feature.highlight_code_tip(settings), "Highlight Code")
 
-    def test_language_menu_is_anchored_below_button_with_webview_zoom(self):
+    def test_language_menu_is_sent_to_editor_webview(self):
         settings = {
             "anki_editor_syntax_highlighting_languages": ["python"],
             "anki_editor_syntax_highlighting_default_language": "python",
@@ -311,24 +315,14 @@ class SyntaxRenderingTests(unittest.TestCase):
             "kit.desktop.syntax_highlighting.rendering",
             "addon/desktop/syntax_highlighting/rendering.py",
         )
-        qt = ModuleType("aqt.qt")
-        qt.QMenu = Mock()
-        qt.QCursor = Mock()
-        qt.QPoint = lambda x, y: (x, y)
         editor = Mock()
         editor._anki_global_kit_language_override = None
-        editor.web.zoomFactor.return_value = 1.5
-        editor.web.mapToGlobal.return_value = (515, 645)
-        with (
-            patch.dict(sys.modules, {"aqt.qt": qt}),
-            patch.object(feature, "get_editor_settings", return_value=settings),
-        ):
+        with patch.object(feature, "get_editor_settings", return_value=settings):
             feature.show_language_menu(editor)
-            callback = editor.web.evalWithCallback.call_args.args[1]
-            qt.QMenu.return_value.exec.assert_not_called()
-            callback([10, 30])
-        editor.web.mapToGlobal.assert_called_once_with((15, 45))
-        qt.QMenu.return_value.exec.assert_called_once_with((515, 645))
+        script = editor.web.eval.call_args.args[0]
+        self.assertIn("showLanguageMenu", script)
+        self.assertIn('"alias": "python"', script)
+        self.assertIn(", null);", script)
 
     def test_resolved_themes_are_validated_and_collection_scoped(self):
         preferences = load_addon_module("desktop.syntax_highlighting.preferences")

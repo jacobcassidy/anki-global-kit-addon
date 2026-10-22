@@ -23,13 +23,13 @@ class EditorBindingsTests(unittest.TestCase):
         buttons = []
         integration._add_button(buttons, editor)
         toolbar = ElementTree.fromstring(buttons[0])
-        self.assertEqual([len(group) for group in toolbar], [3, 3])
-        self.assertIn("display: none;", toolbar[1][1].attrib["style"])
+        self.assertEqual([len(group) for group in toolbar], [2, 1, 1, 1])
+        self.assertIn("display: none;", toolbar[2][0].attrib["style"])
         self.assertEqual(len(list(toolbar.iter("img"))), 0)
         for icon in toolbar.iter("button"):
             self.assertIn("background-color: currentColor", icon[0].attrib["style"])
             self.assertIn("mask: url(", icon[0].attrib["style"])
-        markdown = editor.addButton.call_args_list[3].kwargs
+        markdown = editor.addButton.call_args_list[2].kwargs
         self.assertEqual(markdown["tip"], "Convert Markdown to HTML (Alt+M)")
         integration.QApplication.clipboard.return_value.text.return_value = "**text**"
         markdown["func"](editor)
@@ -85,9 +85,9 @@ class EditorBindingsTests(unittest.TestCase):
         buttons = []
         integration._add_button(buttons, editor)
         self.assertEqual(len(buttons), 1)
-        self.assertEqual(editor.addButton.call_count, 6)
+        self.assertEqual(editor.addButton.call_count, 5)
         toolbar = ElementTree.fromstring(buttons[0])
-        self.assertEqual([len(group) for group in toolbar], [3, 3])
+        self.assertEqual([len(group) for group in toolbar], [2, 1, 1, 1])
         self.assertTrue(
             all(group.attrib["style"] == "display: none;" for group in toolbar)
         )
@@ -128,16 +128,15 @@ class EditorBindingsTests(unittest.TestCase):
                 for button in group
             )
         )
-        self.assertIn(
-            "--border-left-radius: var(--anki-global-kit-toolbar-group-radius, 5px)",
-            toolbar[1][0].attrib["style"],
-        )
-        self.assertIn("--border-right-radius: 0", toolbar[1][0].attrib["style"])
-        self.assertIn("--border-left-radius: 0", toolbar[1][1].attrib["style"])
-        self.assertIn(
-            "--border-right-radius: var(--anki-global-kit-toolbar-group-radius, 5px)",
-            toolbar[1][2].attrib["style"],
-        )
+        for group in toolbar[1:]:
+            self.assertIn(
+                "--border-left-radius: var(--anki-global-kit-toolbar-group-radius, 5px)",
+                group[0].attrib["style"],
+            )
+            self.assertIn(
+                "--border-right-radius: var(--anki-global-kit-toolbar-group-radius, 5px)",
+                group[0].attrib["style"],
+            )
 
     def bindings(self, overrides):
         settings = load_settings_services(config=overrides).config.get_editor_settings()
@@ -320,6 +319,7 @@ class EditorBindingsTests(unittest.TestCase):
                 "anki_editor_indent_decrease_shortcut",
                 "anki_editor_syntax_highlighting_shortcut",
                 "anki_editor_convert_markdown_shortcut",
+                "anki_editor_exit_code_block_shortcut",
             },
         )
 
