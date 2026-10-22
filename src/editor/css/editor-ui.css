@@ -72,8 +72,10 @@
 }
 
 .anki-global-kit-language-menu__item:hover,
+.anki-global-kit-language-menu__item:active,
 .anki-global-kit-language-menu__item:focus-visible,
 .anki-global-kit-language-menu__current:hover,
+.anki-global-kit-language-menu__current:active,
 .anki-global-kit-language-menu__current:focus-visible {
   outline: 0;
   background: var(--canvas-inset);
