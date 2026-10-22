@@ -10,18 +10,10 @@
 /* COMPONENTS */
 @import url("./components/box.css");
 @import url("./components/cloze.css");
+@import url("./components/code-blocks.css");
 @import url("./components/columns.css");
 @import url("./components/containers.css");
 @import url("./components/question.css");
 @import url("./components/toolbar.css");
 @import url("./components/topic.css");
 @import url("./components/type-hint.css");
-
-/* Code block headers are an editor control; card blocks show only the source. */
-.code-block__header {
-  display: none;
-}
-
-pre.global-kit-code-with-header > code {
-  padding: 0 !important;
-}

@@ -1,0 +1,13 @@
+/**
+ * CODE BLOCK STYLES
+ */
+
+/* Code block headers are an editor control; card blocks show only the source code. */
+
+.code-block__header {
+  display: none;
+}
+
+pre.global-kit-code-with-header > code {
+  padding: 0 !important;
+}
