@@ -481,6 +481,84 @@ class SyntaxRenderingTests(unittest.TestCase):
         self.assertIn("&lt;", rendered[0]["html"])
         self.assertEqual(oversized, 1)
 
+    def test_markdown_bridge_reports_conversion_limits_and_clears_pending_request(self):
+        for html, count in [("<p>source</p>", 101), ("x" * 2_000_001, 1)]:
+            with self.subTest(html_length=len(html), code_blocks=count):
+                feature = load_editor_integration({}).syntax_highlighting
+                editor = SimpleNamespace(web=SimpleNamespace(eval=Mock()))
+                warning = Mock()
+                factory = Mock()
+                request = {
+                    "id": "12",
+                    "html": html,
+                    "codeBlocks": [
+                        {"index": index, "source": "x", "language": ""}
+                        for index in range(count)
+                    ],
+                }
+                with patch.dict(
+                    sys.modules,
+                    {
+                        "aqt.utils": SimpleNamespace(showWarning=warning),
+                        "aqt.operations": SimpleNamespace(QueryOp=factory),
+                    },
+                ):
+                    result = feature._on_markdown_message(
+                        feature._MARKDOWN_MESSAGE_PREFIX + json.dumps(request), editor
+                    )
+
+                self.assertEqual(result, (True, None))
+                factory.assert_not_called()
+                self.assertFalse(feature._BUSY)
+                editor.web.eval.assert_called_once_with(
+                    'globalThis.ankiGlobalKitEditor?.failMarkdownHighlight("12");'
+                )
+                warning.assert_called_once()
+                message = warning.call_args.args[0]
+                self.assertIn("100 code blocks", message)
+                self.assertIn("2,000,000 characters", message)
+                self.assertIn("smaller selection", message)
+
+    def test_markdown_bridge_accepts_exact_conversion_limits(self):
+        feature = load_editor_integration({}).syntax_highlighting
+        editor = SimpleNamespace(web=SimpleNamespace(eval=Mock()))
+        operation = Mock()
+        operation.failure.return_value = operation
+        operation.without_collection.return_value = operation
+        factory = Mock(return_value=operation)
+        warning = Mock()
+        request = {
+            "id": "13",
+            "html": "x" * 2_000_000,
+            "codeBlocks": [
+                {"index": index, "source": "x", "language": ""} for index in range(100)
+            ],
+        }
+        with patch.dict(
+            sys.modules,
+            {
+                "aqt.utils": SimpleNamespace(showWarning=warning),
+                "aqt.operations": SimpleNamespace(QueryOp=factory),
+            },
+        ):
+            result = feature._on_markdown_message(
+                feature._MARKDOWN_MESSAGE_PREFIX + json.dumps(request), editor
+            )
+
+        self.assertEqual(result, (True, None))
+        factory.assert_called_once()
+        operation.run_in_background.assert_called_once_with()
+        warning.assert_not_called()
+        editor.web.eval.assert_not_called()
+        self.assertTrue(feature._BUSY)
+        factory.call_args.kwargs["success"](([], 0))
+        self.assertFalse(feature._BUSY)
+        self.assertTrue(
+            editor.web.eval.call_args.args[0].startswith(
+                'globalThis.ankiGlobalKitEditor?.applyMarkdownHighlightResult("13", '
+            )
+        )
+
     def test_deck_resolution_uses_add_destination_and_filtered_card_original_deck(self):
         integration = load_editor_integration({})
         feature = integration.syntax_highlighting

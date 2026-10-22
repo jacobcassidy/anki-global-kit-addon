@@ -21,6 +21,8 @@ _APPLIED_MESSAGE_PREFIX = "anki-global-kit:syntax-highlight-applied:"
 _OPTIONS_MESSAGE_PREFIX = "anki-global-kit:code-block-options:"
 _LANGUAGE_MENU_PREFIX = "anki-global-kit:language-menu:"
 _LANGUAGE_CHOICE_PREFIX = "anki-global-kit:language-choice:"
+_MAX_MARKDOWN_HTML_CHARACTERS = 2_000_000
+_MAX_MARKDOWN_CODE_BLOCKS = 100
 _BUSY = False
 _INSTALLED = False
 _PENDING_EXPLICIT_APPLIES: WeakKeyDictionary[
@@ -540,12 +542,25 @@ def _on_markdown_message(message: str, context: Editor):
         not isinstance(request_id, str)
         or not re.fullmatch(r"\d{1,12}", request_id)
         or not isinstance(html, str)
-        or len(html) > 2_000_000
         or not isinstance(blocks, list)
-        or len(blocks) > 100
     ):
         if isinstance(request_id, str) and re.fullmatch(r"\d{1,12}", request_id):
             _fail_markdown_request(context, request_id)
+        return (True, None)
+
+    if (
+        len(html) > _MAX_MARKDOWN_HTML_CHARACTERS
+        or len(blocks) > _MAX_MARKDOWN_CODE_BLOCKS
+    ):
+        _fail_markdown_request(context, request_id)
+        from aqt.utils import showWarning
+
+        showWarning(
+            "Could not convert this Markdown: conversion supports up to "
+            f"{_MAX_MARKDOWN_CODE_BLOCKS:,} code blocks and "
+            f"{_MAX_MARKDOWN_HTML_CHARACTERS:,} characters of generated HTML. "
+            "Convert a smaller selection. Your field has not been changed."
+        )
         return (True, None)
 
     validated = []
