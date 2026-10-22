@@ -14,6 +14,7 @@ from aqt import mw
 
 from ..media.manifest import SYNTAX_CSS_ASSET_NAME
 from ..paths import ADDON_DIR
+from .stylesheet import has_stylesheet_import
 
 TEMPLATE_DIR = ADDON_DIR / "templates" / "note-types" / "parts"
 HTML_DIR = TEMPLATE_DIR / "html"
@@ -185,7 +186,7 @@ def plan_syntax_style_import(
     if notetype is None:
         raise ReplacementValidationError(f"The note type {name} no longer exists.")
     css = notetype.get("css", "")
-    if SYNTAX_CSS_ASSET_NAME in css:
+    if has_stylesheet_import(css, SYNTAX_CSS_ASSET_NAME):
         raise SyntaxStyleAlreadyEnabledError(
             f"The note type {name} already imports {SYNTAX_CSS_ASSET_NAME}."
         )

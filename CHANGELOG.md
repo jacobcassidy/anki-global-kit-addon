@@ -56,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Made Add Syntax Styles recognize effective local stylesheet imports rather than filename mentions, allowing commented, nested, and misplaced imports to be repaired after confirmation.
+
 - Isolated highlighting acknowledgements by editor window so matching request IDs cannot overwrite or consume another window's pending language choice.
 
 - Restored other add-ons' Pygments modules and released the import lock when the bundled renderer fails to initialize, allowing later highlighting requests to retry.

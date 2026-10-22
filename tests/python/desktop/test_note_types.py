@@ -247,6 +247,52 @@ class NoteTypeTests(unittest.TestCase):
         with self.assertRaises(self.service.SyntaxStyleAlreadyEnabledError):
             self.service.plan_syntax_style_import("Python (Advance)")
 
+    def test_syntax_style_detection_recognizes_actual_leading_local_imports(self):
+        for css in (
+            '@import url("_syntax-highlighting.css");',
+            "@IMPORT URL( '_syntax-highlighting.css' ) screen;",
+            '@import "_syntax-highlighting.css";',
+            '@charset "UTF-8"; @layer reset; /* explanation */ '
+            '@import/* comment */url("./_syntax-highlighting.css");',
+            "@import url(other.css); @import url(_syntax-highlighting.css);",
+            '@import url("data:text/css;a;b"); @import "_syntax-highlighting.css";',
+            r'@import "\5f syntax-highlighting.css";',
+            r"@import url(\_syntax-highlighting.css);",
+            '@import url("_syntax-highlighting.css?v=1#theme");',
+        ):
+            with self.subTest(css=css):
+                self.models.types["Python (Advance)"]["css"] = css
+                with self.assertRaises(self.service.SyntaxStyleAlreadyEnabledError):
+                    self.service.plan_syntax_style_import("Python (Advance)")
+        self.assertEqual(self.models.writes, [])
+
+    def test_syntax_styles_can_repair_comments_mentions_and_ineffective_imports(self):
+        for css in (
+            '/* Disabled: @import url("_syntax-highlighting.css"); */',
+            '/*\n@import "_syntax-highlighting.css";\n*/',
+            '.card::before { content: "_syntax-highlighting.css"; }',
+            '@import "_syntax-highlighting.css.bak";',
+            '@import "https://example.test/_syntax-highlighting.css";',
+            '@media screen { @import "_syntax-highlighting.css"; }',
+            '.card { color: var(--fg); } @import "_syntax-highlighting.css";',
+            '@layer reset {} @import "_syntax-highlighting.css";',
+            '@namespace svg url("http://www.w3.org/2000/svg"); '
+            '@import "_syntax-highlighting.css";',
+        ):
+            with self.subTest(css=css):
+                self.models.types["Python (Advance)"]["css"] = css
+                before = deepcopy(self.models.types["Python (Advance)"])
+                plan = self.service.plan_syntax_style_import("Python (Advance)")
+                self.service.apply_syntax_style_import(plan, self.col)
+                updated = self.models.types["Python (Advance)"]
+                self.assertEqual(
+                    updated["css"], '@import url("_syntax-highlighting.css");\n' + css
+                )
+                before["css"] = updated["css"]
+                self.assertEqual(updated, before)
+                with self.assertRaises(self.service.SyntaxStyleAlreadyEnabledError):
+                    self.service.plan_syntax_style_import("Python (Advance)")
+
     def syntax_style_plans(self):
         extra = existing_type("Basic")
         extra["id"] = 43
