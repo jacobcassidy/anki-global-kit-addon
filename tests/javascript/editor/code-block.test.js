@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { JSDOM } from 'jsdom';
+import { codeOffset } from '../../../src/shared/js/syntax-highlighting/code-lines.js';
 import { installCodeBlockHighlighting } from '../../../src/editor/js/formatting/code-block.js';
 
 function withEditor(html, callback) {
@@ -49,12 +50,17 @@ function selectText(document, window, node) {
 }
 
 function mockOptionsEditing(document, window) {
-  window.HTMLDialogElement.prototype.showModal = function () {
-    this.open = true;
-  };
-  window.HTMLDialogElement.prototype.close = function () {
-    this.open = false;
-    this.dispatchEvent(new window.Event('close'));
+  globalThis.pycmd = (message) => {
+    if (!message.startsWith('anki-global-kit:code-block-options:')) return;
+
+    const request = JSON.parse(message.slice(message.indexOf('{')));
+
+    document.optionsRequest = request;
+    document.options = {
+      lineStart: { value: String(request.lineStart) },
+      lineNumbers: { checked: request.lineNumbers },
+      clozeMode: { value: request.clozeMode },
+    };
   };
   document.execCommand = (_command, _showUi, html) => {
     // A real modal makes the editor inert, so native insertion cannot run.
@@ -69,16 +75,18 @@ function mockOptionsEditing(document, window) {
   };
 }
 
-function applyOptions(document, window) {
-  const dialog = document.querySelector('dialog');
+function applyOptions(document) {
+  return globalThis.ankiGlobalKitEditor.applyCodeBlockOptions(document.optionsRequest.id, {
+    lineStart: Number(document.options.lineStart.value),
+    lineNumbers: document.options.lineNumbers.checked,
+    clozeMode: document.options.clozeMode.value,
+  });
+}
 
-  dialog.querySelector('form').dispatchEvent(
-    new window.SubmitEvent('submit', {
-      bubbles: true,
-      cancelable: true,
-      submitter: dialog.querySelector('[value="apply"]'),
-    }),
-  );
+function optionsDialog(document) {
+  return {
+    querySelector: (selector) => document.options[selector.match(/name="(.*?)"/)[1]],
+  };
 }
 
 test('new blocks start at line 1 despite old global preferences and apply tokens as one edit', () => {
@@ -221,7 +229,7 @@ test('multiline blocks preserve source and their starting line number when refre
       assert.equal(block.dataset.lineNumbers, 'true');
       assert.equal(block.dataset.lineStart, '50');
       assert.deepEqual(
-        [...block.querySelectorAll('.code-line__number')].map((line) => line.textContent),
+        [...block.querySelectorAll('.code-line__number')].map((line) => line.dataset.lineNumber),
         ['50', '51'],
       );
 
@@ -244,7 +252,7 @@ test('Code Block Options changes only the selected block starting number', () =>
       mockOptionsEditing(document, window);
 
       assert.equal(globalThis.ankiGlobalKitEditor.openCodeBlockOptions(), true);
-      const dialog = document.querySelector('dialog');
+      const dialog = optionsDialog(document);
       dialog.querySelector('[name="lineStart"]').value = '50';
       dialog.querySelector('[name="lineNumbers"]').checked = true;
       applyOptions(document, window);
@@ -253,7 +261,7 @@ test('Code Block Options changes only the selected block starting number', () =>
       assert.equal(blocks[0].dataset.lineStart, '50');
       assert.equal(blocks[0].dataset.lineNumbers, 'true');
       assert.deepEqual(
-        [...blocks[0].querySelectorAll('.code-line__number')].map((line) => line.textContent),
+        [...blocks[0].querySelectorAll('.code-line__number')].map((line) => line.dataset.lineNumber),
         ['50', '51'],
       );
       assert.equal(blocks[1].dataset.lineStart, '99');
@@ -275,7 +283,7 @@ test('Code Block Options numbers Markdown blocks and toggles literal clozes with
 
       assert.equal(globalThis.ankiGlobalKitEditor.openCodeBlockOptions(), true);
 
-      const dialog = document.querySelector('dialog');
+      const dialog = optionsDialog(document);
 
       dialog.querySelector('[name="lineStart"]').value = '5';
       dialog.querySelector('[name="lineNumbers"]').checked = true;
@@ -288,7 +296,7 @@ test('Code Block Options numbers Markdown blocks and toggles literal clozes with
       assert.equal(block.dataset.lineNumbers, 'true');
       assert.equal(block.dataset.clozeMode, 'literal');
       assert.deepEqual(
-        [...block.querySelectorAll('.code-line__number')].map((line) => line.textContent),
+        [...block.querySelectorAll('.code-line__number')].map((line) => line.dataset.lineNumber),
         ['5', '6'],
       );
       assert.equal(block.querySelector('.nb').textContent, 'print');
@@ -301,8 +309,8 @@ test('Code Block Options numbers Markdown blocks and toggles literal clozes with
 
       selectText(document, window, block.querySelector('code'));
       globalThis.ankiGlobalKitEditor.openCodeBlockOptions();
-      document.querySelector('[name="lineNumbers"]').checked = false;
-      document.querySelector('[name="clozeMode"]').value = 'active';
+      document.options.lineNumbers.checked = false;
+      document.options.clozeMode.value = 'active';
       applyOptions(document, window);
 
       assert.equal(edits, 2);
@@ -348,8 +356,8 @@ test('Code Block Options applies from a caret after Anki recreates unchanged fie
       // Anki's rich-text/HTML mirror can recreate identical nodes on blur.
       field.innerHTML = originalHtml;
       assert.equal(originalBlock.isConnected, false);
-      document.querySelector('[name="lineNumbers"]').checked = true;
-      document.querySelector('[name="lineStart"]').value = '20';
+      document.options.lineNumbers.checked = true;
+      document.options.lineStart.value = '20';
       applyOptions(document, window);
 
       const blocks = field.querySelectorAll('pre');
@@ -358,7 +366,7 @@ test('Code Block Options applies from a caret after Anki recreates unchanged fie
       assert.equal(blocks[1].dataset.lineStart, '20');
       assert.equal(blocks[1].dataset.lineNumbers, 'true');
       assert.deepEqual(
-        [...blocks[1].querySelectorAll('.code-line__number')].map((line) => line.textContent),
+        [...blocks[1].querySelectorAll('.code-line__number')].map((line) => line.dataset.lineNumber),
         ['20', '21'],
       );
       assert.equal(blocks[1].querySelector('.nb').textContent, 'print');
@@ -401,4 +409,75 @@ test('language priority is explicit choice, existing block, Topic, remembered, t
       assert.equal(requests[1].explicitLanguage, true);
     },
   );
+});
+
+function editInput(document, window, inputType, data = null) {
+  const event = new window.InputEvent('beforeinput', { bubbles: true, cancelable: true, inputType, data });
+
+  document.querySelector('code').dispatchEvent(event);
+  assert.equal(event.defaultPrevented, true);
+}
+
+function caret(document, window, node, offset) {
+  const range = document.createRange();
+
+  range.setStart(node, offset);
+  range.collapse(true);
+  window.getSelection().removeAllRanges();
+  window.getSelection().addRange(range);
+}
+
+test('editing adds and removes protected line numbers while preserving tokens and caret', () => {
+  withEditor(
+    '<pre class="global-kit-code-block" data-line-numbers="true" data-line-start="9"><code><span class="nb">print</span>(1)</code></pre>',
+    (document, window) => {
+      mockOptionsEditing(document, window);
+      caret(document, window, document.querySelector('.nb').firstChild, 5);
+      editInput(document, window, 'insertParagraph');
+
+      let code = document.querySelector('code');
+
+      assert.deepEqual(
+        [...code.querySelectorAll('.code-line__number')].map((node) => node.dataset.lineNumber),
+        ['9', '10'],
+      );
+      assert.ok(
+        [...code.querySelectorAll('.code-line__number')].every(
+          (node) => node.getAttribute('contenteditable') === 'false' && node.textContent === '',
+        ),
+      );
+      assert.equal(codeOffset(code, window.getSelection().anchorNode, window.getSelection().anchorOffset), 6);
+      assert.equal(code.querySelector('.nb').textContent, 'print');
+      editInput(document, window, 'deleteContentBackward');
+      code = document.querySelector('code');
+      assert.equal(code.querySelectorAll('.code-line').length, 1);
+      assert.equal(code.querySelector('.code-line__content').textContent, 'print(1)');
+    },
+  );
+});
+
+test('multiline paste uses plain source and renumbers including trailing empty lines', () => {
+  withEditor('<pre class="global-kit-code-block" data-line-start="50"><code>old</code></pre>', (document, window) => {
+    mockOptionsEditing(document, window);
+    selectText(document, window, document.querySelector('code'));
+
+    const event = new window.Event('paste', { bubbles: true, cancelable: true });
+
+    Object.defineProperty(event, 'clipboardData', {
+      value: { getData: (type) => (type === 'text/plain' ? 'one\r\ntwo\r\n' : '<b>wrong</b>') },
+    });
+    document.querySelector('code').dispatchEvent(event);
+    assert.equal(event.defaultPrevented, true);
+    assert.deepEqual(
+      [...document.querySelectorAll('.code-line__content')].map((node) => node.textContent),
+      ['one', 'two', ''],
+    );
+    assert.deepEqual(
+      [...document.querySelectorAll('.code-line__number')].map((node) => node.dataset.lineNumber),
+      ['50', '51', '52'],
+    );
+    assert.ok(document.querySelector('[data-code-placeholder]'));
+    editInput(document, window, 'insertText', 'last');
+    assert.equal(document.querySelectorAll('.code-line__content')[2].textContent, 'last');
+  });
 });

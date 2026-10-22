@@ -3,6 +3,14 @@ import { editWithNativeUndo } from '../helpers/edit-transaction.js';
 import { getSyntaxLanguage } from '../../../shared/js/syntax-highlighting/languages.js';
 import { enhanceHighlightHtml } from '../../../shared/js/syntax-highlighting/classification/markup.js';
 
+import {
+  textFromCode,
+  tokenHtmlByLine,
+  flattenCodeLines,
+  preserveClozeMode,
+} from '../../../shared/js/syntax-highlighting/code-lines.js';
+import { installCodeBlockEditing } from './code-block-editing.js';
+
 const CODE_SELECTOR = 'pre.global-kit-code-block > code';
 const OPTIONS_MESSAGE_PREFIX = 'anki-global-kit:code-block-options:';
 const pending = new Map();
@@ -13,96 +21,6 @@ let rememberedLanguage = null;
 
 function element(node) {
   return node?.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement;
-}
-
-function textFromCode(node) {
-  const numberedLines = node.querySelectorAll(':scope > .code-line');
-  return numberedLines.length
-    ? [...numberedLines]
-        .map((line) => line.querySelector(':scope > .code-line__content')?.textContent ?? line.textContent ?? '')
-        .join('\n')
-    : node.textContent || '';
-}
-
-function escapeText(text) {
-  const node = document.createElement('span');
-  node.textContent = text;
-  return node.innerHTML;
-}
-
-function splitTokenNode(node) {
-  if (node.nodeType === Node.TEXT_NODE) {
-    return (node.nodeValue || '').split('\n').map(escapeText);
-  }
-  if (node.nodeType !== Node.ELEMENT_NODE) return [''];
-
-  const lines = [''];
-  for (const child of node.childNodes) {
-    const childLines = splitTokenNode(child);
-    lines[lines.length - 1] += childLines[0] || '';
-    for (const continuation of childLines.slice(1)) lines.push(continuation);
-  }
-
-  const opening = `<${node.localName}${[...node.attributes]
-    .map((attribute) => ` ${attribute.name}="${attribute.value.replaceAll('"', '&quot;')}"`)
-    .join('')}>`;
-  return lines.map((content) => `${opening}${content}</${node.localName}>`);
-}
-
-function tokenHtmlByLine(tokenHtml, start) {
-  const container = document.createElement('div');
-  container.innerHTML = tokenHtml;
-  const lines = [''];
-  for (const node of container.childNodes) {
-    const nodeLines = splitTokenNode(node);
-    lines[lines.length - 1] += nodeLines[0] || '';
-    for (const continuation of nodeLines.slice(1)) lines.push(continuation);
-  }
-  return lines
-    .map(
-      (line, index) =>
-        `<span class="code-line"><span class="code-line__number">${start + index}</span><span class="code-line__content">${line}</span></span>`,
-    )
-    .join('');
-}
-
-function preserveClozeMode(code, mode) {
-  for (const guard of code.querySelectorAll('[data-global-kit-literal-brace]')) {
-    guard.replaceWith(...guard.childNodes);
-  }
-
-  code.normalize();
-
-  if (mode !== 'literal') return;
-
-  // Entity escapes become ordinary braces when browser HTML is serialized.
-  // Splitting each pair with a span keeps literal clozes inert after saving.
-  const owner = code.ownerDocument;
-  const walker = owner.createTreeWalker(code, 4);
-  const leaves = [];
-  let leaf;
-
-  while ((leaf = walker.nextNode())) {
-    if (/\{\{|\}\}/.test(leaf.data)) leaves.push(leaf);
-  }
-
-  for (const node of leaves) {
-    const fragment = owner.createDocumentFragment();
-
-    for (const part of node.data.split(/(\{\{|\}\})/)) {
-      if (part === '{{' || part === '}}') {
-        const guard = owner.createElement('span');
-
-        guard.dataset.globalKitLiteralBrace = '';
-        guard.textContent = part[0];
-        fragment.append(guard, owner.createTextNode(part[1]));
-      } else {
-        fragment.append(owner.createTextNode(part));
-      }
-    }
-
-    node.replaceWith(fragment);
-  }
 }
 
 function readSelectionTarget(clipboardText) {
@@ -331,29 +249,7 @@ function applyCodeBlockOptions(id, options) {
       }
 
       preserveClozeMode(clonedCode, options.clozeMode);
-      clonedCode.querySelectorAll(':scope > .code-line').forEach((line, index) => {
-        const lineNumber = String(options.lineStart + index);
-        const numberElement = line.querySelector(':scope > .code-line__number');
-        const contentElement = line.querySelector(':scope > .code-line__content');
-
-        if (!contentElement) {
-          const nextContent = line.ownerDocument.createElement('span');
-          nextContent.className = 'code-line__content';
-
-          while (line.firstChild) nextContent.append(line.firstChild);
-
-          line.append(nextContent);
-        }
-
-        if (numberElement) {
-          numberElement.textContent = lineNumber;
-        } else {
-          const nextNumber = line.ownerDocument.createElement('span');
-          nextNumber.className = 'code-line__number';
-          nextNumber.textContent = lineNumber;
-          line.prepend(nextNumber);
-        }
-      });
+      clonedCode.innerHTML = tokenHtmlByLine(flattenCodeLines(clonedCode).innerHTML, options.lineStart);
       const nextRange = document.createRange();
       nextRange.setStartAfter(clonedPre);
       nextRange.collapse(true);
@@ -368,6 +264,8 @@ function cancelCodeBlockOptions(id) {
 }
 
 export function installCodeBlockHighlighting() {
+  installCodeBlockEditing();
+
   const api = (globalThis.ankiGlobalKitEditor ||= {});
   api.highlightCode = requestHighlight;
   api.applyHighlightResult = applyHighlightResult;

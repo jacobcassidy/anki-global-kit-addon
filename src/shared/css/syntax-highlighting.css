@@ -26,6 +26,10 @@
   text-align: end;
 }
 
+.global-kit-code-block .code-line__number::before {
+  content: attr(data-line-number);
+}
+
 .global-kit-code-block[data-line-numbers="false"] .code-line__number {
   display: none;
 }

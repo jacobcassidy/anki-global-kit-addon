@@ -48,6 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Made code block line numbers non-editable and automatically updated them when inserting, deleting, or pasting lines in the Desktop editor.
+
 - Aligned add-on editor toolbar buttons with Anki's native buttons and matched the language selector chevron to Anki's color and formatting menus.
 - Fixed **Code Block Options** rejecting updates when Anki's rich-text/HTML mirror recreates unchanged field nodes while the dialog is open. Applying options now resolves the current block after closing the dialog and still protects newer field edits.
 - Fixed **Code Block Options** closing without applying changes by releasing the modal dialog before the native editor transaction. Line numbering now also creates the required line wrappers for Markdown-converted blocks, preserving syntax colors and cloze handling.
