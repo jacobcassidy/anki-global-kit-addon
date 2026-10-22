@@ -19,7 +19,7 @@ function textFromCode(node) {
   const numberedLines = node.querySelectorAll(':scope > .code-line');
   return numberedLines.length
     ? [...numberedLines]
-        .map((line) => line.querySelector(':scope > .code-line-content')?.textContent ?? line.textContent ?? '')
+        .map((line) => line.querySelector(':scope > .code-line__content')?.textContent ?? line.textContent ?? '')
         .join('\n')
     : node.textContent || '';
 }
@@ -61,7 +61,7 @@ function tokenHtmlByLine(tokenHtml, start) {
   return lines
     .map(
       (line, index) =>
-        `<span class="code-line" data-line-number="${start + index}"><span class="code-line-number">${start + index}</span><span class="code-line-content">${line}</span></span>`,
+        `<span class="code-line" data-line-number="${start + index}"><span class="code-line__number">${start + index}</span><span class="code-line__content">${line}</span></span>`,
     )
     .join('');
 }
@@ -334,12 +334,12 @@ function applyCodeBlockOptions(id, options) {
       clonedCode.querySelectorAll(':scope > .code-line').forEach((line, index) => {
         const lineNumber = String(options.lineStart + index);
         line.dataset.lineNumber = lineNumber;
-        const numberElement = line.querySelector(':scope > .code-line-number');
-        const contentElement = line.querySelector(':scope > .code-line-content');
+        const numberElement = line.querySelector(':scope > .code-line__number');
+        const contentElement = line.querySelector(':scope > .code-line__content');
 
         if (!contentElement) {
           const nextContent = line.ownerDocument.createElement('span');
-          nextContent.className = 'code-line-content';
+          nextContent.className = 'code-line__content';
 
           while (line.firstChild) nextContent.append(line.firstChild);
 
@@ -350,7 +350,7 @@ function applyCodeBlockOptions(id, options) {
           numberElement.textContent = lineNumber;
         } else {
           const nextNumber = line.ownerDocument.createElement('span');
-          nextNumber.className = 'code-line-number';
+          nextNumber.className = 'code-line__number';
           nextNumber.textContent = lineNumber;
           line.prepend(nextNumber);
         }

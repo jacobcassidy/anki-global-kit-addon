@@ -12,23 +12,17 @@
 }
 
 .global-kit-code-block[data-line-numbers="true"] .code-line {
-  padding-inline-start: 5ch;
-  position: relative;
+  display: grid;
+  grid-template-columns: 5ch minmax(0, 1fr);
 }
 
-.global-kit-code-block[data-line-numbers="true"] .code-line-number {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: 0;
+.global-kit-code-block[data-line-numbers="true"] .code-line__number {
   user-select: none;
-  display: inline-block;
   color: var(--global-kit-syntax-comment);
-  inline-size: 4ch;
-  padding-inline-end: 1ch;
   text-align: end;
 }
 
-.global-kit-code-block[data-line-numbers="false"] .code-line-number {
+.global-kit-code-block[data-line-numbers="false"] .code-line__number {
   display: none;
 }
 
