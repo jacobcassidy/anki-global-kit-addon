@@ -45,9 +45,7 @@ test('shared theme rules reach token categories emitted in typed answers', () =>
 
       assert.ok(token, `highlight.js must emit ${selector}`);
       assert.ok(
-        rules.some(
-          (rule) => rule.style.color === `var(--global-kit-syntax-${role})` && token.matches(rule.selectorText),
-        ),
+        rules.some((rule) => rule.style.color === `var(--agk-syntax-${role})` && token.matches(rule.selectorText)),
         `the shared theme must style ${selector} as ${role}`,
       );
     }

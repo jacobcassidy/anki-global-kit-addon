@@ -265,17 +265,17 @@ def _theme_variables_css(preset: dict, selector: str) -> str:
     colors = preset["colors"]
     css = [
         f"{selector} {{",
-        f"  --global-kit-syntax-background: {colors['background']};",
-        f"  --global-kit-syntax-foreground: {colors['foreground']};",
+        f"  --agk-syntax-background: {colors['background']};",
+        f"  --agk-syntax-foreground: {colors['foreground']};",
     ]
     for role, color in colors.items():
         if role not in {"background", "foreground"}:
-            css.append(f"  --global-kit-syntax-{role}: {color};")
+            css.append(f"  --agk-syntax-{role}: {color};")
     for role in _TOKEN_SELECTORS:
         weight = "700" if role in preset["styles"]["bold"] else "400"
         style = "italic" if role in preset["styles"]["italic"] else "normal"
-        css.append(f"  --global-kit-syntax-{role}-weight: {weight};")
-        css.append(f"  --global-kit-syntax-{role}-style: {style};")
+        css.append(f"  --agk-syntax-{role}-weight: {weight};")
+        css.append(f"  --agk-syntax-{role}-style: {style};")
     css.append("}")
     return "\n".join(css) + "\n"
 
@@ -295,22 +295,22 @@ def generate_theme_css(
             "",
             ".agk-code-block {",
             "  overflow-inline: auto;",
-            "  background: var(--global-kit-syntax-background);",
-            "  color: var(--global-kit-syntax-foreground);",
+            "  background: var(--agk-syntax-background);",
+            "  color: var(--agk-syntax-foreground);",
             "  white-space: pre;",
             "}",
             "",
             ":is(.agk-code-block, .syntax-highlights) :is(.n, .nx) {",
-            "  color: var(--global-kit-syntax-foreground);",
+            "  color: var(--agk-syntax-foreground);",
             "}",
         ]
     )
 
     for role, selectors in _TOKEN_SELECTORS.items():
         declarations = [
-            f"  color: var(--global-kit-syntax-{role});",
-            f"  font-style: var(--global-kit-syntax-{role}-style);",
-            f"  font-weight: var(--global-kit-syntax-{role}-weight);",
+            f"  color: var(--agk-syntax-{role});",
+            f"  font-style: var(--agk-syntax-{role}-style);",
+            f"  font-weight: var(--agk-syntax-{role}-weight);",
         ]
         css.extend(
             [

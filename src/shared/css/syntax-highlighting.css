@@ -42,7 +42,7 @@
 }
 
 .agk-code-block .code-line__number:focus-visible {
-  outline: 0.0625rem solid var(--global-kit-syntax-foreground);
+  outline: 0.0625rem solid var(--agk-syntax-foreground);
 }
 
 .syntax-highlights {
@@ -207,7 +207,7 @@ pre .sh /* Literal.String.Heredoc */ {
 
 pre.has-header {
   overflow: hidden;
-  background: var(--global-kit-syntax-background);
+  background: var(--agk-syntax-background);
   padding: 0;
 }
 
@@ -223,8 +223,8 @@ pre.has-header > code {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  background: oklch(from var(--global-kit-syntax-background) calc(l * 0.8) c h);
-  color: var(--global-kit-syntax-foreground);
+  background: oklch(from var(--agk-syntax-background) calc(l * 0.8) c h);
+  color: var(--agk-syntax-foreground);
   padding: 0.35rem 1rem;
   font-size: 0.75rem;
   line-height: 1.4;

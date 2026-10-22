@@ -1,206 +1,206 @@
 :root,
 anki-editable {
-  --global-kit-syntax-background: #242424;
-  --global-kit-syntax-foreground: #c4c4c4;
-  --global-kit-syntax-comment: #7a7a7a;
-  --global-kit-syntax-punctuation: #929292;
-  --global-kit-syntax-muted: #c4c4c4;
-  --global-kit-syntax-builtin: #f8f8f8;
-  --global-kit-syntax-builtin-constant: #d6aaea;
-  --global-kit-syntax-keyword: #ef9182;
-  --global-kit-syntax-declaration: #92c1fd;
-  --global-kit-syntax-function: #89dfdf;
-  --global-kit-syntax-method: #f8f8f8;
-  --global-kit-syntax-class: #89dfdf;
-  --global-kit-syntax-namespace: #d6aaea;
-  --global-kit-syntax-parameter: #eeae7b;
-  --global-kit-syntax-attribute: #a2cd8b;
-  --global-kit-syntax-variable: #fcb7cb;
-  --global-kit-syntax-library-variable: #d1d1d1;
-  --global-kit-syntax-constant: #d6aaea;
-  --global-kit-syntax-operator: #ef9182;
-  --global-kit-syntax-string: #efddac;
-  --global-kit-syntax-error: #db6656;
-  --global-kit-syntax-comment-weight: 400;
-  --global-kit-syntax-comment-style: italic;
-  --global-kit-syntax-punctuation-weight: 400;
-  --global-kit-syntax-punctuation-style: normal;
-  --global-kit-syntax-muted-weight: 400;
-  --global-kit-syntax-muted-style: normal;
-  --global-kit-syntax-builtin-weight: 400;
-  --global-kit-syntax-builtin-style: normal;
-  --global-kit-syntax-builtin-constant-weight: 400;
-  --global-kit-syntax-builtin-constant-style: normal;
-  --global-kit-syntax-keyword-weight: 400;
-  --global-kit-syntax-keyword-style: normal;
-  --global-kit-syntax-declaration-weight: 400;
-  --global-kit-syntax-declaration-style: normal;
-  --global-kit-syntax-function-weight: 400;
-  --global-kit-syntax-function-style: normal;
-  --global-kit-syntax-method-weight: 400;
-  --global-kit-syntax-method-style: normal;
-  --global-kit-syntax-class-weight: 400;
-  --global-kit-syntax-class-style: normal;
-  --global-kit-syntax-namespace-weight: 400;
-  --global-kit-syntax-namespace-style: normal;
-  --global-kit-syntax-parameter-weight: 400;
-  --global-kit-syntax-parameter-style: normal;
-  --global-kit-syntax-attribute-weight: 400;
-  --global-kit-syntax-attribute-style: normal;
-  --global-kit-syntax-variable-weight: 400;
-  --global-kit-syntax-variable-style: normal;
-  --global-kit-syntax-library-variable-weight: 400;
-  --global-kit-syntax-library-variable-style: normal;
-  --global-kit-syntax-constant-weight: 400;
-  --global-kit-syntax-constant-style: normal;
-  --global-kit-syntax-operator-weight: 400;
-  --global-kit-syntax-operator-style: normal;
-  --global-kit-syntax-string-weight: 400;
-  --global-kit-syntax-string-style: normal;
-  --global-kit-syntax-error-weight: 400;
-  --global-kit-syntax-error-style: normal;
+  --agk-syntax-background: #242424;
+  --agk-syntax-foreground: #c4c4c4;
+  --agk-syntax-comment: #7a7a7a;
+  --agk-syntax-punctuation: #929292;
+  --agk-syntax-muted: #c4c4c4;
+  --agk-syntax-builtin: #f8f8f8;
+  --agk-syntax-builtin-constant: #d6aaea;
+  --agk-syntax-keyword: #ef9182;
+  --agk-syntax-declaration: #92c1fd;
+  --agk-syntax-function: #89dfdf;
+  --agk-syntax-method: #f8f8f8;
+  --agk-syntax-class: #89dfdf;
+  --agk-syntax-namespace: #d6aaea;
+  --agk-syntax-parameter: #eeae7b;
+  --agk-syntax-attribute: #a2cd8b;
+  --agk-syntax-variable: #fcb7cb;
+  --agk-syntax-library-variable: #d1d1d1;
+  --agk-syntax-constant: #d6aaea;
+  --agk-syntax-operator: #ef9182;
+  --agk-syntax-string: #efddac;
+  --agk-syntax-error: #db6656;
+  --agk-syntax-comment-weight: 400;
+  --agk-syntax-comment-style: italic;
+  --agk-syntax-punctuation-weight: 400;
+  --agk-syntax-punctuation-style: normal;
+  --agk-syntax-muted-weight: 400;
+  --agk-syntax-muted-style: normal;
+  --agk-syntax-builtin-weight: 400;
+  --agk-syntax-builtin-style: normal;
+  --agk-syntax-builtin-constant-weight: 400;
+  --agk-syntax-builtin-constant-style: normal;
+  --agk-syntax-keyword-weight: 400;
+  --agk-syntax-keyword-style: normal;
+  --agk-syntax-declaration-weight: 400;
+  --agk-syntax-declaration-style: normal;
+  --agk-syntax-function-weight: 400;
+  --agk-syntax-function-style: normal;
+  --agk-syntax-method-weight: 400;
+  --agk-syntax-method-style: normal;
+  --agk-syntax-class-weight: 400;
+  --agk-syntax-class-style: normal;
+  --agk-syntax-namespace-weight: 400;
+  --agk-syntax-namespace-style: normal;
+  --agk-syntax-parameter-weight: 400;
+  --agk-syntax-parameter-style: normal;
+  --agk-syntax-attribute-weight: 400;
+  --agk-syntax-attribute-style: normal;
+  --agk-syntax-variable-weight: 400;
+  --agk-syntax-variable-style: normal;
+  --agk-syntax-library-variable-weight: 400;
+  --agk-syntax-library-variable-style: normal;
+  --agk-syntax-constant-weight: 400;
+  --agk-syntax-constant-style: normal;
+  --agk-syntax-operator-weight: 400;
+  --agk-syntax-operator-style: normal;
+  --agk-syntax-string-weight: 400;
+  --agk-syntax-string-style: normal;
+  --agk-syntax-error-weight: 400;
+  --agk-syntax-error-style: normal;
 }
 
 .agk-code-block {
   overflow-inline: auto;
-  background: var(--global-kit-syntax-background);
-  color: var(--global-kit-syntax-foreground);
+  background: var(--agk-syntax-background);
+  color: var(--agk-syntax-foreground);
   white-space: pre;
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.n, .nx) {
-  color: var(--global-kit-syntax-foreground);
+  color: var(--agk-syntax-foreground);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.c, .c1, .cm, .cs, .hljs-comment, .hljs-quote),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="comment"] {
-  color: var(--global-kit-syntax-comment);
-  font-style: var(--global-kit-syntax-comment-style);
-  font-weight: var(--global-kit-syntax-comment-weight);
+  color: var(--agk-syntax-comment);
+  font-style: var(--agk-syntax-comment-style);
+  font-weight: var(--agk-syntax-comment-weight);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.p, .hljs-punctuation),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="punctuation"] {
-  color: var(--global-kit-syntax-punctuation);
-  font-style: var(--global-kit-syntax-punctuation-style);
-  font-weight: var(--global-kit-syntax-punctuation-weight);
+  color: var(--agk-syntax-punctuation);
+  font-style: var(--agk-syntax-punctuation-style);
+  font-weight: var(--agk-syntax-punctuation-weight);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.x, .go, .gt, .hljs-text),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="muted"] {
-  color: var(--global-kit-syntax-muted);
-  font-style: var(--global-kit-syntax-muted-style);
-  font-weight: var(--global-kit-syntax-muted-weight);
+  color: var(--agk-syntax-muted);
+  font-style: var(--agk-syntax-muted-style);
+  font-weight: var(--agk-syntax-muted-weight);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.nb, .ne, .hljs-built_in),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="builtin"] {
-  color: var(--global-kit-syntax-builtin);
-  font-style: var(--global-kit-syntax-builtin-style);
-  font-weight: var(--global-kit-syntax-builtin-weight);
+  color: var(--agk-syntax-builtin);
+  font-style: var(--agk-syntax-builtin-style);
+  font-weight: var(--agk-syntax-builtin-weight);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.kc, .hljs-literal),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="builtin-constant"] {
-  color: var(--global-kit-syntax-builtin-constant);
-  font-style: var(--global-kit-syntax-builtin-constant-style);
-  font-weight: var(--global-kit-syntax-builtin-constant-weight);
+  color: var(--agk-syntax-builtin-constant);
+  font-style: var(--agk-syntax-builtin-constant-style);
+  font-weight: var(--agk-syntax-builtin-constant-weight);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.k, .kn, .kp, .kr, .kt, .hljs-keyword),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="keyword"] {
-  color: var(--global-kit-syntax-keyword);
-  font-style: var(--global-kit-syntax-keyword-style);
-  font-weight: var(--global-kit-syntax-keyword-weight);
+  color: var(--agk-syntax-keyword);
+  font-style: var(--agk-syntax-keyword-style);
+  font-weight: var(--agk-syntax-keyword-weight);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.kd),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="declaration"] {
-  color: var(--global-kit-syntax-declaration);
-  font-style: var(--global-kit-syntax-declaration-style);
-  font-weight: var(--global-kit-syntax-declaration-weight);
+  color: var(--agk-syntax-declaration);
+  font-style: var(--agk-syntax-declaration-style);
+  font-weight: var(--agk-syntax-declaration-weight);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.nf, .hljs-title.function_, .hljs-function),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="function"] {
-  color: var(--global-kit-syntax-function);
-  font-style: var(--global-kit-syntax-function-style);
-  font-weight: var(--global-kit-syntax-function-weight);
+  color: var(--agk-syntax-function);
+  font-style: var(--agk-syntax-function-style);
+  font-weight: var(--agk-syntax-function-weight);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.fm),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="method"] {
-  color: var(--global-kit-syntax-method);
-  font-style: var(--global-kit-syntax-method-style);
-  font-weight: var(--global-kit-syntax-method-weight);
+  color: var(--agk-syntax-method);
+  font-style: var(--agk-syntax-method-style);
+  font-weight: var(--agk-syntax-method-weight);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.nc, .hljs-title.class_),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="class"] {
-  color: var(--global-kit-syntax-class);
-  font-style: var(--global-kit-syntax-class-style);
-  font-weight: var(--global-kit-syntax-class-weight);
+  color: var(--agk-syntax-class);
+  font-style: var(--agk-syntax-class-style);
+  font-weight: var(--agk-syntax-class-weight);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.nn),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="namespace"] {
-  color: var(--global-kit-syntax-namespace);
-  font-style: var(--global-kit-syntax-namespace-style);
-  font-weight: var(--global-kit-syntax-namespace-weight);
+  color: var(--agk-syntax-namespace);
+  font-style: var(--agk-syntax-namespace-style);
+  font-weight: var(--agk-syntax-namespace-weight);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.hljs-params),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="parameter"] {
-  color: var(--global-kit-syntax-parameter);
-  font-style: var(--global-kit-syntax-parameter-style);
-  font-weight: var(--global-kit-syntax-parameter-weight);
+  color: var(--agk-syntax-parameter);
+  font-style: var(--agk-syntax-parameter-style);
+  font-weight: var(--agk-syntax-parameter-weight);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.na, .nl, .hljs-attr, .hljs-attribute, .hljs-property),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="attribute"] {
-  color: var(--global-kit-syntax-attribute);
-  font-style: var(--global-kit-syntax-attribute-style);
-  font-weight: var(--global-kit-syntax-attribute-weight);
+  color: var(--agk-syntax-attribute);
+  font-style: var(--agk-syntax-attribute-style);
+  font-weight: var(--agk-syntax-attribute-weight);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.nv, .vc, .vg, .vi, .hljs-variable),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="variable"] {
-  color: var(--global-kit-syntax-variable);
-  font-style: var(--global-kit-syntax-variable-style);
-  font-weight: var(--global-kit-syntax-variable-weight);
+  color: var(--agk-syntax-variable);
+  font-style: var(--agk-syntax-variable-style);
+  font-weight: var(--agk-syntax-variable-weight);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.vm, .bp, .hljs-variable.language_),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="library-variable"] {
-  color: var(--global-kit-syntax-library-variable);
-  font-style: var(--global-kit-syntax-library-variable-style);
-  font-weight: var(--global-kit-syntax-library-variable-weight);
+  color: var(--agk-syntax-library-variable);
+  font-style: var(--agk-syntax-library-variable-style);
+  font-weight: var(--agk-syntax-library-variable-weight);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.m, .no, .hljs-number, .hljs-symbol),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="constant"] {
-  color: var(--global-kit-syntax-constant);
-  font-style: var(--global-kit-syntax-constant-style);
-  font-weight: var(--global-kit-syntax-constant-weight);
+  color: var(--agk-syntax-constant);
+  font-style: var(--agk-syntax-constant-style);
+  font-weight: var(--agk-syntax-constant-weight);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.o, .ow, .hljs-operator),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="operator"] {
-  color: var(--global-kit-syntax-operator);
-  font-style: var(--global-kit-syntax-operator-style);
-  font-weight: var(--global-kit-syntax-operator-weight);
+  color: var(--agk-syntax-operator);
+  font-style: var(--agk-syntax-operator-style);
+  font-weight: var(--agk-syntax-operator-weight);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.s, .s1, .s2, .sb, .sc, .sh, .hljs-string, .hljs-regexp),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="string"] {
-  color: var(--global-kit-syntax-string);
-  font-style: var(--global-kit-syntax-string-style);
-  font-weight: var(--global-kit-syntax-string-weight);
+  color: var(--agk-syntax-string);
+  font-style: var(--agk-syntax-string-style);
+  font-weight: var(--agk-syntax-string-weight);
 }
 
 :is(.agk-code-block, .syntax-highlights) :is(.err, .hljs-invalid),
 :is(.agk-code-block, .syntax-highlights) [data-global-kit-token="error"] {
-  color: var(--global-kit-syntax-error);
-  font-style: var(--global-kit-syntax-error-style);
-  font-weight: var(--global-kit-syntax-error-weight);
+  color: var(--agk-syntax-error);
+  font-style: var(--agk-syntax-error-style);
+  font-weight: var(--agk-syntax-error-weight);
 }

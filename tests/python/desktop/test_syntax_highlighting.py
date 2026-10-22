@@ -107,7 +107,7 @@ class SyntaxRenderingTests(unittest.TestCase):
     def test_theme_services_import_without_qt(self):
         themes = load_addon_module("desktop.syntax_highlighting.themes")
 
-        self.assertIn("--global-kit-syntax-background", themes.generate_theme_css())
+        self.assertIn("--agk-syntax-background", themes.generate_theme_css())
         available = themes.available_themes()
         self.assertIn(("cassidy-dark", "Cassidy Dark"), available)
         self.assertEqual(
@@ -116,7 +116,7 @@ class SyntaxRenderingTests(unittest.TestCase):
         for theme_id, _name in available:
             css = themes.generate_theme_css(theme_id)
             self.assertIn(".agk-code-block", css)
-            self.assertRegex(css, r"--global-kit-syntax-background: #[0-9a-fA-F]{6};")
+            self.assertRegex(css, r"--agk-syntax-background: #[0-9a-fA-F]{6};")
 
         self.assertFalse(
             any(name == "aqt" or name.startswith("aqt.") for name in sys.modules)
@@ -147,7 +147,7 @@ class SyntaxRenderingTests(unittest.TestCase):
             1,
         )[1]
         declaration_rule = declaration_rule.split("}", 1)[0]
-        self.assertIn("color: var(--global-kit-syntax-declaration);", declaration_rule)
+        self.assertIn("color: var(--agk-syntax-declaration);", declaration_rule)
         keyword_selectors = themes._TOKEN_SELECTORS["keyword"].split(", ")
         self.assertIn(".k", keyword_selectors)
         self.assertNotIn(".kd", keyword_selectors)
@@ -279,16 +279,16 @@ class SyntaxRenderingTests(unittest.TestCase):
             )
         light_css, dark_css = overrides.split(".nightMode,", 1)
         self.assertIn(
-            f"--global-kit-syntax-background: {light['colors']['background']};",
+            f"--agk-syntax-background: {light['colors']['background']};",
             light_css,
         )
         self.assertIn(
-            f"--global-kit-syntax-background: {dark['colors']['background']};", dark_css
+            f"--agk-syntax-background: {dark['colors']['background']};", dark_css
         )
-        self.assertIn("--global-kit-syntax-keyword-weight: 700;", light_css)
-        self.assertIn("--global-kit-syntax-keyword-weight: 400;", dark_css)
-        self.assertIn("--global-kit-syntax-comment-style: normal;", light_css)
-        self.assertIn("--global-kit-syntax-comment-style: italic;", dark_css)
+        self.assertIn("--agk-syntax-keyword-weight: 700;", light_css)
+        self.assertIn("--agk-syntax-keyword-weight: 400;", dark_css)
+        self.assertIn("--agk-syntax-comment-style: normal;", light_css)
+        self.assertIn("--agk-syntax-comment-style: italic;", dark_css)
         self.assertNotIn(":host-context", overrides)
         editor_css = themes.generate_theme_pair_css(light, dark, editor=True)
         self.assertIn(":host-context(.nightMode) anki-editable", editor_css)
