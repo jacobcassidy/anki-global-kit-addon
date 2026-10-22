@@ -2,6 +2,7 @@ import { markdownToHtml } from '../../../shared/js/markdown/render.js';
 import { getSyntaxLanguage } from '../../../shared/js/syntax-highlighting/languages.js';
 import { getEditorRangeText, getEditorSelection } from '../helpers/selection.js';
 import { editWithNativeUndo } from '../helpers/edit-transaction.js';
+import { nextEditorRequestId } from '../helpers/request-id.js';
 import { enhanceHighlightHtml } from '../../../shared/js/syntax-highlighting/classification/markup.js';
 import { createClassificationBudget } from '../../../shared/js/syntax-highlighting/classification/index.js';
 
@@ -9,7 +10,6 @@ import { decorateCodeBlock } from '../../../shared/js/syntax-highlighting/code-b
 
 const MESSAGE_PREFIX = 'anki-global-kit:markdown-highlight:';
 const pending = new Map();
-let requestId = 0;
 
 function element(node) {
   return node?.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement;
@@ -96,7 +96,7 @@ export function convertMarkdown(clipboardText) {
   const { container, blocks } = markdownBlocks(html, getTopicText());
   if (!blocks.length) return insertHtml(target, container.innerHTML);
 
-  const id = String(++requestId);
+  const id = nextEditorRequestId();
   pending.set(id, target);
   globalThis.pycmd?.(
     `${MESSAGE_PREFIX}${JSON.stringify({

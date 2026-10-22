@@ -1,5 +1,6 @@
 import { getEditorRangeText, getEditorSelection } from '../helpers/selection.js';
 import { editWithNativeUndo } from '../helpers/edit-transaction.js';
+import { nextEditorRequestId } from '../helpers/request-id.js';
 import { getSyntaxLanguage } from '../../../shared/js/syntax-highlighting/languages.js';
 import { enhanceHighlightHtml } from '../../../shared/js/syntax-highlighting/classification/markup.js';
 
@@ -16,7 +17,6 @@ const CODE_SELECTOR = 'pre.agk-code-block > code';
 const OPTIONS_MESSAGE_PREFIX = 'anki-global-kit:code-block-options:';
 const pending = new Map();
 const pendingOptions = new Map();
-let requestId = 0;
 let explicitLanguage = null;
 let rememberedLanguage = null;
 
@@ -86,7 +86,7 @@ function requestHighlight(clipboardText, language) {
     language;
   const selectedLanguage = explicitLanguage || automaticLanguage;
 
-  const id = String(++requestId);
+  const id = nextEditorRequestId();
   target.selection = {
     getRangeAt: () => target.range,
     removeAllRanges: () => target.liveSelection.removeAllRanges(),
@@ -238,7 +238,7 @@ function openCodeBlockOptions() {
   if (!field || !pre) return false;
   const fieldSnapshot = field.innerHTML;
   const blockIndex = [...field.querySelectorAll('pre.agk-code-block')].indexOf(pre);
-  const id = String(++requestId);
+  const id = nextEditorRequestId();
   pendingOptions.set(id, { field, fieldSnapshot, blockIndex, selection });
   globalThis.pycmd?.(
     `${OPTIONS_MESSAGE_PREFIX}${JSON.stringify({

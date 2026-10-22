@@ -56,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Kept asynchronous editor request IDs unique across note loads and Settings saves so stale code highlighting and Markdown results cannot overwrite a newer selection.
+
 - Restored editor inline code, block formatting, source copying, space normalization, and macOS cloze shortcuts by initializing their handlers independently of the shared editor API.
 
 - Made Backspace clear a focused legacy line-number gutter in one keypress and move to the end of the following code line.

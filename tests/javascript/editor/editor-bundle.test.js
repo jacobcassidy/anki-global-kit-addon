@@ -66,3 +66,71 @@ test('the complete editor bundle installs formatting, copy, normalization, and c
     window.close();
   }
 });
+
+for (const mode of ['code', 'markdown']) {
+  test(`${mode} results from an earlier bundle cannot replace a newer selection`, () => {
+    const dom = new JSDOM('<body><anki-editable contenteditable="true"><p>first()</p></anki-editable></body>', {
+      runScripts: 'outside-only',
+    });
+    const { window } = dom;
+    const { document } = window;
+    const messages = [];
+    const field = document.querySelector('anki-editable');
+
+    window.requestAnimationFrame = () => 0;
+    window.ankiGlobalKitEditorSettings = { anki_editor_syntax_highlighting_languages: ['python'] };
+    window.pycmd = (message) => messages.push(message);
+    document.execCommand = (_command, _ui, html) => {
+      const range = window.getSelection().getRangeAt(0);
+
+      range.deleteContents();
+      range.insertNode(range.createContextualFragment(html));
+
+      return true;
+    };
+
+    const request = (source) => {
+      field.querySelector('p').textContent =
+        mode === 'markdown' ? `\u0060\u0060\u0060python\n${source}\n\u0060\u0060\u0060` : source;
+
+      const range = document.createRange();
+
+      range.selectNodeContents(field.querySelector('p'));
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+
+      const api = window.ankiGlobalKitEditor;
+
+      assert.equal(mode === 'code' ? api.highlightCode('', 'python') : api.convertMarkdown(''), true);
+
+      return JSON.parse(messages.at(-1).slice(messages.at(-1).indexOf('{')));
+    };
+    const apply = (response) => {
+      const api = window.ankiGlobalKitEditor;
+
+      return mode === 'code'
+        ? api.applyHighlightResult(response.id, response.source, 'python', response.source, false, 1)
+        : api.applyMarkdownHighlightResult(response.id, response.html, []);
+    };
+
+    try {
+      window.eval(bundle);
+
+      const first = request('first()');
+
+      window.eval(bundle);
+      assert.equal(apply(first), false, 'reinjection invalidates earlier requests');
+
+      const second = request('second()');
+      const snapshot = field.innerHTML;
+
+      assert.notEqual(first.id, second.id);
+      assert.equal(apply(first), false, 'a stale response must not consume a newer request');
+      assert.equal(field.innerHTML, snapshot);
+      assert.equal(apply(second), true);
+      assert.equal(field.querySelector('code').textContent, 'second()');
+    } finally {
+      window.close();
+    }
+  });
+}
