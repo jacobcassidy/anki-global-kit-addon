@@ -79,6 +79,7 @@ Useful project scripts:
 - Preserve cross-client behavior. Check platform-specific code in `src/cards/js/runtime/platform.js` and `src/cards/js/inputs/` before changing answer storage or keyboard behavior.
 - On macOS, Anki's Qt/webview keyboard handling swaps the usual modifier names: Anki's `Ctrl` setting corresponds to physical Command (⌘), while `Meta` corresponds to physical Control (⌃). Browser keyboard events use the standard mapping: Command sets `event.metaKey`, and physical Control sets `event.ctrlKey`. Do not apply the Qt modifier swap to browser events. Keep shortcut labels consistent with that mapping. Use `event.key` when matching the character produced by the current keyboard layout; use `event.code` only when a shortcut intentionally targets a physical key regardless of layout (for example, the physical C key).
 - If changing required template markup or CSS imports, update the applicable runtime parts under `addon/templates/note-types/parts/` and document any user migration in `README.md` or the changelog. Existing note types receive the change only after the user selects Replace and confirms.
+- Keep gaps between custom Anki editor toolbar button groups at Anki's native default size. Do not add extra wrapper gaps; Anki's button spacing already supplies the standard gap.
 
 ## Repository guidance
 
