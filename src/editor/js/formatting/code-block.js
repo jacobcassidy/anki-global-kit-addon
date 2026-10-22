@@ -61,7 +61,7 @@ function tokenHtmlByLine(tokenHtml, start) {
   return lines
     .map(
       (line, index) =>
-        `<span class="code-line" data-line-number="${start + index}"><span class="code-line__number">${start + index}</span><span class="code-line__content">${line}</span></span>`,
+        `<span class="code-line"><span class="code-line__number">${start + index}</span><span class="code-line__content">${line}</span></span>`,
     )
     .join('');
 }
@@ -333,7 +333,6 @@ function applyCodeBlockOptions(id, options) {
       preserveClozeMode(clonedCode, options.clozeMode);
       clonedCode.querySelectorAll(':scope > .code-line').forEach((line, index) => {
         const lineNumber = String(options.lineStart + index);
-        line.dataset.lineNumber = lineNumber;
         const numberElement = line.querySelector(':scope > .code-line__number');
         const contentElement = line.querySelector(':scope > .code-line__content');
 
