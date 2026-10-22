@@ -149,6 +149,17 @@ def _add_button(buttons: list, editor: Editor) -> None:
         toolbar_button(
             editor,
             settings,
+            "anki_editor_inline_code_button",
+            icon=str(ICON_ASSET),
+            cmd="anki_global_kit_inline_code",
+            func=_toggle_inline_code,
+            tip=_inline_code_tip(settings),
+        )
+    )
+    custom_buttons.append(
+        toolbar_button(
+            editor,
+            settings,
             "anki_editor_paste_markdown_as_html_button",
             icon=str(PASTE_MARKDOWN_ICON),
             cmd="anki_global_kit_paste_markdown_as_html",
@@ -171,24 +182,13 @@ def _add_button(buttons: list, editor: Editor) -> None:
             tip=_button_tip("Blockquote", "anki_editor_blockquote_shortcut", settings),
         )
     )
-    custom_buttons.append(
-        toolbar_button(
-            editor,
-            settings,
-            "anki_editor_inline_code_button",
-            icon=str(ICON_ASSET),
-            cmd="anki_global_kit_inline_code",
-            func=_toggle_inline_code,
-            tip=_inline_code_tip(settings),
-        )
-    )
     buttons.append(
         toolbar_groups(
             [
                 ("syntax-highlighting", "Syntax Highlighting", custom_buttons[:2]),
-                ("convert-markdown", "Convert Markdown to HTML", custom_buttons[2:3]),
-                ("blockquote", "Blockquote", custom_buttons[3:4]),
-                ("inline-code", "Inline Code", custom_buttons[4:5]),
+                ("inline-code", "Inline Code", custom_buttons[2:3]),
+                ("convert-markdown", "Convert Markdown to HTML", custom_buttons[3:4]),
+                ("blockquote", "Blockquote", custom_buttons[4:5]),
             ]
         )
     )

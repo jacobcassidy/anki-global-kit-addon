@@ -7,21 +7,21 @@ from ....ui.layouts import add_checkbox_row
 
 BUTTON_SETTINGS = (
     (
+        "anki_editor_syntax_highlighting_button",
+        "Show Syntax Highlighting button",
+        "Show Highlight Code, its language selector, and Code Block Options in the Desktop editor toolbar.",
+    ),
+    (
         "anki_editor_inline_code_button",
         "Show Inline Code button",
         "Add an Inline Code button for formatting selected text or starting an Inline Code span.",
     ),
-    ("anki_editor_blockquote_button", "Show Blockquote button", None),
     (
         "anki_editor_paste_markdown_as_html_button",
         "Show Convert Markdown to HTML button",
         "Convert selected Markdown text to formatted HTML, or insert converted clipboard text when nothing is selected.",
     ),
-    (
-        "anki_editor_syntax_highlighting_button",
-        "Show Syntax Highlighting button",
-        "Show Highlight Code, its language selector, and Code Block Options in the Desktop editor toolbar.",
-    ),
+    ("anki_editor_blockquote_button", "Show Blockquote button", None),
 )
 
 
