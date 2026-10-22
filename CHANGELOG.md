@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed **Code Block Options** closing without applying changes by releasing the modal dialog before the native editor transaction. Line numbering now also creates the required line wrappers for Markdown-converted blocks, preserving syntax colors and cloze handling.
 - Fixed custom editor toolbar separation by rendering independent groups with gaps and rounded outer edges, including when the default Editor UI stylesheet is disabled or individual buttons are hidden.
 - Kept literal code clozes inert through editor annotation, line wrapping, and HTML serialization, while preserving their displayed source text.
 - Fixed Settings Save being blocked by the default Blockquote shortcut conflicting with itself, and added feedback when shortcut validation prevents saving.

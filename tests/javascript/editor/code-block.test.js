@@ -48,6 +48,39 @@ function selectText(document, window, node) {
   selection.addRange(range);
 }
 
+function mockOptionsEditing(document, window) {
+  window.HTMLDialogElement.prototype.showModal = function () {
+    this.open = true;
+  };
+  window.HTMLDialogElement.prototype.close = function () {
+    this.open = false;
+    this.dispatchEvent(new window.Event('close'));
+  };
+  document.execCommand = (_command, _showUi, html) => {
+    // A real modal makes the editor inert, so native insertion cannot run.
+    if (document.querySelector('dialog[open]')) return false;
+
+    const range = window.getSelection().getRangeAt(0);
+
+    range.deleteContents();
+    range.insertNode(range.createContextualFragment(html));
+
+    return true;
+  };
+}
+
+function applyOptions(document, window) {
+  const dialog = document.querySelector('dialog');
+
+  dialog.querySelector('form').dispatchEvent(
+    new window.SubmitEvent('submit', {
+      bubbles: true,
+      cancelable: true,
+      submitter: dialog.querySelector('[value="apply"]'),
+    }),
+  );
+}
+
 test('new blocks start at line 1 despite old global preferences and apply tokens as one edit', () => {
   withEditor('<p>const answer = 42;</p>', (document, window) => {
     const field = document.querySelector('anki-editable');
@@ -208,32 +241,17 @@ test('Code Block Options changes only the selected block starting number', () =>
     (document, window) => {
       const field = document.querySelector('anki-editable');
       selectText(document, window, field.querySelector('code'));
-      window.HTMLDialogElement.prototype.showModal = function () {
-        this.open = true;
-      };
-      window.HTMLDialogElement.prototype.close = function () {
-        this.dispatchEvent(new window.Event('close'));
-      };
-      document.execCommand = (_command, _showUi, html) => {
-        const range = window.getSelection().getRangeAt(0);
-        range.deleteContents();
-        range.insertNode(range.createContextualFragment(html));
-        return true;
-      };
+      mockOptionsEditing(document, window);
 
       assert.equal(globalThis.ankiGlobalKitEditor.openCodeBlockOptions(), true);
       const dialog = document.querySelector('dialog');
       dialog.querySelector('[name="lineStart"]').value = '50';
-      dialog.querySelector('form').dispatchEvent(
-        new window.SubmitEvent('submit', {
-          bubbles: true,
-          cancelable: true,
-          submitter: dialog.querySelector('[value="apply"]'),
-        }),
-      );
+      dialog.querySelector('[name="lineNumbers"]').checked = true;
+      applyOptions(document, window);
 
       const blocks = field.querySelectorAll('pre');
       assert.equal(blocks[0].dataset.lineStart, '50');
+      assert.equal(blocks[0].dataset.lineNumbers, 'true');
       assert.deepEqual(
         [...blocks[0].querySelectorAll('.code-line')].map((line) => line.dataset.lineNumber),
         ['50', '51'],
@@ -242,6 +260,73 @@ test('Code Block Options changes only the selected block starting number', () =>
       assert.equal(document.querySelector('dialog'), null);
     },
   );
+});
+
+test('Code Block Options numbers Markdown blocks and toggles literal clozes without losing source or tokens', () => {
+  withEditor(
+    '<pre class="global-kit-code-block" data-language="python"><code><span class="nb">print</span>({{c1::value}})\nnext</code></pre>',
+    (document, window) => {
+      const field = document.querySelector('anki-editable');
+      let edits = 0;
+
+      field.addEventListener('input', () => edits++);
+      mockOptionsEditing(document, window);
+      selectText(document, window, field.querySelector('code'));
+
+      assert.equal(globalThis.ankiGlobalKitEditor.openCodeBlockOptions(), true);
+
+      const dialog = document.querySelector('dialog');
+
+      dialog.querySelector('[name="lineStart"]').value = '5';
+      dialog.querySelector('[name="lineNumbers"]').checked = true;
+      dialog.querySelector('[name="clozeMode"]').value = 'literal';
+      applyOptions(document, window);
+
+      const block = field.querySelector('pre');
+
+      assert.equal(edits, 1);
+      assert.equal(block.dataset.lineNumbers, 'true');
+      assert.equal(block.dataset.clozeMode, 'literal');
+      assert.deepEqual(
+        [...block.querySelectorAll('.code-line')].map((line) => line.dataset.lineNumber),
+        ['5', '6'],
+      );
+      assert.equal(block.querySelector('.nb').textContent, 'print');
+      assert.equal(block.querySelectorAll('[data-global-kit-literal-brace]').length, 2);
+      assert.doesNotMatch(block.innerHTML, /\{\{c1::/);
+      assert.equal(
+        [...block.querySelectorAll('.code-line')].map((line) => line.textContent).join('\n'),
+        'print({{c1::value}})\nnext',
+      );
+
+      selectText(document, window, block.querySelector('code'));
+      globalThis.ankiGlobalKitEditor.openCodeBlockOptions();
+      document.querySelector('[name="lineNumbers"]').checked = false;
+      document.querySelector('[name="clozeMode"]').value = 'active';
+      applyOptions(document, window);
+
+      assert.equal(edits, 2);
+      assert.equal(field.querySelector('pre').dataset.lineNumbers, 'false');
+      assert.equal(field.querySelector('pre').dataset.clozeMode, 'active');
+      assert.equal(field.querySelectorAll('[data-global-kit-literal-brace]').length, 0);
+      assert.match(field.innerHTML, /\{\{c1::value\}\}/);
+    },
+  );
+});
+
+test('Code Block Options leaves newer field edits untouched', () => {
+  withEditor('<pre class="global-kit-code-block"><code>original</code></pre>', (document, window) => {
+    const field = document.querySelector('anki-editable');
+
+    mockOptionsEditing(document, window);
+    selectText(document, window, field.querySelector('code'));
+    globalThis.ankiGlobalKitEditor.openCodeBlockOptions();
+    field.innerHTML = '<p>new edits</p>';
+    applyOptions(document, window);
+
+    assert.equal(field.innerHTML, '<p>new edits</p>');
+    assert.equal(document.querySelector('dialog'), null);
+  });
 });
 
 test('language priority is explicit choice, existing block, Topic, remembered, then default', () => {

@@ -316,6 +316,10 @@ function openCodeBlockOptions() {
       return;
     }
 
+    // Modal dialogs make the field inert. Release it before focusing the field
+    // and committing the native insertHTML transaction.
+    dialog.close();
+
     const targetRange = document.createRange();
     targetRange.selectNode(pre);
     const targetSelection = {
@@ -329,8 +333,15 @@ function openCodeBlockOptions() {
       clonedPre.dataset.lineNumbers = String(lineNumbers.checked);
       clonedPre.dataset.lineStart = String(nextStart);
       clonedPre.dataset.clozeMode = clozeMode.value;
-      preserveClozeMode(clonedPre.querySelector('code'), clozeMode.value);
-      clonedPre.querySelectorAll(':scope > code > .code-line').forEach((line, index) => {
+      const clonedCode = clonedPre.querySelector('code');
+
+      // Markdown conversion creates highlighted blocks without line wrappers.
+      if (!clonedCode.querySelector(':scope > .code-line')) {
+        clonedCode.innerHTML = tokenHtmlByLine(clonedCode.innerHTML, nextStart);
+      }
+
+      preserveClozeMode(clonedCode, clozeMode.value);
+      clonedCode.querySelectorAll(':scope > .code-line').forEach((line, index) => {
         line.dataset.lineNumber = String(nextStart + index);
       });
       const nextRange = document.createRange();
@@ -339,7 +350,6 @@ function openCodeBlockOptions() {
       stagedSelection.removeAllRanges();
       stagedSelection.addRange(nextRange);
     });
-    dialog.close();
   });
   dialog.showModal();
   return true;
