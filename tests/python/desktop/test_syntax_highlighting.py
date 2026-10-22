@@ -2,6 +2,7 @@
 
 import json
 import sys
+import threading
 import unittest
 from copy import deepcopy
 from pathlib import Path
@@ -103,6 +104,49 @@ class SyntaxRenderingTests(unittest.TestCase):
 
         self.renderer.render_code("print('again')", "python")
         self.assertIs(sys.modules["pygments"], pygments)
+
+    def assert_renderer_lock_available(self):
+        available = []
+
+        def acquire_from_another_thread():
+            acquired = self.renderer._IMPORT_LOCK.acquire(blocking=False)
+            available.append(acquired)
+            if acquired:
+                self.renderer._IMPORT_LOCK.release()
+
+        worker = threading.Thread(target=acquire_from_another_thread)
+        worker.start()
+        worker.join()
+        self.assertEqual(available, [True])
+
+    def test_loader_failure_restores_other_modules_releases_lock_and_allows_retry(self):
+        previous = {
+            name: module
+            for name, module in sys.modules.copy().items()
+            if name == "pygments" or name.startswith("pygments.")
+        }
+        with patch.object(self.renderer, "_PYGMENTS_MODULES", None):
+            with patch.object(self.renderer, "_PYGMENTS_VERSION", "invalid-version"):
+                with self.assertRaisesRegex(
+                    self.renderer.SyntaxHighlightingError, "version mismatch"
+                ):
+                    self.renderer.render_code("print(1)", "python")
+            self.assertIsNone(self.renderer._PYGMENTS_MODULES)
+            for name, module in previous.items():
+                self.assertIs(sys.modules.get(name), module)
+            self.assert_renderer_lock_available()
+            rendered, language = self.renderer.render_code("print(1)", "python")
+            self.assertEqual(language, "python")
+            self.assertIn("print", rendered)
+            for name, module in previous.items():
+                self.assertIs(sys.modules.get(name), module)
+
+    def test_exception_inside_renderer_context_restores_modules_and_releases_lock(self):
+        with self.assertRaisesRegex(RuntimeError, "failed render"):
+            with self.renderer._with_bundled_modules():
+                raise RuntimeError("failed render")
+        self.assertIs(sys.modules["pygments"], pygments)
+        self.assert_renderer_lock_available()
 
     def test_theme_services_import_without_qt(self):
         themes = load_addon_module("desktop.syntax_highlighting.themes")

@@ -7,6 +7,7 @@ import importlib
 import re
 import sys
 import threading
+from contextlib import contextmanager
 
 from ..paths import ADDON_DIR
 
@@ -63,36 +64,36 @@ def _load_pygments_modules() -> dict[str, object]:
     return _PYGMENTS_MODULES
 
 
+@contextmanager
 def _with_bundled_modules():
     """Temporarily expose the cached bundled module tree under Pygments' imports."""
 
-    class ModuleContext:
-        def __enter__(self):
-            _IMPORT_LOCK.acquire()
-            self.previous = {
-                name: module
-                for name, module in sys.modules.items()
-                if name == "pygments" or name.startswith("pygments.")
-            }
-            for name in self.previous:
+    global _PYGMENTS_MODULES
+
+    with _IMPORT_LOCK:
+        previous = {
+            name: module
+            for name, module in sys.modules.copy().items()
+            if name == "pygments" or name.startswith("pygments.")
+        }
+        loaded = False
+        try:
+            for name in previous:
                 del sys.modules[name]
             sys.modules.update(_load_pygments_modules())
-            return self
-
-        def __exit__(self, *_exc):
-            global _PYGMENTS_MODULES
-            _PYGMENTS_MODULES = {
-                name: module
-                for name, module in sys.modules.items()
-                if name == "pygments" or name.startswith("pygments.")
-            }
+            loaded = True
+            yield
+        finally:
+            if loaded:
+                _PYGMENTS_MODULES = {
+                    name: module
+                    for name, module in sys.modules.copy().items()
+                    if name == "pygments" or name.startswith("pygments.")
+                }
             for name in tuple(sys.modules):
                 if name == "pygments" or name.startswith("pygments."):
                     del sys.modules[name]
-            sys.modules.update(self.previous)
-            _IMPORT_LOCK.release()
-
-    return ModuleContext()
+            sys.modules.update(previous)
 
 
 def available_languages() -> list[tuple[str, str, tuple[str, ...]]]:

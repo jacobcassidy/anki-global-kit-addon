@@ -56,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Restored other add-ons' Pygments modules and released the import lock when the bundled renderer fails to initialize, allowing later highlighting requests to retry.
+
 - Reset every syntax role's font weight and style in each theme so bold and italic settings do not leak between the fallback, light mode, and dark mode.
 
 - Preserved resolved Cassidy Dark palette colors when generating synced card and editor stylesheets, including colors saved by older versions.
