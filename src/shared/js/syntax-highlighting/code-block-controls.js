@@ -108,15 +108,15 @@ export function decorateCodeBlock(pre, { copyButton } = {}) {
 
     const label = pre.ownerDocument.createElement('span');
     const button = pre.ownerDocument.createElement('button');
-    const icon = pre.ownerDocument.createElement('img');
+    const icon = pre.ownerDocument.createElement('span');
 
     label.className = 'code-block__language';
     button.className = 'code-block__copy';
     button.type = 'button';
     button.title = 'Copy Code';
     button.setAttribute('aria-label', 'Copy Code');
-    icon.src = 'copy.svg';
-    icon.alt = '';
+    icon.className = 'code-block__copy-icon';
+    icon.setAttribute('aria-hidden', 'true');
     button.append(icon);
     header.append(label, button);
     pre.prepend(header);

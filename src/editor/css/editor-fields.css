@@ -58,8 +58,3 @@ code {
   align-items: center;
   justify-content: center;
 }
-
-.global-kit-code-block .code-block__copy img {
-  inline-size: 1rem;
-  block-size: 1rem;
-}
