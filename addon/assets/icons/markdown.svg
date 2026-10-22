@@ -3,6 +3,8 @@
   Source: https://github.com/dcurtis/markdown-mark/blob/master/svg/markdown-mark.svg
   License: https://github.com/dcurtis/markdown-mark/blob/master/LICENSE
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="20 20 175 88" fill="currentColor" aria-hidden="true">
-  <path d="m30 98v-68h20l20 25 20-25h20v68h-20v-39l-20 25-20-25v39zm125 0-30-33h20v-35h20v35h20z" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+  <g transform="matrix(0.141935 0 0 0.141935 -3.258 2.922)">
+    <path d="m30 98v-68h20l20 25 20-25h20v68h-20v-39l-20 25-20-25v39zm125 0-30-33h20v-35h20v35h20z" />
+  </g>
 </svg>
