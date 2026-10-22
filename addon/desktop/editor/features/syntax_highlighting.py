@@ -14,7 +14,6 @@ from ...shortcuts.labels import shortcut_label
 from ..buttons import toolbar_button
 
 ICON = ICON_ASSET_DIR / "lightning-bolt.svg"
-OPTIONS_ICON = ICON_ASSET_DIR / "ellipsis.svg"
 _MESSAGE_PREFIX = "anki-global-kit:syntax-highlight:"
 _MARKDOWN_MESSAGE_PREFIX = "anki-global-kit:markdown-highlight:"
 _APPLIED_MESSAGE_PREFIX = "anki-global-kit:syntax-highlight-applied:"
@@ -50,17 +49,6 @@ def add_button(buttons: list, editor: Editor, settings: dict | None = None) -> N
             label=_language_button_label(settings),
             id="anki_global_kit_syntax_language",
             tip="Choose the language for syntax highlighting",
-        )
-    )
-    buttons.append(
-        toolbar_button(
-            editor,
-            settings,
-            "anki_editor_syntax_highlighting_button",
-            icon=str(OPTIONS_ICON),
-            cmd="anki_global_kit_code_block_options",
-            func=open_code_block_options,
-            tip="Code Block Options…",
         )
     )
 
@@ -345,10 +333,6 @@ def highlight_selection(editor: Editor) -> None:
         "globalThis.ankiGlobalKitEditor?.highlightCode("
         f"{json.dumps(clipboard)}, {json.dumps(language)});"
     )
-
-
-def open_code_block_options(editor: Editor) -> None:
-    editor.web.eval("globalThis.ankiGlobalKitEditor?.openCodeBlockOptions();")
 
 
 def _show_code_block_options(editor: Editor, request: dict) -> None:

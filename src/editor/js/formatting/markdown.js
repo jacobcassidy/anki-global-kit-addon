@@ -136,6 +136,7 @@ function applyMarkdownHighlightResult(id, html, renderedBlocks) {
     code.removeAttribute('data-language');
     code.innerHTML = enhanceHighlightHtml(rendered.html, rendered.language, { budget });
     decorateCodeBlock(pre, {
+      optionsButton: true,
       copyButton: globalThis.ankiGlobalKitEditorSettings?.anki_editor_syntax_highlighting_copy_button !== false,
     });
   }

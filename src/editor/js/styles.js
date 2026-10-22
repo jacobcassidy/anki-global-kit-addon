@@ -51,7 +51,9 @@ async function installFieldStyles() {
 
       setStyle(editable?.getRootNode(), FIELD_STYLE_ID, css);
 
-      editable?.querySelectorAll('pre.global-kit-code-block').forEach((pre) => decorateCodeBlock(pre));
+      editable
+        ?.querySelectorAll('pre.global-kit-code-block')
+        .forEach((pre) => decorateCodeBlock(pre, { optionsButton: true }));
     }),
   );
 }

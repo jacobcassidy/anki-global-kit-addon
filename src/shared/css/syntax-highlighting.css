@@ -248,7 +248,14 @@ pre.global-kit-code-with-header > code {
     center / contain no-repeat;
 }
 
-.code-block__copy {
+.code-block__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.code-block__copy,
+.code-block__options {
   cursor: pointer;
   flex: none;
   background: none;
@@ -268,17 +275,29 @@ pre.global-kit-code-with-header > code {
     center / contain no-repeat;
 }
 
+.code-block__options-icon {
+  display: block;
+  inline-size: 1rem;
+  block-size: 1rem;
+  background-color: currentcolor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Ccircle cx='5' cy='12' r='2'/%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3Ccircle cx='19' cy='12' r='2'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
 .code-block__copy[hidden] {
   display: none;
 }
 
 .code-block__copy:hover,
-.code-block__copy:focus-visible {
+.code-block__copy:focus-visible,
+.code-block__options:hover,
+.code-block__options:focus-visible {
   color: var(--global-kit-syntax-background);
   background: var(--global-kit-syntax-function);
 }
 
-.code-block__copy:active {
+.code-block__copy:active,
+.code-block__options:active {
   color: var(--global-kit-syntax-background);
   background: var(--global-kit-syntax-keyword);
 }

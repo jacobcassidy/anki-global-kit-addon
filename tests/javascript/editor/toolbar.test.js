@@ -11,7 +11,6 @@ test('editor toolbar settings refresh custom buttons together while preserving i
     'anki_global_kit_paste_markdown_as_html',
     'anki_global_kit_syntax_highlighting',
     'anki_global_kit_syntax_language',
-    'anki_global_kit_code_block_options',
   ];
   const dom = new JSDOM(
     `<body><button data-command="bold"></button>${commands.map((command) => `<button data-command="${command}"></button>`).join('')}</body>`,

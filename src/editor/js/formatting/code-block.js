@@ -168,6 +168,7 @@ function applyHighlightResult(id, source, language, tokenHtml, lineNumbers, line
       preserveClozeMode(code, pre.dataset.clozeMode);
       pre.append(code);
       decorateCodeBlock(pre, {
+        optionsButton: true,
         copyButton: target.block
           ? target.block.dataset.copyButton !== 'false'
           : globalThis.ankiGlobalKitEditorSettings?.anki_editor_syntax_highlighting_copy_button !== false,

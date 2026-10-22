@@ -51,7 +51,8 @@ code {
   cursor: pointer;
 }
 
-.global-kit-code-block .code-block__copy {
+.global-kit-code-block .code-block__copy,
+.global-kit-code-block .code-block__options {
   display: inline-flex;
   align-items: center;
   justify-content: center;

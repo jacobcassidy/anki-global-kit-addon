@@ -64,6 +64,7 @@ export function installCodeLineSelection() {
 
 const COPY_INSTALLED = Symbol.for('ankiGlobalKitCodeCopy');
 const LANGUAGE_MENU_INSTALLED = Symbol.for('ankiGlobalKitLanguageMenu');
+const OPTIONS_INSTALLED = Symbol.for('ankiGlobalKitCodeOptions');
 const copying = new WeakSet();
 const LANGUAGE_NAMES = {
   bash: 'Bash',
@@ -90,7 +91,7 @@ const LANGUAGE_NAMES = {
 };
 
 /** Add presentation outside CODE so the source never contains header text. */
-export function decorateCodeBlock(pre, { copyButton } = {}) {
+export function decorateCodeBlock(pre, { copyButton, optionsButton = false } = {}) {
   const code = [...pre.children].find((node) => node.localName === 'code');
 
   if (!code) return;
@@ -107,10 +108,12 @@ export function decorateCodeBlock(pre, { copyButton } = {}) {
     header.setAttribute('contenteditable', 'false');
 
     const label = pre.ownerDocument.createElement('span');
+    const actions = pre.ownerDocument.createElement('span');
     const button = pre.ownerDocument.createElement('button');
     const icon = pre.ownerDocument.createElement('span');
 
     label.className = 'code-block__language';
+    actions.className = 'code-block__actions';
     button.className = 'code-block__copy';
     button.type = 'button';
     button.title = 'Copy Code';
@@ -118,9 +121,36 @@ export function decorateCodeBlock(pre, { copyButton } = {}) {
     icon.className = 'code-block__copy-icon';
     icon.setAttribute('aria-hidden', 'true');
     button.append(icon);
-    header.append(label, button);
+    actions.append(button);
+    header.append(label, actions);
     pre.prepend(header);
   }
+
+  if (!header.querySelector('.code-block__actions')) {
+    const actions = pre.ownerDocument.createElement('span');
+    actions.className = 'code-block__actions';
+    const button = header.querySelector('.code-block__copy');
+    button?.after(actions);
+    actions.append(button);
+  }
+
+  let optionsControl = header.querySelector('.code-block__options');
+
+  if (optionsButton && !optionsControl) {
+    optionsControl = pre.ownerDocument.createElement('button');
+    const optionsIcon = pre.ownerDocument.createElement('span');
+
+    optionsControl.className = 'code-block__options';
+    optionsControl.type = 'button';
+    optionsControl.title = 'Code Block Options…';
+    optionsControl.setAttribute('aria-label', 'Code Block Options');
+    optionsIcon.className = 'code-block__options-icon';
+    optionsIcon.setAttribute('aria-hidden', 'true');
+    optionsControl.append(optionsIcon);
+    header.querySelector('.code-block__actions')?.append(optionsControl);
+  }
+
+  if (!optionsButton) optionsControl?.remove();
 
   const language =
     pre.dataset.language ||
@@ -136,6 +166,10 @@ export function decorateCodeBlock(pre, { copyButton } = {}) {
   button.hidden = pre.dataset.copyButton === 'false';
   button.title = 'Copy Code';
   button.setAttribute('aria-label', 'Copy Code');
+  if (optionsControl) {
+    optionsControl.title = 'Code Block Options…';
+    optionsControl.setAttribute('aria-label', 'Code Block Options');
+  }
 }
 
 function legacyCopy(text) {
@@ -226,6 +260,40 @@ export function installCodeBlockControls() {
         globalThis.pycmd?.(
           `anki-global-kit:language-menu:${JSON.stringify([rect.left, rect.bottom, pre?.dataset.language || ''])}`,
         );
+      },
+      true,
+    );
+  }
+
+  if (!document[OPTIONS_INSTALLED]) {
+    document[OPTIONS_INSTALLED] = true;
+    document.addEventListener(
+      'mousedown',
+      (event) => {
+        if (event.composedPath().some((node) => node?.matches?.('.code-block__options'))) event.preventDefault();
+      },
+      true,
+    );
+    document.addEventListener(
+      'click',
+      (event) => {
+        const button = event.composedPath().find((node) => node?.matches?.('.code-block__options'));
+
+        if (!button) return;
+
+        event.preventDefault();
+        const pre = button.closest('pre.global-kit-code-block');
+        const code = pre?.querySelector(':scope > code');
+
+        if (!pre || !code) return;
+
+        const selection = pre.getRootNode().getSelection?.() || window.getSelection();
+        const range = pre.ownerDocument.createRange();
+
+        range.selectNodeContents(code);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        globalThis.ankiGlobalKitEditor?.openCodeBlockOptions();
       },
       true,
     );

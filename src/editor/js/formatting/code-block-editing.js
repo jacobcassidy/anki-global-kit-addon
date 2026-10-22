@@ -48,7 +48,7 @@ function replaceCode(target, start, end, text) {
     clone.innerHTML = tokenHtmlByLine(flat.innerHTML, Number(clone.parentElement.dataset.lineStart) || 1);
 
     preserveClozeMode(clone, clone.parentElement.dataset.clozeMode);
-    decorateCodeBlock(clone.parentElement);
+    decorateCodeBlock(clone.parentElement, { optionsButton: true });
 
     const caret = document.createRange();
 
@@ -184,7 +184,7 @@ export function installCodeBlockEditing() {
 
       // Upgrade gutters in previously saved blocks when their field is opened.
       for (const code of field?.querySelectorAll(CODE_SELECTOR) || []) {
-        decorateCodeBlock(code.parentElement);
+        decorateCodeBlock(code.parentElement, { optionsButton: true });
 
         const start = Number(code.parentElement.dataset.lineStart) || 1;
 
