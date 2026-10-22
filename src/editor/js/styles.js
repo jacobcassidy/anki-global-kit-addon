@@ -1,4 +1,7 @@
-import { decorateCodeBlock } from '../../shared/js/syntax-highlighting/code-block-controls.js';
+import {
+  decorateCodeBlock,
+  installCodeBlockControls,
+} from '../../shared/js/syntax-highlighting/code-block-controls.js';
 
 const UI_STYLE_ID = 'anki-global-kit-editor-ui-styles';
 const FIELD_STYLE_ID = 'anki-global-kit-editor-field-styles';
@@ -54,6 +57,7 @@ async function installFieldStyles() {
 }
 
 export function installEditorStyles() {
+  installCodeBlockControls();
   const styles = globalThis.ankiGlobalKitEditorStyles;
 
   setStyle(document.head, UI_STYLE_ID, styles?.ui);

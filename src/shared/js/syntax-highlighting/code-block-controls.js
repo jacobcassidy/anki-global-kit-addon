@@ -63,6 +63,7 @@ export function installCodeLineSelection() {
 }
 
 const COPY_INSTALLED = Symbol.for('ankiGlobalKitCodeCopy');
+const LANGUAGE_MENU_INSTALLED = Symbol.for('ankiGlobalKitLanguageMenu');
 const copying = new WeakSet();
 const LANGUAGE_NAMES = {
   bash: 'Bash',
@@ -107,11 +108,16 @@ export function decorateCodeBlock(pre, { copyButton } = {}) {
 
     const label = pre.ownerDocument.createElement('span');
     const button = pre.ownerDocument.createElement('button');
+    const icon = pre.ownerDocument.createElement('img');
 
     label.className = 'code-block__language';
     button.className = 'code-block__copy';
     button.type = 'button';
-    button.textContent = 'Copy code';
+    button.title = 'Copy Code';
+    button.setAttribute('aria-label', 'Copy Code');
+    icon.src = 'copy.svg';
+    icon.alt = '';
+    button.append(icon);
     header.append(label, button);
     pre.prepend(header);
   }
@@ -128,7 +134,8 @@ export function decorateCodeBlock(pre, { copyButton } = {}) {
   if (label.textContent !== name) label.textContent = name;
 
   button.hidden = pre.dataset.copyButton === 'false';
-  button.setAttribute('aria-label', `Copy ${name} code`);
+  button.title = 'Copy Code';
+  button.setAttribute('aria-label', 'Copy Code');
 }
 
 function legacyCopy(text) {
@@ -184,6 +191,35 @@ export async function copyCodeToClipboard(pre) {
 export function installCodeBlockControls() {
   installCodeLineSelection();
 
+  if (!document[LANGUAGE_MENU_INSTALLED]) {
+    document[LANGUAGE_MENU_INSTALLED] = true;
+    document.addEventListener(
+      'mousedown',
+      (event) => {
+        const label = event.composedPath().find((node) => node?.matches?.('.code-block__language'));
+
+        if (label && event.button === 0) event.preventDefault();
+      },
+      true,
+    );
+    document.addEventListener(
+      'click',
+      (event) => {
+        const label = event.composedPath().find((node) => node?.matches?.('.code-block__language'));
+
+        if (!label) return;
+
+        event.preventDefault();
+        const rect = label.getBoundingClientRect();
+        const pre = label.closest('pre');
+        globalThis.pycmd?.(
+          `anki-global-kit:language-menu:${JSON.stringify([rect.left, rect.bottom, pre?.dataset.language || ''])}`,
+        );
+      },
+      true,
+    );
+  }
+
   if (document[COPY_INSTALLED]) return;
 
   document[COPY_INSTALLED] = true;
@@ -209,13 +245,13 @@ export function installCodeBlockControls() {
 
       try {
         await copyCodeToClipboard(button.closest('pre'));
-        button.textContent = 'Copied';
+        button.title = 'Copied';
       } catch {
-        button.textContent = 'Copy failed';
+        button.title = 'Copy failed';
       } finally {
         copying.delete(button);
         setTimeout(() => {
-          button.textContent = 'Copy code';
+          button.title = 'Copy Code';
         }, 1500);
       }
     },

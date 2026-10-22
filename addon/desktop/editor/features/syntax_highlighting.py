@@ -19,6 +19,7 @@ _MESSAGE_PREFIX = "anki-global-kit:syntax-highlight:"
 _MARKDOWN_MESSAGE_PREFIX = "anki-global-kit:markdown-highlight:"
 _APPLIED_MESSAGE_PREFIX = "anki-global-kit:syntax-highlight-applied:"
 _OPTIONS_MESSAGE_PREFIX = "anki-global-kit:code-block-options:"
+_LANGUAGE_MENU_PREFIX = "anki-global-kit:language-menu:"
 _BUSY = False
 _INSTALLED = False
 _PENDING_EXPLICIT_APPLIES: dict[str, tuple[Editor, int | None, str]] = {}
@@ -114,7 +115,7 @@ def _set_language_choice(editor: Editor, language: str) -> None:
         )
 
 
-def show_language_menu(editor: Editor) -> None:
+def show_language_menu(editor: Editor, anchor: list | None = None) -> None:
     from aqt.qt import QCursor, QMenu, QPoint
 
     from ...syntax_highlighting.rendering import (
@@ -135,27 +136,32 @@ def show_language_menu(editor: Editor) -> None:
     names = {alias: name for name, alias, _aliases in available_languages()}
     selected = getattr(editor, "_anki_global_kit_language_override", None)
     if selected not in enabled:
+        selected = getattr(editor, "_anki_global_kit_language_remembered", None)
+    if selected not in enabled:
         selected = select_editor_language(
             settings.get("anki_editor_syntax_highlighting_default_language", "python"),
             enabled,
         )
     ordered = sorted(
-        (alias for alias in enabled if alias in names),
-        key=lambda alias: (alias != selected, names[alias].casefold()),
+        (alias for alias in enabled if alias in names and alias != selected),
+        key=lambda alias: names[alias].casefold(),
     )
     menu = QMenu(editor.parentWindow)
+    if selected in names:
+        current = menu.addAction(names[selected])
+        current.setEnabled(False)
+        menu.addSeparator()
     for language in ordered:
         action = menu.addAction(names[language])
-        action.setCheckable(True)
-        action.setChecked(language == selected)
         action.triggered.connect(
-            lambda _checked=False, alias=language: _set_language_choice(editor, alias)
+            lambda _checked=False, alias=language: _choose_language(editor, alias)
         )
 
     def open_menu(rect) -> None:
         if editor.web is None:
             return
         position = QCursor.pos()
+        rect = anchor if isinstance(anchor, list) and len(anchor) == 2 else rect
         if isinstance(rect, list) and len(rect) == 2:
             zoom = editor.web.zoomFactor()
             position = editor.web.mapToGlobal(
@@ -194,12 +200,13 @@ def set_editor_language_context(editor: Editor, *, reset: bool = False) -> None:
         from ...syntax_highlighting.language_memory import remembered_language
 
         remembered = remembered_language(editor.mw.col, deck_id, enabled)
+    editor._anki_global_kit_language_remembered = remembered
     if editor.web is not None:
         editor.web.eval(
             "globalThis.ankiGlobalKitEditor?.setLanguageContext("
             f"{json.dumps(override)}, {json.dumps(remembered)});"
         )
-        label = _language_button_label(settings, override)
+        label = _language_button_label(settings, override or remembered)
         editor.web.eval(
             "(() => { const button = document.querySelector('[data-command=\"anki_global_kit_syntax_language\"]');"
             f"if (button) button.textContent = {json.dumps(label)};"
@@ -209,6 +216,12 @@ def set_editor_language_context(editor: Editor, *, reset: bool = False) -> None:
 
 def reset_editor_language_context(editor: Editor) -> None:
     set_editor_language_context(editor, reset=True)
+
+
+def _choose_language(editor: Editor, language: str) -> None:
+    _set_language_choice(editor, language)
+    if editor.web is not None:
+        editor.web.eval("globalThis.ankiGlobalKitEditor?.highlightCode('', null);")
 
 
 def _resolve_editor_deck_id(editor: Editor) -> int | None:
@@ -589,6 +602,21 @@ def _render_code(source: str, language: str, cloze_mode: str) -> tuple[str, str]
 
 def _on_message(handled: tuple[bool, object], message: str, context):
     global _BUSY
+    if message.startswith(_LANGUAGE_MENU_PREFIX) and isinstance(context, Editor):
+        try:
+            anchor = json.loads(message[len(_LANGUAGE_MENU_PREFIX) :])
+        except (TypeError, json.JSONDecodeError):
+            return (True, None)
+        if isinstance(anchor, list) and len(anchor) == 3:
+            selected = anchor.pop()
+            enabled = get_editor_settings().get(
+                "anki_editor_syntax_highlighting_languages", []
+            )
+            if isinstance(selected, str) and selected in enabled:
+                context._anki_global_kit_language_override = selected
+        show_language_menu(context, anchor[:2] if isinstance(anchor, list) else None)
+        return (True, None)
+
     if message.startswith(_OPTIONS_MESSAGE_PREFIX) and isinstance(context, Editor):
         try:
             request = json.loads(message[len(_OPTIONS_MESSAGE_PREFIX) :])

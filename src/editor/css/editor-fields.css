@@ -40,3 +40,26 @@ code {
     color: var(--syntax-gray-white);
   }
 }
+
+.global-kit-code-block .code-block__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.global-kit-code-block .code-block__language {
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 0.15em;
+}
+
+.global-kit-code-block .code-block__copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.global-kit-code-block .code-block__copy img {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
