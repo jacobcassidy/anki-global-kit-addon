@@ -12,13 +12,13 @@
   column-gap: 0.25rem;
 }
 
-/* Match the weight of Anki's menu chevrons. */
+/* Based on Anki's chevron-down-light.svg. */
 
 .anki-addon-button[data-command="anki_global_kit_syntax_language"]::after {
   content: "";
   flex: none;
   background-color: currentcolor;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E")
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6 1.41-1.42Z'/%3E%3C/svg%3E")
     center / contain no-repeat;
   block-size: calc((var(--buttons-size, 1.5rem) - 0.125rem) * 0.6);
   inline-size: calc((var(--buttons-size, 1.5rem) - 0.125rem) * 0.6);
