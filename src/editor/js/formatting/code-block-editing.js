@@ -58,6 +58,49 @@ function replaceCode(target, start, end, text) {
   });
 }
 
+function lineNumberFrom(node) {
+  const element = node?.nodeType === 1 ? node : node?.parentElement;
+
+  return element?.closest('.code-line__number');
+}
+
+function updateLineNumber(number, value) {
+  number.dataset.lineNumber = String(value);
+  number.setAttribute('contenteditable', 'false');
+  number.setAttribute('role', 'button');
+  number.setAttribute('tabindex', '0');
+  number.setAttribute('aria-label', `Line ${value}`);
+  number.textContent = '';
+}
+
+function leaveLineNumber(target, number, event) {
+  const { code, field, selection } = target;
+  const lines = [...code.children].filter((line) => line.classList.contains('code-line'));
+  const current = number.parentElement;
+  const index = lines.indexOf(current);
+  const next = lines[Math.min(index + 1, lines.length - 1)];
+  const content = next?.querySelector('.code-line__content');
+
+  if (!content) return false;
+
+  lines.forEach((line, lineIndex) => {
+    const gutter = [...line.children].find((child) => child.classList.contains('code-line__number'));
+
+    if (gutter) updateLineNumber(gutter, Number(code.parentElement.dataset.lineStart || 1) + lineIndex);
+  });
+
+  const caret = document.createRange();
+
+  caret.selectNodeContents(content);
+  caret.collapse(false);
+  selection.removeAllRanges();
+  selection.addRange(caret);
+  event.preventDefault();
+  field.dispatchEvent(new InputEvent('input', { bubbles: true, composed: true, inputType: event.inputType }));
+
+  return true;
+}
+
 function editCode(event) {
   if (!event.cancelable || event.isComposing || event.defaultPrevented) return;
 
@@ -66,6 +109,13 @@ function editCode(event) {
   if (!target) return;
 
   const { code, range } = target;
+
+  if (event.inputType === 'deleteContentBackward') {
+    const number = lineNumberFrom(range.startContainer) || lineNumberFrom(range.endContainer);
+
+    if (range.collapsed && number && leaveLineNumber(target, number, event)) return;
+  }
+
   let start = codeOffset(code, range.startContainer, range.startOffset);
   let end = codeOffset(code, range.endContainer, range.endOffset);
   let text = '';
@@ -143,12 +193,7 @@ export function installCodeBlockEditing() {
 
           if (!number) return;
 
-          number.dataset.lineNumber = String(start + index);
-          number.setAttribute('contenteditable', 'false');
-          number.setAttribute('role', 'button');
-          number.setAttribute('tabindex', '0');
-          number.setAttribute('aria-label', `Line ${start + index}`);
-          number.textContent = '';
+          updateLineNumber(number, start + index);
         });
       }
     },

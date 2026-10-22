@@ -592,3 +592,39 @@ test('typing after Undo restores the old caret instead of replacing the restored
     },
   );
 });
+
+test('one Backspace clears a focused legacy line number and moves to the next line end', () => {
+  withEditor(
+    '<pre class="global-kit-code-block" data-line-start="8"><code><span class="code-line"><span class="code-line__number" contenteditable="true">8</span><span class="code-line__content">first</span></span><span class="code-line"><span class="code-line__number" contenteditable="true">9</span><span class="code-line__content">second</span></span><span class="code-line"><span class="code-line__number" contenteditable="true">10</span><span class="code-line__content">third</span></span></code></pre>',
+    (document, window) => {
+      const field = document.querySelector('anki-editable');
+      const number = document.querySelectorAll('.code-line__number')[1];
+      const range = document.createRange();
+
+      range.setStart(number.firstChild, 1);
+      range.collapse(true);
+      window.getSelection().addRange(range);
+      const event = new window.InputEvent('beforeinput', {
+        bubbles: true,
+        cancelable: true,
+        inputType: 'deleteContentBackward',
+      });
+
+      document.querySelector('code').dispatchEvent(event);
+      const selection = window.getSelection();
+      const content = document.querySelectorAll('.code-line__content')[2];
+
+      assert.equal(event.defaultPrevented, true);
+      assert.equal(number.textContent, '');
+      assert.equal(number.getAttribute('contenteditable'), 'false');
+      assert.equal(selection.anchorNode, content);
+      assert.equal(selection.anchorOffset, content.childNodes.length);
+      assert.equal(document.querySelector('code').textContent, 'firstsecondthird');
+      assert.deepEqual(
+        [...document.querySelectorAll('.code-line__number')].map((node) => node.dataset.lineNumber),
+        ['8', '9', '10'],
+      );
+      assert.ok(field.isConnected);
+    },
+  );
+});

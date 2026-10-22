@@ -52,6 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Made Backspace clear a focused legacy line-number gutter in one keypress and move to the end of the following code line.
+
 - Preserved the original editor selection through native undo so typing after undo continues at the restored caret.
 
 - Made code block line numbers non-editable and automatically updated them when inserting, deleting, or pasting lines in the Desktop editor.
