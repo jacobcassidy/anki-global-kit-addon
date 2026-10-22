@@ -351,6 +351,7 @@ def _show_code_block_options(editor: Editor, request: dict) -> None:
     dialog.setWindowTitle("Code Block Options")
     layout = QVBoxLayout(dialog)
     form = QFormLayout()
+    form.setLabelAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
     line_numbers = QCheckBox("Show line numbers", dialog)
     line_numbers.setChecked(request.get("lineNumbers") is True)
     form.addRow(line_numbers)
@@ -366,13 +367,6 @@ def _show_code_block_options(editor: Editor, request: dict) -> None:
     cloze_mode.addItem("Literal code", "literal")
     cloze_mode.setCurrentIndex(1 if request.get("clozeMode") == "literal" else 0)
     form.addRow("Anki cloze syntax", cloze_mode)
-    cloze_label = form.labelForField(cloze_mode)
-
-    if cloze_label is not None:
-        cloze_label.setAlignment(
-            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
-        )
-
     layout.addLayout(form)
     buttons = QDialogButtonBox(
         QDialogButtonBox.StandardButton.Cancel | QDialogButtonBox.StandardButton.Ok,
