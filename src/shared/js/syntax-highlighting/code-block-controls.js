@@ -67,6 +67,7 @@ const COPY_INSTALLED = Symbol.for('ankiGlobalKitCodeCopy');
 const LANGUAGE_MENU_INSTALLED = Symbol.for('ankiGlobalKitLanguageMenu');
 const OPTIONS_INSTALLED = Symbol.for('ankiGlobalKitCodeOptions');
 const copying = new WeakSet();
+const showingCopyFeedback = new WeakSet();
 const LANGUAGE_NAMES = {
   bash: 'Bash',
   c: 'C',
@@ -318,11 +319,14 @@ export function installCodeBlockControls() {
 
       if (!button) return;
 
+      if (showingCopyFeedback.has(button)) return;
+
       event.preventDefault();
 
       if (copying.has(button)) return;
 
       copying.add(button);
+      showingCopyFeedback.add(button);
       const icon = button.querySelector('.code-block__copy-icon');
 
       if (icon) {
@@ -338,6 +342,7 @@ export function installCodeBlockControls() {
         }
 
         button.title = 'Copy Code';
+        showingCopyFeedback.delete(button);
       }, 2000);
 
       try {
