@@ -9,21 +9,27 @@
 .global-kit-code-block .code-line {
   display: block;
   min-block-size: 1lh;
+}
+
+.global-kit-code-block[data-line-numbers="true"] .code-line {
   padding-inline-start: 5ch;
   position: relative;
 }
 
-.global-kit-code-block[data-line-numbers="true"] .code-line::before {
+.global-kit-code-block[data-line-numbers="true"] .code-line-number {
   position: absolute;
   inset-block-start: 0;
   inset-inline-start: 0;
   user-select: none;
-  content: attr(data-line-number);
   display: inline-block;
   color: var(--global-kit-syntax-comment);
   inline-size: 4ch;
   padding-inline-end: 1ch;
   text-align: end;
+}
+
+.global-kit-code-block[data-line-numbers="false"] .code-line-number {
+  display: none;
 }
 
 .syntax-highlights {

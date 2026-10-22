@@ -18,7 +18,9 @@ function element(node) {
 function textFromCode(node) {
   const numberedLines = node.querySelectorAll(':scope > .code-line');
   return numberedLines.length
-    ? [...numberedLines].map((line) => line.textContent || '').join('\n')
+    ? [...numberedLines]
+        .map((line) => line.querySelector(':scope > .code-line-content')?.textContent ?? line.textContent ?? '')
+        .join('\n')
     : node.textContent || '';
 }
 
@@ -57,7 +59,10 @@ function tokenHtmlByLine(tokenHtml, start) {
     for (const continuation of nodeLines.slice(1)) lines.push(continuation);
   }
   return lines
-    .map((line, index) => `<span class="code-line" data-line-number="${start + index}">${line}</span>`)
+    .map(
+      (line, index) =>
+        `<span class="code-line" data-line-number="${start + index}"><span class="code-line-number">${start + index}</span><span class="code-line-content">${line}</span></span>`,
+    )
     .join('');
 }
 
@@ -327,7 +332,28 @@ function applyCodeBlockOptions(id, options) {
 
       preserveClozeMode(clonedCode, options.clozeMode);
       clonedCode.querySelectorAll(':scope > .code-line').forEach((line, index) => {
-        line.dataset.lineNumber = String(options.lineStart + index);
+        const lineNumber = String(options.lineStart + index);
+        line.dataset.lineNumber = lineNumber;
+        const numberElement = line.querySelector(':scope > .code-line-number');
+        const contentElement = line.querySelector(':scope > .code-line-content');
+
+        if (!contentElement) {
+          const nextContent = line.ownerDocument.createElement('span');
+          nextContent.className = 'code-line-content';
+
+          while (line.firstChild) nextContent.append(line.firstChild);
+
+          line.append(nextContent);
+        }
+
+        if (numberElement) {
+          numberElement.textContent = lineNumber;
+        } else {
+          const nextNumber = line.ownerDocument.createElement('span');
+          nextNumber.className = 'code-line-number';
+          nextNumber.textContent = lineNumber;
+          line.prepend(nextNumber);
+        }
       });
       const nextRange = document.createRange();
       nextRange.setStartAfter(clonedPre);
