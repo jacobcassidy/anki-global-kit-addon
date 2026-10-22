@@ -56,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Reported failed card asset recovery during Settings saves instead of claiming the previous settings were fully restored.
+
 - Fixed selecting Replace after Delete omitting the selected note type from the confirmation and operation plan.
 
 - Kept asynchronous editor request IDs unique across note loads and Settings saves so stale code highlighting and Markdown results cannot overwrite a newer selection.

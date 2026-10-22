@@ -91,11 +91,14 @@ def save_settings(
     except Exception as error:
         try:
             mw.addonManager.writeConfig(ADDON_PACKAGE_NAME, previous_local)
-            if mw.col is not None and previous_themes is not None:
+            if mw.col is not None:
                 mw.col.set_config(
                     "anki_global_kit.syntax_highlighting.themes", previous_themes
                 )
-                update_assets_for_profile()
+                if not update_assets_for_profile():
+                    raise RuntimeError(
+                        "Anki could not restore the previous card assets."
+                    )
         except Exception as recovery_error:
             showWarning(
                 "Settings could not be saved, and restoring the previous settings also failed. "
