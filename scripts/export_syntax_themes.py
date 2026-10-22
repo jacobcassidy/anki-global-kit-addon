@@ -21,14 +21,14 @@ def main() -> int:
     css = load_addon_module("desktop.syntax_highlighting.themes").generate_theme_css()
     if args.check:
         if not OUTPUT.is_file() or OUTPUT.read_text(encoding="utf-8") != css:
-            print(
-                "Generated Cassidy Dark CSS is missing or stale; run npm run build:addon."
-            )
+            print("Generated Cassidy Dark CSS is missing or stale; run npm run build.")
             return 1
         return 0
 
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(css, encoding="utf-8")
+    if not OUTPUT.is_file() or OUTPUT.read_text(encoding="utf-8") != css:
+        OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+        OUTPUT.write_text(css, encoding="utf-8")
+
     return 0
 
 

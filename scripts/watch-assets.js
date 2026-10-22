@@ -1,6 +1,7 @@
+import { execFileSync } from 'node:child_process';
 import { watch } from 'node:fs';
 import { readFile, readdir, writeFile } from 'node:fs/promises';
-import { join, relative, resolve } from 'node:path';
+import { join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { context, formatMessages } from 'esbuild';
 import { formatBuildMessage } from './build_logging.js';
@@ -25,6 +26,29 @@ const pendingChanges = new Set();
 const inputsByOutput = new Map();
 const changedOutputs = new Set();
 let changeTimer;
+
+const repositoryRoot = fileURLToPath(new URL('../', import.meta.url));
+const themeSourceDirectory = resolve(repositoryRoot, 'addon/desktop/syntax_highlighting');
+const fontDirectory = resolve(repositoryRoot, 'addon/assets/fonts');
+const fontLicenseDirectory = join(fontDirectory, 'licenses');
+const fontAttributionPath = join(fontDirectory, 'FONT-LICENSES.md');
+
+function runGenerator(script) {
+  execFileSync('python3', [fileURLToPath(new URL(`./${script}`, import.meta.url))], {
+    stdio: 'inherit',
+  });
+}
+
+function tryRunGenerator(script) {
+  try {
+    runGenerator(script);
+  } catch (error) {
+    console.error(`${colorize('Generator failed:', colors.red)} ${script}: ${error.message}`);
+  }
+}
+
+runGenerator('export_syntax_themes.py');
+runGenerator('font_notices.py');
 
 await updateDevAddonName();
 // Watch the directory so replacing manifest.json during a save remains visible.
@@ -61,6 +85,8 @@ for (const sourceDirectory of [
   'src/shared/js',
   'src/shared/css',
   'addon/assets/icons',
+  'addon/desktop/syntax_highlighting',
+  'addon/assets/fonts',
 ]) {
   const absoluteDirectory = fileURLToPath(new URL(`../${sourceDirectory}`, import.meta.url));
   await indexDirectory(absoluteDirectory);
@@ -73,6 +99,9 @@ for (const sourceDirectory of [
 
     clearTimeout(changeTimer);
     changeTimer = setTimeout(async () => {
+      let regenerateThemeCss = false;
+      let regenerateFontNotice = false;
+
       for (const changedPath of pendingChanges) {
         const content = await readFile(changedPath).catch(() => null);
         const previousContent = contentByPath.get(changedPath);
@@ -82,13 +111,30 @@ for (const sourceDirectory of [
         if (content) contentByPath.set(changedPath, content);
         else contentByPath.delete(changedPath);
 
+        const absolutePath = resolve(changedPath);
+
+        if (absolutePath.startsWith(`${themeSourceDirectory}${sep}`) && absolutePath.endsWith('.py')) {
+          regenerateThemeCss = true;
+        }
+
+        if (
+          absolutePath === fontAttributionPath ||
+          (absolutePath.startsWith(`${fontLicenseDirectory}${sep}`) && absolutePath.endsWith('.txt'))
+        ) {
+          regenerateFontNotice = true;
+        }
+
         for (const [outfile, inputs] of inputsByOutput) {
-          if (inputs.has(resolve(changedPath))) changedOutputs.add(outfile);
+          if (inputs.has(absolutePath)) changedOutputs.add(outfile);
         }
         const file = relative(fileURLToPath(new URL('../', import.meta.url)), changedPath);
         console.log(colorize(`Changed: ${file}`, colors.yellow));
       }
       pendingChanges.clear();
+
+      if (regenerateThemeCss) tryRunGenerator('export_syntax_themes.py');
+
+      if (regenerateFontNotice) tryRunGenerator('font_notices.py');
     }, 120);
   });
 }
@@ -160,4 +206,6 @@ const contexts = await Promise.all(
 );
 
 await Promise.all(contexts.map((buildContext) => buildContext.watch()));
-console.log('Watching card, editor, and shared sources plus addon/assets/icons. Press Ctrl+C to stop.');
+console.log(
+  'Watching card, editor, and shared sources plus icons, syntax theme sources, and font notices. Press Ctrl+C to stop.',
+);
