@@ -305,11 +305,8 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
             topic: {
                 card_format
                 for card_format, checkbox in formats.items()
-                if checkbox.isChecked()
-                and (
-                    checkbox.isEnabled()
-                    or overwrite_checks[topic][card_format].isChecked()
-                )
+                if (checkbox.isChecked() and checkbox.isEnabled())
+                or overwrite_checks[topic][card_format].isChecked()
             }
             for topic, formats in note_type_checks.items()
         }
