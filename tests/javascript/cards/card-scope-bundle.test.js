@@ -59,3 +59,41 @@ for (const client of ['Desktop', 'AnkiDroid', 'AnkiWeb', 'AnkiMobile']) {
     }
   });
 }
+
+for (const client of ['Desktop', 'AnkiDroid', 'AnkiWeb', 'AnkiMobile']) {
+  test(`card features ignore colliding classes outside Kit containers in ${client}`, async () => {
+    const unrelated =
+      '<input id="other"><div class="topic">Python</div><div class="question-container">ordinary</div><textarea class="question-input"></textarea><div class="answer-container">ordinary</div><div class="notes-container">ordinary</div><div class="user-answer"><div class="box__content"><pre><code>print(1)</code></pre></div></div>';
+    const kit =
+      '<main class="agk-container"><div class="topic">Python</div><textarea id="kit-input" class="question-input"></textarea></main>';
+    const dom = new JSDOM(`<div id="qa">${unrelated}${kit}</div>`, { runScripts: 'outside-only' });
+    const { window } = dom;
+    const { document } = window;
+    const errors = [];
+
+    window.addEventListener('error', (event) => errors.push(event.error));
+    if (client === 'Desktop') window.pycmd = () => {};
+    if (client === 'AnkiDroid') window.AnkiDroidJS = {};
+    if (client === 'AnkiWeb') window.study = { drawAnswer() {} };
+
+    try {
+      window.eval(bundle);
+      assert.equal(document.activeElement.id, 'kit-input');
+      assert.equal(document.querySelectorAll('.card-formatting-toolbar').length, 1);
+      assert.equal(document.querySelector('.user-answer code').innerHTML, 'print(1)');
+      if (client === 'AnkiDroid') document.body.innerHTML = `<div id="qa">${unrelated}</div>`;
+      else document.getElementById('qa').innerHTML = unrelated;
+
+      await new Promise((resolve) => window.setTimeout(resolve, 0));
+      assert.equal(document.getElementById('qa').innerHTML, unrelated);
+      assert.equal(document.activeElement, document.body);
+      window.eval(bundle);
+      await new Promise((resolve) => window.setTimeout(resolve, 0));
+      assert.equal(document.getElementById('qa').innerHTML, unrelated);
+      assert.equal(document.activeElement, document.body);
+      assert.deepEqual(errors, []);
+    } finally {
+      window.close();
+    }
+  });
+}

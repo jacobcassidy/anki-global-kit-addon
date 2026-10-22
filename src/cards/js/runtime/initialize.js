@@ -10,6 +10,8 @@ import { watchSubmittedCodeBlocks } from '../syntax-highlighting/index.js';
 import { watchCodeBlockHeaders } from '../syntax-highlighting/code-block-headers.js';
 
 function runFunctions() {
+  if (!document.querySelector('.agk-container')) return;
+
   showQuestionContainers();
   focusFirstInput();
   watchQuestionInputs();

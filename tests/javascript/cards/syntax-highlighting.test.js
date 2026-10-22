@@ -71,7 +71,7 @@ test('review highlighting enforces per-block, per-answer, and block-count budget
   );
 
   const answer = (blocks) => {
-    document.body.innerHTML = `<div class="user-answer"><div class="box__content">${blocks}</div></div>`;
+    document.body.innerHTML = `<main class="agk-container"><div class="user-answer"><div class="box__content">${blocks}</div></div></main>`;
     watchSubmittedCodeBlocks()?.disconnect();
     return [...document.querySelectorAll('.box__content code')];
   };

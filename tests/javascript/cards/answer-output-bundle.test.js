@@ -8,7 +8,7 @@ const bundle = readFileSync(new URL('../../../addon/assets/cards/js/_anki-global
 for (const client of ['Desktop', 'AnkiDroid', 'AnkiWeb', 'AnkiMobile']) {
   for (const markdown of [true, false]) {
     test(`plain answer output in ${client} preserves text with Markdown ${markdown ? 'enabled' : 'disabled'}`, async () => {
-      const dom = new JSDOM('<div id="qa"><textarea class="question-input"></textarea></div>', {
+      const dom = new JSDOM('<div id="qa" class="agk-container"><textarea class="question-input"></textarea></div>', {
         runScripts: 'outside-only',
         url: 'https://example.test/',
       });
@@ -43,7 +43,7 @@ for (const client of ['Desktop', 'AnkiDroid', 'AnkiWeb', 'AnkiMobile']) {
           '<div class="reference-answer"><div class="box__content">Reference</div></div>' +
           '<div class="user-answer"><div class="box__content"></div></div></section></main>';
 
-        if (client === 'AnkiDroid') document.body.innerHTML = `<div id="qa">${back}</div>`;
+        if (client === 'AnkiDroid') document.body.innerHTML = `<div id="qa" class="agk-container">${back}</div>`;
         else document.getElementById('qa').innerHTML = back;
 
         await new Promise((resolve) => window.setTimeout(resolve, 0));

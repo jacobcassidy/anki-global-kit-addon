@@ -8,7 +8,7 @@ const bundle = readFileSync(new URL('../../../addon/assets/cards/js/_anki-global
 for (const client of ['Desktop', 'AnkiDroid', 'AnkiWeb', 'AnkiMobile']) {
   test(`the bundled classifier annotates JavaScript and Python answers in simulated ${client}`, () => {
     const dom = new JSDOM(
-      `<div id="qa"><div class="topic">JavaScript</div>
+      `<div id="qa" class="agk-container"><div class="topic">JavaScript</div>
       <div class="user-answer"><div class="box__content"><pre><code data-language="javascript">function example(value) { return value.title.replace(value); }</code></pre>
       <pre><code data-language="python">def example(value):
     return str(value.title), True</code></pre></div></div></div>`,

@@ -14,6 +14,7 @@ function setup(value, start = value.length, end = start, topic = 'JavaScript', p
   Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { platform } });
   const input = {
     value,
+    closest: () => ({ querySelector: () => ({ textContent: topic }) }),
     selectionStart: start,
     selectionEnd: end,
     inputEvents: 0,

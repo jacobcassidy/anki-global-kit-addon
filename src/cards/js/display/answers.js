@@ -11,7 +11,7 @@ import { settings } from '../runtime/settings.js';
  * Display .answer-containers that contain visible content.
  */
 export function showAnswerContainers() {
-  const answerContainers = document.querySelectorAll('.answer-container');
+  const answerContainers = document.querySelectorAll('.agk-container .answer-container');
   if (answerContainers.length < 1) return;
 
   answerContainers.forEach((answerContainer, answerContainerIndex) => {

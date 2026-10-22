@@ -34,7 +34,7 @@ export function watchSubmittedCodeBlocks() {
         [...code.classList].find((name) => name.startsWith('language-'))?.slice('language-'.length);
       const language = explicitLanguage
         ? getSyntaxLanguage(explicitLanguage)
-        : getSyntaxLanguage(document.querySelector('.topic')?.textContent || '');
+        : getSyntaxLanguage(answer.closest('.agk-container')?.querySelector('.topic')?.textContent || '');
 
       if (sourceLength > MAX_BLOCK_CHARACTERS) continue;
 
@@ -54,12 +54,12 @@ export function watchSubmittedCodeBlocks() {
   const processNode = (node) => {
     if (!(node instanceof Element)) return;
     const answers = [];
-    if (node.matches('.user-answer .box__content')) answers.push(node);
-    answers.push(...node.querySelectorAll('.user-answer .box__content'));
+    if (node.matches('.agk-container .user-answer .box__content')) answers.push(node);
+    answers.push(...node.querySelectorAll('.agk-container .user-answer .box__content'));
     answers.forEach(processAnswer);
   };
 
-  document.querySelectorAll('.user-answer .box__content').forEach(processAnswer);
+  document.querySelectorAll('.agk-container .user-answer .box__content').forEach(processAnswer);
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => mutation.addedNodes.forEach(processNode));
   });

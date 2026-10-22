@@ -6,7 +6,7 @@ import { JSDOM } from 'jsdom';
 const bundle = readFileSync(new URL('../../../addon/assets/cards/js/_anki-global-kit.min.js', import.meta.url), 'utf8');
 function card(settings = {}, platform = 'MacIntel') {
   const dom = new JSDOM(
-    '<div id="qa"><div class="topic">Python</div><textarea class="question-input">one\ntwo\nthree</textarea></div>',
+    '<div id="qa" class="agk-container"><div class="topic">Python</div><textarea class="question-input">one\ntwo\nthree</textarea></div>',
     { runScripts: 'outside-only' },
   );
   Object.defineProperty(dom.window.navigator, 'platform', { value: platform });

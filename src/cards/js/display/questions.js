@@ -5,7 +5,7 @@ import { addComparisonStyle, showBonusQuestion, showTypeHint } from './type-hint
  * Display a .question-container that contains visible content.
  */
 export function showQuestionContainers() {
-  const questionContainers = document.querySelectorAll('.question-container');
+  const questionContainers = document.querySelectorAll('.agk-container .question-container');
   if (questionContainers.length < 1) return;
 
   questionContainers.forEach((questionContainer) => {

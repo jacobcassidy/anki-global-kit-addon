@@ -17,7 +17,7 @@ export function handleTabIndentation(textarea, event, shortcuts) {
 
 /** Shared row indentation action for toolbar buttons and keyboard shortcuts. */
 export function changeTextareaIndentation(textarea, outdent = false) {
-  const topic = document.querySelector('.topic');
+  const topic = textarea.closest('.agk-container')?.querySelector('.topic');
   const indentation = topic && /python/i.test(topic.textContent) ? '    ' : '  ';
   indentLines(textarea, indentation, outdent);
 }

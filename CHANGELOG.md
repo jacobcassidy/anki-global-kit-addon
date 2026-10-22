@@ -56,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Scoped card initialization, input focus, formatting handlers, and answer highlighting to Kit containers when reviewing mixed note types.
+
 - Shared overlapping card script loads and allowed retries after a failed load. Existing note types need **Replace** and confirmation to receive the updated loader, followed by collection and media sync.
 
 - Preserved saved code rows and blank lines when extracting selected text for Markdown conversion, excluding editor headers and line-number gutters from the source.

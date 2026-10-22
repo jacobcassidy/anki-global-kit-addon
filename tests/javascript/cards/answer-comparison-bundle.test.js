@@ -8,7 +8,7 @@ const bundle = readFileSync(new URL('../../../addon/assets/cards/js/_anki-global
 for (const client of ['Desktop', 'AnkiDroid', 'AnkiWeb', 'AnkiMobile']) {
   test(`bundled comparison renders a 10,000-character answer and bonus answer in simulated ${client}`, async () => {
     const dom = new JSDOM(
-      '<div id="qa"><textarea class="question-input"></textarea><textarea class="question-input"></textarea></div>',
+      '<div id="qa" class="agk-container"><textarea class="question-input"></textarea><textarea class="question-input"></textarea></div>',
       {
         runScripts: 'outside-only',
         url: 'https://example.test/',
@@ -51,7 +51,7 @@ for (const client of ['Desktop', 'AnkiDroid', 'AnkiWeb', 'AnkiMobile']) {
         </div>
       </div>`;
       // AnkiDroid observes replacement of body children; other clients observe #qa.
-      if (client === 'AnkiDroid') document.body.innerHTML = `<div id="qa">${back}</div>`;
+      if (client === 'AnkiDroid') document.body.innerHTML = `<div id="qa" class="agk-container">${back}</div>`;
       else document.getElementById('qa').innerHTML = back;
       await new Promise((resolve) => window.setTimeout(resolve, 0));
 

@@ -26,7 +26,7 @@ import blockquoteIcon from '../../../../addon/assets/icons/blockquote.svg';
  * Watch question textareas and connect their editing and submission handlers.
  */
 export function watchQuestionInputs() {
-  const questionInputs = document.querySelectorAll('.question-input');
+  const questionInputs = document.querySelectorAll('.agk-container .question-input');
   if (questionInputs.length < 1) return;
 
   // A newly bound question starts fresh even if the previous card was skipped.
@@ -36,11 +36,12 @@ export function watchQuestionInputs() {
   if (isAnkiPC) {
     globalThis.ankiGlobalKitIndentQuestion = () => {
       const input = document.activeElement;
-      if (settings.cardInputTabIndentation && input?.matches('.question-input')) changeTextareaIndentation(input);
+      if (settings.cardInputTabIndentation && input?.matches('.agk-container .question-input'))
+        changeTextareaIndentation(input);
     };
     globalThis.ankiGlobalKitUnindentQuestion = () => {
       const input = document.activeElement;
-      if (settings.cardInputTabIndentation && input?.matches('.question-input')) {
+      if (settings.cardInputTabIndentation && input?.matches('.agk-container .question-input')) {
         changeTextareaIndentation(input, true);
       }
     };

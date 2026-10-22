@@ -4,7 +4,7 @@ import { hasVisibleContent } from '../helpers/dom.js';
  * Display .notes-containers that contain visible content.
  */
 export function showNoteContainers() {
-  const notesContainers = document.querySelectorAll('.notes-container');
+  const notesContainers = document.querySelectorAll('.agk-container .notes-container');
   if (notesContainers.length < 1) return;
 
   notesContainers.forEach((notesContainer) => {

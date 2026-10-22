@@ -7,6 +7,6 @@ export function focusFirstInput() {
   if (activeElement && (activeElement.matches('input, textarea') || activeElement.isContentEditable)) return;
 
   // Otherwise, add focus to first input or textarea if the ID is not #typeans.
-  const inputField = document.querySelector('input, textarea');
+  const inputField = document.querySelector('.agk-container input, .agk-container textarea');
   if (inputField !== null && inputField.id !== 'typeans') inputField.focus();
 }
