@@ -10,3 +10,4 @@ node_modules
 # IGNORE DEV FILES
 /addon/meta.json
 /docs/development/TODO.md
+/docs/development/PROMPTS.md
