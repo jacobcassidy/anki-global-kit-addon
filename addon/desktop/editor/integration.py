@@ -182,7 +182,9 @@ def _add_button(buttons: list, editor: Editor) -> None:
         toolbar_groups(
             [
                 ("syntax-highlighting", "Syntax Highlighting", custom_buttons[:3]),
-                ("formatting", "Formatting", custom_buttons[3:]),
+                ("convert-markdown", "Convert Markdown to HTML", custom_buttons[3:4]),
+                ("blockquote", "Blockquote", custom_buttons[4:5]),
+                ("inline-code", "Inline Code", custom_buttons[5:6]),
             ]
         )
     )
