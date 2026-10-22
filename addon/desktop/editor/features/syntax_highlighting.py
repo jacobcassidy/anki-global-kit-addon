@@ -3,6 +3,7 @@
 import json
 import re
 from html import escape
+from weakref import WeakKeyDictionary
 
 from aqt import gui_hooks
 from aqt.editor import Editor
@@ -22,7 +23,9 @@ _LANGUAGE_MENU_PREFIX = "anki-global-kit:language-menu:"
 _LANGUAGE_CHOICE_PREFIX = "anki-global-kit:language-choice:"
 _BUSY = False
 _INSTALLED = False
-_PENDING_EXPLICIT_APPLIES: dict[str, tuple[Editor, int | None, str]] = {}
+_PENDING_EXPLICIT_APPLIES: WeakKeyDictionary[
+    Editor, dict[str, tuple[int | None, str]]
+] = WeakKeyDictionary()
 
 
 def add_button(buttons: list, editor: Editor, settings: dict | None = None) -> None:
@@ -436,7 +439,10 @@ def _on_success(
 
     token_html, language = result
     if explicit_language:
-        _PENDING_EXPLICIT_APPLIES[request_id] = (editor, deck_id, language)
+        _PENDING_EXPLICIT_APPLIES.setdefault(editor, {})[request_id] = (
+            deck_id,
+            language,
+        )
     editor.web.eval(
         "globalThis.ankiGlobalKitEditor?.applyHighlightResult("
         f"{json.dumps(request_id)}, {json.dumps(source)}, "
@@ -746,13 +752,18 @@ def _on_highlight_applied(message: str, context: Editor):
     if not isinstance(request_id, str):
         return (True, None)
 
-    pending = _PENDING_EXPLICIT_APPLIES.pop(request_id, None)
+    requests = _PENDING_EXPLICIT_APPLIES.get(context)
+    if requests is None:
+        return (True, None)
+    pending = requests.pop(request_id, None)
+    if not requests:
+        _PENDING_EXPLICIT_APPLIES.pop(context, None)
     if pending is None:
         return (True, None)
-    editor, deck_id, language = pending
+    editor = context
+    deck_id, language = pending
     if (
-        editor is not context
-        or request.get("applied") is not True
+        request.get("applied") is not True
         or request.get("language") != language
         or deck_id is None
         or _resolve_editor_deck_id(editor) != deck_id

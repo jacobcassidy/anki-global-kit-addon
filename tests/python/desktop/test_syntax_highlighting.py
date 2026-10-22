@@ -1,5 +1,6 @@
 """Tests for the headless, isolated syntax renderer."""
 
+import gc
 import json
 import sys
 import threading
@@ -8,6 +9,7 @@ from copy import deepcopy
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
+from weakref import ref
 
 # Use the same packaged Pygments modules as the add-on runtime.
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "addon/vendor"))
@@ -547,7 +549,7 @@ class SyntaxRenderingTests(unittest.TestCase):
                 )(),
             },
         )()
-        feature._PENDING_EXPLICIT_APPLIES["41"] = (editor, 19, "python")
+        feature._PENDING_EXPLICIT_APPLIES[editor] = {"41": (19, "python")}
         feature._on_highlight_applied(
             "anki-global-kit:syntax-highlight-applied:"
             + json.dumps({"id": "41", "language": "python", "applied": False}),
@@ -555,7 +557,7 @@ class SyntaxRenderingTests(unittest.TestCase):
         )
         self.assertEqual(collection.config, {})
 
-        feature._PENDING_EXPLICIT_APPLIES["42"] = (editor, 19, "python")
+        feature._PENDING_EXPLICIT_APPLIES[editor] = {"42": (19, "python")}
 
         feature._on_highlight_applied(
             "anki-global-kit:syntax-highlight-applied:"
@@ -569,6 +571,75 @@ class SyntaxRenderingTests(unittest.TestCase):
             ],
             "python",
         )
+
+    def test_identical_request_ids_in_two_editors_are_acknowledged_independently(self):
+        settings = {
+            "anki_editor_syntax_highlighting_remember_language_per_deck": True,
+            "anki_editor_syntax_highlighting_languages": ["python", "javascript"],
+        }
+        feature = load_editor_integration(settings).syntax_highlighting
+        load_module("kit.desktop.paths", "addon/desktop/paths.py")
+        load_module(
+            "kit.desktop.syntax_highlighting",
+            "addon/desktop/syntax_highlighting/__init__.py",
+        )
+        config = {}
+        collection = SimpleNamespace(
+            get_config=lambda key, default=None: config.get(key, default),
+            set_config=lambda key, value: config.__setitem__(key, value),
+        )
+        editors = [type("Editor", (), {})() for _ in range(2)]
+        for index, editor in enumerate(editors):
+            editor.web = Mock()
+            editor.mw = SimpleNamespace(col=collection)
+            editor.deck_id = 19 + index
+
+        with (
+            patch.object(
+                feature, "_resolve_editor_deck_id", side_effect=lambda e: e.deck_id
+            ),
+            patch.object(feature, "set_editor_language_context"),
+        ):
+            for order in ((0, 1), (1, 0)):
+                with self.subTest(order=order):
+                    config.clear()
+                    for editor, language in zip(editors, ("python", "javascript")):
+                        feature._on_success(
+                            editor,
+                            "1",
+                            "source",
+                            ("source", language),
+                            False,
+                            1,
+                            "active",
+                            True,
+                            editor.deck_id,
+                        )
+                    self.assertEqual(len(feature._PENDING_EXPLICIT_APPLIES), 2)
+                    for index in order:
+                        language = ("python", "javascript")[index]
+                        feature._on_highlight_applied(
+                            "anki-global-kit:syntax-highlight-applied:"
+                            + json.dumps(
+                                {"id": "1", "language": language, "applied": True}
+                            ),
+                            editors[index],
+                        )
+                    self.assertEqual(
+                        config["anki_global_kit.syntax_highlighting.deck_languages"],
+                        {"19": "python", "20": "javascript"},
+                    )
+                    self.assertEqual(len(feature._PENDING_EXPLICIT_APPLIES), 0)
+
+    def test_pending_language_acknowledgements_do_not_retain_closed_editors(self):
+        feature = load_editor_integration({}).syntax_highlighting
+        editor = type("Editor", (), {})()
+        reference = ref(editor)
+        feature._PENDING_EXPLICIT_APPLIES[editor] = {"1": (19, "python")}
+        del editor
+        gc.collect()
+        self.assertIsNone(reference())
+        self.assertEqual(len(feature._PENDING_EXPLICIT_APPLIES), 0)
 
     def test_editor_language_priority_includes_full_pygments_topic_aliases(self):
         settings = {
