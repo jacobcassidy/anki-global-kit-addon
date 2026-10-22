@@ -93,7 +93,7 @@ def _language_button_label(settings: dict, language: str | None = None) -> str:
         names = {item[1]: item[0] for item in available_languages()}
     except ModuleNotFoundError:
         names = {}
-    return f"{names.get(alias, alias or 'Choose language')} ▼"
+    return names.get(alias, alias or "Choose language")
 
 
 def _set_language_choice(editor: Editor, language: str) -> None:

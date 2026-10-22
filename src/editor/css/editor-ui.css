@@ -5,3 +5,14 @@
 /* Register fonts in the document; Chromium ignores font faces in field shadow roots. */
 @import url("../../shared/css/fonts.css");
 @import url("../../shared/css/syntax-highlighting.css");
+
+.anki-addon-button[data-command="anki_global_kit_syntax_language"]::after {
+  content: "";
+  display: inline-block;
+  inline-size: 0.625rem;
+  block-size: 0.3125rem;
+  margin-inline-start: 0.25rem;
+  background-color: currentColor;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  vertical-align: middle;
+}
