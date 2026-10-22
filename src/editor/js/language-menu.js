@@ -95,6 +95,8 @@ export function showLanguageMenu(languages, current, anchor) {
 
   document.body.append(menu);
   const dismiss = (event) => {
+    if (event.target.closest?.('[data-command="anki_global_kit_syntax_language"]')) return;
+
     if (!menu.contains(event.target)) closeLanguageMenu();
   };
   const keydown = (event) => {
