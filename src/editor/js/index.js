@@ -20,21 +20,20 @@ installSelectionTracking();
 installCodeBlockHighlighting();
 installLanguageMenu();
 
-if (!globalThis.ankiGlobalKitEditor) {
+const INITIALIZED = Symbol.for('ankiGlobalKitEditorInitialized');
+
+if (!document[INITIALIZED]) {
   installCodeSpaceNormalization();
   installCopySource();
   installClozeShortcuts();
   installBlockFormatting();
-
-  globalThis.ankiGlobalKitEditor = {
-    toggleBlock: toggleEditorBlock,
-    toggleInlineCode,
-    convertMarkdown,
-  };
+  document[INITIALIZED] = true;
 }
 
 // Note loads reinject the bundle into existing editor webviews. Refresh the
 // native action even if the editor was initialized with an older bundle.
+globalThis.ankiGlobalKitEditor.toggleBlock = toggleEditorBlock;
+globalThis.ankiGlobalKitEditor.toggleInlineCode = toggleInlineCode;
 globalThis.ankiGlobalKitEditor.indent = indentEditorField;
 globalThis.ankiGlobalKitEditor.unindent = unindentEditorField;
 globalThis.ankiGlobalKitEditor.exitCodeBlock = exitCodeBlock;
