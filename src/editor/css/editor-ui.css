@@ -78,7 +78,8 @@
 .anki-global-kit-language-menu__current:active,
 .anki-global-kit-language-menu__current:focus-visible {
   outline: 0;
-  background: var(--canvas-inset);
+  background: var(--button-primary-bg);
+  color: white;
 }
 
 .anki-global-kit-language-menu__divider {
