@@ -16,7 +16,12 @@ def read_control_value(key: str, widget) -> object:
     return widget.isChecked()
 
 
-def restore_control_defaults(controls: dict, defaults: dict = DEFAULT_SETTINGS) -> None:
+def restore_control_defaults(
+    controls: dict,
+    defaults: dict = DEFAULT_SETTINGS,
+    *,
+    theme_controls: dict | None = None,
+) -> None:
     for key, widget in controls.items():
         if isinstance(widget, CardShortcutInput):
             widget.set_shortcut(defaults[key])
@@ -29,10 +34,21 @@ def restore_control_defaults(controls: dict, defaults: dict = DEFAULT_SETTINGS) 
             widget.setValue(defaults[key])
         else:
             widget.setChecked(defaults[key])
+    for selector in (theme_controls or {}).values():
+        index = selector.findData("cassidy-dark")
+        selector.setCurrentIndex(max(index, 0))
 
 
-def controls_match_defaults(controls: dict, defaults: dict = DEFAULT_SETTINGS) -> bool:
+def controls_match_defaults(
+    controls: dict,
+    defaults: dict = DEFAULT_SETTINGS,
+    *,
+    theme_controls: dict | None = None,
+) -> bool:
     return all(
         read_control_value(key, widget) == defaults[key]
         for key, widget in controls.items()
+    ) and all(
+        selector.currentData() == "cassidy-dark"
+        for selector in (theme_controls or {}).values()
     )

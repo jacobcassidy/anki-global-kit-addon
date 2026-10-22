@@ -144,15 +144,14 @@ def open_settings() -> None:
     restore_button.setAutoDefault(False)
 
     def restore_defaults(*_args) -> None:
-        restore_control_defaults(all_controls)
-        for selector in theme_controls.values():
-            index = selector.findData("cassidy-dark")
-            selector.setCurrentIndex(max(index, 0))
+        restore_control_defaults(all_controls, theme_controls=theme_controls)
 
     restore_button.clicked.connect(restore_defaults)
 
     def update_restore_button(*_args) -> None:
-        has_custom_settings = not controls_match_defaults(all_controls)
+        has_custom_settings = not controls_match_defaults(
+            all_controls, theme_controls=theme_controls
+        )
         restore_button.setEnabled(has_custom_settings)
         restore_button.setToolTip(
             "" if has_custom_settings else "All settings are using defaults."
