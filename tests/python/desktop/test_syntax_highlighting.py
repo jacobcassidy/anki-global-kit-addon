@@ -225,6 +225,36 @@ class SyntaxRenderingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             themes.validate_resolved_theme(malformed)
 
+    def test_saved_cassidy_palettes_reach_card_editor_and_standalone_css(self):
+        themes = load_addon_module("desktop.syntax_highlighting.themes")
+        light = themes.resolve_preset("cassidy-dark")
+        dark = deepcopy(light)
+        light["colors"].update(
+            background="#123456", foreground="#abcdef", keyword="#654321"
+        )
+        dark["colors"].update(
+            background="#234567", foreground="#fedcba", keyword="#765432"
+        )
+
+        for editor in (False, True):
+            with self.subTest(editor=editor):
+                css = themes.generate_theme_pair_css(light, dark, editor=editor)
+                light_css, dark_css = css.split(".nightMode,", 1)
+                for record, block in ((light, light_css), (dark, dark_css)):
+                    for role, color in record["colors"].items():
+                        self.assertIn(f"--agk-syntax-{role}: {color};", block)
+                self.assertNotIn("var(--syntax-", css)
+
+        standalone = themes.generate_theme_css(resolved=light)
+        self.assertIn("--agk-syntax-keyword: #654321;", standalone)
+        self.assertIn("background-color: #123456", themes.theme_preview_html(light))
+
+        # The packaged fallback still follows the shared tokens until a
+        # collection's resolved palette overrides them.
+        self.assertIn(
+            "--agk-syntax-keyword: var(--syntax-red);", themes.generate_theme_css()
+        )
+
     def test_cassidy_semantic_palette_maps_available_python_tokens(self):
         themes = load_addon_module("desktop.syntax_highlighting.themes")
         colors = themes.resolve_preset("cassidy-dark")["colors"]

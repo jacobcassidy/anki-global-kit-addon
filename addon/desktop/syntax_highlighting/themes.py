@@ -283,11 +283,15 @@ def theme_preview_html(preset: dict) -> str:
     )
 
 
-def _theme_variables_css(preset: dict, selector: str) -> str:
+def _theme_variables_css(
+    preset: dict, selector: str, *, use_shared_variables: bool = False
+) -> str:
     """Keep all mode-dependent colors and font styles in custom properties."""
     colors = preset["colors"]
     syntax_variables = (
-        _CASSIDY_DARK_SYNTAX_VARIABLES if preset["id"] == "cassidy-dark" else {}
+        _CASSIDY_DARK_SYNTAX_VARIABLES
+        if use_shared_variables and preset["id"] == "cassidy-dark"
+        else {}
     )
     css = [
         f"{selector} {{",
@@ -322,7 +326,11 @@ def generate_theme_css(
         if resolved is not None
         else resolve_preset(preset_id)
     )
-    css = [_theme_variables_css(preset, ":root,\nanki-editable").rstrip()]
+    css = [
+        _theme_variables_css(
+            preset, ":root,\nanki-editable", use_shared_variables=resolved is None
+        ).rstrip()
+    ]
     css.extend(
         [
             "",
