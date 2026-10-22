@@ -210,8 +210,19 @@ export function installCodeBlockControls() {
         if (!label) return;
 
         event.preventDefault();
+        const pre = label.closest('pre.global-kit-code-block');
+        const code = pre?.querySelector(':scope > code');
+
+        if (!pre || !code) return;
+
+        const selection = pre.getRootNode().getSelection?.() || window.getSelection();
+        const range = pre.ownerDocument.createRange();
+
+        range.selectNodeContents(code);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+
         const rect = label.getBoundingClientRect();
-        const pre = label.closest('pre');
         globalThis.pycmd?.(
           `anki-global-kit:language-menu:${JSON.stringify([rect.left, rect.bottom, pre?.dataset.language || ''])}`,
         );
