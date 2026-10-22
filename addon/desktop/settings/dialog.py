@@ -135,6 +135,7 @@ def open_settings() -> None:
                 "anki_editor_blockquote_shortcut",
                 "anki_editor_syntax_highlighting_shortcut",
                 "anki_editor_convert_markdown_shortcut",
+                "anki_editor_exit_code_block_shortcut",
             )
             or all_controls["anki_editor_tab_indentation"].isChecked()
         )

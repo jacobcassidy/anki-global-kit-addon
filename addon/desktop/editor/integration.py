@@ -136,6 +136,10 @@ def _change_indentation(editor: Editor, action: str) -> None:
     editor.web.eval(f"globalThis.ankiGlobalKitEditor?.{method}();")
 
 
+def _exit_code_block(editor: Editor) -> None:
+    editor.web.eval("globalThis.ankiGlobalKitEditor?.exitCodeBlock();")
+
+
 def _add_button(buttons: list, editor: Editor) -> None:
     settings = get_editor_settings()
     custom_buttons = []
@@ -241,6 +245,10 @@ def _configured_editor_shortcuts(settings: dict) -> dict[str, str]:
         configurable["anki_editor_inline_code_shortcut"] = settings[
             "anki_editor_inline_code_shortcut"
         ]
+    if settings.get("anki_editor_exit_code_block_shortcut_enabled", True):
+        configurable["anki_editor_exit_code_block_shortcut"] = settings.get(
+            "anki_editor_exit_code_block_shortcut", "Alt+Enter"
+        )
     if settings.get("anki_editor_syntax_highlighting_shortcut_enabled", True):
         configurable["anki_editor_syntax_highlighting_shortcut"] = settings.get(
             "anki_editor_syntax_highlighting_shortcut", "Alt+S"
@@ -283,6 +291,8 @@ def _activate_editor_shortcut(editor_ref, name: str) -> None:
         _convert_markdown(editor)
     elif name == "anki_editor_syntax_highlighting_shortcut":
         syntax_highlighting.highlight_selection(editor)
+    elif name == "anki_editor_exit_code_block_shortcut":
+        _exit_code_block(editor)
     else:
         _change_indentation(editor, "decrease" if "decrease" in name else "increase")
 
