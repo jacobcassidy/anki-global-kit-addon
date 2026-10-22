@@ -56,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Made editor indentation recognize saved code rows and ignore non-editable headers and line-number gutters, preserving tokens and selected row boundaries.
+
 - Enabled Restore Defaults when either syntax theme differs from its default, including when all local settings already use their defaults.
 
 - Reported failed card asset recovery during Settings saves instead of claiming the previous settings were fully restored.

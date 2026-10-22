@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { JSDOM } from 'jsdom';
+import { tokenHtmlByLine, textFromCode } from '../../../src/shared/js/syntax-highlighting/code-lines.js';
+import { decorateCodeBlock } from '../../../src/shared/js/syntax-highlighting/code-block-controls.js';
 import {
   formatBlockContent,
   installBlockFormatting,
@@ -211,6 +213,88 @@ function nativeInsertion(field) {
   };
   field.focus();
   return commands;
+}
+
+for (const numbered of [true, false]) {
+  for (const entry of ['native', 'keyboard']) {
+    test(`${entry} indentation edits saved code rows with line numbers ${numbered ? 'shown' : 'hidden'}`, () => {
+      const { field, range, dom } = editor(
+        `<pre class="agk-code-block" data-language="python" data-line-start="9" data-line-numbers="${numbered}"><code></code></pre>`,
+      );
+      const code = field.querySelector('code');
+
+      code.innerHTML = tokenHtmlByLine('<b>one</b>\n<i>two</i>\nthree', 9);
+      decorateCodeBlock(code.parentElement, { optionsButton: true });
+
+      const header = field.querySelector('.code-block__header').outerHTML;
+      const gutters = [...code.querySelectorAll('.code-line__number')].map((node) => node.outerHTML);
+      const contents = [...code.querySelectorAll('.code-line__content')];
+      const selection = window.getSelection();
+
+      range.setStart(contents[1].querySelector('i').firstChild, 1);
+      range.collapse(true);
+      selection.addRange(range);
+      document.execCommand = (command, _showUi, text = '') => {
+        const edit = selection.getRangeAt(0);
+
+        assert.ok(edit.startContainer.parentElement.closest('.code-line__content'));
+        edit.deleteContents();
+
+        if (command === 'insertText') {
+          const node = document.createTextNode(text);
+
+          edit.insertNode(node);
+          edit.setStartAfter(node);
+          edit.collapse(true);
+        } else assert.equal(command, 'delete');
+
+        return true;
+      };
+
+      if (entry === 'keyboard') installBlockFormatting();
+
+      const indent = (outdent = false) => {
+        if (entry === 'native') {
+          if (outdent) unindentEditorField();
+          else indentEditorField();
+        } else {
+          const event = new dom.window.KeyboardEvent('keydown', {
+            key: 'Tab',
+            altKey: !outdent,
+            ctrlKey: outdent,
+            bubbles: true,
+            cancelable: true,
+          });
+
+          field.dispatchEvent(event);
+          assert.equal(event.defaultPrevented, true);
+        }
+      };
+
+      indent();
+      assert.equal(textFromCode(code), 'one\n    two\nthree');
+      assert.equal(selection.isCollapsed, true);
+      indent(true);
+      assert.equal(textFromCode(code), 'one\ntwo\nthree');
+
+      range.setStart(contents[0].querySelector('b').firstChild, 0);
+      range.setEnd(contents[2].firstChild, 0);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      indent();
+      assert.equal(textFromCode(code), '    one\n    two\nthree');
+      indent(true);
+      assert.equal(textFromCode(code), 'one\ntwo\nthree');
+      assert.equal(code.querySelector('b').textContent, 'one');
+      assert.equal(code.querySelector('i').textContent, 'two');
+      assert.equal(field.querySelector('.code-block__header').outerHTML, header);
+      assert.deepEqual(
+        [...code.querySelectorAll('.code-line__number')].map((node) => node.outerHTML),
+        gutters,
+      );
+      dom.window.close();
+    });
+  }
 }
 
 test('formatting uses one native insertion and keeps the caret on the same content', () => {

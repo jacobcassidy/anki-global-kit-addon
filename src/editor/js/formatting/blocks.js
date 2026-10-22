@@ -373,12 +373,14 @@ function editorTextRows(field) {
       return;
     }
     if (node.nodeType !== Node.ELEMENT_NODE) return;
+    if (node.getAttribute('contenteditable') === 'false') return;
+
     const index = [...node.parentNode.childNodes].indexOf(node);
     if (node.nodeName === 'BR') {
       finish([node.parentNode, index], [node.parentNode, index + 1], true);
       return;
     }
-    const block = node.matches(BLOCK) || isList(node);
+    const block = node.matches(`${BLOCK},.code-line__content`) || isList(node);
     if (block) finish([node.parentNode, index], [node, 0]);
     for (const child of node.childNodes) walk(child);
     if (block) finish([node, node.childNodes.length], [node.parentNode, index + 1]);
@@ -403,13 +405,26 @@ function changeEditorTextIndentation(field, selection, outdent) {
   const caretOffset =
     !outdent && original.collapsed ? textOffset(field, original.startContainer, original.startOffset) : null;
   const caretAtTextStart = original.startContainer.nodeType === Node.TEXT_NODE && original.startOffset === 0;
-  const rows = editorTextRows(field).filter(({ range }) =>
-    original.collapsed
-      ? original.compareBoundaryPoints(Range.START_TO_START, range) >= 0 &&
+  const rows = editorTextRows(field).filter(({ range, segments }) => {
+    if (original.collapsed) {
+      return (
+        original.compareBoundaryPoints(Range.START_TO_START, range) >= 0 &&
         original.compareBoundaryPoints(Range.END_TO_START, range) <= 0
-      : original.compareBoundaryPoints(Range.END_TO_START, range) < 0 &&
-        original.compareBoundaryPoints(Range.START_TO_END, range) > 0,
-  );
+      );
+    }
+
+    // A selection ending at a row's first text boundary excludes that row,
+    // even when its wrapper starts before the text in DOM boundary order.
+    const contentRange = range.cloneRange();
+    const first = segments[0];
+
+    if (first) contentRange.setStart(first.node, first.from);
+
+    return (
+      original.compareBoundaryPoints(Range.END_TO_START, contentRange) < 0 &&
+      original.compareBoundaryPoints(Range.START_TO_END, contentRange) > 0
+    );
+  });
   const edits = [];
   for (const row of rows) {
     const length = outdent ? (row.text.match(/^(?:\t|[ \u00a0]{1,4})/) || [''])[0].length : 0;
