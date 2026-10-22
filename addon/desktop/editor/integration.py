@@ -91,6 +91,9 @@ def _inject_features(editor: Editor) -> None:
         "\nfor (const button of document.querySelectorAll('[data-command=\"anki_global_kit_blockquote\"]')) {"
         f"button.title = {json.dumps(_button_tip('Blockquote', 'anki_editor_blockquote_shortcut', editor_settings))};"
         "}"
+        "\nfor (const button of document.querySelectorAll('[data-command=\"anki_global_kit_paste_markdown_as_html\"]')) {"
+        f"button.title = {json.dumps(_button_tip('Convert Markdown', 'anki_editor_convert_markdown_shortcut', editor_settings))};"
+        "}"
     )
     syntax_highlighting.set_editor_language_context(editor)
 
@@ -146,7 +149,9 @@ def _add_button(buttons: list, editor: Editor) -> None:
             icon=str(PASTE_MARKDOWN_ICON),
             cmd="anki_global_kit_paste_markdown_as_html",
             func=_convert_markdown,
-            tip="Convert Markdown",
+            tip=_button_tip(
+                "Convert Markdown", "anki_editor_convert_markdown_shortcut", settings
+            ),
         )
     )
     custom_buttons.append(
@@ -224,7 +229,7 @@ def _add_shortcut(shortcuts: list, editor: Editor) -> None:
 def _configured_editor_shortcuts(settings: dict) -> dict[str, str]:
     """Validate saved bindings before registering or refreshing native keys."""
     configurable = {}
-    for action in ("blockquote",):
+    for action in ("blockquote", "convert_markdown"):
         key = f"anki_editor_{action}_shortcut"
         if settings[f"{key}_enabled"]:
             configurable[key] = settings[key]
@@ -270,6 +275,8 @@ def _activate_editor_shortcut(editor_ref, name: str) -> None:
         _toggle_inline_code(editor)
     elif name == "anki_editor_blockquote_shortcut":
         _toggle_block(editor, "blockquote")
+    elif name == "anki_editor_convert_markdown_shortcut":
+        _convert_markdown(editor)
     elif name == "anki_editor_syntax_highlighting_shortcut":
         syntax_highlighting.highlight_selection(editor)
     else:

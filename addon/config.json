@@ -34,6 +34,8 @@
   "anki_editor_inline_code_shortcut": "Ctrl+Shift+C",
   "anki_editor_blockquote_shortcut_enabled": true,
   "anki_editor_blockquote_shortcut": "Ctrl+/",
+  "anki_editor_convert_markdown_shortcut_enabled": true,
+  "anki_editor_convert_markdown_shortcut": "Alt+M",
   "anki_editor_tab_indentation": true,
   "anki_editor_default_fields_styles": true,
   "anki_editor_custom_fields_styles": true,

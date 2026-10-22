@@ -30,7 +30,7 @@ class EditorBindingsTests(unittest.TestCase):
             self.assertIn("background-color: currentColor", icon[0].attrib["style"])
             self.assertIn("mask: url(", icon[0].attrib["style"])
         markdown = editor.addButton.call_args_list[3].kwargs
-        self.assertEqual(markdown["tip"], "Convert Markdown")
+        self.assertEqual(markdown["tip"], "Convert Markdown (Alt+M)")
         integration.QApplication.clipboard.return_value.text.return_value = "**text**"
         markdown["func"](editor)
         editor.web.eval.assert_called_once_with(
@@ -147,10 +147,71 @@ class EditorBindingsTests(unittest.TestCase):
         integration._add_shortcut(bindings, editor)
         return integration, bindings, editor
 
+    def test_convert_markdown_shortcut_rebinds_and_refreshes_its_tooltip(self):
+        for mac in (False, True):
+            with self.subTest(mac=mac):
+                settings = load_settings_services(mac=mac).config.get_editor_settings()
+                # Toolbar visibility and indentation do not control this shortcut.
+                settings["anki_editor_toolbar_enabled"] = False
+                settings["anki_editor_tab_indentation"] = False
+                integration = load_editor_integration(settings, mac=mac)
+                editor = Mock(currentField=0)
+                integration._add_shortcut([], editor)
+                key = "anki_editor_convert_markdown_shortcut"
+                shortcut, keys = editor._anki_global_kit_shortcuts[key]
+                self.assertEqual(keys, "Alt+M")
+                self.assertTrue(shortcut.isEnabled())
+                integration.QApplication.clipboard.return_value.text.return_value = (
+                    "**text**"
+                )
+                shortcut.callback()
+                editor.web.eval.assert_called_once_with(
+                    'globalThis.ankiGlobalKitEditor?.convertMarkdown("**text**");'
+                )
+                settings[key] = "Alt+K"
+                editor.web.eval.reset_mock()
+                integration.refresh_open_editors()
+                self.assertIs(editor._anki_global_kit_shortcuts[key][0], shortcut)
+                self.assertEqual(shortcut.key, "Alt+K")
+                self.assertTrue(
+                    any(
+                        'button.title = "Convert Markdown (Alt+K)";' in call.args[0]
+                        for call in editor.web.eval.call_args_list
+                    )
+                )
+                editor.web.eval.reset_mock()
+                editor.currentField = None
+                shortcut.callback()
+                editor.web.eval.assert_not_called()
+                editor.currentField = 0
+                settings[f"{key}_enabled"] = False
+                integration.refresh_open_editors()
+                self.assertFalse(shortcut.isEnabled())
+                self.assertTrue(
+                    any(
+                        'button.title = "Convert Markdown";' in call.args[0]
+                        for call in editor.web.eval.call_args_list
+                    )
+                )
+                editor.web.eval.reset_mock()
+                shortcut.callback()
+                editor.web.eval.assert_not_called()
+
+    def test_convert_markdown_duplicate_shortcut_registers_only_one_handler(self):
+        _, _, editor = self.bindings({"anki_editor_inline_code_shortcut": "Alt+M"})
+        self.assertEqual(
+            sum(
+                shortcut.isEnabled() and keys == "Alt+M"
+                for shortcut, keys in editor._anki_global_kit_shortcuts.values()
+            ),
+            1,
+        )
+
     def test_every_custom_action_leaves_fixed_block_shortcuts_available(self):
         for key in (
             "anki_editor_inline_code_shortcut",
             "anki_editor_blockquote_shortcut",
+            "anki_editor_convert_markdown_shortcut",
             "anki_editor_indent_increase_shortcut",
             "anki_editor_indent_decrease_shortcut",
         ):
@@ -257,6 +318,7 @@ class EditorBindingsTests(unittest.TestCase):
                 "anki_editor_indent_increase_shortcut",
                 "anki_editor_indent_decrease_shortcut",
                 "anki_editor_syntax_highlighting_shortcut",
+                "anki_editor_convert_markdown_shortcut",
             },
         )
 
