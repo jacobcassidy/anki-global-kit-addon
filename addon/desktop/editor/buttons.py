@@ -61,6 +61,6 @@ def toolbar_groups(groups: list[tuple[str, str, list[str]]]) -> str:
     return (
         '<span data-anki-global-kit-toolbar="" role="group" aria-label="Anki Global Kit" '
         'style="display: inline-flex; align-items: flex-start; align-self: flex-start; '
-        'column-gap: 0;">'
+        'column-gap: var(--anki-global-kit-toolbar-group-gap, 0.3rem);">'
         f"{''.join(rendered)}</span>"
     )

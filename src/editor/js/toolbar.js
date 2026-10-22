@@ -6,7 +6,32 @@ const BUTTON_SETTINGS = {
   anki_global_kit_syntax_language: 'anki_editor_syntax_highlighting_button',
 };
 
+const TOOLBAR_STATE_KEY = Symbol.for('ankiGlobalKitEditorToolbar');
+
+function installToolbarObserver() {
+  if (typeof document === 'undefined' || typeof MutationObserver === 'undefined') return;
+
+  const toolbarState = (document[TOOLBAR_STATE_KEY] ||= { listenersInstalled: false });
+
+  if (toolbarState.listenersInstalled) return;
+
+  toolbarState.listenersInstalled = true;
+  new MutationObserver((mutations) => {
+    if (mutations.some(({ attributeName }) => attributeName === 'disabled')) {
+      for (const button of document.querySelectorAll('[data-command="anki_global_kit_syntax_language"]')) {
+        if (button.disabled) button.disabled = false;
+      }
+    }
+  }).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['disabled'],
+    subtree: true,
+  });
+}
+
 export function refreshEditorToolbar() {
+  installToolbarObserver();
+
   const settings = globalThis.ankiGlobalKitEditorSettings || {};
   const enabled = settings.anki_editor_toolbar_enabled !== false;
 
@@ -30,23 +55,4 @@ export function refreshEditorToolbar() {
       button.style.setProperty('--border-right-radius', button === visible.at(-1) ? radius : '0');
     }
   }
-}
-
-const TOOLBAR_STATE_KEY = Symbol.for('ankiGlobalKitEditorToolbar');
-const toolbarState = (document[TOOLBAR_STATE_KEY] ||= { listenersInstalled: false });
-
-if (!toolbarState.listenersInstalled) {
-  toolbarState.listenersInstalled = true;
-
-  new MutationObserver((mutations) => {
-    if (mutations.some(({ attributeName }) => attributeName === 'disabled')) {
-      for (const button of document.querySelectorAll('[data-command="anki_global_kit_syntax_language"]')) {
-        if (button.disabled) button.disabled = false;
-      }
-    }
-  }).observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ['disabled'],
-    subtree: true,
-  });
 }

@@ -103,7 +103,7 @@ test('delegated copy buttons work inside shadow fields and install only once', a
     root.querySelector('button').dispatchEvent(new window.MouseEvent('click', { bubbles: true, composed: true }));
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.deepEqual(copied, ['print(1)\n']);
-    assert.equal(root.querySelector('button').textContent, 'Copied');
+    assert.equal(root.querySelector('button').title, 'Copied');
   });
 });
 

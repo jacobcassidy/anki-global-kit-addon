@@ -111,17 +111,17 @@ print(''.join(buttons))
       assert.equal(document.querySelector('[data-command="bold"]').className, '');
     };
 
-    checkGroups(['syntax-highlighting', 'formatting']);
+    checkGroups(['syntax-highlighting', 'convert-markdown', 'blockquote', 'inline-code']);
     settings.anki_editor_blockquote_button = false;
-    checkGroups(['syntax-highlighting', 'formatting']);
+    checkGroups(['syntax-highlighting', 'convert-markdown', 'inline-code']);
     settings.anki_editor_paste_markdown_as_html_button = false;
-    checkGroups(['syntax-highlighting', 'formatting']);
+    checkGroups(['syntax-highlighting', 'inline-code']);
     settings.anki_editor_syntax_highlighting_button = false;
-    checkGroups(['formatting']);
+    checkGroups(['inline-code']);
     settings.anki_editor_blockquote_button = true;
-    checkGroups(['formatting']);
+    checkGroups(['blockquote', 'inline-code']);
     settings.anki_editor_inline_code_button = false;
-    checkGroups(['formatting']);
+    checkGroups(['blockquote']);
     settings.anki_editor_blockquote_button = false;
     checkGroups([]);
     settings.anki_editor_toolbar_enabled = false;
@@ -129,7 +129,7 @@ print(''.join(buttons))
     settings.anki_editor_toolbar_enabled = true;
     settings.anki_editor_inline_code_button = true;
     settings.anki_editor_syntax_highlighting_button = true;
-    checkGroups(['syntax-highlighting', 'formatting']);
+    checkGroups(['syntax-highlighting', 'inline-code']);
   } finally {
     globalThis.document = previousDocument;
     globalThis.ankiGlobalKitEditorSettings = previousSettings;
