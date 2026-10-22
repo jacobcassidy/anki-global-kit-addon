@@ -47,7 +47,7 @@ export function showLanguageMenu(languages, current, anchor) {
   if (!rect) return;
 
   menu.style.left = `${Math.max(8, Math.min(rect[0], innerWidth - 240))}px`;
-  menu.style.top = `${rect[1] + 8}px`;
+  menu.style.top = `${rect[1] + 6}px`;
 
   if (activeLanguage) {
     const selected = document.createElement('div');
