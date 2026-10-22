@@ -175,7 +175,15 @@ function applyHighlightResult(id, source, language, tokenHtml, lineNumbers, line
       });
       replacement.deleteContents();
       replacement.insertNode(pre);
-      replacement.setStartAfter(pre);
+      const temporaryBreak = pre.nextSibling;
+
+      if (temporaryBreak?.nodeName === 'BR') {
+        const sourceWhitespace = document.createTextNode('\n');
+
+        temporaryBreak.replaceWith(sourceWhitespace);
+        replacement.setStartAfter(sourceWhitespace);
+      } else replacement.setStartAfter(pre);
+
       replacement.collapse(true);
       selection.removeAllRanges();
       selection.addRange(replacement);
