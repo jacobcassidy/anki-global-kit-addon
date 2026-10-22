@@ -53,9 +53,16 @@ def toolbar_groups(groups: list[tuple[str, str, list[str]]]) -> str:
                 button = button.replace("<button", f'<button style="{styles}"', 1)
             rounded_buttons.append(button)
         display = "inline-flex" if visible else "none"
+        group_style = f"display: {display};"
+        if name == "syntax-highlighting" and visible:
+            group_style += (
+                " margin-right: calc(0rem - "
+                "var(--anki-global-kit-toolbar-group-gap, 0.3rem));"
+            )
+
         rendered.append(
             f'<span data-anki-global-kit-toolbar-group="{name}" '
-            f'role="group" aria-label="{label}" style="display: {display};">'
+            f'role="group" aria-label="{label}" style="{group_style}">'
             f"{''.join(rounded_buttons)}</span>"
         )
     return (
