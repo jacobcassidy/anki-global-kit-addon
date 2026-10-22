@@ -70,7 +70,7 @@
     "lint:py:fix": "uv run --locked ruff check --fix .",
     "package:addon": "python3 scripts/package_addon.py",
     "test": "npm run test:js && npm run test:py",
-    "test:js": "node --test \"tests/javascript/**/*.test.js\"",
+    "test:js": "node --import ./tests/support/register-svg.js --test \"tests/javascript/**/*.test.js\"",
     "test:py": "python3 -m unittest discover -s tests/python -t . -p \"test_*.py\"",
     "verify:package-assets": "python3 scripts/verify_package_assets.py",
     "watch": "node scripts/watch-assets.js"

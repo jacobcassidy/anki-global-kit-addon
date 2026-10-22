@@ -111,15 +111,15 @@ print(''.join(buttons))
       assert.equal(document.querySelector('[data-command="bold"]').className, '');
     };
 
-    checkGroups(['syntax-highlighting', 'convert-markdown', 'blockquote', 'inline-code']);
+    checkGroups(['syntax-highlighting', 'inline-code', 'convert-markdown', 'blockquote']);
     settings.anki_editor_blockquote_button = false;
-    checkGroups(['syntax-highlighting', 'convert-markdown', 'inline-code']);
+    checkGroups(['syntax-highlighting', 'inline-code', 'convert-markdown']);
     settings.anki_editor_paste_markdown_as_html_button = false;
     checkGroups(['syntax-highlighting', 'inline-code']);
     settings.anki_editor_syntax_highlighting_button = false;
     checkGroups(['inline-code']);
     settings.anki_editor_blockquote_button = true;
-    checkGroups(['blockquote', 'inline-code']);
+    checkGroups(['inline-code', 'blockquote']);
     settings.anki_editor_inline_code_button = false;
     checkGroups(['blockquote']);
     settings.anki_editor_blockquote_button = false;

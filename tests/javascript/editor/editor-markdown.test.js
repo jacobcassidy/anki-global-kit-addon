@@ -145,7 +145,11 @@ test('Pygments response inserts a Kit code block as one native edit', () => {
     assert.equal(result, true);
     assert.equal(field.querySelector('pre.agk-code-block').dataset.language, 'python');
     assert.equal(field.querySelectorAll('[data-language]').length, 1);
-    assert.equal(field.querySelector('pre > code').attributes.length, 0);
+    assert.deepEqual(
+      [...field.querySelector('pre > code').attributes].map(({ name }) => name),
+      ['class'],
+    );
+    assert.equal(field.querySelector('pre > code').className, 'code-block__source');
     assert.equal(field.querySelector('code').textContent, 'print(42)');
     assert.ok(field.querySelector('code .nb'));
     assert.equal(field.querySelector('[data-global-kit-token="builtin"]').textContent, 'print');

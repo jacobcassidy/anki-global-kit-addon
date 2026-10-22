@@ -122,7 +122,11 @@ test('new blocks start at line 1 despite old global preferences and apply tokens
     assert.equal(field.querySelector('.code-block__language').textContent, 'JavaScript');
     assert.equal(field.querySelector('.code-block__copy').hidden, false);
     assert.equal(field.querySelectorAll('[data-language]').length, 1);
-    assert.equal(field.querySelector('code').attributes.length, 0);
+    assert.deepEqual(
+      [...field.querySelector('code').attributes].map(({ name }) => name),
+      ['class'],
+    );
+    assert.equal(field.querySelector('code').className, 'code-block__source');
     assert.equal(field.querySelector('code').textContent, request.source);
     assert.equal(field.querySelector('[data-global-kit-token="declaration"]').textContent, 'const');
     assert.equal(field.querySelector('[data-global-kit-token="variable"]').textContent, 'answer');

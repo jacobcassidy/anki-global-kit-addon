@@ -24,12 +24,19 @@ class EditorBindingsTests(unittest.TestCase):
         integration._add_button(buttons, editor)
         toolbar = ElementTree.fromstring(buttons[0])
         self.assertEqual([len(group) for group in toolbar], [2, 1, 1, 1])
-        self.assertIn("display: none;", toolbar[2][0].attrib["style"])
+        blockquote = toolbar.find(
+            ".//button[@data-command='anki_global_kit_blockquote']"
+        )
+        self.assertIn("display: none;", blockquote.attrib["style"])
         self.assertEqual(len(list(toolbar.iter("img"))), 0)
         for icon in toolbar.iter("button"):
             self.assertIn("background-color: currentColor", icon[0].attrib["style"])
             self.assertIn("mask: url(", icon[0].attrib["style"])
-        markdown = editor.addButton.call_args_list[2].kwargs
+        markdown = next(
+            call.kwargs
+            for call in editor.addButton.call_args_list
+            if call.kwargs["cmd"] == "anki_global_kit_paste_markdown_as_html"
+        )
         self.assertEqual(markdown["tip"], "Convert Markdown to HTML (Alt+M)")
         integration.QApplication.clipboard.return_value.text.return_value = "**text**"
         markdown["func"](editor)
@@ -117,7 +124,7 @@ class EditorBindingsTests(unittest.TestCase):
         self.assertEqual(toolbar[0].attrib["style"], "display: none;")
         self.assertTrue(
             all(
-                group.attrib["style"] == "display: inline-flex;"
+                "display: inline-flex;" in group.attrib["style"]
                 for group in toolbar[1:]
             )
         )
