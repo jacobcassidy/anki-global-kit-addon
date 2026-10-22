@@ -134,3 +134,47 @@ for (const mode of ['code', 'markdown']) {
     }
   });
 }
+
+test('editor bundle reinjection retains one transaction listener on an existing field', () => {
+  const dom = new JSDOM('<anki-editable contenteditable="true"><p>source</p></anki-editable>', {
+    runScripts: 'outside-only',
+  });
+  const { window } = dom;
+  const { document } = window;
+  const field = document.querySelector('anki-editable');
+  const addEventListener = field.addEventListener.bind(field);
+  let listeners = 0;
+  let inputs = 0;
+
+  window.requestAnimationFrame = () => 0;
+  field.addEventListener = (type, ...args) => {
+    if (type === 'input') listeners++;
+    addEventListener(type, ...args);
+  };
+  addEventListener('input', () => inputs++);
+  document.execCommand = (_command, _ui, html) => {
+    const range = window.getSelection().getRangeAt(0);
+
+    range.deleteContents();
+    range.insertNode(range.createContextualFragment(html));
+    return true;
+  };
+
+  try {
+    for (let version = 0; version < 3; version++) {
+      window.eval(bundle);
+      const range = document.createRange();
+
+      range.selectNodeContents(field);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+      assert.equal(window.ankiGlobalKitEditor.toggleBlock('blockquote'), true);
+    }
+
+    assert.equal(listeners, 1);
+    assert.equal(inputs, 3);
+    assert.equal(field.querySelector('[data-anki-global-kit-edit-position]'), null);
+  } finally {
+    window.close();
+  }
+});

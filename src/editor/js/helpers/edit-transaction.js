@@ -1,6 +1,6 @@
 const BOUNDARY_ATTRIBUTE = 'data-anki-global-kit-edit-boundary';
 const POSITION_ATTRIBUTE = 'data-anki-global-kit-edit-position';
-const inputHandlers = new WeakMap();
+const INPUT_HANDLER = Symbol.for('ankiGlobalKit.editInputHandler');
 
 function nodePath(root, node) {
   const path = [];
@@ -79,20 +79,22 @@ export function editWithNativeUndo(field, selection, edit, onInput) {
   // text nodes during insertion. Remove them before Anki reads the input.
   bookmarkRange(plannedRange);
 
-  if (!inputHandlers.has(field)) {
+  if (!field[INPUT_HANDLER]) {
     field.addEventListener(
       'input',
       (event) => {
-        cleanEditMarkers(field);
-        const handler = inputHandlers.get(field);
+        const handler = field[INPUT_HANDLER];
+
+        handler.cleanEditMarkers(field);
         handler.notified = true;
         handler.onInput?.(event, field);
       },
       true,
     );
   }
-  const handler = { onInput, notified: false };
-  inputHandlers.set(field, handler);
+  const handler = { onInput, cleanEditMarkers, notified: false };
+
+  field[INPUT_HANDLER] = handler;
   field.focus();
 
   // Undo restores the original field as well as its selection. The native
