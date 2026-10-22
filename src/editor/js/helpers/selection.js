@@ -1,3 +1,5 @@
+import { flattenCodeLines } from '../../../shared/js/syntax-highlighting/code-lines.js';
+
 // Resolve both text and element-boundary carets, including Anki's shadow fields.
 export function getFieldInputSelection() {
   let active = document.activeElement;
@@ -53,15 +55,39 @@ export function getEditorSelection() {
     : null;
 }
 
-function textFromFragment(node) {
-  if (node.nodeType === Node.TEXT_NODE) return node.nodeValue || '';
-  if (node.nodeName === 'BR') return '\n';
+function textFromFragment(node, parts) {
+  if (node.nodeType === Node.TEXT_NODE) {
+    if (node.nodeValue) parts.push(node.nodeValue);
 
-  const content = [...node.childNodes].map(textFromFragment).join('');
+    return;
+  }
 
-  return /^(DIV|P|LI|BLOCKQUOTE|PRE|H[1-6])$/.test(node.nodeName) ? `${content}\n` : content;
+  if (node.nodeType === Node.ELEMENT_NODE) {
+    if (node.matches('.code-block__header,.code-line__number,[data-code-placeholder]')) return;
+
+    if (node.nodeName === 'BR') {
+      parts.push('\n');
+
+      return;
+    }
+  }
+
+  if ([...(node.children || [])].some((child) => child.classList.contains('code-line'))) {
+    parts.push(flattenCodeLines(node).textContent);
+  } else {
+    for (const child of node.childNodes) textFromFragment(child, parts);
+  }
+
+  // Keep structural block separators distinct from newlines in selected code.
+  if (/^(DIV|P|LI|BLOCKQUOTE|PRE|H[1-6])$/.test(node.nodeName)) parts.push(null);
 }
 
 export function getEditorRangeText(range) {
-  return textFromFragment(range.cloneContents()).replace(/\n$/, '');
+  const parts = [];
+
+  textFromFragment(range.cloneContents(), parts);
+
+  if (parts.at(-1) === null) parts.pop();
+
+  return parts.map((part) => part ?? '\n').join('');
 }
