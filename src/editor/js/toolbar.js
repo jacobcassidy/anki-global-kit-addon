@@ -13,6 +13,8 @@ export function refreshEditorToolbar() {
   for (const [command, setting] of Object.entries(BUTTON_SETTINGS)) {
     for (const button of document.querySelectorAll(`[data-command="${command}"]`)) {
       button.style.display = enabled && settings[setting] !== false ? '' : 'none';
+
+      if (command === 'anki_global_kit_syntax_language') button.disabled = false;
     }
   }
 
@@ -35,4 +37,16 @@ const toolbarState = (document[TOOLBAR_STATE_KEY] ||= { listenersInstalled: fals
 
 if (!toolbarState.listenersInstalled) {
   toolbarState.listenersInstalled = true;
+
+  new MutationObserver((mutations) => {
+    if (mutations.some(({ attributeName }) => attributeName === 'disabled')) {
+      for (const button of document.querySelectorAll('[data-command="anki_global_kit_syntax_language"]')) {
+        if (button.disabled) button.disabled = false;
+      }
+    }
+  }).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['disabled'],
+    subtree: true,
+  });
 }
