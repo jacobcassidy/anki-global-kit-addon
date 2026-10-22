@@ -9,9 +9,14 @@
 .global-kit-code-block .code-line {
   display: block;
   min-block-size: 1lh;
+  padding-inline-start: 5ch;
+  position: relative;
 }
 
 .global-kit-code-block[data-line-numbers="true"] .code-line::before {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
   user-select: none;
   content: attr(data-line-number);
   display: inline-block;
