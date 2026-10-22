@@ -142,22 +142,22 @@ def _add_button(buttons: list, editor: Editor) -> None:
         toolbar_button(
             editor,
             settings,
-            "anki_editor_blockquote_button",
-            icon=str(BLOCKQUOTE_ICON),
-            cmd="anki_global_kit_blockquote",
-            func=lambda editor: _toggle_block(editor, "blockquote"),
-            tip=_button_tip("Blockquote", "anki_editor_blockquote_shortcut", settings),
+            "anki_editor_paste_markdown_as_html_button",
+            icon=str(PASTE_MARKDOWN_ICON),
+            cmd="anki_global_kit_paste_markdown_as_html",
+            func=_convert_markdown,
+            tip="Convert Markdown",
         )
     )
     custom_buttons.append(
         toolbar_button(
             editor,
             settings,
-            "anki_editor_paste_markdown_as_html_button",
-            icon=str(PASTE_MARKDOWN_ICON),
-            cmd="anki_global_kit_paste_markdown_as_html",
-            func=_convert_markdown,
-            tip="Convert Markdown",
+            "anki_editor_blockquote_button",
+            icon=str(BLOCKQUOTE_ICON),
+            cmd="anki_global_kit_blockquote",
+            func=lambda editor: _toggle_block(editor, "blockquote"),
+            tip=_button_tip("Blockquote", "anki_editor_blockquote_shortcut", settings),
         )
     )
     custom_buttons.append(

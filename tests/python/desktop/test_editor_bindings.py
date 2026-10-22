@@ -24,12 +24,12 @@ class EditorBindingsTests(unittest.TestCase):
         integration._add_button(buttons, editor)
         toolbar = ElementTree.fromstring(buttons[0])
         self.assertEqual([len(group) for group in toolbar], [3, 3])
-        self.assertIn("display: none;", toolbar[1][0].attrib["style"])
+        self.assertIn("display: none;", toolbar[1][1].attrib["style"])
         self.assertEqual(len(list(toolbar.iter("img"))), 0)
         for icon in toolbar.iter("button"):
             self.assertIn("background-color: currentColor", icon[0].attrib["style"])
             self.assertIn("mask: url(", icon[0].attrib["style"])
-        markdown = editor.addButton.call_args_list[4].kwargs
+        markdown = editor.addButton.call_args_list[3].kwargs
         self.assertEqual(markdown["tip"], "Convert Markdown")
         integration.QApplication.clipboard.return_value.text.return_value = "**text**"
         markdown["func"](editor)
