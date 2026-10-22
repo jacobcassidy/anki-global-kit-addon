@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added clickable code block line numbers that select the line content for copying, cutting, deleting, or replacing. Code selections copy as plain text without line numbers.
+
 - Added a configurable **Convert Markdown to HTML** editor shortcut, enabled by default as **Option+M** on macOS and **Alt+M** on Windows/Linux, with the current shortcut shown in its toolbar tooltip.
 - Added a shared parser-based JavaScript and Python classifier for editor code, pasted Markdown, and typed answers. Identifier colors now distinguish functions, methods, parameters and references, properties, classes, namespace imports, variables, and unshadowed builtins within each snippet. Python `def` and `class` use the declaration color. Re-highlight existing saved blocks to add the annotations.
 - Added generated `_syntax-highlighting.css` media for new Kit note types and a confirmed **Enable Code Styling…** action that adds only the stylesheet import to an existing note type.

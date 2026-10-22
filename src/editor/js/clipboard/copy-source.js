@@ -3,7 +3,7 @@ import { getEditorSelection, getFieldInputSelection } from '../helpers/selection
 import { getEditorSettings } from '../settings.js';
 
 function copyEditorSourceHtml(event) {
-  if (!event.clipboardData) return;
+  if (event.defaultPrevented || !event.clipboardData) return;
   const selection = getEditorSelection() || getFieldInputSelection();
   if (!selection?.rangeCount || selection.isCollapsed) return;
   const range = selection.getRangeAt(0);

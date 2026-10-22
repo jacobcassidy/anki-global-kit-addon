@@ -481,3 +481,83 @@ test('multiline paste uses plain source and renumbers including trailing empty l
     assert.equal(document.querySelectorAll('.code-line__content')[2].textContent, 'last');
   });
 });
+
+function clipboardEvent(window, type, values) {
+  const event = new window.Event(type, { bubbles: true, cancelable: true });
+
+  Object.defineProperty(event, 'clipboardData', {
+    value: {
+      setData: (format, text) => {
+        values[format] = text;
+      },
+      getData: (format) => values[format] || '',
+    },
+  });
+
+  return event;
+}
+
+test('clicking a gutter selects only source and supports copy, paste, cut, and deletion', () => {
+  withEditor(
+    '<pre class="global-kit-code-block" data-line-start="5" data-line-numbers="true"><code>first\nsecond</code></pre>',
+    (document, window) => {
+      mockOptionsEditing(document, window);
+      selectText(document, window, document.querySelector('code'));
+      globalThis.ankiGlobalKitEditor.openCodeBlockOptions();
+      applyOptions(document);
+
+      const click = (index) =>
+        document
+          .querySelectorAll('.code-line__number')
+          .item(index)
+          .dispatchEvent(new window.MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0 }));
+
+      click(1);
+      assert.equal(window.getSelection().toString(), 'second');
+
+      const copied = {};
+      const copy = clipboardEvent(window, 'copy', copied);
+
+      document.querySelector('code').dispatchEvent(copy);
+      assert.equal(copy.defaultPrevented, true);
+      assert.deepEqual(copied, { 'text/plain': 'second' });
+      document.querySelector('code').dispatchEvent(clipboardEvent(window, 'paste', { 'text/plain': 'replacement' }));
+      assert.equal(document.querySelectorAll('.code-line__content')[1].textContent, 'replacement');
+      click(0);
+
+      const cut = {};
+
+      document.querySelector('code').dispatchEvent(clipboardEvent(window, 'cut', cut));
+      assert.deepEqual(cut, { 'text/plain': 'first' });
+      assert.equal(document.querySelector('.code-line__content').textContent, '');
+      click(1);
+      editInput(document, window, 'deleteContentForward');
+      assert.equal(document.querySelectorAll('.code-line__content')[1].textContent, '');
+      assert.deepEqual(
+        [...document.querySelectorAll('.code-line__number')].map((node) => node.dataset.lineNumber),
+        ['5', '6'],
+      );
+    },
+  );
+});
+
+test('keyboard line selection and multiline copy omit gutters and retain source newlines', () => {
+  withEditor(
+    '<pre class="global-kit-code-block" data-line-start="10"><code>one\ntwo</code></pre>',
+    (document, window) => {
+      mockOptionsEditing(document, window);
+      selectText(document, window, document.querySelector('code'));
+      editInput(document, window, 'insertText', 'one\ntwo');
+      document
+        .querySelectorAll('.code-line__number')[1]
+        .dispatchEvent(new window.KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Enter' }));
+      assert.equal(window.getSelection().toString(), 'two');
+      selectText(document, window, document.querySelector('code'));
+
+      const copied = {};
+
+      document.querySelector('code').dispatchEvent(clipboardEvent(window, 'copy', copied));
+      assert.deepEqual(copied, { 'text/plain': 'one\ntwo' });
+    },
+  );
+});

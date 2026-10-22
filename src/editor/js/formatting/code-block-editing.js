@@ -9,6 +9,11 @@ import {
   preserveClozeMode,
 } from '../../../shared/js/syntax-highlighting/code-lines.js';
 
+import {
+  installCodeLineSelection,
+  selectedCodeText,
+} from '../../../shared/js/syntax-highlighting/code-block-controls.js';
+
 const INSTALLED = Symbol.for('ankiGlobalKitCodeBlockEditing');
 const CODE_SELECTOR = 'pre.global-kit-code-block > code';
 
@@ -118,6 +123,7 @@ export function installCodeBlockEditing() {
   if (document[INSTALLED]) return;
 
   document[INSTALLED] = true;
+  installCodeLineSelection();
   document.addEventListener('beforeinput', editCode, true);
   document.addEventListener(
     'focusin',
@@ -135,6 +141,8 @@ export function installCodeBlockEditing() {
 
           number.dataset.lineNumber = String(start + index);
           number.setAttribute('contenteditable', 'false');
+          number.setAttribute('role', 'button');
+          number.setAttribute('tabindex', '0');
           number.setAttribute('aria-label', `Line ${start + index}`);
           number.textContent = '';
         });
@@ -142,6 +150,33 @@ export function installCodeBlockEditing() {
     },
     true,
   );
+  for (const type of ['copy', 'cut']) {
+    document.addEventListener(
+      type,
+      (event) => {
+        const target = selectedCode();
+        const text = selectedCodeText(target?.selection);
+
+        if (text === null || !event.clipboardData || target.range.collapsed) return;
+
+        event.clipboardData.setData('text/plain', text);
+        event.preventDefault();
+
+        if (type === 'cut') {
+          const { code, range } = target;
+
+          replaceCode(
+            target,
+            codeOffset(code, range.startContainer, range.startOffset),
+            codeOffset(code, range.endContainer, range.endOffset),
+            '',
+          );
+        }
+      },
+      true,
+    );
+  }
+
   document.addEventListener(
     'paste',
     (event) => {

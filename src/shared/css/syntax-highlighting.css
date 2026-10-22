@@ -21,6 +21,7 @@
 }
 
 .global-kit-code-block[data-line-numbers="true"] .code-line__number {
+  cursor: pointer;
   user-select: none;
   color: var(--syntax-gray-dark);
   text-align: end;
@@ -32,6 +33,10 @@
 
 .global-kit-code-block[data-line-numbers="false"] .code-line__number {
   display: none;
+}
+
+.global-kit-code-block .code-line__number:focus-visible {
+  outline: 0.0625rem solid var(--global-kit-syntax-foreground);
 }
 
 .syntax-highlights {

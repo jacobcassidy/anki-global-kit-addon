@@ -44,7 +44,7 @@ export function tokenHtmlByLine(tokenHtml, start) {
   return lines
     .map(
       (line, index) =>
-        `<span class="code-line"><span class="code-line__number" contenteditable="false" data-line-number="${start + index}" aria-label="Line ${start + index}"></span><span class="code-line__content">${line || '<br data-code-placeholder="">'}</span></span>`,
+        `<span class="code-line"><span class="code-line__number" contenteditable="false" role="button" tabindex="0" data-line-number="${start + index}" aria-label="Line ${start + index}"></span><span class="code-line__content">${line || '<br data-code-placeholder="">'}</span></span>`,
     )
     .join('');
 }
