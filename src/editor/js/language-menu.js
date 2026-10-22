@@ -35,6 +35,7 @@ export function showLanguageMenu(languages, current, anchor) {
     selected.textContent = languages.find(({ alias }) => alias === current)?.label || current;
     selected.setAttribute('role', 'menuitem');
     selected.tabIndex = 0;
+    selected.addEventListener('mousedown', (event) => event.preventDefault());
     selected.addEventListener('click', closeLanguageMenu);
     selected.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' || event.key === ' ') closeLanguageMenu();
@@ -55,6 +56,7 @@ export function showLanguageMenu(languages, current, anchor) {
     item.textContent = label;
     item.setAttribute('role', 'menuitem');
     item.tabIndex = 0;
+    item.addEventListener('mousedown', (event) => event.preventDefault());
     const choose = () => {
       closeLanguageMenu();
       globalThis.pycmd?.(`anki-global-kit:language-choice:${JSON.stringify(alias)}`);
