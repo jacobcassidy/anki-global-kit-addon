@@ -148,8 +148,7 @@ def show_language_menu(editor: Editor, anchor: list | None = None) -> None:
     )
     menu = QMenu(editor.parentWindow)
     if selected in names:
-        current = menu.addAction(names[selected])
-        current.setEnabled(False)
+        menu.addAction(names[selected])
         menu.addSeparator()
     for language in ordered:
         action = menu.addAction(names[language])
