@@ -329,6 +329,44 @@ test('Code Block Options leaves newer field edits untouched', () => {
   });
 });
 
+test('Code Block Options applies from a caret after Anki recreates unchanged field nodes', () => {
+  withEditor(
+    '<pre class="global-kit-code-block" data-line-start="1"><code>other</code></pre><pre class="global-kit-code-block" data-line-start="1"><code><span class="code-line" data-line-number="1"><span class="nb">print</span>(1)</span><span class="code-line" data-line-number="2">next</span></code></pre>',
+    (document, window) => {
+      const field = document.querySelector('anki-editable');
+      const originalBlock = field.querySelectorAll('pre')[1];
+      const originalHtml = field.innerHTML;
+      const range = document.createRange();
+
+      range.setStart(originalBlock.querySelector('.nb').firstChild, 2);
+      range.collapse(true);
+      window.getSelection().addRange(range);
+      mockOptionsEditing(document, window);
+
+      assert.equal(globalThis.ankiGlobalKitEditor.openCodeBlockOptions(), true);
+
+      // Anki's rich-text/HTML mirror can recreate identical nodes on blur.
+      field.innerHTML = originalHtml;
+      assert.equal(originalBlock.isConnected, false);
+      document.querySelector('[name="lineNumbers"]').checked = true;
+      document.querySelector('[name="lineStart"]').value = '20';
+      applyOptions(document, window);
+
+      const blocks = field.querySelectorAll('pre');
+
+      assert.equal(blocks[0].dataset.lineStart, '1');
+      assert.equal(blocks[1].dataset.lineStart, '20');
+      assert.equal(blocks[1].dataset.lineNumbers, 'true');
+      assert.deepEqual(
+        [...blocks[1].querySelectorAll('.code-line')].map((line) => line.dataset.lineNumber),
+        ['20', '21'],
+      );
+      assert.equal(blocks[1].querySelector('.nb').textContent, 'print');
+      assert.equal(document.querySelector('dialog'), null);
+    },
+  );
+});
+
 test('language priority is explicit choice, existing block, Topic, remembered, then default', () => {
   withEditor(
     '<pre class="global-kit-code-block" data-language="python"><code>print(1)</code></pre>',

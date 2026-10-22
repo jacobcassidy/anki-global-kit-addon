@@ -272,6 +272,7 @@ function openCodeBlockOptions() {
   const pre = code.closest('pre');
   if (!field || !pre) return false;
   const fieldSnapshot = field.innerHTML;
+  const blockIndex = [...field.querySelectorAll('pre.global-kit-code-block')].indexOf(pre);
   const dialog = document.createElement('dialog');
   dialog.className = 'global-kit-code-options';
   dialog.innerHTML = `
@@ -311,24 +312,27 @@ function openCodeBlockOptions() {
     }
     lineStart.setCustomValidity('');
 
-    if (!field.isConnected || field.innerHTML !== fieldSnapshot || !field.contains(pre)) {
-      dialog.close();
-      return;
-    }
-
     // Modal dialogs make the field inert. Release it before focusing the field
     // and committing the native insertHTML transaction.
     dialog.close();
 
+    if (!field.isConnected || field.innerHTML !== fieldSnapshot) return;
+
+    // Anki's rich-text/HTML mirror may recreate unchanged nodes on blur. The
+    // snapshot still protects newer edits; resolve the block in the current DOM.
+    const currentPre = field.querySelectorAll('pre.global-kit-code-block')[blockIndex];
+
+    if (!currentPre) return;
+
     const targetRange = document.createRange();
-    targetRange.selectNode(pre);
+    targetRange.selectNode(currentPre);
     const targetSelection = {
       getRangeAt: () => targetRange,
       removeAllRanges: () => selection.removeAllRanges(),
       addRange: (nextRange) => selection.addRange(nextRange),
     };
     editWithNativeUndo(field, targetSelection, (_clone, stagedSelection, resolveNode) => {
-      const clonedPre = resolveNode(pre);
+      const clonedPre = resolveNode(currentPre);
       if (!clonedPre) return false;
       clonedPre.dataset.lineNumbers = String(lineNumbers.checked);
       clonedPre.dataset.lineStart = String(nextStart);
