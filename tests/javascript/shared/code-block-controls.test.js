@@ -107,6 +107,59 @@ test('delegated copy buttons work inside shadow fields and install only once', a
   });
 });
 
+test('copy button refreshes its check icon and copies again while feedback is visible', async () => {
+  await withDocument('<pre><code>copy me</code></pre>', async (document, window) => {
+    const scheduledTimeouts = [];
+    const originalSetTimeout = globalThis.setTimeout;
+
+    globalThis.setTimeout = (callback) => {
+      scheduledTimeouts.push(callback);
+
+      return scheduledTimeouts.length;
+    };
+
+    try {
+      const pre = document.querySelector('pre');
+
+      decorateCodeBlock(pre);
+      installCodeBlockControls();
+      const button = pre.querySelector('.code-block__copy');
+      const icon = button.querySelector('.code-block__copy-icon');
+      const copied = [];
+
+      navigator.clipboard = { writeText: async (text) => copied.push(text) };
+
+      const clickCopy = async () => {
+        button.dispatchEvent(new window.MouseEvent('click', { bubbles: true, composed: true }));
+        await Promise.resolve();
+        await Promise.resolve();
+      };
+
+      assert.equal(icon.querySelector('svg'), null);
+      assert.equal(icon.classList.contains('code-block__copy-icon--copied'), false);
+      await clickCopy();
+      assert.deepEqual(copied, ['copy me']);
+      assert.equal(icon.querySelector('svg') !== null, true);
+      assert.equal(icon.classList.contains('code-block__copy-icon--copied'), true);
+
+      await clickCopy();
+      assert.deepEqual(copied, ['copy me', 'copy me']);
+      assert.equal(scheduledTimeouts.length, 2);
+
+      scheduledTimeouts[0]();
+      assert.equal(icon.querySelector('svg') !== null, true);
+      assert.equal(button.title, 'Copied');
+
+      scheduledTimeouts[1]();
+      assert.equal(icon.querySelector('svg'), null);
+      assert.equal(icon.classList.contains('code-block__copy-icon--copied'), false);
+      assert.equal(button.title, 'Copy Code');
+    } finally {
+      globalThis.setTimeout = originalSetTimeout;
+    }
+  });
+});
+
 test('card headers cover existing and subsequently rendered blocks without observer loops', async () => {
   await withDocument('<pre class="agk-code-block" data-language="python"><code>old</code></pre>', async (document) => {
     const observer = watchCodeBlockHeaders();
