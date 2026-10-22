@@ -13,7 +13,7 @@ from ...paths import ICON_ASSET_DIR
 from ...shortcuts.labels import shortcut_label
 from ..buttons import toolbar_button
 
-ICON = ICON_ASSET_DIR / "lightning.svg"
+ICON = ICON_ASSET_DIR / "lightning-rounded-narrow-angled.svg"
 OPTIONS_ICON = ICON_ASSET_DIR / "ellipsis.svg"
 _MESSAGE_PREFIX = "anki-global-kit:syntax-highlight:"
 _MARKDOWN_MESSAGE_PREFIX = "anki-global-kit:markdown-highlight:"
