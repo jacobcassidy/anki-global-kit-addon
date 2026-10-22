@@ -56,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Reset every syntax role's font weight and style in each theme so bold and italic settings do not leak between the fallback, light mode, and dark mode.
+
 - Preserved resolved Cassidy Dark palette colors when generating synced card and editor stylesheets, including colors saved by older versions.
 
 - Scoped card code header decoration to Kit containers so persistent review observers leave unrelated note types unchanged.

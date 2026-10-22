@@ -308,11 +308,10 @@ def _theme_variables_css(
             value = f"var(--syntax-{variable})" if variable else color
             css.append(f"  --agk-syntax-{role}: {value};")
     for role in _TOKEN_SELECTORS:
-        if role in preset["styles"]["bold"]:
-            css.append(f"  --agk-syntax-{role}-weight: 700;")
-
-        if role in preset["styles"]["italic"]:
-            css.append(f"  --agk-syntax-{role}-style: italic;")
+        weight = 700 if role in preset["styles"]["bold"] else 400
+        style = "italic" if role in preset["styles"]["italic"] else "normal"
+        css.append(f"  --agk-syntax-{role}-weight: {weight};")
+        css.append(f"  --agk-syntax-{role}-style: {style};")
     css.append("}")
     return "\n".join(css) + "\n"
 

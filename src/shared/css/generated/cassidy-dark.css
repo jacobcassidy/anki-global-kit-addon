@@ -21,7 +21,44 @@ anki-editable {
   --agk-syntax-operator: var(--syntax-red);
   --agk-syntax-string: var(--syntax-yellow);
   --agk-syntax-error: var(--syntax-red-deep);
+  --agk-syntax-comment-weight: 400;
   --agk-syntax-comment-style: italic;
+  --agk-syntax-punctuation-weight: 400;
+  --agk-syntax-punctuation-style: normal;
+  --agk-syntax-muted-weight: 400;
+  --agk-syntax-muted-style: normal;
+  --agk-syntax-builtin-weight: 400;
+  --agk-syntax-builtin-style: normal;
+  --agk-syntax-builtin-constant-weight: 400;
+  --agk-syntax-builtin-constant-style: normal;
+  --agk-syntax-keyword-weight: 400;
+  --agk-syntax-keyword-style: normal;
+  --agk-syntax-declaration-weight: 400;
+  --agk-syntax-declaration-style: normal;
+  --agk-syntax-function-weight: 400;
+  --agk-syntax-function-style: normal;
+  --agk-syntax-method-weight: 400;
+  --agk-syntax-method-style: normal;
+  --agk-syntax-class-weight: 400;
+  --agk-syntax-class-style: normal;
+  --agk-syntax-namespace-weight: 400;
+  --agk-syntax-namespace-style: normal;
+  --agk-syntax-parameter-weight: 400;
+  --agk-syntax-parameter-style: normal;
+  --agk-syntax-attribute-weight: 400;
+  --agk-syntax-attribute-style: normal;
+  --agk-syntax-variable-weight: 400;
+  --agk-syntax-variable-style: normal;
+  --agk-syntax-library-variable-weight: 400;
+  --agk-syntax-library-variable-style: normal;
+  --agk-syntax-constant-weight: 400;
+  --agk-syntax-constant-style: normal;
+  --agk-syntax-operator-weight: 400;
+  --agk-syntax-operator-style: normal;
+  --agk-syntax-string-weight: 400;
+  --agk-syntax-string-style: normal;
+  --agk-syntax-error-weight: 400;
+  --agk-syntax-error-style: normal;
 }
 
 .agk-code-block {
