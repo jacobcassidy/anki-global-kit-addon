@@ -70,7 +70,7 @@
 .anki-global-kit-language-menu__item {
   cursor: pointer;
   padding: 2px 8px;
-  font-size: var(--font-size--small);
+  font-size: small;
 }
 
 .anki-global-kit-language-menu__item:hover,
