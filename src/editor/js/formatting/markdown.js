@@ -127,7 +127,7 @@ function applyMarkdownHighlightResult(id, html, renderedBlocks) {
     const code = container.querySelectorAll('pre > code')[rendered.index];
     if (!code || typeof rendered.language !== 'string') continue;
     const pre = code.closest('pre');
-    pre.className = 'global-kit-code-block';
+    pre.className = 'agk-code-block';
     pre.dataset.language = rendered.language;
     pre.dataset.lineNumbers = 'false';
     pre.dataset.lineStart = '1';

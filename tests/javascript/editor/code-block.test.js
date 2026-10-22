@@ -118,7 +118,7 @@ test('new blocks start at line 1 despite old global preferences and apply tokens
       ),
       true,
     );
-    assert.equal(field.querySelector('pre.global-kit-code-block').dataset.language, 'javascript');
+    assert.equal(field.querySelector('pre.agk-code-block').dataset.language, 'javascript');
     assert.equal(field.querySelector('.code-block__language').textContent, 'JavaScript');
     assert.equal(field.querySelector('.code-block__copy').hidden, false);
     assert.equal(field.querySelectorAll('[data-language]').length, 1);
@@ -194,7 +194,7 @@ test('stale responses leave a changed field untouched', () => {
 
 test('multiline blocks preserve source and their starting line number when refreshed', () => {
   withEditor(
-    '<pre class="global-kit-code-block" data-language="python" data-line-numbers="true" data-line-start="50"><code>first\nsecond</code></pre>',
+    '<pre class="agk-code-block" data-language="python" data-line-numbers="true" data-line-start="50"><code>first\nsecond</code></pre>',
     (document, window) => {
       const field = document.querySelector('anki-editable');
       selectText(document, window, field.querySelector('code'));
@@ -224,7 +224,7 @@ test('multiline blocks preserve source and their starting line number when refre
         ),
         true,
       );
-      const block = field.querySelector('pre.global-kit-code-block');
+      const block = field.querySelector('pre.agk-code-block');
       assert.equal(block.dataset.lineNumbers, 'true');
       assert.equal(block.dataset.lineStart, '50');
       assert.deepEqual(
@@ -244,7 +244,7 @@ test('multiline blocks preserve source and their starting line number when refre
 
 test('Code Block Options changes only the selected block starting number', () => {
   withEditor(
-    '<pre class="global-kit-code-block" data-language="python" data-line-start="1"><code><span class="code-line" data-line-number="1">first</span><span class="code-line" data-line-number="2">second</span></code></pre><pre class="global-kit-code-block" data-line-start="99"><code>other</code></pre>',
+    '<pre class="agk-code-block" data-language="python" data-line-start="1"><code><span class="code-line" data-line-number="1">first</span><span class="code-line" data-line-number="2">second</span></code></pre><pre class="agk-code-block" data-line-start="99"><code>other</code></pre>',
     (document, window) => {
       const field = document.querySelector('anki-editable');
       selectText(document, window, field.querySelector('code'));
@@ -270,7 +270,7 @@ test('Code Block Options changes only the selected block starting number', () =>
 
 test('Code Block Options numbers Markdown blocks and toggles literal clozes without losing source or tokens', () => {
   withEditor(
-    '<pre class="global-kit-code-block" data-language="python"><code><span class="nb">print</span>({{c1::value}})\nnext</code></pre>',
+    '<pre class="agk-code-block" data-language="python"><code><span class="nb">print</span>({{c1::value}})\nnext</code></pre>',
     (document, window) => {
       const field = document.querySelector('anki-editable');
       let edits = 0;
@@ -321,7 +321,7 @@ test('Code Block Options numbers Markdown blocks and toggles literal clozes with
 });
 
 test('Code Block Options leaves newer field edits untouched', () => {
-  withEditor('<pre class="global-kit-code-block"><code>original</code></pre>', (document, window) => {
+  withEditor('<pre class="agk-code-block"><code>original</code></pre>', (document, window) => {
     const field = document.querySelector('anki-editable');
 
     mockOptionsEditing(document, window);
@@ -336,7 +336,7 @@ test('Code Block Options leaves newer field edits untouched', () => {
 
 test('Code Block Options applies from a caret after Anki recreates unchanged field nodes', () => {
   withEditor(
-    '<pre class="global-kit-code-block" data-line-start="1"><code>other</code></pre><pre class="global-kit-code-block" data-line-start="1"><code><span class="code-line" data-line-number="1"><span class="nb">print</span>(1)</span><span class="code-line" data-line-number="2">next</span></code></pre>',
+    '<pre class="agk-code-block" data-line-start="1"><code>other</code></pre><pre class="agk-code-block" data-line-start="1"><code><span class="code-line" data-line-number="1"><span class="nb">print</span>(1)</span><span class="code-line" data-line-number="2">next</span></code></pre>',
     (document, window) => {
       const field = document.querySelector('anki-editable');
       const originalBlock = field.querySelectorAll('pre')[1];
@@ -372,39 +372,36 @@ test('Code Block Options applies from a caret after Anki recreates unchanged fie
 });
 
 test('language priority is explicit choice, existing block, Topic, remembered, then default', () => {
-  withEditor(
-    '<pre class="global-kit-code-block" data-language="python"><code>print(1)</code></pre>',
-    (document, window) => {
-      const field = document.querySelector('anki-editable');
-      selectText(document, window, field.querySelector('code'));
-      let requests = [];
-      globalThis.pycmd = (message) => {
-        requests.push(JSON.parse(message.slice(message.indexOf('{'))));
-      };
-      globalThis.require = () => ({
-        instances: [
-          {
-            fields: [
-              {
-                name: 'Topic',
-                editingArea: { content: { subscribe: (callback) => (callback('JavaScript'), () => {}) } },
-              },
-            ],
-          },
-        ],
-      });
-      globalThis.ankiGlobalKitEditor.setLanguageContext(null, 'bash');
+  withEditor('<pre class="agk-code-block" data-language="python"><code>print(1)</code></pre>', (document, window) => {
+    const field = document.querySelector('anki-editable');
+    selectText(document, window, field.querySelector('code'));
+    let requests = [];
+    globalThis.pycmd = (message) => {
+      requests.push(JSON.parse(message.slice(message.indexOf('{'))));
+    };
+    globalThis.require = () => ({
+      instances: [
+        {
+          fields: [
+            {
+              name: 'Topic',
+              editingArea: { content: { subscribe: (callback) => (callback('JavaScript'), () => {}) } },
+            },
+          ],
+        },
+      ],
+    });
+    globalThis.ankiGlobalKitEditor.setLanguageContext(null, 'bash');
 
-      globalThis.ankiGlobalKitEditor.highlightCode('', 'python');
-      assert.equal(requests[0].language, 'python');
-      assert.equal(requests[0].explicitLanguage, false);
+    globalThis.ankiGlobalKitEditor.highlightCode('', 'python');
+    assert.equal(requests[0].language, 'python');
+    assert.equal(requests[0].explicitLanguage, false);
 
-      globalThis.ankiGlobalKitEditor.setExplicitLanguage('javascript');
-      globalThis.ankiGlobalKitEditor.highlightCode('', 'python');
-      assert.equal(requests[1].language, 'javascript');
-      assert.equal(requests[1].explicitLanguage, true);
-    },
-  );
+    globalThis.ankiGlobalKitEditor.setExplicitLanguage('javascript');
+    globalThis.ankiGlobalKitEditor.highlightCode('', 'python');
+    assert.equal(requests[1].language, 'javascript');
+    assert.equal(requests[1].explicitLanguage, true);
+  });
 });
 
 function editInput(document, window, inputType, data = null) {
@@ -425,7 +422,7 @@ function caret(document, window, node, offset) {
 
 test('editing adds and removes protected line numbers while preserving tokens and caret', () => {
   withEditor(
-    '<pre class="global-kit-code-block" data-line-numbers="true" data-line-start="9"><code><span class="nb">print</span>(1)</code></pre>',
+    '<pre class="agk-code-block" data-line-numbers="true" data-line-start="9"><code><span class="nb">print</span>(1)</code></pre>',
     (document, window) => {
       mockOptionsEditing(document, window);
       caret(document, window, document.querySelector('.nb').firstChild, 5);
@@ -453,7 +450,7 @@ test('editing adds and removes protected line numbers while preserving tokens an
 });
 
 test('multiline paste uses plain source and renumbers including trailing empty lines', () => {
-  withEditor('<pre class="global-kit-code-block" data-line-start="50"><code>old</code></pre>', (document, window) => {
+  withEditor('<pre class="agk-code-block" data-line-start="50"><code>old</code></pre>', (document, window) => {
     mockOptionsEditing(document, window);
     selectText(document, window, document.querySelector('code'));
 
@@ -495,7 +492,7 @@ function clipboardEvent(window, type, values) {
 
 test('clicking a gutter selects only source and supports copy, paste, cut, and deletion', () => {
   withEditor(
-    '<pre class="global-kit-code-block" data-line-start="5" data-line-numbers="true"><code>first\nsecond</code></pre>',
+    '<pre class="agk-code-block" data-line-start="5" data-line-numbers="true"><code>first\nsecond</code></pre>',
     (document, window) => {
       mockOptionsEditing(document, window);
       selectText(document, window, document.querySelector('code'));
@@ -538,64 +535,58 @@ test('clicking a gutter selects only source and supports copy, paste, cut, and d
 });
 
 test('keyboard line selection and multiline copy omit gutters and retain source newlines', () => {
-  withEditor(
-    '<pre class="global-kit-code-block" data-line-start="10"><code>one\ntwo</code></pre>',
-    (document, window) => {
-      mockOptionsEditing(document, window);
-      selectText(document, window, document.querySelector('code'));
-      editInput(document, window, 'insertText', 'one\ntwo');
-      document
-        .querySelectorAll('.code-line__number')[1]
-        .dispatchEvent(new window.KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Enter' }));
-      assert.equal(window.getSelection().toString(), 'two');
-      selectText(document, window, document.querySelector('code'));
+  withEditor('<pre class="agk-code-block" data-line-start="10"><code>one\ntwo</code></pre>', (document, window) => {
+    mockOptionsEditing(document, window);
+    selectText(document, window, document.querySelector('code'));
+    editInput(document, window, 'insertText', 'one\ntwo');
+    document
+      .querySelectorAll('.code-line__number')[1]
+      .dispatchEvent(new window.KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Enter' }));
+    assert.equal(window.getSelection().toString(), 'two');
+    selectText(document, window, document.querySelector('code'));
 
-      const copied = {};
+    const copied = {};
 
-      document.querySelector('code').dispatchEvent(clipboardEvent(window, 'copy', copied));
-      assert.deepEqual(copied, { 'text/plain': 'one\ntwo' });
-    },
-  );
+    document.querySelector('code').dispatchEvent(clipboardEvent(window, 'copy', copied));
+    assert.deepEqual(copied, { 'text/plain': 'one\ntwo' });
+  });
 });
 
 test('typing after Undo restores the old caret instead of replacing the restored field', () => {
-  withEditor(
-    '<pre class="global-kit-code-block" data-line-start="1"><code>first\nsecond</code></pre>',
-    (document, window) => {
-      const field = document.querySelector('anki-editable');
-      let undoHtml;
+  withEditor('<pre class="agk-code-block" data-line-start="1"><code>first\nsecond</code></pre>', (document, window) => {
+    const field = document.querySelector('anki-editable');
+    let undoHtml;
 
-      document.execCommand = (_command, _showUi, html) => {
-        undoHtml = field.innerHTML;
+    document.execCommand = (_command, _showUi, html) => {
+      undoHtml = field.innerHTML;
 
-        const range = window.getSelection().getRangeAt(0);
+      const range = window.getSelection().getRangeAt(0);
 
-        range.deleteContents();
-        range.insertNode(range.createContextualFragment(html));
+      range.deleteContents();
+      range.insertNode(range.createContextualFragment(html));
 
-        return true;
-      };
-      caret(document, window, document.querySelector('code').firstChild, 3);
-      editInput(document, window, 'insertParagraph');
-      field.innerHTML = undoHtml;
-      field.dispatchEvent(new window.InputEvent('input', { bubbles: true, composed: true, inputType: 'historyUndo' }));
+      return true;
+    };
+    caret(document, window, document.querySelector('code').firstChild, 3);
+    editInput(document, window, 'insertParagraph');
+    field.innerHTML = undoHtml;
+    field.dispatchEvent(new window.InputEvent('input', { bubbles: true, composed: true, inputType: 'historyUndo' }));
 
-      const code = field.querySelector('code');
-      const selection = window.getSelection();
+    const code = field.querySelector('code');
+    const selection = window.getSelection();
 
-      assert.equal(textFromCode(code), 'first\nsecond');
-      assert.equal(selection.isCollapsed, true);
-      assert.equal(codeOffset(code, selection.anchorNode, selection.anchorOffset), 3);
-      assert.equal(field.querySelector('[data-anki-global-kit-edit-position]'), null);
-      editInput(document, window, 'insertText', 'X');
-      assert.equal(textFromCode(field.querySelector('code')), 'firXst\nsecond');
-    },
-  );
+    assert.equal(textFromCode(code), 'first\nsecond');
+    assert.equal(selection.isCollapsed, true);
+    assert.equal(codeOffset(code, selection.anchorNode, selection.anchorOffset), 3);
+    assert.equal(field.querySelector('[data-anki-global-kit-edit-position]'), null);
+    editInput(document, window, 'insertText', 'X');
+    assert.equal(textFromCode(field.querySelector('code')), 'firXst\nsecond');
+  });
 });
 
 test('one Backspace clears a focused legacy line number and moves to the next line end', () => {
   withEditor(
-    '<pre class="global-kit-code-block" data-line-start="8"><code><span class="code-line"><span class="code-line__number" contenteditable="true">8</span><span class="code-line__content">first</span></span><span class="code-line"><span class="code-line__number" contenteditable="true">9</span><span class="code-line__content">second</span></span><span class="code-line"><span class="code-line__number" contenteditable="true">10</span><span class="code-line__content">third</span></span></code></pre>',
+    '<pre class="agk-code-block" data-line-start="8"><code><span class="code-line"><span class="code-line__number" contenteditable="true">8</span><span class="code-line__content">first</span></span><span class="code-line"><span class="code-line__number" contenteditable="true">9</span><span class="code-line__content">second</span></span><span class="code-line"><span class="code-line__number" contenteditable="true">10</span><span class="code-line__content">third</span></span></code></pre>',
     (document, window) => {
       const field = document.querySelector('anki-editable');
       const number = document.querySelectorAll('.code-line__number')[1];

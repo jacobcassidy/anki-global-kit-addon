@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Renamed kit-prefixed card and editor classes to the `.agk-*` namespace.
+
 - Limited code block headers and copy controls to the Desktop editor. Cards show code without a header.
 
 - Renamed **Paste Markdown as HTML** to **Convert Markdown to HTML**. It converts selected text, or inserts converted clipboard text at the caret when nothing is selected.

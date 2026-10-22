@@ -39,7 +39,7 @@ export function showLanguageMenu(languages, current, anchor) {
 
   const menu = document.createElement('div');
   menu.id = MENU_ID;
-  menu.className = 'anki-global-kit-language-menu';
+  menu.className = 'agk-language-menu';
   menu.setAttribute('role', 'menu');
 
   const rect = Array.isArray(anchor)
@@ -58,7 +58,7 @@ export function showLanguageMenu(languages, current, anchor) {
 
   if (activeLanguage) {
     const selected = document.createElement('div');
-    selected.className = 'anki-global-kit-language-menu__current';
+    selected.className = 'agk-language-menu__current';
     selected.textContent = activeLabel || activeLanguage;
     selected.setAttribute('role', 'menuitem');
     selected.tabIndex = 0;
@@ -70,7 +70,7 @@ export function showLanguageMenu(languages, current, anchor) {
     menu.append(selected);
 
     const divider = document.createElement('div');
-    divider.className = 'anki-global-kit-language-menu__divider';
+    divider.className = 'agk-language-menu__divider';
     divider.setAttribute('role', 'separator');
     menu.append(divider);
   }
@@ -79,7 +79,7 @@ export function showLanguageMenu(languages, current, anchor) {
     if (alias === activeLanguage) continue;
 
     const item = document.createElement('div');
-    item.className = 'anki-global-kit-language-menu__item';
+    item.className = 'agk-language-menu__item';
     item.textContent = label;
     item.setAttribute('role', 'menuitem');
     item.tabIndex = 0;

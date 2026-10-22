@@ -16,7 +16,7 @@ import {
 } from '../../../shared/js/syntax-highlighting/code-block-controls.js';
 
 const INSTALLED = Symbol.for('ankiGlobalKitCodeBlockEditing');
-const CODE_SELECTOR = 'pre.global-kit-code-block > code';
+const CODE_SELECTOR = 'pre.agk-code-block > code';
 
 function selectedCode() {
   const selection = getEditorSelection();

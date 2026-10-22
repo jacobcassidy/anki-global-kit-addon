@@ -115,7 +115,7 @@ class SyntaxRenderingTests(unittest.TestCase):
         )
         for theme_id, _name in available:
             css = themes.generate_theme_css(theme_id)
-            self.assertIn(".global-kit-code-block", css)
+            self.assertIn(".agk-code-block", css)
             self.assertRegex(css, r"--global-kit-syntax-background: #[0-9a-fA-F]{6};")
 
         self.assertFalse(
@@ -143,7 +143,7 @@ class SyntaxRenderingTests(unittest.TestCase):
         self.assertEqual(preset["colors"]["declaration"], "#92c1fd")
         css = themes.generate_theme_css()
         declaration_rule = css.split(
-            ':is(.global-kit-code-block, .syntax-highlights) [data-global-kit-token="declaration"] {',
+            ':is(.agk-code-block, .syntax-highlights) [data-global-kit-token="declaration"] {',
             1,
         )[1]
         declaration_rule = declaration_rule.split("}", 1)[0]
@@ -262,18 +262,18 @@ class SyntaxRenderingTests(unittest.TestCase):
         overrides = themes.generate_theme_pair_css(light, dark)
         combined = themes.generate_theme_css() + overrides
 
-        self.assertNotIn(".global-kit-code-block", overrides)
-        self.assertEqual(combined.count(".global-kit-code-block {"), 1)
+        self.assertNotIn(".agk-code-block", overrides)
+        self.assertEqual(combined.count(".agk-code-block {"), 1)
         for role, selectors in themes._TOKEN_SELECTORS.items():
             self.assertEqual(
                 combined.count(
-                    f":is(.global-kit-code-block, .syntax-highlights) :is({selectors}),"
+                    f":is(.agk-code-block, .syntax-highlights) :is({selectors}),"
                 ),
                 1,
             )
             self.assertEqual(
                 combined.count(
-                    f':is(.global-kit-code-block, .syntax-highlights) [data-global-kit-token="{role}"] {{'
+                    f':is(.agk-code-block, .syntax-highlights) [data-global-kit-token="{role}"] {{'
                 ),
                 1,
             )
@@ -293,7 +293,7 @@ class SyntaxRenderingTests(unittest.TestCase):
         editor_css = themes.generate_theme_pair_css(light, dark, editor=True)
         self.assertIn(":host-context(.nightMode) anki-editable", editor_css)
         self.assertIn(":root,\nanki-editable {", editor_css)
-        self.assertNotIn(".global-kit-code-block", editor_css)
+        self.assertNotIn(".agk-code-block", editor_css)
 
     def test_highlight_button_tooltip_uses_the_enabled_shortcut(self):
         settings = {

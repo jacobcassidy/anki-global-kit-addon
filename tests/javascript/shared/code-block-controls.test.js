@@ -108,30 +108,27 @@ test('delegated copy buttons work inside shadow fields and install only once', a
 });
 
 test('card headers cover existing and subsequently rendered blocks without observer loops', async () => {
-  await withDocument(
-    '<pre class="global-kit-code-block" data-language="python"><code>old</code></pre>',
-    async (document) => {
-      const observer = watchCodeBlockHeaders();
+  await withDocument('<pre class="agk-code-block" data-language="python"><code>old</code></pre>', async (document) => {
+    const observer = watchCodeBlockHeaders();
 
-      try {
-        assert.equal(document.querySelector('.code-block__language').textContent, 'Python');
+    try {
+      assert.equal(document.querySelector('.code-block__language').textContent, 'Python');
 
-        const answer = document.createElement('div');
+      const answer = document.createElement('div');
 
-        answer.innerHTML = '<pre><code class="language-js">new\nanswer</code></pre><pre><code>plain</code></pre>';
-        document.body.append(answer);
-        await new Promise((resolve) => setTimeout(resolve, 0));
-        assert.deepEqual(
-          [...document.querySelectorAll('.code-block__language')].map((node) => node.textContent),
-          ['Python', 'JavaScript', 'Code'],
-        );
-        assert.equal(document.querySelectorAll('.code-block__header').length, 3);
-        assert.equal(answer.querySelector('code').textContent, 'new\nanswer');
-      } finally {
-        observer.disconnect();
-      }
-    },
-  );
+      answer.innerHTML = '<pre><code class="language-js">new\nanswer</code></pre><pre><code>plain</code></pre>';
+      document.body.append(answer);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.deepEqual(
+        [...document.querySelectorAll('.code-block__language')].map((node) => node.textContent),
+        ['Python', 'JavaScript', 'Code'],
+      );
+      assert.equal(document.querySelectorAll('.code-block__header').length, 3);
+      assert.equal(answer.querySelector('code').textContent, 'new\nanswer');
+    } finally {
+      observer.disconnect();
+    }
+  });
 });
 
 test('empty highlighted token rows retain a caret placeholder', async () => {

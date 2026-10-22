@@ -15,7 +15,7 @@ export function getRenderedAnswerText(answerElement) {
   copy.style.setProperty('pointer-events', 'none', 'important');
 
   // Keep the temporary measurement copy inside the card's kit container.
-  answerElement.closest('.global-kit-container').appendChild(copy);
+  answerElement.closest('.agk-container').appendChild(copy);
   try {
     return copy.innerText;
   } finally {

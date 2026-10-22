@@ -12,7 +12,7 @@ import {
 import { decorateCodeBlock } from '../../../shared/js/syntax-highlighting/code-block-controls.js';
 import { installCodeBlockEditing } from './code-block-editing.js';
 
-const CODE_SELECTOR = 'pre.global-kit-code-block > code';
+const CODE_SELECTOR = 'pre.agk-code-block > code';
 const OPTIONS_MESSAGE_PREFIX = 'anki-global-kit:code-block-options:';
 const pending = new Map();
 const pendingOptions = new Map();
@@ -148,7 +148,7 @@ function getActiveLanguage(fallback) {
 
   const selection = getEditorSelection();
   const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
-  const active = element(range?.startContainer)?.closest(`${CODE_SELECTOR},pre.global-kit-code-block`);
+  const active = element(range?.startContainer)?.closest(`${CODE_SELECTOR},pre.agk-code-block`);
   const blockLanguage = active?.closest('pre')?.dataset.language;
 
   if (enabled.includes(blockLanguage)) return blockLanguage;
@@ -183,7 +183,7 @@ function applyHighlightResult(id, source, language, tokenHtml, lineNumbers, line
     editWithNativeUndo(target.field, target.selection, (field, selection) => {
       const replacement = selection.getRangeAt(0);
       const pre = document.createElement('pre');
-      pre.className = 'global-kit-code-block';
+      pre.className = 'agk-code-block';
       pre.dataset.language = language;
       pre.dataset.lineNumbers = String(Boolean(lineNumbers));
       pre.dataset.lineStart = String(Math.max(1, Number.parseInt(lineStart, 10) || 1));
@@ -237,7 +237,7 @@ function openCodeBlockOptions() {
   const pre = code.closest('pre');
   if (!field || !pre) return false;
   const fieldSnapshot = field.innerHTML;
-  const blockIndex = [...field.querySelectorAll('pre.global-kit-code-block')].indexOf(pre);
+  const blockIndex = [...field.querySelectorAll('pre.agk-code-block')].indexOf(pre);
   const id = String(++requestId);
   pendingOptions.set(id, { field, fieldSnapshot, blockIndex, selection });
   globalThis.pycmd?.(
@@ -263,7 +263,7 @@ function applyCodeBlockOptions(id, options) {
   if (!field.isConnected || field.innerHTML !== fieldSnapshot) return false;
 
   // Anki may recreate unchanged field nodes while the native dialog has focus.
-  const currentPre = field.querySelectorAll('pre.global-kit-code-block')[blockIndex];
+  const currentPre = field.querySelectorAll('pre.agk-code-block')[blockIndex];
 
   if (!currentPre) return false;
 

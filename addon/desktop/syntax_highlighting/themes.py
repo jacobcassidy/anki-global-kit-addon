@@ -293,14 +293,14 @@ def generate_theme_css(
     css.extend(
         [
             "",
-            ".global-kit-code-block {",
+            ".agk-code-block {",
             "  overflow-inline: auto;",
             "  background: var(--global-kit-syntax-background);",
             "  color: var(--global-kit-syntax-foreground);",
             "  white-space: pre;",
             "}",
             "",
-            ":is(.global-kit-code-block, .syntax-highlights) :is(.n, .nx) {",
+            ":is(.agk-code-block, .syntax-highlights) :is(.n, .nx) {",
             "  color: var(--global-kit-syntax-foreground);",
             "}",
         ]
@@ -315,8 +315,8 @@ def generate_theme_css(
         css.extend(
             [
                 "",
-                f":is(.global-kit-code-block, .syntax-highlights) :is({selectors}),",
-                f':is(.global-kit-code-block, .syntax-highlights) [data-global-kit-token="{role}"] {{',
+                f":is(.agk-code-block, .syntax-highlights) :is({selectors}),",
+                f':is(.agk-code-block, .syntax-highlights) [data-global-kit-token="{role}"] {{',
                 *declarations,
                 "}",
             ]

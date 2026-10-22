@@ -41,18 +41,18 @@ code {
   }
 }
 
-.global-kit-code-block .code-block__header {
+.agk-code-block .code-block__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.global-kit-code-block .code-block__language {
+.agk-code-block .code-block__language {
   cursor: pointer;
 }
 
-.global-kit-code-block .code-block__copy,
-.global-kit-code-block .code-block__options {
+.agk-code-block .code-block__copy,
+.agk-code-block .code-block__options {
   display: inline-flex;
   align-items: center;
   justify-content: center;

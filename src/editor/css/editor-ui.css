@@ -24,7 +24,7 @@
   inline-size: calc((var(--buttons-size, 1.5rem) - 0.125rem) * 0.6);
 }
 
-.anki-global-kit-language-menu {
+.agk-language-menu {
   position: fixed;
   z-index: 10000;
   display: flex;
@@ -38,7 +38,7 @@
   padding: 0.25rem;
 }
 
-.anki-global-kit-language-menu::before {
+.agk-language-menu::before {
   content: "";
   position: absolute;
   inset-block-start: -0.3125rem;
@@ -51,8 +51,8 @@
   inline-size: 0.625rem;
 }
 
-.anki-global-kit-language-menu__current,
-.anki-global-kit-language-menu__item {
+.agk-language-menu__current,
+.agk-language-menu__item {
   cursor: pointer;
   position: relative;
   border-radius: calc(var(--border-radius) * 0.6);
@@ -64,18 +64,18 @@
   text-align: start;
 }
 
-.anki-global-kit-language-menu__item:hover,
-.anki-global-kit-language-menu__item:active,
-.anki-global-kit-language-menu__item:focus-visible,
-.anki-global-kit-language-menu__current:hover,
-.anki-global-kit-language-menu__current:active,
-.anki-global-kit-language-menu__current:focus-visible {
+.agk-language-menu__item:hover,
+.agk-language-menu__item:active,
+.agk-language-menu__item:focus-visible,
+.agk-language-menu__current:hover,
+.agk-language-menu__current:active,
+.agk-language-menu__current:focus-visible {
   outline: 0;
   background: var(--button-primary-bg);
   color: #fff;
 }
 
-.anki-global-kit-language-menu__divider {
+.agk-language-menu__divider {
   background: var(--border-subtle);
   block-size: 1px;
   margin: 0.1875rem 0.25rem;

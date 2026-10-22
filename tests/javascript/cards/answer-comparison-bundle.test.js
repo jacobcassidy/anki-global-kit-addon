@@ -39,7 +39,7 @@ for (const client of ['Desktop', 'AnkiDroid', 'AnkiWeb', 'AnkiMobile']) {
         inputs[index].value = answer;
         inputs[index].dispatchEvent(new window.Event('input'));
       }
-      const back = `<div class="global-kit-container">
+      const back = `<div class="agk-container">
         <div class="answer-container is-primary">
           <div class="reference-answer"><div class="box__content">${expected}</div></div>
           <div class="user-answer"><div class="box__content" data-compare="yes"></div></div>

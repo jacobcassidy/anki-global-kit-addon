@@ -4,7 +4,7 @@ import { codeOffset, textFromCode } from './code-lines.js';
 const INSTALLED = Symbol.for('ankiGlobalKitCodeLineSelection');
 
 function lineControl(event) {
-  return event.composedPath().find((node) => node?.matches?.('.global-kit-code-block .code-line__number'));
+  return event.composedPath().find((node) => node?.matches?.('.agk-code-block .code-line__number'));
 }
 
 function selectLine(number) {
@@ -29,7 +29,7 @@ export function selectedCodeText(selection) {
 
   const range = selection.getRangeAt(0);
   const start = range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement;
-  const code = start?.closest('pre.global-kit-code-block > code');
+  const code = start?.closest('pre.agk-code-block > code');
 
   if (!code || !code.contains(range.endContainer)) return null;
 
@@ -96,7 +96,7 @@ export function decorateCodeBlock(pre, { copyButton, optionsButton = false } = {
 
   if (!code) return;
 
-  pre.classList.add('global-kit-code-with-header');
+  pre.classList.add('agk-code-with-header');
 
   if (copyButton !== undefined) pre.dataset.copyButton = String(copyButton);
 
@@ -244,7 +244,7 @@ export function installCodeBlockControls() {
         if (!label) return;
 
         event.preventDefault();
-        const pre = label.closest('pre.global-kit-code-block');
+        const pre = label.closest('pre.agk-code-block');
         const code = pre?.querySelector(':scope > code');
 
         if (!pre || !code) return;
@@ -282,7 +282,7 @@ export function installCodeBlockControls() {
         if (!button) return;
 
         event.preventDefault();
-        const pre = button.closest('pre.global-kit-code-block');
+        const pre = button.closest('pre.agk-code-block');
         const code = pre?.querySelector(':scope > code');
 
         if (!pre || !code) return;
