@@ -52,6 +52,8 @@ The build bundles the card and Desktop editor sources into:
 - `addon/assets/editor/js/editor.min.js`
 - `addon/assets/editor/css/editor-fields.min.css` and `editor-ui.min.css`
 
+When changing source files that feed these builds, regenerate the affected minified assets with `npm run build:addon` and include those generated files in the same commit as the source changes.
+
 The packaged shared card and editor font is kept in `addon/assets/fonts/`. `scripts/font_notices.py` combines `FONT-LICENSES.md` and the adjacent `licenses/*.txt` into `_meslolgl-nf-license.txt` during builds and packaging; Python 3 is required for this step. Update the source notices and regenerate the companion rather than editing the generated file. `addon/desktop/media/manifest.py` maps public filenames to packaged paths, and `addon/desktop/media/install.py` installs managed assets under their public names in the `collection.media` root. Run `npm run check:assets` to verify the source, build, package, template, and media paths, including notice freshness. These generated files are included in the add-on package. Update `scripts/build.config.js` if source entry points or output names change, along with the installer and template references when renaming installed assets. The watch script watches card, editor, and shared JavaScript and CSS, plus imported icons.
 
 Useful project scripts:
