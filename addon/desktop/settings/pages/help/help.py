@@ -10,6 +10,8 @@ from aqt.qt import (
     QWidget,
 )
 
+from ....config.constants import VERSION
+from ....media.manifest import JS_ASSET_NAME
 from ....ui.constants import SECTION_SPACING
 from ....ui.layouts import add_button_row
 from ....ui.markdown import make_markdown_browser
@@ -20,12 +22,15 @@ def build_help_tab(parent: QWidget) -> QWidget:
     layout = QVBoxLayout(tab)
     layout.setSpacing(SECTION_SPACING)
     help_path = Path(__file__).with_name("help-content.md")
-    browser = make_markdown_browser(
-        tab,
+    help_markdown = (
         help_path.read_text(encoding="utf-8")
         if help_path.is_file()
-        else "Help content is not available in this add-on package.",
+        else "Help content is not available in this add-on package."
     )
+    help_markdown = help_markdown.replace("{version}", VERSION).replace(
+        "{asset_name}", JS_ASSET_NAME
+    )
+    browser = make_markdown_browser(tab, help_markdown)
     layout.addWidget(browser, 1)
     github_button = QPushButton("View Help on GitHub", tab)
     github_button.setAutoDefault(False)

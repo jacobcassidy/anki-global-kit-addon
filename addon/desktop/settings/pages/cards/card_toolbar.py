@@ -6,16 +6,16 @@ from ....ui.constants import NESTED_INDENT
 from ....ui.layouts import add_checkbox_row
 
 BUTTON_SETTINGS = (
-    ("card_toolbar_bold", "Show bold button"),
-    ("card_toolbar_italic", "Show italic button"),
-    ("card_toolbar_strikethrough", "Show strikethrough button"),
+    ("card_toolbar_bold", "Show Bold button"),
+    ("card_toolbar_italic", "Show Italic button"),
+    ("card_toolbar_strikethrough", "Show Strikethrough button"),
     ("card_toolbar_unordered_list", "Show Bullet List button"),
     ("card_toolbar_ordered_list", "Show Numbered List button"),
-    ("card_toolbar_indent_increase", "Show increase indent button"),
-    ("card_toolbar_indent_decrease", "Show decrease indent button"),
-    ("card_toolbar_blockquote", "Show blockquote button"),
-    ("card_toolbar_code_block", "Show code block button"),
-    ("card_toolbar_inline_code", "Show inline code button"),
+    ("card_toolbar_indent_increase", "Show Increase Indent button"),
+    ("card_toolbar_indent_decrease", "Show Decrease Indent button"),
+    ("card_toolbar_blockquote", "Show Blockquote button"),
+    ("card_toolbar_code_block", "Show Code Block button"),
+    ("card_toolbar_inline_code", "Show Inline Code button"),
 )
 
 

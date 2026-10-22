@@ -49,6 +49,10 @@ def load_settings_services(*, mac=False, config=None):
             "addon/desktop/media/manifest.py",
         )
         load_module(
+            f"{DESKTOP_PACKAGE}.syntax_highlighting.themes",
+            "addon/desktop/syntax_highlighting/themes.py",
+        )
+        load_module(
             f"{DESKTOP_PACKAGE}.config.constants",
             "addon/desktop/config/constants.py",
         )
@@ -82,10 +86,12 @@ def load_shortcut_helpers(*, mac=False):
 def load_editor_integration(settings, *, mac=False):
     aqt = ModuleType("aqt")
     aqt.gui_hooks = SimpleNamespace()
+    aqt.mw = SimpleNamespace(col=None)
     editor = ModuleType("aqt.editor")
     editor.Editor = object
     qt = ModuleType("aqt.qt")
     qt.QApplication = Mock()
+    qt.QMenu = Mock()
     qt.QKeySequence = str
     qt.sip = SimpleNamespace(isdeleted=lambda _widget: False)
 
@@ -112,6 +118,7 @@ def load_editor_integration(settings, *, mac=False):
     paths.USER_FILES_DIR = ROOT / "addon/user_files"
     paths.ICON_ASSET_DIR = ROOT / "addon/assets/icons"
     manifest = ModuleType(f"{DESKTOP_PACKAGE}.media.manifest")
+    manifest.JS_ASSET_NAME = "_anki-global-kit.min.js"
     manifest.EDITOR_ASSET_PATHS = {
         "editor.min.js": ROOT / "addon/assets/editor/js/editor.min.js",
         "editor-fields.min.css": ROOT / "addon/assets/editor/css/editor-fields.min.css",
@@ -197,6 +204,8 @@ def load_note_type_service(collection):
 
 
 def load_note_type_actions(service):
+    aqt = ModuleType("aqt")
+    aqt.mw = SimpleNamespace(col=None)
     operations = ModuleType("aqt.operations")
     operation = Mock()
     operation.success.return_value = operation
@@ -204,6 +213,18 @@ def load_note_type_actions(service):
     operations.CollectionOp = Mock(return_value=operation)
     qt = ModuleType("aqt.qt")
     qt.QWidget = object
+    for name in (
+        "QDialog",
+        "QDialogButtonBox",
+        "QHBoxLayout",
+        "QLabel",
+        "QListWidget",
+        "QListWidgetItem",
+        "QPushButton",
+        "Qt",
+        "QVBoxLayout",
+    ):
+        setattr(qt, name, Mock())
     utils = ModuleType("aqt.utils")
     utils.askUser = Mock(return_value=False)
     utils.showInfo = Mock()
@@ -214,6 +235,7 @@ def load_note_type_actions(service):
     with patch.dict(
         sys.modules,
         {
+            "aqt": aqt,
             "aqt.operations": operations,
             "aqt.qt": qt,
             "aqt.utils": utils,
@@ -231,4 +253,5 @@ def load_note_type_actions(service):
         factory=operations.CollectionOp,
         confirm=utils.askUser,
         warning=utils.showWarning,
+        info=utils.showInfo,
     )

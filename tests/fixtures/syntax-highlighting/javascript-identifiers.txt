@@ -1,0 +1,9 @@
+function updateClozeTooltips() {
+  clozeButtons().forEach((button, index) => {
+    if (!labels[index]) return;
+    // Preserve Anki's translated action name, replacing only the shortcut.
+    const title = button.title.replace(/\s*\([^()]*\)\s*$/, '');
+    const updated = `${title} (${labels[index]})`;
+    if (button.title !== updated) button.title = updated;
+  });
+}

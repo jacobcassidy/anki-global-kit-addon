@@ -10,7 +10,6 @@ EDITOR_BLOCK_SHORTCUTS = {
     "unordered-list": "Ctrl+Alt+8",
     "ordered-list": "Ctrl+Alt+9",
     "no-list": "Ctrl+Alt+0",
-    "blockquote": "Ctrl+/",
 }
 
 
@@ -90,7 +89,6 @@ def editor_fixed_shortcut_action(shortcut: str) -> str | None:
                 "unordered-list": "Bullet List",
                 "ordered-list": "Numbered List",
                 "no-list": "No List",
-                "blockquote": "blockquote",
             }[action]
     return None
 

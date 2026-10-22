@@ -46,10 +46,19 @@ class BootstrapTests(unittest.TestCase):
                         ],
                         "editor_did_load_note": [
                             editor._inject_features,
+                            module(
+                                "editor.features.syntax_highlighting"
+                            ).reset_editor_language_context,
                             reviewer._register_editor_webview,
                         ],
+                        "editor_will_load_note": [
+                            module(
+                                "editor.features.field_descriptions"
+                            ).add_compare_placeholder
+                        ],
                         "webview_did_receive_js_message": [
-                            reviewer._on_webview_message
+                            module("editor.features.syntax_highlighting")._on_message,
+                            reviewer._on_webview_message,
                         ],
                         "card_will_show": [reviewer._on_card_will_show],
                         "state_did_change": [reviewer._sync_preferences_action],

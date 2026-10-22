@@ -16,21 +16,21 @@ from ....ui.shortcut_input import CardShortcutInput
 from ....ui.shortcut_rows import build_shortcut_rows
 
 MARKDOWN_SHORTCUT_DEFINITIONS = (
-    ("card_input_markdown_bold_shortcut", "bold"),
-    ("card_input_markdown_italic_shortcut", "italic"),
-    ("card_input_markdown_strikethrough_shortcut", "strikethrough"),
+    ("card_input_markdown_bold_shortcut", "Bold"),
+    ("card_input_markdown_italic_shortcut", "Italic"),
+    ("card_input_markdown_strikethrough_shortcut", "Strikethrough"),
     ("card_input_markdown_unordered_list_shortcut", "Bullet List"),
     ("card_input_markdown_ordered_list_shortcut", "Numbered List"),
     ("card_input_markdown_no_list_shortcut", "No List"),
-    ("card_input_markdown_blockquote_shortcut", "blockquote"),
-    ("card_input_markdown_code_block_shortcut", "code block"),
-    ("card_input_markdown_inline_code_shortcut", "inline code"),
+    ("card_input_markdown_blockquote_shortcut", "Blockquote"),
+    ("card_input_markdown_code_block_shortcut", "Code Block"),
+    ("card_input_markdown_inline_code_shortcut", "Inline Code"),
 )
 
 
 TAB_SHORTCUT_DEFINITIONS = (
-    ("card_input_tab_indent_increase_shortcut", "increase indent"),
-    ("card_input_tab_indent_decrease_shortcut", "decrease indent"),
+    ("card_input_tab_indent_increase_shortcut", "Increase Indent"),
+    ("card_input_tab_indent_decrease_shortcut", "Decrease Indent"),
 )
 SHORTCUT_DEFINITIONS = MARKDOWN_SHORTCUT_DEFINITIONS + TAB_SHORTCUT_DEFINITIONS
 
@@ -51,7 +51,7 @@ class CardFieldsSection:
 def build_card_fields_section(
     parent: QWidget, current_settings: dict
 ) -> CardFieldsSection:
-    section = QGroupBox("Card Fields", parent)
+    section = QGroupBox("Card Inputs", parent)
     layout = QVBoxLayout(section)
     # Warning rows change size before the enclosing scroll area catches up.
     # Keep spare height below the controls during those layout passes.
@@ -74,7 +74,7 @@ def build_card_fields_section(
         section, master_toggle, MARKDOWN_SHORTCUT_DEFINITIONS, current_settings
     )
     layout.addWidget(markdown_rows.widget)
-    tab_indentation = QCheckBox("Enable indentation shortcuts", section)
+    tab_indentation = QCheckBox("Enable Indentation shortcuts", section)
     tab_indentation.setChecked(current_settings["card_input_tab_indentation"])
     add_checkbox_row(
         layout,

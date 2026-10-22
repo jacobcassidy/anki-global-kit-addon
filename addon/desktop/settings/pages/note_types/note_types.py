@@ -40,6 +40,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     note_types_tab = QWidget(parent)
     note_types_layout = QVBoxLayout(note_types_tab)
     note_types_layout.setSpacing(8)
+    note_types_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
     note_types_layout.addWidget(
         QLabel("Select the note types you want to create or modify:")
     )
@@ -65,7 +66,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     note_type_checks: dict[str, dict[str, QCheckBox]] = {}
     overwrite_checks: dict[str, dict[str, QCheckBox]] = {}
     delete_checks: dict[str, dict[str, QCheckBox]] = {}
-    note_types_button = QPushButton("Update Selected Note Types", note_types_tab)
+    note_types_button = QPushButton("Apply Selected Changes", note_types_tab)
     note_types_button.setAutoDefault(False)
 
     def update_note_types_button_state(*_args) -> None:
@@ -297,7 +298,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
 
     rebuild_note_types_grid()
     table.attach()
-    note_types_layout.addWidget(table.scroll, 1)
+    note_types_layout.addWidget(table.scroll)
 
     def create_note_types_from_panel(checked=False) -> None:
         selections = {
@@ -431,6 +432,7 @@ def build_note_types_tab(parent: QWidget) -> NoteTypesTab:
     note_types_controls_layout.addStretch()
     note_types_controls_layout.addWidget(note_types_button)
     note_types_layout.addWidget(note_types_controls)
+    note_types_layout.addStretch()
 
     def collect_selections() -> dict[str, dict[str, bool]]:
         existing_names = (

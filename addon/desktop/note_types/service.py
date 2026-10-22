@@ -12,6 +12,7 @@ from anki.consts import MODEL_CLOZE, MODEL_STD
 from anki.stdmodels import get_stock_notetypes
 from aqt import mw
 
+from ..media.manifest import SYNTAX_CSS_ASSET_NAME
 from ..paths import ADDON_DIR
 
 TEMPLATE_DIR = ADDON_DIR / "templates" / "note-types" / "parts"
@@ -65,6 +66,14 @@ class NoteTypeChangeResult:
     changes: OpChanges
 
 
+@dataclass(frozen=True)
+class SyntaxStyleImportPlan:
+    collection: Collection
+    name: str
+    notetype_id: int
+    previous_css: str
+
+
 class NoteTypeServiceError(Exception):
     """Base class for note type service failures that the UI can present."""
 
@@ -91,6 +100,10 @@ class ReplacementValidationError(NoteTypeServiceError):
 
 class NoteTypePlanChangedError(NoteTypeServiceError):
     """The collection or confirmed targets changed before the operation ran."""
+
+
+class SyntaxStyleAlreadyEnabledError(NoteTypeServiceError):
+    """The selected note type already imports the syntax stylesheet."""
 
 
 class NoteTypeApplyError(NoteTypeServiceError):
@@ -159,6 +172,70 @@ def _topic_style_path(topic: str) -> Path:
         return STYLING_DIR / "style-default.css"
     style_name = "shell" if topic == "Command Line" else topic.lower()
     return STYLING_DIR / f"style-{style_name}.css"
+
+
+def plan_syntax_style_import(
+    name: str, col: Collection | None = None
+) -> SyntaxStyleImportPlan:
+    """Capture the exact target state before confirming an additive CSS import."""
+    col = col or mw.col
+    if col is None:
+        raise NoActiveCollectionError
+    notetype = col.models.by_name(name)
+    if notetype is None:
+        raise ReplacementValidationError(f"The note type {name} no longer exists.")
+    css = notetype.get("css", "")
+    if SYNTAX_CSS_ASSET_NAME in css:
+        raise SyntaxStyleAlreadyEnabledError(
+            f"The note type {name} already imports {SYNTAX_CSS_ASSET_NAME}."
+        )
+    return SyntaxStyleImportPlan(col, name, notetype["id"], css)
+
+
+def _validate_syntax_style_import(plan: SyntaxStyleImportPlan, col: Collection) -> dict:
+    if col is not plan.collection:
+        raise NoteTypePlanChangedError(
+            "The active Anki collection changed after confirmation. Select the note type again."
+        )
+    notetype = col.models.by_name(plan.name)
+    if notetype is None or notetype["id"] != plan.notetype_id:
+        raise NoteTypePlanChangedError(
+            f"The note type {plan.name} changed after confirmation. Select it again."
+        )
+    current_css = notetype.get("css", "")
+    if current_css != plan.previous_css:
+        raise NoteTypePlanChangedError(
+            f"The styling for {plan.name} changed after confirmation. Review the action again."
+        )
+    return notetype
+
+
+def apply_syntax_style_import(
+    plan: SyntaxStyleImportPlan, col: Collection
+) -> OpChanges:
+    """Revalidate and add only the generated syntax stylesheet import."""
+    notetype = _validate_syntax_style_import(plan, col)
+
+    updated = deepcopy(notetype)
+    updated["css"] = f'@import url("{SYNTAX_CSS_ASSET_NAME}");\n{plan.previous_css}'
+    return col.models.update_dict(updated)
+
+
+def apply_syntax_style_imports(
+    plans: tuple[SyntaxStyleImportPlan, ...], col: Collection
+) -> OpChanges:
+    """Check all confirmed targets before writing and preserve partial results."""
+    for plan in plans:
+        _validate_syntax_style_import(plan, col)
+    changes = OpChanges()
+    applied = []
+    try:
+        for plan in plans:
+            changes.MergeFrom(apply_syntax_style_import(plan, col))
+            applied.append(plan.name)
+    except Exception as error:
+        raise NoteTypeApplyError(tuple(applied), error, changes) from error
+    return changes
 
 
 def _card_template(filename: str, topic: str, script: str) -> str:

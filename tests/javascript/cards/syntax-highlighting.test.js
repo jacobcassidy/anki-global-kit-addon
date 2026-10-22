@@ -1,0 +1,109 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import test from 'node:test';
+import { JSDOM } from 'jsdom';
+import { highlightReviewCode, reviewLanguageAliases } from '../../../src/cards/js/syntax-highlighting/engine.js';
+import { getSyntaxLanguage } from '../../../src/shared/js/syntax-highlighting/languages.js';
+
+test('review highlighting uses explicit bundled grammars and escapes source', () => {
+  const highlighted = highlightReviewCode("print('<tag>')", 'py');
+
+  assert.match(highlighted, /hljs-built_in/);
+  assert.match(highlighted, /&lt;tag&gt;/);
+  assert.equal(highlightReviewCode('source', 'unknown-language'), null);
+  assert.equal(reviewLanguageAliases.html, 'html');
+});
+
+test('topic language matching recognizes planned aliases without autodetection', () => {
+  assert.equal(getSyntaxLanguage('C++ notes'), 'cpp');
+  assert.equal(getSyntaxLanguage('C#'), 'csharp');
+  assert.equal(getSyntaxLanguage('JavaScript'), 'javascript');
+  assert.equal(getSyntaxLanguage('a Pythonic example'), null);
+  assert.equal(getSyntaxLanguage('unlabeled source'), null);
+});
+
+test('shared theme rules reach token categories emitted in typed answers', () => {
+  const css = readFileSync(new URL('../../../src/shared/css/generated/cassidy-dark.css', import.meta.url), 'utf8');
+  const python = highlightReviewCode('def example(value):\n return True, str(value), self', 'python');
+  const javascript = highlightReviewCode('object.property = true;', 'javascript');
+  const dom = new JSDOM(
+    `<style>${css}</style><pre><code class="syntax-highlights">${python}\n${javascript}</code></pre>`,
+  );
+
+  try {
+    const rules = [...dom.window.document.styleSheets[0].cssRules];
+    const expected = [
+      ['.hljs-literal', 'builtin-constant'],
+      ['.hljs-built_in', 'builtin'],
+      ['.hljs-params', 'parameter'],
+      ['.hljs-variable.language_', 'library-variable'],
+      ['.hljs-property', 'attribute'],
+    ];
+
+    for (const [selector, role] of expected) {
+      const token = dom.window.document.querySelector(selector);
+
+      assert.ok(token, `highlight.js must emit ${selector}`);
+      assert.ok(
+        rules.some(
+          (rule) => rule.style.color === `var(--global-kit-syntax-${role})` && token.matches(rule.selectorText),
+        ),
+        `the shared theme must style ${selector} as ${role}`,
+      );
+    }
+  } finally {
+    dom.window.close();
+  }
+});
+
+test('review highlighting enforces per-block, per-answer, and block-count budgets', async () => {
+  const dom = new JSDOM('<body></body>');
+  const previous = {
+    document: globalThis.document,
+    Element: globalThis.Element,
+    MutationObserver: globalThis.MutationObserver,
+    ankiGlobalKitSettings: globalThis.ankiGlobalKitSettings,
+  };
+  globalThis.document = dom.window.document;
+  globalThis.Element = dom.window.Element;
+  globalThis.MutationObserver = dom.window.MutationObserver;
+  globalThis.ankiGlobalKitSettings = { card_review_syntax_highlighting: true };
+  const { watchSubmittedCodeBlocks } = await import(
+    `../../../src/cards/js/syntax-highlighting/index.js?review-budget=${Date.now()}`
+  );
+
+  const answer = (blocks) => {
+    document.body.innerHTML = `<div class="user-answer"><div class="box__content">${blocks}</div></div>`;
+    watchSubmittedCodeBlocks()?.disconnect();
+    return [...document.querySelectorAll('.box__content code')];
+  };
+  const code = (source) => `<pre><code data-language="python">${source}</code></pre>`;
+
+  try {
+    let blocks = answer(code('x'.repeat(10_001)) + code('print(1)'));
+    assert.equal(blocks[0].dataset.syntaxHighlighted, undefined);
+    assert.equal(blocks[1].dataset.syntaxHighlighted, 'true');
+
+    blocks = answer(code('😃'.repeat(10_000)));
+    assert.equal(blocks[0].dataset.syntaxHighlighted, 'true');
+
+    blocks = answer(code('😃'.repeat(10_001)) + code('print(1)'));
+    assert.equal(blocks[0].dataset.syntaxHighlighted, undefined);
+    assert.equal(blocks[1].dataset.syntaxHighlighted, 'true');
+
+    blocks = answer(code('x'.repeat(10_000)) + code('x'.repeat(10_000)) + code('x'));
+    assert.equal(blocks[0].dataset.syntaxHighlighted, 'true');
+    assert.equal(blocks[1].dataset.syntaxHighlighted, 'true');
+    assert.equal(blocks[2].dataset.syntaxHighlighted, undefined);
+
+    blocks = answer(Array.from({ length: 21 }, () => code('x')).join(''));
+    assert.equal(blocks.filter((block) => block.dataset.syntaxHighlighted === 'true').length, 20);
+    assert.equal(blocks[20].dataset.syntaxHighlighted, undefined);
+  } finally {
+    dom.window.close();
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete globalThis[key];
+      else globalThis[key] = value;
+    }
+  }
+});

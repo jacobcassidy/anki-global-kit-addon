@@ -4,7 +4,7 @@ import json
 from functools import partial
 from weakref import WeakSet, ref
 
-from aqt import gui_hooks
+from aqt import gui_hooks, mw
 from aqt.editor import Editor
 from aqt.qt import QApplication, QKeySequence, QShortcut, sip
 
@@ -14,6 +14,8 @@ from ..paths import ICON_ASSET_DIR, USER_FILES_DIR
 from ..shortcuts.formatting import EDITOR_BLOCK_SHORTCUTS as BLOCK_SHORTCUTS
 from ..shortcuts.formatting import editor_fixed_shortcut_action, normalize_shortcut
 from ..shortcuts.labels import shortcut_label
+from .buttons import toolbar_button, toolbar_groups
+from .features import field_descriptions, syntax_highlighting
 
 EDITOR_ASSET = EDITOR_ASSET_PATHS["editor.min.js"]
 EDITOR_STYLES_DIR = EDITOR_ASSET_PATHS["editor-ui.min.css"].parent
@@ -51,14 +53,24 @@ def _inject_features(editor: Editor) -> None:
         "ui": _read_editor_styles(
             "editor-ui.min.css",
             custom_filename="editor-ui.css",
+            include_default=editor_settings["anki_editor_default_ui_styles"],
             include_custom=editor_settings["anki_editor_custom_ui_styles"],
         ),
         "fields": _read_editor_styles(
             "editor-fields.min.css",
             custom_filename="editor-fields.css",
+            include_default=editor_settings["anki_editor_default_fields_styles"],
             include_custom=editor_settings["anki_editor_custom_fields_styles"],
         ),
     }
+    if mw.col is not None and editor_settings["anki_editor_default_fields_styles"]:
+        from ..syntax_highlighting.preferences import get_themes
+        from ..syntax_highlighting.themes import generate_theme_pair_css
+
+        themes = get_themes(mw.col)
+        styles["fields"] += "\n" + generate_theme_pair_css(
+            themes.get("light"), themes.get("dark"), editor=True
+        )
     styles_json = json.dumps(styles, separators=(",", ":"))
     styles_json = styles_json.replace("<", "\\u003c")
     script = EDITOR_ASSET.read_text(encoding="utf-8")
@@ -73,17 +85,28 @@ def _inject_features(editor: Editor) -> None:
         "\nfor (const button of document.querySelectorAll('[data-command=\"anki_global_kit_inline_code\"]')) {"
         f"button.title = {json.dumps(_inline_code_tip(editor_settings))};"
         "}"
+        "\nfor (const button of document.querySelectorAll('[data-command=\"anki_global_kit_syntax_highlighting\"]')) {"
+        f"button.title = {json.dumps(syntax_highlighting.highlight_code_tip(editor_settings))};"
+        "}"
+        "\nfor (const button of document.querySelectorAll('[data-command=\"anki_global_kit_blockquote\"]')) {"
+        f"button.title = {json.dumps(_button_tip('Blockquote', 'anki_editor_blockquote_shortcut', editor_settings))};"
+        "}"
+        "\nfor (const button of document.querySelectorAll('[data-command=\"anki_global_kit_paste_markdown_as_html\"]')) {"
+        f"button.title = {json.dumps(_button_tip('Convert Markdown to HTML', 'anki_editor_convert_markdown_shortcut', editor_settings))};"
+        "}"
     )
+    syntax_highlighting.set_editor_language_context(editor)
 
 
 def _read_editor_styles(
     filename: str,
     *,
     custom_filename: str,
+    include_default: bool = True,
     include_custom: bool = True,
 ) -> str:
     """Combine packaged editor CSS with a user's upgrade-safe overrides."""
-    paths = [EDITOR_STYLES_DIR / filename]
+    paths = [EDITOR_STYLES_DIR / filename] if include_default else []
     if include_custom:
         paths.append(USER_FILES_DIR / custom_filename)
     return "\n".join(
@@ -101,10 +124,10 @@ def _toggle_block(editor: Editor, format_name: str) -> None:
     )
 
 
-def _paste_markdown_as_html(editor: Editor) -> None:
+def _convert_markdown(editor: Editor) -> None:
     markdown = QApplication.clipboard().text()
     editor.web.eval(
-        f"globalThis.ankiGlobalKitEditor?.pasteMarkdownAsHtml({json.dumps(markdown)});"
+        f"globalThis.ankiGlobalKitEditor?.convertMarkdown({json.dumps(markdown)});"
     )
 
 
@@ -113,36 +136,60 @@ def _change_indentation(editor: Editor, action: str) -> None:
     editor.web.eval(f"globalThis.ankiGlobalKitEditor?.{method}();")
 
 
+def _exit_code_block(editor: Editor) -> None:
+    editor.web.eval("globalThis.ankiGlobalKitEditor?.exitCodeBlock();")
+
+
 def _add_button(buttons: list, editor: Editor) -> None:
     settings = get_editor_settings()
-    if settings["anki_editor_blockquote_button"]:
-        buttons.append(
-            editor.addButton(
-                icon=str(BLOCKQUOTE_ICON),
-                cmd="anki_global_kit_blockquote",
-                func=lambda editor: _toggle_block(editor, "blockquote"),
-                tip=_button_tip(
-                    "Blockquote", "anki_editor_blockquote_shortcut", settings
-                ),
-            )
+    custom_buttons = []
+    syntax_highlighting.add_button(custom_buttons, editor, settings)
+
+    custom_buttons.append(
+        toolbar_button(
+            editor,
+            settings,
+            "anki_editor_paste_markdown_as_html_button",
+            icon=str(PASTE_MARKDOWN_ICON),
+            cmd="anki_global_kit_paste_markdown_as_html",
+            func=_convert_markdown,
+            tip=_button_tip(
+                "Convert Markdown to HTML",
+                "anki_editor_convert_markdown_shortcut",
+                settings,
+            ),
         )
-    if settings["anki_editor_paste_markdown_as_html_button"]:
-        buttons.append(
-            editor.addButton(
-                icon=str(PASTE_MARKDOWN_ICON),
-                cmd="anki_global_kit_paste_markdown_as_html",
-                func=_paste_markdown_as_html,
-                tip="Paste Markdown as HTML",
-            )
+    )
+    custom_buttons.append(
+        toolbar_button(
+            editor,
+            settings,
+            "anki_editor_blockquote_button",
+            icon=str(BLOCKQUOTE_ICON),
+            cmd="anki_global_kit_blockquote",
+            func=lambda editor: _toggle_block(editor, "blockquote"),
+            tip=_button_tip("Blockquote", "anki_editor_blockquote_shortcut", settings),
         )
-    if not settings["anki_editor_inline_code_button"]:
-        return
-    buttons.append(
-        editor.addButton(
+    )
+    custom_buttons.append(
+        toolbar_button(
+            editor,
+            settings,
+            "anki_editor_inline_code_button",
             icon=str(ICON_ASSET),
             cmd="anki_global_kit_inline_code",
             func=_toggle_inline_code,
             tip=_inline_code_tip(settings),
+        )
+    )
+    buttons.append(
+        toolbar_groups(
+            [
+                ("syntax-highlighting", "Syntax Highlighting", custom_buttons[:2]),
+                ("convert-markdown", "Convert Markdown to HTML", custom_buttons[2:3]),
+                ("blockquote", "Blockquote", custom_buttons[3:4]),
+                ("inline-code", "Inline Code", custom_buttons[4:5]),
+            ]
         )
     )
 
@@ -190,7 +237,7 @@ def _add_shortcut(shortcuts: list, editor: Editor) -> None:
 def _configured_editor_shortcuts(settings: dict) -> dict[str, str]:
     """Validate saved bindings before registering or refreshing native keys."""
     configurable = {}
-    for action in ("blockquote",):
+    for action in ("blockquote", "convert_markdown"):
         key = f"anki_editor_{action}_shortcut"
         if settings[f"{key}_enabled"]:
             configurable[key] = settings[key]
@@ -198,6 +245,14 @@ def _configured_editor_shortcuts(settings: dict) -> dict[str, str]:
         configurable["anki_editor_inline_code_shortcut"] = settings[
             "anki_editor_inline_code_shortcut"
         ]
+    if settings.get("anki_editor_exit_code_block_shortcut_enabled", True):
+        configurable["anki_editor_exit_code_block_shortcut"] = settings.get(
+            "anki_editor_exit_code_block_shortcut", "Alt+Enter"
+        )
+    if settings.get("anki_editor_syntax_highlighting_shortcut_enabled", True):
+        configurable["anki_editor_syntax_highlighting_shortcut"] = settings.get(
+            "anki_editor_syntax_highlighting_shortcut", "Alt+S"
+        )
     if settings["anki_editor_tab_indentation"]:
         for action in ("increase", "decrease"):
             key = f"anki_editor_indent_{action}_shortcut"
@@ -232,6 +287,12 @@ def _activate_editor_shortcut(editor_ref, name: str) -> None:
         _toggle_inline_code(editor)
     elif name == "anki_editor_blockquote_shortcut":
         _toggle_block(editor, "blockquote")
+    elif name == "anki_editor_convert_markdown_shortcut":
+        _convert_markdown(editor)
+    elif name == "anki_editor_syntax_highlighting_shortcut":
+        syntax_highlighting.highlight_selection(editor)
+    elif name == "anki_editor_exit_code_block_shortcut":
+        _exit_code_block(editor)
     else:
         _change_indentation(editor, "decrease" if "decrease" in name else "increase")
 
@@ -268,6 +329,11 @@ def refresh_open_editors() -> None:
 
 
 def initialize() -> None:
+    syntax_highlighting.initialize()
     gui_hooks.editor_did_init_buttons.append(_add_button)
     gui_hooks.editor_did_init_shortcuts.append(_add_shortcut)
+    gui_hooks.editor_will_load_note.append(field_descriptions.add_compare_placeholder)
     gui_hooks.editor_did_load_note.append(_inject_features)
+    gui_hooks.editor_did_load_note.append(
+        syntax_highlighting.reset_editor_language_context
+    )

@@ -1,51 +1,69 @@
 # Anki Global Kit Help
 
+## Description
+
+Developed by Jacob Cassidy • v{version}
+
+Anki Global Kit is a collection of global features that supercharges Anki flashcards. It includes advanced input fields, Markdown formatting and rendering, card styles, and more that work across apps. It is especially useful for programming reviews, but works with other topics too.
+
+Anki Desktop saves the kit's settings locally. Card settings are also included in the **{asset_name}** file in the active profile's **collection.media** folder and sync with the card assets. Editor settings apply to editing in Anki Desktop.
+
+## Getting Started
+
 Requires **Anki Desktop 26.05 or later**.
 
 Open **Tools > Anki Global Kit Settings...** on Desktop. Use **Cards** for review tools and **Editor** for editing notes. Hover over help icons for individual setting details.
 
 **Save** applies settings; sync to carry card changes to other devices. Editor settings apply on Desktop. **Cancel** discards unsaved settings but does not undo confirmed note type actions.
 
-## Set up kit note types
+## Set Up Kit Note Types
 
 1. Open **Note Types** and choose a topic.
 2. Check **Create** under **Advance** for question-and-answer cards, or **Cloze** for cloze-deletion cards. Use **+** to add your own topic.
-3. Choose **Update Selected Note Types** and confirm the changes.
+3. Choose **Apply Selected Changes** and confirm the changes.
 4. Add a note using the new type, such as **Python (Advance)**, then sync your collection and media before reviewing on another device.
 
 For Advance notes, fill in **Question** and **Answer**. Enter `yes` in **Compare** to highlight differences from your typed answer; leave it empty to show the answers separately. Hints, bonus questions, and notes are optional. Cloze notes use **Cloze Question** and compare the primary answer automatically.
 
 Existing note types are checked automatically. To update their first card template and styling, select **Replace** and confirm. Existing notes and fields are kept, and missing kit fields are added. For standard note types, additional card templates and their associated cards are removed, including those cards' scheduling. Review the affected note types, additional template names, and template and card removal counts in the confirmation before proceeding. If the active collection, selected note types, affected templates, or card counts change after confirmation, the operation stops so you can review and confirm again.
 
-**Delete** removes empty note types or uncreated custom topics. Move or delete a type's notes first if deletion is unavailable. Note type actions apply through **Update Selected Note Types**, separately from **Save**.
+**Delete** removes empty note types or uncreated custom topics. Move or delete a type's notes first if deletion is unavailable. Note type actions apply through **Apply Selected Changes**, separately from **Save**.
 
 Custom topic headings display braces as literal text. If an existing kit topic name contains `{{…}}`, select **Replace** for its note types and confirm to apply the corrected heading, then sync the collection and media.
 
 After deleting a note type, Anki may require a full sync. Upload from the device where you made the deletion, then download on your other devices to keep the same collection. Sync other devices' pending changes before deleting.
 
-## Type and format answers
+## Type And Format Answers
 
 Type in the card's input field, then reveal the answer to see your response and the reference.
 
 - Select text and use a formatting toolbar button or shortcut. With no selection, word formatting applies to the word at the caret. Apply it again to remove the formatting.
 - The toolbar appears above each input. Enable **Cards > Card Toolbar > Show formatting toolbar** if it is hidden. Hover over a button to see its shortcut. Use **Shift+Tab** from the input to reach the toolbar, **Left/Right**, **Home**, or **End** to choose a button, and **Enter** or **Space** to apply it. **Escape** returns to the input.
-- With **Enable indentation shortcuts** on, **⌘+Shift+.** increases indent and **⌘+Shift+,** decreases indent on macOS; use **Ctrl+Shift+.** and **Ctrl+Shift+,** on Windows and Linux. Customize or disable each shortcut beneath this option. Indentation applies to the current or selected rows, using four spaces for Python topics and two otherwise. **Tab** and **Shift+Tab** move focus. The **Increase indent** and **Decrease indent** toolbar buttons use the same row actions. With Markdown shortcuts enabled, **Enter** continues list items; inside fenced code blocks, it inserts a normal newline.
+- With **Enable Indentation shortcuts** on, **⌘+Option+.** increases indent and **⌘+Option+,** decreases indent on macOS; use **Ctrl+Alt+.** and **Ctrl+Alt+,** on Windows and Linux. Customize or disable each shortcut beneath this option. Indentation applies to the current or selected rows, using four spaces for Python topics and two otherwise. **Tab** and **Shift+Tab** move focus. The **Increase Indent** and **Decrease Indent** toolbar buttons use the same row actions. With Markdown shortcuts enabled, **Enter** continues list items; inside fenced code blocks, it inserts a normal newline.
 
-Enable **Markdown rendering** under **Card Reviews** to format submitted answers: `**bold**`, `*italic*`, and `` `inline code` ``. Surround code blocks with lines of three backticks. Add a language after the opening backticks, such as `python`, to choose highlighting; otherwise, the topic is used when possible.
+- **Exit Code Block** uses **Alt+Enter** when the caret is at the end of a code block. Customize or disable it under **Editor > Editor Fields**.
+
+Enable **Markdown to HTML rendering** under **Cards > Card Reviews** to format submitted answers: `**bold**`, `*italic*`, and `` `inline code` ``. Surround code blocks with lines of three backticks. Add a language after the opening backticks, such as `python`, to choose highlighting; otherwise, the topic is used when possible.
 
 Click a shortcut field and press the new combination. **Escape** cancels capture; the reset link restores the default. Enable both the Markdown shortcut group and the individual shortcut, and resolve conflict warnings before saving. On macOS, displayed Command and Control symbols identify the physical keys.
 
-## Edit notes and customize appearance
+## Edit Notes And Customize Appearance
 
-Enable the inline-code button under **Editor UI** or its shortcut under **Editor Fields** to format a selection or word. On macOS, physical **Control+Shift+C** inserts Cloze; **Command+Shift+C** is the default inline-code shortcut.
+Enable **Show custom formatting toolbar** and **Show Inline Code button** under **Editor Toolbar** or its shortcut under **Editor Fields** to format a selection or word. On macOS, physical **Control+Shift+C** inserts Cloze; **Command+Shift+C** is the default inline-code shortcut.
 
-Choose **View Stylesheet** to open `user_files`. Edit `editor-fields.css` for note fields or `editor-ui.css` for the surrounding interface. Enable the corresponding stylesheet setting and restart Anki to reload edits. These files survive add-on upgrades.
+New code blocks start at line **1**. To use another starting number, place the caret in the block and open **Code Block Options** in the editor toolbar.
 
-## If something does not work
+Under **Editor Styles**, the two **Enable Anki Global Kit's default … styles** options control the kit's field and UI styles. The custom stylesheet switches work independently. Saving applies these switches to open editors.
+
+Under **Editor Styles**, choose **View custom Editor Fields stylesheet** or **View custom Editor UI stylesheet** to open `user_files`. Edit `editor-fields.css` for note fields or `editor-ui.css` for the surrounding interface. Enable the corresponding stylesheet setting and restart Anki to reload edits. These files survive add-on upgrades.
+
+Under **Syntax Highlighting > Themes**, choose **Add Syntax Styles…**, check one or more note types, then confirm once to add the syntax stylesheet to all selected types. **Select All** checks every listed type; types that already include the stylesheet are omitted. This preserves notes, fields, templates, cards, and other styling. Sync afterward to apply the styles on other devices.
+
+## If Something Does Not Work
 
 - **Changes are missing on another device:** save the card settings on Desktop and sync both the collection and media, then sync the other device. After updating the add-on, restart Desktop before syncing.
 - **A shortcut does nothing:** check its enable switches and conflict warning. Check whether another Anki shortcut uses the same keys.
-- **Answers show plain text:** enable Markdown rendering and syntax highlighting in **Card Reviews**. Check that code fences have matching opening and closing lines.
+- **Answers show plain text:** enable Markdown rendering and syntax highlighting in **Cards → Card Reviews**. Check that code fences have matching opening and closing lines.
 - **Cards lack the kit tools:** use a kit note type. To update an existing kit type's templates, select **Replace** in **Note Types**.
 
 For an unresolved problem, [report an issue](https://github.com/jacobcassidy/anki-global-kit-addon/issues) with your Anki version, device, steps to reproduce it, and a screenshot if useful.

@@ -51,13 +51,26 @@ class AssetTests(unittest.TestCase):
         self.config = {}
         self.services = load_settings_services(config=self.config)
         self.assets = self.services.assets
+        self.expected_managed_assets = (
+            *self.assets.ASSET_NAMES,
+            self.assets.SYNTAX_CSS_ASSET_NAME,
+        )
         self.assets.ASSET_PATHS = {}
         for name in self.assets.ASSET_NAMES:
             path = source / name
             path.write_bytes(f"packaged content: {name}".encode())
             self.assets.ASSET_PATHS[name] = path
         self.media = Media(destination)
-        self.services.mw.col = SimpleNamespace(media=self.media)
+        self.collection_config = {}
+        self.services.mw.col = SimpleNamespace(
+            media=self.media,
+            get_config=lambda key, default=None: self.collection_config.get(
+                key, default
+            ),
+            set_config=lambda key, value: self.collection_config.__setitem__(
+                key, value
+            ),
+        )
         self.unrelated = destination / "user-picture.png"
         self.unrelated.write_bytes(b"user media")
 
@@ -65,7 +78,7 @@ class AssetTests(unittest.TestCase):
         self,
     ):
         self.assets.update_assets_for_profile()
-        self.assertEqual(set(self.media.writes), set(self.assets.ASSET_NAMES))
+        self.assertEqual(set(self.media.writes), set(self.expected_managed_assets))
         self.assertEqual(self.unrelated.read_bytes(), b"user media")
         self.assertEqual(self.media.trashed, [])
         self.media.writes.clear()

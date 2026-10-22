@@ -14,13 +14,15 @@ Choose **Tools > Anki Global Kit Settings...**, open **Note Types**, and select 
 - **Replace** updates an existing type's first card template and styling after explicit selection and confirmation. Notes and fields are kept, and missing kit fields are added. For standard note types, additional card templates and their associated cards are removed, including those cards' scheduling. The confirmation lists the affected note types, additional template names, and template and card removal counts. The existing type must be standard for **Advance** or Cloze for **Cloze**.
 - **Delete** removes an empty note type after confirmation, or removes an uncreated custom topic row. Types containing notes cannot be deleted here. After a Delete action, a custom topic row is removed if none of its formats remain.
 
-Choose **Update Selected Note Types** and confirm the listed collection changes. These actions apply separately from **Save**, which applies settings. **Cancel** does not undo confirmed note type changes. Sync the collection and media afterward to make the changes available on your other devices.
+Choose **Apply Selected Changes** and confirm the listed collection changes. These actions apply separately from **Save**, which applies settings. **Cancel** does not undo confirmed note type changes. Sync the collection and media afterward to make the changes available on your other devices.
 
 ## Customizing editor styles
 
-To customize field contents, open **Tools > Anki Global Kit Settings... > Editor**. In **Editor Fields**, use **Enable custom Editor fields stylesheet** to turn your custom field CSS on or off, and click **View Stylesheet** to open `user_files`, where you can edit `editor-fields.css`. Custom field styles are enabled by default and appended after the kit defaults. Restart Anki after editing the stylesheet to reload it.
+Under **Editor Styles**, the two **Enable Anki Global Kit's default … styles** options control the packaged field and UI styles independently. Disable default field styles to omit the kit's field CSS and editor syntax theme styling. The custom stylesheet switches work independently, so you can use custom CSS without the packaged styles. Saving updates open editors.
 
-In **Editor UI**, use **Enable custom Editor UI stylesheet** to turn interface CSS on or off, and click **View Stylesheet** to open the same folder and edit `editor-ui.css`. Custom UI styles are also enabled by default. To find these files through the add-ons dialog, open **Tools > Add-ons**, select **Anki Global Kit**, and click **View Files**, then open `user_files`. The `user_files/README.txt` file is also included with the add-on.
+To customize field contents, open **Tools > Anki Global Kit Settings... > Editor**. In **Editor Styles**, use **Enable custom editor fields stylesheet** to turn your custom field CSS on or off, and click **View custom Editor Fields stylesheet** to open `user_files`, where you can edit `editor-fields.css`. Custom field styles are enabled by default and appended after the kit defaults. Restart Anki after editing the stylesheet to reload it.
+
+In the same **Editor Styles** section, use **Enable custom editor UI stylesheet** to turn interface CSS on or off, and click **View custom Editor UI stylesheet** to open the same folder and edit `editor-ui.css`. Custom UI styles are also enabled by default. To find these files through the add-ons dialog, open **Tools > Add-ons**, select **Anki Global Kit**, and click **View Files**, then open `user_files`. The `user_files/README.txt` file is also included with the add-on.
 
 ## Build and install for development
 
@@ -28,10 +30,10 @@ Development supports Node.js 22.22.2 or later in the 22.x series, 24.15.0 or lat
 
 ```sh
 npm install
-npm run build:addon
+npm run build
 ```
 
-Copy the `addon` folder into Anki's add-ons folder and restart Anki. On profile open, the add-on installs or refreshes the card JavaScript, CSS, and font in that profile. In **Tools > Anki Global Kit Settings... > Note Types**, select topics and card formats, then choose **Update Selected Note Types** and confirm. Sync your collection and media before reviewing on other devices.
+Copy the `addon` folder into Anki's add-ons folder and restart Anki. On profile open, the add-on installs or refreshes the card JavaScript, CSS, and font in that profile. In **Tools > Anki Global Kit Settings... > Note Types**, select topics and card formats, then choose **Apply Selected Changes** and confirm. Sync your collection and media before reviewing on other devices.
 
 The **Cards** settings tab controls question-input Markdown shortcuts and indentation, answer Markdown rendering and syntax highlighting, and the question formatting toolbar and its buttons. Fenced code uses an explicit language label when supplied after the opening backticks (for example, a `python` label); otherwise, syntax highlighting is inferred from the card topic. The toolbar appears above question inputs; each button tooltip lists its shortcut. The **Editor** tab controls features in Anki Desktop's note editor, including inline-code formatting, indentation, and copy behavior. Card settings sync with your collection; Desktop editor settings apply in Anki Desktop.
 
@@ -39,4 +41,4 @@ The **Cards** settings tab controls question-input Markdown shortcuts and indent
 
 After building, run `npm run package:addon` from the repository root. The script regenerates the combined font notice and checks required files and asset paths before writing `dist/anki-global-kit.ankiaddon`.
 
-The archive contains `__init__.py`, `desktop/`, `assets/`, `templates/`, `user_files/`, `config.json`, `manifest.json`, `README.md`, and the canonical repository-root `CHANGELOG.md` and `LICENSE`. About and Help content lives beside its Settings pages at `desktop/settings/pages/about/about-content.md` and `desktop/settings/pages/help/help-content.md`. These paths are at the archive root, without an enclosing `addon/` folder. Packaging requires both repository-root files and the Settings content files to exist as files before opening the output archive.
+The archive contains `__init__.py`, `desktop/`, `assets/`, `templates/`, `user_files/`, `config.json`, `manifest.json`, `README.md`, and the canonical repository-root `CHANGELOG.md` and `LICENSE`. Help content, including the project description, lives beside its Settings page at `desktop/settings/pages/help/help-content.md`. These paths are at the archive root, without an enclosing `addon/` folder. Packaging requires both repository-root files and the Settings content files to exist as files before opening the output archive.

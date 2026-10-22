@@ -7,6 +7,8 @@ import { showNoteContainers } from '../display/notes.js';
 import { modifyAnkiWeb } from '../integrations/ankiweb.js';
 import { watchSubmittedCodeBlocks } from '../syntax-highlighting/index.js';
 
+import { watchCodeBlockHeaders } from '../syntax-highlighting/code-block-headers.js';
+
 function runFunctions() {
   showQuestionContainers();
   focusFirstInput();
@@ -20,4 +22,5 @@ function runFunctions() {
 export function initializeGlobalKit() {
   watchCardChanges(runFunctions);
   watchSubmittedCodeBlocks();
+  watchCodeBlockHeaders();
 }

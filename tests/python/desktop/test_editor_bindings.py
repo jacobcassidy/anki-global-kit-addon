@@ -1,12 +1,143 @@
 """Check native editor bindings preserve fixed actions and avoid ambiguity."""
 
+import tempfile
 import unittest
-from unittest.mock import Mock
+from pathlib import Path
+from unittest.mock import Mock, patch
+from xml.etree import ElementTree
 
 from tests.support.anki_stubs import load_editor_integration, load_settings_services
 
 
 class EditorBindingsTests(unittest.TestCase):
+    def test_toolbar_defaults_and_theme_inheriting_icons(self):
+        settings = load_settings_services().config.get_editor_settings()
+        self.assertFalse(settings["anki_editor_blockquote_button"])
+        integration = load_editor_integration(settings)
+        editor = Mock()
+        editor.addButton.side_effect = lambda **kwargs: (
+            f'<button data-command="{kwargs["cmd"]}">'
+            '<img class="topbut" src="data:image/svg+xml;base64,PHN2Zy8+">'
+            "</button>"
+        )
+        buttons = []
+        integration._add_button(buttons, editor)
+        toolbar = ElementTree.fromstring(buttons[0])
+        self.assertEqual([len(group) for group in toolbar], [2, 1, 1, 1])
+        self.assertIn("display: none;", toolbar[2][0].attrib["style"])
+        self.assertEqual(len(list(toolbar.iter("img"))), 0)
+        for icon in toolbar.iter("button"):
+            self.assertIn("background-color: currentColor", icon[0].attrib["style"])
+            self.assertIn("mask: url(", icon[0].attrib["style"])
+        markdown = editor.addButton.call_args_list[2].kwargs
+        self.assertEqual(markdown["tip"], "Convert Markdown to HTML (Alt+M)")
+        integration.QApplication.clipboard.return_value.text.return_value = "**text**"
+        markdown["func"](editor)
+        editor.web.eval.assert_called_once_with(
+            'globalThis.ankiGlobalKitEditor?.convertMarkdown("**text**");'
+        )
+
+    def test_default_and_custom_styles_can_be_selected_independently(self):
+        settings = load_settings_services().config.get_editor_settings()
+        integration = load_editor_integration(settings)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            packaged = root / "packaged"
+            custom = root / "custom"
+            packaged.mkdir()
+            custom.mkdir()
+            for name in ("editor-fields", "editor-ui"):
+                (packaged / f"{name}.min.css").write_text("packaged")
+                (custom / f"{name}.css").write_text("custom")
+            with (
+                patch.object(integration, "EDITOR_STYLES_DIR", packaged),
+                patch.object(integration, "USER_FILES_DIR", custom),
+            ):
+                for name in ("editor-fields", "editor-ui"):
+                    for defaults, overrides, expected in (
+                        (True, True, "packaged\ncustom"),
+                        (True, False, "packaged"),
+                        (False, True, "custom"),
+                        (False, False, ""),
+                    ):
+                        with self.subTest(
+                            name=name, defaults=defaults, custom=overrides
+                        ):
+                            self.assertEqual(
+                                integration._read_editor_styles(
+                                    f"{name}.min.css",
+                                    custom_filename=f"{name}.css",
+                                    include_default=defaults,
+                                    include_custom=overrides,
+                                ),
+                                expected,
+                            )
+
+    def test_hidden_toolbar_keeps_actions_registered_and_shortcuts_active(self):
+        settings = load_settings_services(
+            config={"anki_editor_toolbar_enabled": False}
+        ).config.get_editor_settings()
+        integration = load_editor_integration(settings)
+        editor = Mock(currentField=0)
+        editor.addButton.side_effect = lambda **kwargs: (
+            f'<button data-command="{kwargs["cmd"]}"></button>'
+        )
+        buttons = []
+        integration._add_button(buttons, editor)
+        self.assertEqual(len(buttons), 1)
+        self.assertEqual(editor.addButton.call_count, 5)
+        toolbar = ElementTree.fromstring(buttons[0])
+        self.assertEqual([len(group) for group in toolbar], [2, 1, 1, 1])
+        self.assertTrue(
+            all(group.attrib["style"] == "display: none;" for group in toolbar)
+        )
+        self.assertTrue(
+            all(
+                "display: none;" in button.attrib["style"]
+                for button in toolbar.iter("button")
+            )
+        )
+        integration._add_shortcut([], editor)
+        self.assertTrue(
+            editor._anki_global_kit_shortcuts["anki_editor_inline_code_shortcut"][
+                0
+            ].isEnabled()
+        )
+
+        settings["anki_editor_toolbar_enabled"] = True
+        settings["anki_editor_blockquote_button"] = True
+        settings["anki_editor_syntax_highlighting_button"] = False
+        buttons.clear()
+        integration._add_button(buttons, editor)
+        toolbar = ElementTree.fromstring(buttons[0])
+        self.assertIn(
+            "column-gap: var(--anki-global-kit-toolbar-group-gap, 0.3rem)",
+            toolbar.attrib["style"],
+        )
+        self.assertEqual(toolbar[0].attrib["style"], "display: none;")
+        self.assertTrue(
+            all(
+                group.attrib["style"] == "display: inline-flex;"
+                for group in toolbar[1:]
+            )
+        )
+        self.assertTrue(
+            all(
+                "display: none" not in button.attrib["style"]
+                for group in toolbar[1:]
+                for button in group
+            )
+        )
+        for group in toolbar[1:]:
+            self.assertIn(
+                "--border-left-radius: var(--anki-global-kit-toolbar-group-radius, 5px)",
+                group[0].attrib["style"],
+            )
+            self.assertIn(
+                "--border-right-radius: var(--anki-global-kit-toolbar-group-radius, 5px)",
+                group[0].attrib["style"],
+            )
+
     def bindings(self, overrides):
         settings = load_settings_services(config=overrides).config.get_editor_settings()
         integration = load_editor_integration(settings)
@@ -15,9 +146,72 @@ class EditorBindingsTests(unittest.TestCase):
         integration._add_shortcut(bindings, editor)
         return integration, bindings, editor
 
+    def test_convert_markdown_shortcut_rebinds_and_refreshes_its_tooltip(self):
+        for mac in (False, True):
+            with self.subTest(mac=mac):
+                settings = load_settings_services(mac=mac).config.get_editor_settings()
+                # Toolbar visibility and indentation do not control this shortcut.
+                settings["anki_editor_toolbar_enabled"] = False
+                settings["anki_editor_tab_indentation"] = False
+                integration = load_editor_integration(settings, mac=mac)
+                editor = Mock(currentField=0)
+                integration._add_shortcut([], editor)
+                key = "anki_editor_convert_markdown_shortcut"
+                shortcut, keys = editor._anki_global_kit_shortcuts[key]
+                self.assertEqual(keys, "Alt+M")
+                self.assertTrue(shortcut.isEnabled())
+                integration.QApplication.clipboard.return_value.text.return_value = (
+                    "**text**"
+                )
+                shortcut.callback()
+                editor.web.eval.assert_called_once_with(
+                    'globalThis.ankiGlobalKitEditor?.convertMarkdown("**text**");'
+                )
+                settings[key] = "Alt+K"
+                editor.web.eval.reset_mock()
+                integration.refresh_open_editors()
+                self.assertIs(editor._anki_global_kit_shortcuts[key][0], shortcut)
+                self.assertEqual(shortcut.key, "Alt+K")
+                self.assertTrue(
+                    any(
+                        'button.title = "Convert Markdown to HTML (Alt+K)";'
+                        in call.args[0]
+                        for call in editor.web.eval.call_args_list
+                    )
+                )
+                editor.web.eval.reset_mock()
+                editor.currentField = None
+                shortcut.callback()
+                editor.web.eval.assert_not_called()
+                editor.currentField = 0
+                settings[f"{key}_enabled"] = False
+                integration.refresh_open_editors()
+                self.assertFalse(shortcut.isEnabled())
+                self.assertTrue(
+                    any(
+                        'button.title = "Convert Markdown to HTML";' in call.args[0]
+                        for call in editor.web.eval.call_args_list
+                    )
+                )
+                editor.web.eval.reset_mock()
+                shortcut.callback()
+                editor.web.eval.assert_not_called()
+
+    def test_convert_markdown_duplicate_shortcut_registers_only_one_handler(self):
+        _, _, editor = self.bindings({"anki_editor_inline_code_shortcut": "Alt+M"})
+        self.assertEqual(
+            sum(
+                shortcut.isEnabled() and keys == "Alt+M"
+                for shortcut, keys in editor._anki_global_kit_shortcuts.values()
+            ),
+            1,
+        )
+
     def test_every_custom_action_leaves_fixed_block_shortcuts_available(self):
         for key in (
             "anki_editor_inline_code_shortcut",
+            "anki_editor_blockquote_shortcut",
+            "anki_editor_convert_markdown_shortcut",
             "anki_editor_indent_increase_shortcut",
             "anki_editor_indent_decrease_shortcut",
         ):
@@ -25,7 +219,6 @@ class EditorBindingsTests(unittest.TestCase):
                 ("Ctrl+Alt+8", "unordered-list"),
                 ("Ctrl+Alt+9", "ordered-list"),
                 ("Ctrl+Alt+0", "no-list"),
-                ("Ctrl+/", "blockquote"),
             ):
                 with self.subTest(setting=key, shortcut=keys):
                     integration, bindings, editor = self.bindings({key: keys})
@@ -97,9 +290,11 @@ class EditorBindingsTests(unittest.TestCase):
             shortcut,
         )
         self.assertEqual(shortcut.key, "Alt+K")
-        self.assertIn(
-            '"anki_editor_inline_code_shortcut":"Alt+K"',
-            editor.web.eval.call_args.args[0],
+        self.assertTrue(
+            any(
+                '"anki_editor_inline_code_shortcut":"Alt+K"' in call.args[0]
+                for call in editor.web.eval.call_args_list
+            )
         )
         editor.web.eval.reset_mock()
         shortcut.callback()
@@ -119,10 +314,34 @@ class EditorBindingsTests(unittest.TestCase):
             set(editor._anki_global_kit_shortcuts),
             {
                 "anki_editor_inline_code_shortcut",
+                "anki_editor_blockquote_shortcut",
                 "anki_editor_indent_increase_shortcut",
                 "anki_editor_indent_decrease_shortcut",
+                "anki_editor_syntax_highlighting_shortcut",
+                "anki_editor_convert_markdown_shortcut",
+                "anki_editor_exit_code_block_shortcut",
             },
         )
+
+    def test_blockquote_default_is_configurable_and_can_be_disabled(self):
+        settings = load_settings_services().config.get_editor_settings()
+        integration = load_editor_integration(settings)
+        editor = Mock(currentField=0)
+        bindings = []
+        integration._add_shortcut(bindings, editor)
+        shortcut, keys = editor._anki_global_kit_shortcuts[
+            "anki_editor_blockquote_shortcut"
+        ]
+        self.assertEqual(keys, "Ctrl+/")
+        self.assertIsNone(integration.editor_fixed_shortcut_action(keys))
+        shortcut.callback()
+        editor.web.eval.assert_called_once_with(
+            'globalThis.ankiGlobalKitEditor?.toggleBlock("blockquote");'
+        )
+        settings["anki_editor_blockquote_shortcut_enabled"] = False
+        integration.refresh_open_editors()
+        self.assertFalse(shortcut.isEnabled())
+        self.assertNotIn("Ctrl+/", [keys for keys, _callback in bindings])
 
     def test_refresh_preserves_fixed_actions_and_prunes_deleted_editors(self):
         settings = load_settings_services().config.get_editor_settings()

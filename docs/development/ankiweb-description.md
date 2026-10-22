@@ -69,7 +69,7 @@ Choose the tools that fit your workflow in the **Editor** settings tab.
 
 1. Install the add-on through **Tools > Add-ons > Get Add-ons** using the download code on this page, then restart Anki Desktop.
 2. Open **Tools > Anki Global Kit Settings... > Note Types**.
-3. Select **Create** for the topics and formats you want, choose **Update Selected Note Types**, and confirm.
+3. Select **Create** for the topics and formats you want, choose **Apply Selected Changes**, and confirm.
 4. Add a note using one of the new types, such as **Python (Advance)**. Fill in **Question** and **Answer**. For Advance cards, enter `yes` in **Compare** to highlight differences, or leave it empty to display the answers separately.
 5. Choose your review and editor options in **Cards** and **Editor**, then select **Save**.
 6. Sync your collection and media from Desktop, then sync your other devices before reviewing there.

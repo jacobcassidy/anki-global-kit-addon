@@ -22,23 +22,22 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.3.0
       - name: Install dependencies
         run: npm ci
-      - name: Lint scripts, styles, and documentation
-        run: |
-          npm run lint:scripts
-          npm run lint:styles
-          npm run lint:docs
+      - name: Lint
+        run: npm run lint
       - name: Check formatting
         run: npm run check
       - name: Build generated assets
-        run: npm run build:addon
+        run: npm run build
       - name: Check asset paths
-        run: npm run check:assets
+        run: npm run verify:package-assets
       - name: Validate release metadata and changelog notes
         run: python3 scripts/release_notes.py --output dist/release-notes.md
       - name: Verify generated assets are current
-        run: git diff --exit-code -- addon/assets/cards addon/assets/editor addon/assets/fonts/_meslolgl-nf-license.txt
+        run: git diff --exit-code -- addon/assets/cards addon/assets/editor addon/assets/fonts/_meslolgl-nf-license.txt src/shared/css/generated/cassidy-dark.css
       - name: Run JavaScript and Python tests
         run: npm test
 
@@ -96,7 +95,7 @@ jobs:
         if: steps.existing.outputs.exists == 'false'
         run: |
           npm ci
-          npm run build:addon
+          npm run build
           npm run package:addon
       - name: Publish release with changelog notes and add-on archive
         if: steps.existing.outputs.exists == 'false'

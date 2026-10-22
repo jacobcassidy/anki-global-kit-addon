@@ -7,12 +7,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added a darker language header and a **Copy code** button to editor and card code blocks. Copying preserves plain source text and blank lines while excluding HTML and line numbers. **Syntax Highlighting → Lines** controls whether new blocks show the copy button.
+
+- Added clickable code block line numbers that select the line content for copying, cutting, deleting, or replacing. Code selections copy as plain text without line numbers.
+
+- Added a configurable **Convert Markdown to HTML** editor shortcut, enabled by default as **Option+M** on macOS and **Alt+M** on Windows/Linux, with the current shortcut shown in its toolbar tooltip.
+- Added a shared parser-based JavaScript and Python classifier for editor code, pasted Markdown, and typed answers. Identifier colors now distinguish functions, methods, parameters and references, properties, classes, namespace imports, variables, and unshadowed builtins within each snippet. Python `def` and `class` use the declaration color. Re-highlight existing saved blocks to add the annotations.
+- Added generated `_syntax-highlighting.css` media for new Kit note types and a confirmed **Enable Code Styling…** action that adds only the stylesheet import to an existing note type.
+- Added optional per-deck language memory storage and upgraded review highlighting to a pinned, locally bundled highlight.js grammar set with per-answer processing limits.
+- Added bundled Pygments theme choices, independent light and dark theme settings, read-only previews, collection-synced resolved palettes, and stylesheet recovery during Settings saves.
+- Routed Desktop Markdown code fences through the Pygments service and removed the handwritten browser tokenizer.
+- Added a checked-language menu beside **Highlight Code**, with Topic and per-deck fallback and collection-synced memory after successful explicit applications.
+
 ### Changed
 
-- Moved About and Help content beside their Settings pages and the AnkiWeb listing description into publishing documentation. Updated guide links and package validation for the new locations.
+- Renamed **Paste Markdown as HTML** to **Convert Markdown to HTML**. It converts selected text, or inserts converted clipboard text at the caret when nothing is selected.
+- Combined Blockquote, Convert Markdown to HTML, and Inline Code into one editor toolbar group, matched Anki's group spacing, joined the syntax controls with square inner corners, and made disabled icons inherit Anki's disabled color. The Blockquote toolbar button is now off by default; existing saved choices are retained.
+- Added the default editor placeholder "Leave blank unless compare is wanted" to empty Compare fields in Kit note types, preserving custom descriptions and saved field values.
+- Stopped treating generic Pygments `Name` and `Name.Other` tokens as variables. Unclassified names use the foreground color; parser-classified identifiers use normalized theme roles. Classification preserves clozes and source text, recovers incomplete snippets, and falls back to basic syntax highlighting when its work budget is exhausted.
+- Replaced the Paste Markdown as HTML button icon with the official Markdown Mark, retaining its proportions and using the toolbar's theme color.
+- Grouped the custom editor toolbar into syntax highlighting, formatting, and inline code, with gaps that adjust to hidden buttons.
+- Enlarged and thickened the editor's syntax-highlighting lightning bolt icon, with a downward-sloping middle for a clearer bolt shape.
+- Expanded Cassidy Dark with purple builtin constants and namespaces, white recognized magic methods and builtins, orange recognized parameters, green properties, pink variable names, and light gray recognized builtin variables. Applied the shared token rules to typed-answer highlighting and documented the limits of reproducing semantic colors with syntax highlighters. Older synced palettes remain readable.
+- Changed Cassidy Dark's ordinary keywords to red and declaration keywords (`kd`) to blue. Existing synced palettes keep their colors until **Update Synced Theme** is saved and synced.
+- Removed repeated syntax block and token rules from the selected theme stylesheets. Light and dark themes now override only variables, including font styles, with support for editor field shadow roots.
+- Renamed the theme update action to **Update Synced Theme**, shortened both theme action help texts, and aligned **Add Syntax Styles…** on the right of the same row.
+- Renamed **Enable Code Styling…** to **Add Syntax Styles…** and added a checkbox picker with **Select All** and **Clear Selection** to update multiple note types after one confirmation. Types that already include the stylesheet are omitted, and all selected targets are revalidated before changes begin.
+- Capitalized Settings section titles, renamed **Card Fields** to **Card Inputs**, and alphabetized Editor sections.
+- Added independent switches for the default Editor Field and Editor UI styles, retained separate custom CSS controls, and renamed the custom stylesheet buttons. Disabled styles are removed from open editors when saving.
+- Moved per-deck language memory below the default language and matched language list borders and alternating rows to Note Types.
+- Clarified the syntax theme selectors as **Theme for Light Mode** and **Theme for Dark Mode**, labeled the preview with the most recently selected mode, and removed the redundant theme name beside the preview heading.
+- Removed the global starting-line preference. New code blocks start at **1**, while **Code Block Options** retains custom starting numbers for individual blocks and existing blocks keep their saved numbering.
+- Replaced language support labels with an **Auto** badge for typed-answer highlighting and explained that all languages support saved highlighting on cards. Reserved a badge column and shortened long language names with ellipses to prevent overlap; full names remain available on hover.
+- Moved **Enable Code Styling…** and its help to **Syntax Highlighting → Themes**, and renamed the Note Types action to **Apply Selected Changes**.
+- Alphabetized editor shortcuts, moved Syntax Highlighting shortcut settings into Editor Fields, renamed Editor Formatting to **Editor Text Handling**, and placed **Editor Styles** below Editor Toolbar with named stylesheet buttons below their options.
+- Grouped Syntax Highlighting settings into **Languages**, **Lines**, and **Themes** and reduced the preview to 150px.
+- Grouped custom editor styles under **Editor Styles**, added an **Editor Toolbar** parent switch with indented button options and live visibility updates, and moved review highlighting back to **Cards → Card Reviews**.
+- Matched and widened syntax selectors, rounded the theme preview, and merged About into Help under **Description**.
+- Standardized shortcut action capitalization and syntax Settings spacing, aligned inputs and language support labels, and added help for shared theme updates and enabling note type code styling.
+- Renamed syntax classes and variables to `global-kit`, scoped `.code-line` inside code blocks, and kept authoring metadata on `<pre>` only. Existing highlighted fields from earlier development builds need their markup updated or recreated from source with **Highlight Code**.
+- Moved Help content beside its Settings page and the AnkiWeb listing description into publishing documentation. Updated guide links and package validation for the new locations.
 
 ### Fixed
 
+- Made Backspace clear a focused legacy line-number gutter in one keypress and move to the end of the following code line.
+
+- Preserved the original editor selection through native undo so typing after undo continues at the restored caret.
+
+- Made code block line numbers non-editable and automatically updated them when inserting, deleting, or pasting lines in the Desktop editor.
+
+- Aligned add-on editor toolbar buttons with Anki's native buttons and matched the language selector chevron to Anki's color and formatting menus.
+- Fixed **Code Block Options** rejecting updates when Anki's rich-text/HTML mirror recreates unchanged field nodes while the dialog is open. Applying options now resolves the current block after closing the dialog and still protects newer field edits.
+- Fixed **Code Block Options** closing without applying changes by releasing the modal dialog before the native editor transaction. Line numbering now also creates the required line wrappers for Markdown-converted blocks, preserving syntax colors and cloze handling.
+- Fixed custom editor toolbar separation by rendering independent groups with gaps and rounded outer edges, including when the default Editor UI stylesheet is disabled or individual buttons are hidden.
+- Kept literal code clozes inert through editor annotation, line wrapping, and HTML serialization, while preserving their displayed source text.
+- Fixed Settings Save being blocked by the default Blockquote shortcut conflicting with itself, and added feedback when shortcut validation prevents saving.
+- Fixed Highlight Code shortcut tooltips, language menu positioning and labels, and the filled lightning icon.
+- Fixed light and dark theme previews with Qt-compatible palette rendering, added readable theme names, and kept Note Types content at fixed vertical spacing.
 - Fixed Desktop add-on startup after the project restructure by importing user stylesheet paths from their new module. Added coverage that imports the full add-on with Anki and Qt stubs and checks that startup registrations occur once.
 
 ## [1.1.1] - 2026-10-12

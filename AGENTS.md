@@ -13,7 +13,7 @@ The add-on can create missing topic and format note types in the active profile.
   - `bootstrap.py` owns startup and hook registration; `paths.py` contains shared filesystem paths.
   - `config/`, `media/`, `note_types/`, and `shortcuts/` own Desktop configuration, asset installation, note-type operations, and shortcut handling.
   - `settings/pages/` contains Settings presentation; `settings/bindings.py`, `settings/save.py`, and `settings/dialog.py` coordinate controls and saving.
-  - About and Help Markdown lives beside its Settings page as `about/about-content.md` and `help/help-content.md`.
+  - Help Markdown, including the project description, lives beside its Settings page as `help/help-content.md`.
   - `ui/` contains reusable Qt controls and presentation constants; `editor/` contains editor integration and feature coordination.
 - `addon/assets/icons/` — SVG icons shared by the card toolbar, Desktop editor, and settings UI.
 - `addon/assets/fonts/` — Packaged shared card and editor fonts.
@@ -42,7 +42,7 @@ The add-on can create missing topic and format note types in the active profile.
 Install JavaScript development dependencies with `npm install`. Build the card assets from the repository root:
 
 ```sh
-npm run build:addon
+npm run build
 ```
 
 The build bundles the card and Desktop editor sources into:
@@ -52,7 +52,9 @@ The build bundles the card and Desktop editor sources into:
 - `addon/assets/editor/js/editor.min.js`
 - `addon/assets/editor/css/editor-fields.min.css` and `editor-ui.min.css`
 
-The packaged shared card and editor font is kept in `addon/assets/fonts/`. `scripts/font_notices.py` combines `FONT-LICENSES.md` and the adjacent `licenses/*.txt` into `_meslolgl-nf-license.txt` during builds and packaging; Python 3 is required for this step. Update the source notices and regenerate the companion rather than editing the generated file. `addon/desktop/media/manifest.py` maps public filenames to packaged paths, and `addon/desktop/media/install.py` installs managed assets under their public names in the `collection.media` root. Run `npm run check:assets` to verify the source, build, package, template, and media paths, including notice freshness. These generated files are included in the add-on package. Update `scripts/build.config.js` if source entry points or output names change, along with the installer and template references when renaming installed assets. The watch script watches card, editor, and shared JavaScript and CSS, plus imported icons.
+When changing source files that feed these builds, regenerate the affected minified assets with `npm run build` and include those generated files in the same commit as the source changes.
+
+The packaged shared card and editor font is kept in `addon/assets/fonts/`. `scripts/font_notices.py` combines `FONT-LICENSES.md` and the adjacent `licenses/*.txt` into `_meslolgl-nf-license.txt` during builds and packaging; Python 3 is required for this step. Update the source notices and regenerate the companion rather than editing the generated file. `addon/desktop/media/manifest.py` maps public filenames to packaged paths, and `addon/desktop/media/install.py` installs managed assets under their public names in the `collection.media` root. Run `npm run verify:package-assets` to verify the source, build, package, template, and media paths, including notice freshness. These generated files are included in the add-on package. Update `scripts/build.config.js` if source entry points or output names change, along with the installer and template references when renaming installed assets. The watch script watches card, editor, and shared JavaScript and CSS, imported icons, syntax theme Python sources, and font notice sources.
 
 Useful project scripts:
 
@@ -67,6 +69,7 @@ Useful project scripts:
 ## Implementation boundaries
 
 - Use token or variable-based colors throughout the project; do not add static hardcoded colors. Anki Desktop settings and other Qt components must use Anki color tokens, while webview components must use CSS variables.
+- Use `rem` for CSS sizing throughout the app unless another unit is specifically needed for the layout or behavior.
 - Put review-time behavior in `src/cards/` when it needs to run across Anki clients. Put editor behavior in `src/editor/` and use `addon/desktop/editor/` for its Desktop integration. Do not assume Python add-on code runs outside Anki Desktop.
 - Use the Python add-on for Desktop installation, configuration, and collection operations. Settings presentation lives in `addon/desktop/settings/pages/`, coordinated by `dialog.py`, `bindings.py`, and `save.py`. Shared services live in the Desktop `config/`, `media/`, `note_types/`, and `shortcuts/` packages; reusable Qt controls and presentation constants live in `desktop/ui/`. Connect to Anki through documented hooks and APIs instead of patching internal functions when a supported hook exists.
 - When adding a button or keyboard shortcut to Anki Global Kit, add the corresponding control or configuration to Anki Global Kit Settings as appropriate.
@@ -79,6 +82,7 @@ Useful project scripts:
 - Preserve cross-client behavior. Check platform-specific code in `src/cards/js/runtime/platform.js` and `src/cards/js/inputs/` before changing answer storage or keyboard behavior.
 - On macOS, Anki's Qt/webview keyboard handling swaps the usual modifier names: Anki's `Ctrl` setting corresponds to physical Command (⌘), while `Meta` corresponds to physical Control (⌃). Browser keyboard events use the standard mapping: Command sets `event.metaKey`, and physical Control sets `event.ctrlKey`. Do not apply the Qt modifier swap to browser events. Keep shortcut labels consistent with that mapping. Use `event.key` when matching the character produced by the current keyboard layout; use `event.code` only when a shortcut intentionally targets a physical key regardless of layout (for example, the physical C key).
 - If changing required template markup or CSS imports, update the applicable runtime parts under `addon/templates/note-types/parts/` and document any user migration in `README.md` or the changelog. Existing note types receive the change only after the user selects Replace and confirms.
+- Keep gaps between custom Anki editor toolbar button groups at Anki's native default size. Do not add extra wrapper gaps; Anki's button spacing already supplies the standard gap.
 
 ## Repository guidance
 

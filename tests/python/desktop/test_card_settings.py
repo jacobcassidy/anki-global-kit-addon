@@ -65,8 +65,13 @@ class CardSettingsTests(unittest.TestCase):
                 (Path(directory) / name).write_bytes(data)
                 return name
 
+            collection_config = {}
             aqt.mw.col = SimpleNamespace(
-                media=SimpleNamespace(dir=lambda: directory, write_data=write_data)
+                media=SimpleNamespace(dir=lambda: directory, write_data=write_data),
+                get_config=lambda key, default=None: collection_config.get(
+                    key, default
+                ),
+                set_config=lambda key, value: collection_config.__setitem__(key, value),
             )
             assets.ASSET_NAMES = (manifest.JS_ASSET_NAME,)
             assets.update_assets_for_profile()

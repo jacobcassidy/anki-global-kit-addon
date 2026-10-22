@@ -39,11 +39,13 @@ from .bindings import (
     read_control_value,
     restore_control_defaults,
 )
-from .pages.about import build_about_tab
 from .pages.cards import SHORTCUT_DEFINITIONS, build_cards_tab
 from .pages.changelog import build_changelog_tab
 from .pages.editor import build_editor_tab
-from .pages.editor.editor_fields import INDENTATION_SHORTCUT_DEFINITIONS
+from .pages.editor.editor_fields import (
+    EDITOR_SHORTCUT_DEFINITIONS,
+    INDENTATION_SHORTCUT_DEFINITIONS,
+)
 from .pages.help import build_help_tab
 from .pages.note_types import build_note_types_tab
 from .save import save_settings
@@ -69,11 +71,22 @@ def open_settings() -> None:
 
     current_settings = get_settings()
     current_settings.update(get_editor_settings())
+    from ..syntax_highlighting.preferences import get_themes
+    from .pages.syntax_highlighting import build_syntax_highlighting_tab
 
     cards = build_cards_tab(dialog, current_settings)
     tabs.addTab(cards.widget, "Cards")
     editor = build_editor_tab(dialog, current_settings)
     tabs.addTab(editor.widget, "Editor")
+    syntax_themes = get_themes(mw.col) if mw.col is not None else {}
+    (
+        syntax_widget,
+        syntax_controls,
+        theme_controls,
+        theme_snapshot,
+        publish_modes,
+    ) = build_syntax_highlighting_tab(dialog, current_settings, syntax_themes)
+    tabs.addTab(syntax_widget, "Syntax Highlighting")
 
     settings_note = QLabel(
         "Sync your collection with AnkiWeb to apply changes on your other devices."
@@ -85,16 +98,15 @@ def open_settings() -> None:
     note_types = build_note_types_tab(dialog)
     tabs.addTab(note_types.widget, "Note Types")
     tabs.addTab(build_changelog_tab(dialog), "Changelog")
-    tabs.addTab(build_about_tab(dialog), "About")
     tabs.addTab(build_help_tab(dialog), "Help")
 
     def update_sync_note_visibility(index: int) -> None:
-        settings_note.setVisible(index in (0, 1, 2))
+        settings_note.setVisible(index in (0, 1, 2, 3))
 
     tabs.currentChanged.connect(update_sync_note_visibility)
     update_sync_note_visibility(tabs.currentIndex())
 
-    all_controls = {**cards.controls, **editor.controls}
+    all_controls = {**cards.controls, **editor.controls, **syntax_controls}
     fields = cards.fields
     editor_fields = editor.fields
     markdown_shortcut_definitions = SHORTCUT_DEFINITIONS
@@ -102,20 +114,12 @@ def open_settings() -> None:
     markdown_shortcut_checkboxes = fields.shortcut_enabled
     markdown_shortcut_option_checkboxes = fields.shortcut_option_checkboxes
     question_markdown_shortcuts = fields.master_toggle
-    editor_inline_code_shortcut = editor_fields.shortcut_input
-    editor_inline_code_shortcut_enabled = editor_fields.shortcut_toggle
-
-    editor_definitions = (
-        ("anki_editor_inline_code_shortcut", "inline code"),
-        ("anki_editor_blockquote_shortcut", "Blockquote"),
-    ) + INDENTATION_SHORTCUT_DEFINITIONS
+    editor_definitions = EDITOR_SHORTCUT_DEFINITIONS + INDENTATION_SHORTCUT_DEFINITIONS
     editor_inputs = {
-        "anki_editor_inline_code_shortcut": editor_inline_code_shortcut,
         **{key: pair[1] for key, pair in editor_fields.action_shortcuts.items()},
         **editor_fields.indentation_rows.shortcut_inputs,
     }
     editor_checks = {
-        "anki_editor_inline_code_shortcut_enabled": editor_inline_code_shortcut_enabled,
         **{
             f"{key}_enabled": pair[0]
             for key, pair in editor_fields.action_shortcuts.items()
@@ -129,6 +133,9 @@ def open_settings() -> None:
             in (
                 "anki_editor_inline_code_shortcut",
                 "anki_editor_blockquote_shortcut",
+                "anki_editor_syntax_highlighting_shortcut",
+                "anki_editor_convert_markdown_shortcut",
+                "anki_editor_exit_code_block_shortcut",
             )
             or all_controls["anki_editor_tab_indentation"].isChecked()
         )
@@ -138,6 +145,9 @@ def open_settings() -> None:
 
     def restore_defaults(*_args) -> None:
         restore_control_defaults(all_controls)
+        for selector in theme_controls.values():
+            index = selector.findData("cassidy-dark")
+            selector.setCurrentIndex(max(index, 0))
 
     restore_button.clicked.connect(restore_defaults)
 
@@ -151,9 +161,17 @@ def open_settings() -> None:
     for widget in all_controls.values():
         if isinstance(widget, QCheckBox):
             widget.toggled.connect(update_restore_button)
+        elif hasattr(widget, "currentData"):
+            widget.currentIndexChanged.connect(update_restore_button)
+        elif hasattr(widget, "value"):
+            widget.valueChanged.connect(update_restore_button)
+        elif hasattr(widget, "add_change_listener"):
+            widget.add_change_listener(update_restore_button)
         else:
             widget.add_change_listener(update_restore_button)
     update_restore_button()
+    for selector in theme_controls.values():
+        selector.currentIndexChanged.connect(update_restore_button)
 
     dialog_buttons = QDialogButtonBox(
         QDialogButtonBox.StandardButton.Cancel | QDialogButtonBox.StandardButton.Save,
@@ -383,8 +401,19 @@ def open_settings() -> None:
         settings["note_type_selections"] = note_types.collect_selections()
         refresh_shortcut_warnings()
         if any(validation_state.values()):
+            from aqt.utils import showWarning
+
+            showWarning(
+                "Settings could not be saved. Resolve the highlighted shortcut "
+                "conflicts or invalid shortcuts in Cards, Editor, and Syntax Highlighting, "
+                "or disable those shortcuts, then save again.",
+                parent=dialog,
+            )
             return
-        save_settings(dialog, settings)
+        selected_themes = {
+            mode: selector.currentData() for mode, selector in theme_controls.items()
+        }
+        save_settings(dialog, settings, selected_themes, theme_snapshot, publish_modes)
 
     save_button.clicked.connect(save_current_settings)
     buttons_layout = QHBoxLayout()

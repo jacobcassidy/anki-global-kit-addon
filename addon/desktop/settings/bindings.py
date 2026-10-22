@@ -7,6 +7,12 @@ from ..ui.shortcut_input import CardShortcutInput
 def read_control_value(key: str, widget) -> object:
     if isinstance(widget, CardShortcutInput):
         return widget.stored_shortcut()
+    if hasattr(widget, "get_value"):
+        return widget.get_value()
+    if hasattr(widget, "currentData"):
+        return widget.currentData()
+    if hasattr(widget, "value"):
+        return widget.value()
     return widget.isChecked()
 
 
@@ -14,6 +20,13 @@ def restore_control_defaults(controls: dict, defaults: dict = DEFAULT_SETTINGS) 
     for key, widget in controls.items():
         if isinstance(widget, CardShortcutInput):
             widget.set_shortcut(defaults[key])
+        elif hasattr(widget, "set_value"):
+            widget.set_value(defaults[key])
+        elif hasattr(widget, "setCurrentIndex"):
+            index = widget.findData(defaults[key])
+            widget.setCurrentIndex(max(index, 0))
+        elif hasattr(widget, "setValue"):
+            widget.setValue(defaults[key])
         else:
             widget.setChecked(defaults[key])
 

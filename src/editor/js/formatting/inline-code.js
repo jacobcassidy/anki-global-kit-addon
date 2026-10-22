@@ -141,8 +141,14 @@ function formatInlineCodeContent(field, selection, effects) {
         // Move to the boundary after the code. Chromium may pull typed text
         // back into the code, so arm a one-insertion boundary workaround.
         const outside = code.nextSibling;
-        if (outside?.nodeType === Node.TEXT_NODE) range.setStart(outside, 0);
-        else range.setStartAfter(code);
+        if (outside?.nodeType === Node.TEXT_NODE) {
+          range.setStart(outside, outside.data.startsWith('\n') ? 1 : 0);
+        } else if (outside?.nodeName === 'BR') {
+          const sourceWhitespace = document.createTextNode('\n');
+
+          outside.replaceWith(sourceWhitespace);
+          range.setStartAfter(sourceWhitespace);
+        } else range.setStartAfter(code);
         range.collapse(true);
         select(range);
         effects.exitCode = code;
@@ -422,6 +428,18 @@ function armInlineCodeExit(code, selection, select) {
       const current = selection.getRangeAt(0);
       const boundary = document.createRange();
       boundary.setStartAfter(code);
+      let next = code.nextSibling;
+
+      if (next?.nodeType === Node.TEXT_NODE && next.data.startsWith('\n')) {
+        boundary.setStart(next, 1);
+        next = next.nextSibling;
+      }
+
+      while (next?.nodeName === 'BR') {
+        boundary.setStartAfter(next);
+        next = next.nextSibling;
+      }
+
       boundary.collapse(true);
       const atBoundary =
         current.collapsed &&

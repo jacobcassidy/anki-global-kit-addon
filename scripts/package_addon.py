@@ -17,12 +17,10 @@ PACKAGE_DIRECTORIES = (
     "assets",
     "templates",
     "user_files",
+    "vendor",
 )
 PACKAGE_PATHS = PACKAGE_FILES + PACKAGE_DIRECTORIES
-REQUIRED_SETTINGS_FILES = (
-    "desktop/settings/pages/about/about-content.md",
-    "desktop/settings/pages/help/help-content.md",
-)
+REQUIRED_SETTINGS_FILES = ("desktop/settings/pages/help/help-content.md",)
 REQUIRED_USER_FILES = (
     "user_files/README.txt",
     "user_files/editor-fields.css",
@@ -73,11 +71,11 @@ def package_files() -> list[Path]:
 
 def main() -> None:
     if __package__:
-        from .check_assets import validate_assets
         from .font_notices import write_font_notice
+        from .verify_package_assets import validate_assets
     else:
-        from check_assets import validate_assets
         from font_notices import write_font_notice
+        from verify_package_assets import validate_assets
 
     changelog = REPOSITORY_ROOT / "CHANGELOG.md"
     if not changelog.is_file():
