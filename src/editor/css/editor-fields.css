@@ -49,8 +49,6 @@ code {
 
 .global-kit-code-block .code-block__language {
   cursor: pointer;
-  text-decoration: underline dotted;
-  text-underline-offset: 0.15em;
 }
 
 .global-kit-code-block .code-block__copy {
