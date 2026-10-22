@@ -67,7 +67,7 @@ const COPY_INSTALLED = Symbol.for('ankiGlobalKitCodeCopy');
 const LANGUAGE_MENU_INSTALLED = Symbol.for('ankiGlobalKitLanguageMenu');
 const OPTIONS_INSTALLED = Symbol.for('ankiGlobalKitCodeOptions');
 const copying = new WeakSet();
-const showingCopyFeedback = new WeakSet();
+let copyFeedbackId = 0;
 const LANGUAGE_NAMES = {
   bash: 'Bash',
   c: 'C',
@@ -319,15 +319,19 @@ export function installCodeBlockControls() {
 
       if (!button) return;
 
-      if (showingCopyFeedback.has(button)) return;
+      if (Number(button.dataset.agkCopyFeedbackUntil) > Date.now()) return;
 
       event.preventDefault();
 
       if (copying.has(button)) return;
 
       copying.add(button);
-      showingCopyFeedback.add(button);
+      const feedbackId = String(++copyFeedbackId);
+      const feedbackRoot = button.getRootNode();
       const icon = button.querySelector('.code-block__copy-icon');
+
+      button.dataset.agkCopyFeedbackId = feedbackId;
+      button.dataset.agkCopyFeedbackUntil = String(Date.now() + 2000);
 
       if (icon) {
         icon.innerHTML = checkIcon;
@@ -336,13 +340,20 @@ export function installCodeBlockControls() {
 
       button.title = 'Copied';
       setTimeout(() => {
-        if (icon) {
-          icon.innerHTML = '';
-          icon.classList.remove('code-block__copy-icon--copied');
-        }
+        const buttons = feedbackRoot.querySelectorAll(`.code-block__copy[data-agk-copy-feedback-id="${feedbackId}"]`);
 
-        button.title = 'Copy Code';
-        showingCopyFeedback.delete(button);
+        buttons.forEach((currentButton) => {
+          const currentIcon = currentButton.querySelector('.code-block__copy-icon');
+
+          if (currentIcon) {
+            currentIcon.innerHTML = '';
+            currentIcon.classList.remove('code-block__copy-icon--copied');
+          }
+
+          currentButton.title = 'Copy Code';
+          delete currentButton.dataset.agkCopyFeedbackId;
+          delete currentButton.dataset.agkCopyFeedbackUntil;
+        });
       }, 2000);
 
       try {
