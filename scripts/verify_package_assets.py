@@ -239,7 +239,7 @@ def validate_assets(package_files: list[Path]) -> str:
     template_count = validate_templates(packaged_paths)
     parts = ROOT / "addon/templates/note-types/parts"
     script_reference = (
-        rf"injectScript\(\s*(['\"]){re.escape(manifest.JS_ASSET_NAME)}\1\s*\)"
+        rf"\bscript\.src\s*=\s*(['\"]){re.escape(manifest.JS_ASSET_NAME)}\1"
     )
     if not re.search(script_reference, read_source(parts / "script/card-script.js")):
         raise ValueError(f"Card templates do not reference {manifest.JS_ASSET_NAME}")
