@@ -29,7 +29,7 @@
 .agk-code-block[data-line-numbers="true"] .code-line__number {
   cursor: pointer;
   user-select: none;
-  color: var(--syntax-gray-dark);
+  color: var(--syntax-gray-600);
   text-align: end;
 }
 
@@ -74,7 +74,7 @@ pre .cs, /* Comment.Special */
 pre .gh, /* Generic.Heading */
 pre .gu, /* Generic.Subheading */
 pre .sd /* Literal.String.Doc */ {
-  color: var(--syntax-gray-medium-dark);
+  color: var(--syntax-gray-500);
   font-style: italic;
 }
 
@@ -84,7 +84,7 @@ pre .gp, /* Generic.Prompt */
 pre .p, /* Punctuation */
 pre .si, /* Literal.String.Interpol */
 pre .sx /* Literal.String.Other */ {
-  color: var(--syntax-gray-medium);
+  color: var(--syntax-gray-400);
 }
 
 /* GRAY-LIGHT */
@@ -92,7 +92,7 @@ pre .sx /* Literal.String.Other */ {
 pre .go, /* Generic.Output */
 pre .gt, /* Generic.Traceback */
 pre .x  /* base source */ {
-  color: var(--syntax-gray-light);
+  color: var(--syntax-gray-200);
 }
 
 /* GRAY-EXTRA-LIGHT */
@@ -104,7 +104,7 @@ pre .nb, /* Name.Builtin */
 pre .nd, /* Name.Decorator */
 pre .ne, /* Name.Exception */
 pre .sa /* Literal.String.Affix, such as an f-string in Python */ {
-  color: var(--syntax-gray-white);
+  color: var(--syntax-gray-000);
 }
 
 /* BLUE */

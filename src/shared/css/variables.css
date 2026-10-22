@@ -41,15 +41,16 @@ anki-editable {
   --syntax-yellow: #efddac;
 
   /* Syntax Highlighting Grayscale */
-  --syntax-gray-fade-black: #242424;
-  --syntax-gray-fade: #383838;
-  --syntax-gray-dark: #636363;
-  --syntax-gray-medium-dark: #7a7a7a;
-  --syntax-gray-medium: #929292;
-  --syntax-gray-light: #c4c4c4;
-  --syntax-gray-white-light: #dedede;
-  --syntax-gray-white-light-extra: #ebebeb;
-  --syntax-gray-white: #f8f8f8;
+  --syntax-gray-900: #242424;
+  --syntax-gray-800: #383838;
+  --syntax-gray-700: #4d4d4d;
+  --syntax-gray-600: #636363;
+  --syntax-gray-500: #7a7a7a;
+  --syntax-gray-400: #929292;
+  --syntax-gray-200: #c4c4c4;
+  --syntax-gray-100: #dedede;
+  --syntax-gray-050: #ebebeb;
+  --syntax-gray-000: #f8f8f8;
 }
 
 /* NIGHTMODE THEME VARIABLES */

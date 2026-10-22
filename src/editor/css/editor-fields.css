@@ -26,18 +26,18 @@ anki-editable {
 }
 
 pre {
-  background-color: var(--syntax-gray-fade-black);
-  color: var(--syntax-gray-light);
+  background-color: var(--syntax-gray-900);
+  color: var(--syntax-gray-200);
 }
 
 code {
-  background-color: var(--syntax-gray-white-light-extra);
-  border-color: var(--syntax-gray-white-light);
-  color: var(--syntax-gray-fade);
+  background-color: var(--syntax-gray-050);
+  border-color: var(--syntax-gray-100);
+  color: var(--syntax-gray-800);
 
   .nightMode & {
-    background-color: var(--syntax-gray-medium-dark);
-    color: var(--syntax-gray-white);
+    background-color: var(--syntax-gray-500);
+    color: var(--syntax-gray-000);
   }
 }
 

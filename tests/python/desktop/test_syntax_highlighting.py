@@ -118,7 +118,7 @@ class SyntaxRenderingTests(unittest.TestCase):
             self.assertIn(".agk-code-block", css)
             if theme_id == "cassidy-dark":
                 self.assertIn(
-                    "--agk-syntax-background: var(--syntax-gray-fade-black);",
+                    "--agk-syntax-background: var(--syntax-gray-900);",
                     css,
                 )
                 self.assertIn("--agk-syntax-keyword: var(--syntax-red);", css)

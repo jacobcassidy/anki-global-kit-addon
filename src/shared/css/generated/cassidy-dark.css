@@ -1,22 +1,22 @@
 :root,
 anki-editable {
-  --agk-syntax-background: var(--syntax-gray-fade-black);
-  --agk-syntax-foreground: var(--syntax-gray-light);
-  --agk-syntax-comment: var(--syntax-gray-medium-dark);
-  --agk-syntax-punctuation: var(--syntax-gray-medium);
-  --agk-syntax-muted: var(--syntax-gray-light);
-  --agk-syntax-builtin: var(--syntax-gray-white);
+  --agk-syntax-background: var(--syntax-gray-900);
+  --agk-syntax-foreground: var(--syntax-gray-200);
+  --agk-syntax-comment: var(--syntax-gray-500);
+  --agk-syntax-punctuation: var(--syntax-gray-400);
+  --agk-syntax-muted: var(--syntax-gray-200);
+  --agk-syntax-builtin: var(--syntax-gray-000);
   --agk-syntax-builtin-constant: var(--syntax-purple);
   --agk-syntax-keyword: var(--syntax-red);
   --agk-syntax-declaration: var(--syntax-blue);
   --agk-syntax-function: var(--syntax-cyan);
-  --agk-syntax-method: var(--syntax-gray-white);
+  --agk-syntax-method: var(--syntax-gray-000);
   --agk-syntax-class: var(--syntax-cyan);
   --agk-syntax-namespace: var(--syntax-purple);
   --agk-syntax-parameter: var(--syntax-orange);
   --agk-syntax-attribute: var(--syntax-green);
   --agk-syntax-variable: var(--syntax-pink);
-  --agk-syntax-library-variable: var(--syntax-gray-white-light);
+  --agk-syntax-library-variable: var(--syntax-gray-100);
   --agk-syntax-constant: var(--syntax-purple);
   --agk-syntax-operator: var(--syntax-red);
   --agk-syntax-string: var(--syntax-yellow);
