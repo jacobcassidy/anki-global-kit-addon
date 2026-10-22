@@ -293,9 +293,11 @@ class SyntaxRenderingTests(unittest.TestCase):
             f"--agk-syntax-background: {dark['colors']['background']};", dark_css
         )
         self.assertIn("--agk-syntax-keyword-weight: 700;", light_css)
-        self.assertIn("--agk-syntax-keyword-weight: 400;", dark_css)
-        self.assertIn("--agk-syntax-comment-style: normal;", light_css)
+        self.assertNotIn("--agk-syntax-keyword-weight:", dark_css)
+        self.assertNotIn("--agk-syntax-comment-style:", light_css)
         self.assertIn("--agk-syntax-comment-style: italic;", dark_css)
+        self.assertIn("font-style: var(--agk-syntax-comment-style, normal);", combined)
+        self.assertIn("font-weight: var(--agk-syntax-keyword-weight, 400);", combined)
         self.assertNotIn(":host-context", overrides)
         editor_css = themes.generate_theme_pair_css(light, dark, editor=True)
         self.assertIn(":host-context(.nightMode) anki-editable", editor_css)

@@ -304,10 +304,11 @@ def _theme_variables_css(preset: dict, selector: str) -> str:
             value = f"var(--syntax-{variable})" if variable else color
             css.append(f"  --agk-syntax-{role}: {value};")
     for role in _TOKEN_SELECTORS:
-        weight = "700" if role in preset["styles"]["bold"] else "400"
-        style = "italic" if role in preset["styles"]["italic"] else "normal"
-        css.append(f"  --agk-syntax-{role}-weight: {weight};")
-        css.append(f"  --agk-syntax-{role}-style: {style};")
+        if role in preset["styles"]["bold"]:
+            css.append(f"  --agk-syntax-{role}-weight: 700;")
+
+        if role in preset["styles"]["italic"]:
+            css.append(f"  --agk-syntax-{role}-style: italic;")
     css.append("}")
     return "\n".join(css) + "\n"
 
@@ -341,8 +342,8 @@ def generate_theme_css(
     for role, selectors in _TOKEN_SELECTORS.items():
         declarations = [
             f"  color: var(--agk-syntax-{role});",
-            f"  font-style: var(--agk-syntax-{role}-style);",
-            f"  font-weight: var(--agk-syntax-{role}-weight);",
+            f"  font-style: var(--agk-syntax-{role}-style, normal);",
+            f"  font-weight: var(--agk-syntax-{role}-weight, 400);",
         ]
         css.extend(
             [
