@@ -331,7 +331,7 @@ export function installCodeBlockControls() {
       const icon = button.querySelector('.code-block__copy-icon');
 
       button.dataset.agkCopyFeedbackId = feedbackId;
-      button.dataset.agkCopyFeedbackUntil = String(Date.now() + 2000);
+      button.dataset.agkCopyFeedbackUntil = String(Date.now() + 1000);
 
       if (icon) {
         icon.innerHTML = checkIcon;
@@ -354,7 +354,7 @@ export function installCodeBlockControls() {
           delete currentButton.dataset.agkCopyFeedbackId;
           delete currentButton.dataset.agkCopyFeedbackUntil;
         });
-      }, 2000);
+      }, 1000);
 
       try {
         await copyCodeToClipboard(button.closest('pre'));
