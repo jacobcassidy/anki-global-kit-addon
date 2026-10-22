@@ -46,7 +46,7 @@ def add_button(buttons: list, editor: Editor, settings: dict | None = None) -> N
             func=show_language_menu,
             label=_language_button_label(settings),
             id="anki_global_kit_syntax_language",
-            tip="Choose the language used for this note",
+            tip="Choose the language for syntax highlighting",
         )
     )
     buttons.append(
