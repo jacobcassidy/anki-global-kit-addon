@@ -31,23 +31,23 @@
   min-inline-size: 10rem;
   flex-direction: column;
   padding: 0.25rem;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border, var(--border-subtle));
   border-radius: var(--border-radius);
-  background: var(--canvas);
+  background: var(--canvas-elevated, var(--canvas));
   color: var(--fg);
-  box-shadow: 0 1px 3px var(--border-subtle);
+  box-shadow: 0 0.25rem 0.75rem 0 color-mix(in srgb, var(--fg) 18%, transparent);
 }
 
 .anki-global-kit-language-menu::before {
   position: absolute;
   inset-block-start: -0.3125rem;
   inset-inline-start: 1.125rem;
-  inline-size: 0.5625rem;
-  block-size: 0.5625rem;
+  inline-size: 0.625rem;
+  block-size: 0.625rem;
   transform: rotate(45deg);
-  border-block-start: 1px solid var(--border-subtle);
-  border-inline-start: 1px solid var(--border-subtle);
-  background: var(--canvas);
+  border-block-start: 1px solid var(--border, var(--border-subtle));
+  border-inline-start: 1px solid var(--border, var(--border-subtle));
+  background: var(--canvas-elevated, var(--canvas));
   content: "";
 }
 
