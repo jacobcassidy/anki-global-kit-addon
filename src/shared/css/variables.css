@@ -39,6 +39,7 @@ anki-editable {
   --syntax-red: #ef9182;
   --syntax-red-deep: #db6656;
   --syntax-yellow: #efddac;
+  --syntax-yellow-deep: #d7bb70;
 
   /* Syntax Highlighting Grayscale */
   --syntax-gray-900: #242424;
