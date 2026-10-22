@@ -33,6 +33,29 @@ _ROLE_FALLBACKS = {
     "variable": "foreground",
     "library-variable": "builtin",
 }
+_CASSIDY_DARK_SYNTAX_VARIABLES = {
+    "background": "gray-fade-black",
+    "foreground": "gray-light",
+    "comment": "gray-medium-dark",
+    "punctuation": "gray-medium",
+    "muted": "gray-light",
+    "builtin": "gray-white",
+    "builtin-constant": "purple",
+    "keyword": "red",
+    "declaration": "blue",
+    "function": "cyan",
+    "method": "gray-white",
+    "class": "cyan",
+    "namespace": "purple",
+    "parameter": "orange",
+    "attribute": "green",
+    "variable": "pink",
+    "library-variable": "gray-white-light",
+    "constant": "purple",
+    "operator": "red",
+    "string": "yellow",
+    "error": "red-deep",
+}
 _COLOR_ROLES = _BASE_COLOR_ROLES | set(_ROLE_FALLBACKS)
 _STYLE_ROLES = _COLOR_ROLES - {"background", "foreground"}
 _TOKEN_SELECTORS = {
@@ -263,14 +286,23 @@ def theme_preview_html(preset: dict) -> str:
 def _theme_variables_css(preset: dict, selector: str) -> str:
     """Keep all mode-dependent colors and font styles in custom properties."""
     colors = preset["colors"]
+    syntax_variables = (
+        _CASSIDY_DARK_SYNTAX_VARIABLES if preset["id"] == "cassidy-dark" else {}
+    )
     css = [
         f"{selector} {{",
-        f"  --agk-syntax-background: {colors['background']};",
-        f"  --agk-syntax-foreground: {colors['foreground']};",
+        f"  --agk-syntax-background: var(--syntax-{syntax_variables['background']});"
+        if syntax_variables
+        else f"  --agk-syntax-background: {colors['background']};",
+        f"  --agk-syntax-foreground: var(--syntax-{syntax_variables['foreground']});"
+        if syntax_variables
+        else f"  --agk-syntax-foreground: {colors['foreground']};",
     ]
     for role, color in colors.items():
         if role not in {"background", "foreground"}:
-            css.append(f"  --agk-syntax-{role}: {color};")
+            variable = syntax_variables.get(role)
+            value = f"var(--syntax-{variable})" if variable else color
+            css.append(f"  --agk-syntax-{role}: {value};")
     for role in _TOKEN_SELECTORS:
         weight = "700" if role in preset["styles"]["bold"] else "400"
         style = "italic" if role in preset["styles"]["italic"] else "normal"

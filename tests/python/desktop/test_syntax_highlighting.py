@@ -116,7 +116,14 @@ class SyntaxRenderingTests(unittest.TestCase):
         for theme_id, _name in available:
             css = themes.generate_theme_css(theme_id)
             self.assertIn(".agk-code-block", css)
-            self.assertRegex(css, r"--agk-syntax-background: #[0-9a-fA-F]{6};")
+            if theme_id == "cassidy-dark":
+                self.assertIn(
+                    "--agk-syntax-background: var(--syntax-gray-fade-black);",
+                    css,
+                )
+                self.assertIn("--agk-syntax-keyword: var(--syntax-red);", css)
+            else:
+                self.assertRegex(css, r"--agk-syntax-background: #[0-9a-fA-F]{6};")
 
         self.assertFalse(
             any(name == "aqt" or name.startswith("aqt.") for name in sys.modules)
