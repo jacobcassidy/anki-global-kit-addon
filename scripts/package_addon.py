@@ -11,17 +11,18 @@ PACKAGE_FILES = (
     "config.json",
     "manifest.json",
     "README.md",
-    "ABOUT.md",
-    "HELP.md",
 )
 PACKAGE_DIRECTORIES = (
     "desktop",
-    "shared",
-    "web",
+    "assets",
     "templates",
     "user_files",
 )
 PACKAGE_PATHS = PACKAGE_FILES + PACKAGE_DIRECTORIES
+REQUIRED_SETTINGS_FILES = (
+    "desktop/settings/pages/about/about-content.md",
+    "desktop/settings/pages/help/help-content.md",
+)
 REQUIRED_USER_FILES = (
     "user_files/README.txt",
     "user_files/editor-fields.css",
@@ -32,7 +33,7 @@ REQUIRED_USER_FILES = (
 def validate_package_paths() -> None:
     problems = [
         f"Expected file: addon/{item}"
-        for item in (*PACKAGE_FILES, *REQUIRED_USER_FILES)
+        for item in (*PACKAGE_FILES, *REQUIRED_SETTINGS_FILES, *REQUIRED_USER_FILES)
         if not (ADDON_ROOT / item).is_file()
     ]
     problems.extend(

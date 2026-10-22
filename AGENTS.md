@@ -10,26 +10,31 @@ The add-on can create missing topic and format note types in the active profile.
 
 - `addon/__init__.py` — Required Anki add-on entry point; initializes the Desktop features.
 - `addon/desktop/` — Python code that runs in Anki Desktop.
-  - `settings/features/` contains settings pages; `services/` handles settings persistence, media installation, and note type operations; `ui/` provides common controls; `helpers/` contains shortcut formatting and validation helpers; `configs/` contains defaults, constants, and the asset manifest.
-  - `editor/features/` contains editor integrations such as paste handling and shortcut labels; editor hooks live in `editor/integration.py`.
-- `addon/shared/assets/icons/` — SVG icons shared by the card toolbar, Desktop editor, and settings UI.
-- `addon/shared/assets/fonts/` — Packaged shared card and editor fonts.
-- `addon/web/assets/` — Built card assets grouped into `css/` and `js/`. The installer copies managed files into the active profile's `collection.media` root under their public filenames.
-- `addon/desktop/editor/assets/` — Built Desktop editor assets grouped into `css/` and `js/`.
+  - `bootstrap.py` owns startup and hook registration; `paths.py` contains shared filesystem paths.
+  - `config/`, `media/`, `note_types/`, and `shortcuts/` own Desktop configuration, asset installation, note-type operations, and shortcut handling.
+  - `settings/pages/` contains Settings presentation; `settings/bindings.py`, `settings/save.py`, and `settings/dialog.py` coordinate controls and saving.
+  - About and Help Markdown lives beside its Settings page as `about/about-content.md` and `help/help-content.md`.
+  - `ui/` contains reusable Qt controls and presentation constants; `editor/` contains editor integration and feature coordination.
+- `addon/assets/icons/` — SVG icons shared by the card toolbar, Desktop editor, and settings UI.
+- `addon/assets/fonts/` — Packaged shared card and editor fonts.
+- `addon/assets/cards/` — Built card assets grouped into `css/` and `js/`. The installer copies managed files into the active profile's `collection.media` root under their public filenames.
+- `addon/assets/editor/` — Built Desktop editor assets grouped into `css/` and `js/`.
 - `addon/templates/note-types/parts/` — HTML, script, and styling parts used to create note types.
 - `src/cards/js/` — Card-side JavaScript.
   - `inputs/` handles textarea setup, answer persistence/submission, keyboard navigation, and Markdown shortcuts.
   - `display/` controls question, answer, hint, note, and comparison display.
-  - `markdown/` converts submitted Markdown to HTML.
+  - Markdown conversion lives in `src/shared/js/markdown/` for card and editor consumers.
   - `syntax-highlighting/` detects languages from the topic and highlights code.
   - `runtime/` detects clients, holds state, and initializes features.
   - `integrations/` contains client-specific integrations such as AnkiWeb layout handling.
 - `src/cards/css/` — Card styles. `index.css` imports the module stylesheets.
 - `src/editor/js/` and `src/editor/css/` — Desktop editor JavaScript and styles.
 - `src/shared/js/` and `src/shared/css/` — Code shared between card and editor targets when runtime behavior is genuinely common.
+- `tests/` — JavaScript and Python tests grouped by runtime responsibility; shared stubs live under `tests/support/`.
 - `scripts/` — esbuild configuration, build, and watch scripts.
 - `docs/reference/screenshots/` — Screenshots of card layouts and settings pages.
-- `docs/dev/` — Developer and publishing instructions.
+- `docs/development/` — Developer, dependency, and publishing instructions.
+  - `ankiweb-description.md` contains the AnkiWeb listing content and is not shipped in the add-on archive.
 - `README.md` — User-facing features and setup.
 
 ## Build and generated files
@@ -42,12 +47,12 @@ npm run build:addon
 
 The build bundles the card and Desktop editor sources into:
 
-- `addon/web/assets/js/_anki-global-kit.min.js`
-- `addon/web/assets/css/_anki-global-kit.min.css`
-- `addon/desktop/editor/assets/js/editor.min.js`
-- `addon/desktop/editor/assets/css/editor-fields.min.css` and `editor-ui.min.css`
+- `addon/assets/cards/js/_anki-global-kit.min.js`
+- `addon/assets/cards/css/_anki-global-kit.min.css`
+- `addon/assets/editor/js/editor.min.js`
+- `addon/assets/editor/css/editor-fields.min.css` and `editor-ui.min.css`
 
-The packaged shared card and editor font is kept in `addon/shared/assets/fonts/`. `scripts/font_notices.py` combines `FONT-LICENSES.md` and the adjacent `licenses/*.txt` into `_meslolgl-nf-license.txt` during builds and packaging; Python 3 is required for this step. Update the source notices and regenerate the companion rather than editing the generated file. `addon/desktop/settings/configs/asset_manifest.py` maps public filenames to source paths, and `addon/desktop/settings/services/assets.py` installs the font and notice under their public names in the `collection.media` root. Run `npm run check:assets` to verify the source, build, package, template, and media paths, including notice freshness. These generated files are included in the add-on package. Update `scripts/build.config.js` if source entry points or output names change, along with the installer and template references when renaming installed assets. The watch script watches card, editor, and shared JavaScript and CSS.
+The packaged shared card and editor font is kept in `addon/assets/fonts/`. `scripts/font_notices.py` combines `FONT-LICENSES.md` and the adjacent `licenses/*.txt` into `_meslolgl-nf-license.txt` during builds and packaging; Python 3 is required for this step. Update the source notices and regenerate the companion rather than editing the generated file. `addon/desktop/media/manifest.py` maps public filenames to packaged paths, and `addon/desktop/media/install.py` installs managed assets under their public names in the `collection.media` root. Run `npm run check:assets` to verify the source, build, package, template, and media paths, including notice freshness. These generated files are included in the add-on package. Update `scripts/build.config.js` if source entry points or output names change, along with the installer and template references when renaming installed assets. The watch script watches card, editor, and shared JavaScript and CSS, plus imported icons.
 
 Useful project scripts:
 
@@ -63,13 +68,14 @@ Useful project scripts:
 
 - Use token or variable-based colors throughout the project; do not add static hardcoded colors. Anki Desktop settings and other Qt components must use Anki color tokens, while webview components must use CSS variables.
 - Put review-time behavior in `src/cards/` when it needs to run across Anki clients. Put editor behavior in `src/editor/` and use `addon/desktop/editor/` for its Desktop integration. Do not assume Python add-on code runs outside Anki Desktop.
-- Use the Python add-on for Desktop installation, configuration, and collection operations. Settings modules are grouped under `addon/desktop/settings/{features,services,ui,helpers,configs}/`. Connect to Anki through documented hooks and APIs instead of patching internal functions when a supported hook exists.
+- Use the Python add-on for Desktop installation, configuration, and collection operations. Settings presentation lives in `addon/desktop/settings/pages/`, coordinated by `dialog.py`, `bindings.py`, and `save.py`. Shared services live in the Desktop `config/`, `media/`, `note_types/`, and `shortcuts/` packages; reusable Qt controls and presentation constants live in `desktop/ui/`. Connect to Anki through documented hooks and APIs instead of patching internal functions when a supported hook exists.
 - When adding a button or keyboard shortcut to Anki Global Kit, add the corresponding control or configuration to Anki Global Kit Settings as appropriate.
+- Reserve every new fixed editor shortcut against configurable shortcuts. Add fixed bindings to `EDITOR_BLOCK_SHORTCUTS` and ensure Settings rejects conflicting assignments.
 - Keep release defaults in `addon/config.json`, including `note_type_selections`. Anki manages `addon/meta.json` as local installation metadata and saved configuration; leave it untracked and excluded from release archives. Do not copy local selections or platform-specific saved shortcuts into release defaults.
 - Treat media filenames as public interfaces: the installer, templates, and stylesheet imports must use identical names.
 - The add-on refreshes the kit's reserved asset names through Anki's media manager on `profile_did_open`. Keep installation scoped to those managed assets; do not overwrite user templates or unrelated media without an explicit opt-in design.
 - Create, replace, and delete note types through Anki's documented `col.models` APIs. Never replace or delete a user's type without explicit selection and confirmation; deletion is limited to empty types. If a kit type name already exists and Replace was not selected, leave it unchanged and report that to the user.
-- Note type operations live in `addon/desktop/settings/services/note_types.py` and read runtime template parts from `addon/templates/note-types/parts/{html,script,styling}/`. These are the source templates used to create or explicitly replace kit types.
+- Note type operations live in `addon/desktop/note_types/service.py` and read runtime template parts from `addon/templates/note-types/parts/{html,script,styling}/`. These are the source templates used to create or explicitly replace kit types.
 - Preserve cross-client behavior. Check platform-specific code in `src/cards/js/runtime/platform.js` and `src/cards/js/inputs/` before changing answer storage or keyboard behavior.
 - On macOS, Anki's Qt/webview keyboard handling swaps the usual modifier names: Anki's `Ctrl` setting corresponds to physical Command (⌘), while `Meta` corresponds to physical Control (⌃). Browser keyboard events use the standard mapping: Command sets `event.metaKey`, and physical Control sets `event.ctrlKey`. Do not apply the Qt modifier swap to browser events. Keep shortcut labels consistent with that mapping. Use `event.key` when matching the character produced by the current keyboard layout; use `event.code` only when a shortcut intentionally targets a physical key regardless of layout (for example, the physical C key).
 - If changing required template markup or CSS imports, update the applicable runtime parts under `addon/templates/note-types/parts/` and document any user migration in `README.md` or the changelog. Existing note types receive the change only after the user selects Replace and confirms.

@@ -20,6 +20,9 @@ export default defineConfig([
   globalIgnores([
     '**/*.min.js',
     '**/docs/**',
+    'addon/vendor/**',
+    'addon/assets/cards/**',
+    'addon/assets/editor/**',
   ]),
   {
     plugins: {

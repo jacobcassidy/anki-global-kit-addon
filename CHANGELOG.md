@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Moved About and Help content beside their Settings pages and the AnkiWeb listing description into publishing documentation. Updated guide links and package validation for the new locations.
+
+### Fixed
+
+- Fixed Desktop add-on startup after the project restructure by importing user stylesheet paths from their new module. Added coverage that imports the full add-on with Anki and Qt stubs and checks that startup registrations occur once.
+
 ## [1.1.1] - 2026-10-12
 
 ### Added

@@ -1,0 +1,8 @@
+"""Shared Desktop presentation values."""
+
+SECTION_SPACING = 24
+MARKDOWN_BLOCK_SPACING = 12
+NOTE_TYPES_ROW_PADDING = 4
+NESTED_INDENT = 20
+COLOR_TRANSPARENT = "transparent"
+ZERO_MARGINS = (0, 0, 0, 0)

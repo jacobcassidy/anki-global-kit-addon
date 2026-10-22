@@ -6,7 +6,7 @@ Organize the repository around runtime responsibilities, shared Desktop services
 
 Make Settings a consumer of Desktop functionality rather than the owner of configuration, media installation, note-type operations, and shortcut utilities. Service ownership and Settings separation have the highest priority for the upcoming [syntax highlighting integration](syntax-highlighting-plan.md). Asset consolidation and test relocation need not block that feature.
 
-This document records proposed work. The reorganization has not been implemented or verified in live Anki.
+The structural reorganization is implemented. Automated build, asset-path, packaging, and lint checks pass. The JavaScript and Python suites pass, including the previously failing editor-binding tests. Startup coverage now imports the real add-on entry point and feature modules with Anki and Qt stubs, checking registration counts with macOS and non-macOS settings. Shared presentation constants live in `desktop/ui/constants.py`, and Settings imports filesystem paths directly from `desktop/paths.py`. Live Anki and cross-client acceptance have not been performed, so this plan does not claim live verification.
 
 ## Target layout
 

@@ -1,6 +1,6 @@
 # Anki Global Kit README
 
-![Anki Global Kit logo](docs/branding/anki-global-kit-logo.png)
+![Anki Global Kit logo](docs/design/logo/anki-global-kit-logo.png)
 
 Anki Global Kit is an Anki Desktop add-on for creating reusable card templates, formatting typed answers with Markdown, highlighting code, comparing answers, and customizing the Desktop editor.
 
@@ -8,7 +8,7 @@ Requires **Anki Desktop 26.05 or later**.
 
 Install and configure the kit on Desktop, then sync your collection and media to use its card features in AnkiWeb, AnkiMobile, and AnkiDroid. Editor tools and the settings panel run on Desktop.
 
-For setup details, shortcuts, customization, and troubleshooting, read the [user guide (HELP.md)](addon/HELP.md). The same guide is available in the Anki Global Kit Settings panel's **Help** tab.
+For setup details, shortcuts, customization, and troubleshooting, read the [user guide](addon/desktop/settings/pages/help/help-content.md). The same guide is available in the Anki Global Kit Settings panel's **Help** tab.
 
 ## Features
 
@@ -133,19 +133,21 @@ The link command uses the standard [Anki data location](https://docs.ankiweb.net
 
 Run `npm test` for the JavaScript and Python suites, or `npm run test:scripts` and `npm run test:python` separately. GitHub Actions runs both suites on pushes, pull requests, and manual workflow runs using Node.js 24 and Python 3.13. The suites use Node/jsdom and isolated Anki/Qt stand-ins. They cover card and editor shortcuts, note type creation and replacement, deletion safeguards, removal confirmations, changed-plan rejection, and managed media installation and failed-write recovery. Live Anki and cross-client release checks are described in the publishing guide.
 
-Desktop Python code lives under `addon/desktop`, card sources under `src/cards`, editor sources under `src/editor`, and shared sources under `src/shared`. Runtime note type parts live under `addon/templates/note-types/parts`.
+Desktop services and Settings presentation live under `addon/desktop`; shipped card, editor, icon, and font assets live under `addon/assets`. Card, editor, and shared browser sources live under `src/cards`, `src/editor`, and `src/shared`; tests live under `tests/`. Runtime note type parts live under `addon/templates/note-types/parts`.
+
+See the [repository architecture guide](docs/development/architecture.md) for service ownership and the startup-free module loader used by build tools and pure-module tests.
 
 Merging a new version from `dev` into `main` automatically publishes a GitHub release after CI passes. The workflow reads the newest dated version section in `CHANGELOG.md`, excluding **Unreleased** and older sections, and checks that the manifest and package versions match. If that version already has a published release, publication is skipped.
 
-GitHub Actions builds the installable archive from the merged repository code by running `npm ci`, `npm run build:addon`, and `npm run package:addon`. The packaging script creates `dist/anki-global-kit.ankiaddon` from the `addon/` files, including the freshly built card and editor assets, plus the root changelog and license. The workflow attaches this archive to the GitHub release, uses the changelog section as its notes, and creates a `vX.Y.Z` tag at the exact merged commit. GitHub builds and uploads the archive automatically; updating the AnkiWeb listing still requires a manual upload. See [publishing instructions](docs/dev/PUBLISHING.md) for version preparation, packaging, and AnkiWeb release steps.
+GitHub Actions builds the installable archive from the merged repository code by running `npm ci`, `npm run build:addon`, and `npm run package:addon`. The packaging script creates `dist/anki-global-kit.ankiaddon` from the `addon/` files, including the freshly built card and editor assets, plus the root changelog and license. The workflow attaches this archive to the GitHub release, uses the changelog section as its notes, and creates a `vX.Y.Z` tag at the exact merged commit. GitHub builds and uploads the archive automatically; updating the AnkiWeb listing still requires a manual upload. See [publishing instructions](docs/development/publishing.md) for version preparation, packaging, and AnkiWeb release steps.
 
-See [development dependency notes](docs/dev/DEPENDENCIES.md) for patched transitive dependency overrides and the remaining `braces` advisory.
+See [development dependency notes](docs/development/dependencies.md) for patched transitive dependency overrides and the remaining `braces` advisory.
 
 ## Help and feedback
 
 If a shortcut does nothing, check both its group and individual enable switches and resolve any conflicts in settings. Click a shortcut field to capture a new key combination; **Escape** cancels capture. If submitted answers remain plain text, select **Enable Markdown to HTML rendering** and **Enable syntax highlighting for submitted answers** under **Cards → Card Reviews** and check that code fences have matching opening and closing lines.
 
-Read [HELP.md](addon/HELP.md) for settings guidance and common problems, or open the **Help** tab in **Anki Global Kit Settings...**. For an unresolved problem, [report an issue](https://github.com/jacobcassidy/anki-global-kit-addon/issues) with your Anki version, device, and steps to reproduce it. See the [changelog](CHANGELOG.md) for release notes.
+Read the [user guide](addon/desktop/settings/pages/help/help-content.md) for settings guidance and common problems, or open the **Help** tab in **Anki Global Kit Settings...**. For an unresolved problem, [report an issue](https://github.com/jacobcassidy/anki-global-kit-addon/issues) with your Anki version, device, and steps to reproduce it. See the [changelog](CHANGELOG.md) for release notes.
 
 ![Help tab in Anki Global Kit Settings with setup steps and guidance for the settings panel](docs/reference/screenshots/setting-help-tab.png)
 
@@ -153,6 +155,6 @@ Read [HELP.md](addon/HELP.md) for settings guidance and common problems, or open
 
 [MIT](LICENSE)
 
-The card bundle includes Diff Match Patch under the Apache License 2.0. Its [attribution and full license](addon/web/assets/js/licenses/diff-match-patch.txt) are also embedded in the script that syncs to other clients.
+The card bundle includes Diff Match Patch under the Apache License 2.0. Its [attribution and full license](addon/assets/cards/js/licenses/diff-match-patch.txt) are also embedded in the script that syncs to other clients.
 
-The bundled MesloLGL Nerd Font uses Nerd Fonts **v3.5.1** and incorporates upstream works with separate terms. See its [source, conversion instructions, attribution, and license notices](addon/shared/assets/fonts/FONT-LICENSES.md).
+The bundled MesloLGL Nerd Font uses Nerd Fonts **v3.5.1** and incorporates upstream works with separate terms. See its [source, conversion instructions, attribution, and license notices](addon/assets/fonts/FONT-LICENSES.md).

@@ -20,7 +20,13 @@ export default {
     'stylelint-high-performance-animation',
     'stylelint-plugin-logical-css',
   ],
-  ignoreFiles: ['**/*.min.css', '**/build/**', '**/vendor/**'],
+  ignoreFiles: [
+    '**/*.min.css',
+    '**/build/**',
+    '**/vendor/**',
+    'addon/assets/cards/**',
+    'addon/assets/editor/**',
+  ],
   rules: {
     '@stylistic/at-rule-name-space-after': 'always',
     '@stylistic/block-closing-brace-newline-before': 'always',

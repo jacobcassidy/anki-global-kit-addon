@@ -37,3 +37,7 @@
 
 # IGNORE GENERATED FILES
 addon/meta.json
+addon/vendor/**
+addon/assets/cards/**
+addon/assets/editor/**
+addon/assets/fonts/_meslolgl-nf-license.txt
