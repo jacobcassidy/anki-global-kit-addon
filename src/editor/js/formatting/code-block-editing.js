@@ -58,6 +58,34 @@ function replaceCode(target, start, end, text) {
   });
 }
 
+export function exitCodeBlock() {
+  const target = selectedCode();
+
+  if (!target || !target.range.collapsed) return false;
+
+  const { code, field, range, selection } = target;
+  const source = flattenCodeLines(code).textContent;
+  const offset = codeOffset(code, range.startContainer, range.startOffset);
+
+  if (offset !== source.length) return false;
+
+  return Boolean(
+    editWithNativeUndo(field, selection, (_field, staged, resolve) => {
+      const block = resolve(code).parentElement;
+      const paragraph = document.createElement('p');
+
+      paragraph.append(document.createElement('br'));
+      block.parentNode.insertBefore(paragraph, block.nextSibling);
+
+      const caret = document.createRange();
+
+      caret.setStart(paragraph, 0);
+      caret.collapse(true);
+      staged.addRange(caret);
+    }),
+  );
+}
+
 function lineNumberFrom(node) {
   const element = node?.nodeType === 1 ? node : node?.parentElement;
 

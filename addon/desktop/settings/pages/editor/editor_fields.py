@@ -14,6 +14,7 @@ from ....ui.theme import get_theme_color
 EDITOR_SHORTCUT_DEFINITIONS = (
     ("anki_editor_blockquote_shortcut", "Blockquote"),
     ("anki_editor_convert_markdown_shortcut", "Convert Markdown to HTML"),
+    ("anki_editor_exit_code_block_shortcut", "Exit Code Block"),
     ("anki_editor_inline_code_shortcut", "Inline Code"),
     ("anki_editor_syntax_highlighting_shortcut", "Syntax Highlighting"),
 )

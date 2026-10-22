@@ -32,6 +32,8 @@
   "card_toolbar_blockquote": true,
   "anki_editor_inline_code_shortcut_enabled": true,
   "anki_editor_inline_code_shortcut": "Ctrl+Shift+C",
+  "anki_editor_exit_code_block_shortcut_enabled": true,
+  "anki_editor_exit_code_block_shortcut": "Alt+Enter",
   "anki_editor_blockquote_shortcut_enabled": true,
   "anki_editor_blockquote_shortcut": "Ctrl+/",
   "anki_editor_convert_markdown_shortcut_enabled": true,
