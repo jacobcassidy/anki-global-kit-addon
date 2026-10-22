@@ -69,6 +69,7 @@ Useful project scripts:
 ## Implementation boundaries
 
 - Use token or variable-based colors throughout the project; do not add static hardcoded colors. Anki Desktop settings and other Qt components must use Anki color tokens, while webview components must use CSS variables.
+- Use `rem` for CSS sizing throughout the app unless another unit is specifically needed for the layout or behavior.
 - Put review-time behavior in `src/cards/` when it needs to run across Anki clients. Put editor behavior in `src/editor/` and use `addon/desktop/editor/` for its Desktop integration. Do not assume Python add-on code runs outside Anki Desktop.
 - Use the Python add-on for Desktop installation, configuration, and collection operations. Settings presentation lives in `addon/desktop/settings/pages/`, coordinated by `dialog.py`, `bindings.py`, and `save.py`. Shared services live in the Desktop `config/`, `media/`, `note_types/`, and `shortcuts/` packages; reusable Qt controls and presentation constants live in `desktop/ui/`. Connect to Anki through documented hooks and APIs instead of patching internal functions when a supported hook exists.
 - When adding a button or keyboard shortcut to Anki Global Kit, add the corresponding control or configuration to Anki Global Kit Settings as appropriate.

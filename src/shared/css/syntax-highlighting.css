@@ -8,12 +8,12 @@
 
 .global-kit-code-block .code-line {
   display: block;
-  min-block-size: 1lh;
 }
 
 .global-kit-code-block[data-line-numbers="true"] .code-line {
   display: grid;
-  grid-template-columns: 5ch minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: 0.5rem;
 }
 
 .global-kit-code-block[data-line-numbers="true"] .code-line__number {
