@@ -58,19 +58,10 @@
   border-radius: calc(var(--border-radius) * 0.6);
   color: inherit;
   inline-size: 100%;
-  padding: 0.25rem 0.5rem;
-  font: inherit;
-  text-align: start;
-}
-
-.anki-global-kit-language-menu__current {
-  font-weight: 600;
-}
-
-.anki-global-kit-language-menu__item {
-  cursor: pointer;
   padding: 2px 8px;
+  font: inherit;
   font-size: small;
+  text-align: start;
 }
 
 .anki-global-kit-language-menu__item:hover,
