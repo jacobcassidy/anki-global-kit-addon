@@ -1,5 +1,14 @@
 const MENU_ID = 'anki-global-kit-language-menu';
 let dismissMenu;
+let languageOptions = [];
+
+function refreshLanguageButton() {
+  const language = globalThis.ankiGlobalKitEditor?.getActiveLanguage?.();
+  const label = languageOptions.find(({ alias }) => alias === language)?.label;
+  const button = document.querySelector('[data-command="anki_global_kit_syntax_language"]');
+
+  if (button && label) button.textContent = label;
+}
 
 function closeLanguageMenu() {
   dismissMenu?.();
@@ -98,4 +107,14 @@ export function showLanguageMenu(languages, current, anchor) {
 export function installLanguageMenu() {
   const api = (globalThis.ankiGlobalKitEditor ||= {});
   api.showLanguageMenu = showLanguageMenu;
+  api.setLanguageOptions = (languages) => {
+    languageOptions = Array.isArray(languages) ? languages : [];
+    refreshLanguageButton();
+  };
+
+  if (!api.languageButtonTrackingInstalled) {
+    api.languageButtonTrackingInstalled = true;
+    document.addEventListener('selectionchange', refreshLanguageButton);
+    document.addEventListener('focusin', refreshLanguageButton);
+  }
 }

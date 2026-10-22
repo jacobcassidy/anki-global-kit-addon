@@ -172,9 +172,18 @@ def set_editor_language_context(editor: Editor, *, reset: bool = False) -> None:
     editor._anki_global_kit_language_remembered = remembered
     _watch_add_deck_chooser(editor)
     if editor.web is not None:
+        from ...syntax_highlighting.rendering import available_languages
+
+        language_options = [
+            {"alias": alias, "label": name}
+            for name, alias, _aliases in available_languages()
+            if alias in enabled
+        ]
         editor.web.eval(
             "globalThis.ankiGlobalKitEditor?.setLanguageContext("
             f"{json.dumps(override)}, {json.dumps(remembered)});"
+            "globalThis.ankiGlobalKitEditor?.setLanguageOptions("
+            f"{json.dumps(language_options, ensure_ascii=True)});"
         )
         label = _language_button_label(settings, override or remembered)
         editor.web.eval(
