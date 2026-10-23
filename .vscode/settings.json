@@ -10,6 +10,10 @@
       "source.organizeImports.ruff": "explicit"
     }
   },
+  "ruff.path": [
+    "${workspaceFolder}/.venv/bin/ruff",
+    "${workspaceFolder}/.venv/Scripts/ruff.exe"
+  ],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit",
     "source.fixAll.stylelint": "explicit"
