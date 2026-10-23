@@ -2,10 +2,39 @@
 
 import unittest
 
-from tests.support.anki_stubs import load_shortcut_helpers
+from tests.support.anki_stubs import load_module, load_shortcut_helpers
 
 
 class ShortcutHelpersTests(unittest.TestCase):
+    def test_unsupported_bindings_are_rejected_only_in_their_settings_context(self):
+        policy = load_module(
+            "kit.desktop.shortcuts.policy", "addon/desktop/shortcuts/policy.py"
+        )
+        for name in policy.INDENTATION_SHORTCUT_SETTINGS:
+            for keys in ("Tab", "Alt+Tab", "Ctrl+Shift+Backtab", "Meta+tAb"):
+                with self.subTest(setting=name, keys=keys):
+                    self.assertIn(
+                        "focus navigation",
+                        policy.unsupported_shortcut_message(name, keys),
+                    )
+            self.assertIsNone(policy.unsupported_shortcut_message(name, "Ctrl+Alt+."))
+        self.assertIsNone(
+            policy.unsupported_shortcut_message(
+                "card_input_markdown_bold_shortcut", "Alt+Tab"
+            )
+        )
+        self.assertIsNone(
+            policy.unsupported_shortcut_message(
+                "card_input_markdown_code_block_shortcut", "CodeBlock+C"
+            )
+        )
+        self.assertIn(
+            "only available for card",
+            policy.unsupported_shortcut_message(
+                "anki_editor_inline_code_shortcut", "CodeBlock+C"
+            ),
+        )
+
     def test_intended_native_indent_actions_do_not_warn_but_other_overlaps_do(self):
         helpers = load_shortcut_helpers()
         for action, keys, alias, opposite in (

@@ -12,6 +12,29 @@ from tests.support.anki_stubs import load_editor_integration, load_settings_serv
 
 
 class EditorBindingsTests(unittest.TestCase):
+    def test_raw_unsupported_bindings_recover_before_duplicate_and_fixed_checks(self):
+        settings = load_settings_services().config.get_editor_settings()
+        settings.update(
+            {
+                "anki_editor_inline_code_shortcut": "Ctrl+Alt+.",
+                "anki_editor_indent_increase_shortcut": "Alt+Tab",
+                "anki_editor_indent_decrease_shortcut": "Control+Backtab",
+                "anki_editor_convert_markdown_shortcut": "CodeBlock+C",
+            }
+        )
+        integration = load_editor_integration(settings)
+        active = integration._configured_editor_shortcuts(settings)
+        self.assertNotIn("anki_editor_indent_increase_shortcut", active)
+        self.assertEqual(active["anki_editor_indent_decrease_shortcut"], "Ctrl+Alt+,")
+        self.assertEqual(active["anki_editor_convert_markdown_shortcut"], "Alt+M")
+        self.assertNotIn("Alt+Tab", active.values())
+        self.assertNotIn("CodeBlock+C", active.values())
+        settings["anki_editor_indent_decrease_shortcut_enabled"] = False
+        self.assertNotIn(
+            "anki_editor_indent_decrease_shortcut",
+            integration._configured_editor_shortcuts(settings),
+        )
+
     def test_injected_browser_shortcuts_follow_the_native_definitions(self):
         for mac in (False, True):
             with self.subTest(mac=mac):

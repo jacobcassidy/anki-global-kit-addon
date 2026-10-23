@@ -26,6 +26,27 @@ class Action:
 
 
 class ReviewerShortcutTests(unittest.TestCase):
+    def test_tab_and_backtab_are_left_to_native_navigation(self):
+        self.integration._active_reviewer = self.mw.reviewer
+        self.integration.QEvent.Type = SimpleNamespace(ShortcutOverride=1, KeyPress=2)
+        self.integration.Qt.Key = SimpleNamespace(
+            Key_Comma=44,
+            Key_Period=46,
+            Key_Less=60,
+            Key_Greater=62,
+        )
+        event = Mock()
+        filter = self.integration._PreferencesShortcutFilter()
+        for key in (9, 10):
+            for modifiers in (0, 4, 8, 16, 32, 16 | 32):
+                for kind in (1, 2):
+                    event.key.return_value = key
+                    event.modifiers.return_value = modifiers
+                    event.type.return_value = kind
+                    self.assertFalse(filter.eventFilter(self.mw.reviewer.web, event))
+        event.accept.assert_not_called()
+        self.mw.reviewer.web.eval.assert_not_called()
+
     def setUp(self):
         web = Mock()
         web.isAncestorOf.return_value = False
@@ -175,130 +196,6 @@ class ReviewerShortcutTests(unittest.TestCase):
                 )
                 self.assertFalse(filter.eventFilter(self.mw.reviewer.web, event))
 
-    def test_native_control_tab_routes_to_card_before_browser_keydown(self):
-        self.integration._active_reviewer = self.mw.reviewer
-        self.integration.QEvent.Type = SimpleNamespace(ShortcutOverride=1, KeyPress=2)
-        self.integration.Qt.Key = SimpleNamespace(
-            Key_Tab=9,
-            Key_Backtab=10,
-            Key_Comma=44,
-            Key_Period=46,
-            Key_Less=60,
-            Key_Greater=62,
-        )
-        self.integration.Qt.KeyboardModifier = SimpleNamespace(
-            MetaModifier=4, ControlModifier=8, AltModifier=16, ShiftModifier=32
-        )
-        settings = ModuleType("kit.desktop.config.service")
-        settings.get_settings = lambda: {"card_input_tab_indentation": True}
-        settings.get_editor_settings = lambda: {"anki_editor_tab_indentation": True}
-        filter = self.integration._PreferencesShortcutFilter()
-        with patch.dict(sys.modules, {"kit.desktop.config.service": settings}):
-            event = Mock()
-            event.key.return_value = 9
-            event.modifiers.return_value = 4
-            event.type.return_value = 1
-            self.assertTrue(filter.eventFilter(self.mw.reviewer.web, event))
-            self.mw.reviewer.web.eval.assert_called_once_with(
-                "globalThis.ankiGlobalKitUnindentQuestion?.();"
-            )
-            event.type.return_value = 2
-            self.assertTrue(filter.eventFilter(self.mw.reviewer.web, event))
-            self.mw.reviewer.web.eval.assert_called_once()
-            self.integration._active_reviewer = None
-            self.assertFalse(filter.eventFilter(self.mw.reviewer.web, event))
-            self.integration._active_reviewer = self.mw.reviewer
-            settings.get_settings = lambda: {"card_input_tab_indentation": False}
-            self.assertFalse(filter.eventFilter(self.mw.reviewer.web, event))
-
-    def test_native_control_tab_routes_to_editor_and_respects_disabled_setting(self):
-        self.integration.QEvent.Type = SimpleNamespace(ShortcutOverride=1, KeyPress=2)
-        self.integration.Qt.Key = SimpleNamespace(
-            Key_Tab=9,
-            Key_Backtab=10,
-            Key_Comma=44,
-            Key_Period=46,
-            Key_Less=60,
-            Key_Greater=62,
-        )
-        self.integration.Qt.KeyboardModifier = SimpleNamespace(
-            MetaModifier=4, ControlModifier=8, AltModifier=16, ShiftModifier=32
-        )
-        web = Mock()
-        self.application.focusWidget.return_value = web
-        self.integration._register_editor_tab_shortcut([], SimpleNamespace(web=web))
-        settings = ModuleType("kit.desktop.config.service")
-        settings.get_editor_settings = lambda: {"anki_editor_tab_indentation": True}
-        settings.get_settings = lambda: {"card_input_tab_indentation": True}
-        event = Mock()
-        event.key.return_value = 9
-        event.modifiers.return_value = 4
-        event.type.return_value = 1
-        with patch.dict(sys.modules, {"kit.desktop.config.service": settings}):
-            filter = self.integration._PreferencesShortcutFilter()
-            self.assertTrue(filter.eventFilter(web, event))
-            web.eval.assert_called_once_with(
-                "globalThis.ankiGlobalKitEditor?.unindent();"
-            )
-            settings.get_editor_settings = lambda: {
-                "anki_editor_tab_indentation": False
-            }
-            self.assertFalse(filter.eventFilter(web, event))
-            event.modifiers.return_value = 8
-            self.assertFalse(filter.eventFilter(web, event))
-
-    def test_preview_inputs_route_control_tab_without_an_active_study_session(self):
-        self.mw.state = "deckBrowser"
-        self.integration.QEvent.Type = SimpleNamespace(ShortcutOverride=1, KeyPress=2)
-        self.integration.Qt.Key = SimpleNamespace(
-            Key_Tab=9,
-            Key_Backtab=10,
-            Key_Comma=44,
-            Key_Period=46,
-            Key_Less=60,
-            Key_Greater=62,
-        )
-        self.integration.Qt.KeyboardModifier = SimpleNamespace(
-            MetaModifier=4, ControlModifier=8, AltModifier=16, ShiftModifier=32
-        )
-        settings = ModuleType("kit.desktop.config.service")
-        settings.get_settings = lambda: {"card_input_tab_indentation": True}
-        settings.get_editor_settings = lambda: {"anki_editor_tab_indentation": True}
-        for attribute in ("_web", "preview_web"):
-            with (
-                self.subTest(attribute=attribute),
-                patch.dict(sys.modules, {"kit.desktop.config.service": settings}),
-            ):
-                web = Mock()
-                web.isAncestorOf.return_value = False
-                self.application.focusWidget.return_value = web
-                preview = SimpleNamespace(**{attribute: web})
-                result = self.integration._on_webview_message(
-                    (False, None),
-                    "anki-global-kit:question-input-focus:unhandled",
-                    preview,
-                )
-                self.assertEqual(result, (True, None))
-                event = Mock()
-                event.type.return_value = 1
-                event.key.return_value = 9
-                event.modifiers.return_value = 4
-                filter = self.integration._PreferencesShortcutFilter()
-                self.assertTrue(filter.eventFilter(web, event))
-                web.eval.assert_called_once_with(
-                    "globalThis.ankiGlobalKitUnindentQuestion?.();"
-                )
-                self.assertTrue(self.mw.form.actionPreferences.isEnabled())
-                settings.get_settings = lambda: {"card_input_tab_indentation": False}
-                self.assertFalse(filter.eventFilter(web, event))
-                settings.get_settings = lambda: {"card_input_tab_indentation": True}
-                self.integration._on_webview_message(
-                    (False, None),
-                    "anki-global-kit:question-input-blur",
-                    preview,
-                )
-                self.assertFalse(filter.eventFilter(web, event))
-
     def test_preview_focus_recovery_refreshes_the_preview_not_the_reviewer(self):
         self.mw.state = "deckBrowser"
         web = Mock()
@@ -325,32 +222,6 @@ class ReviewerShortcutTests(unittest.TestCase):
             (False, None),
         )
 
-    def test_custom_tab_shortcuts_replace_defaults_and_respect_individual_switches(
-        self,
-    ):
-        self.integration.Qt.KeyboardModifier = SimpleNamespace(
-            MetaModifier=4, ControlModifier=8, AltModifier=16, ShiftModifier=32
-        )
-        event = Mock()
-        config = {
-            "card_input_tab_indent_increase_shortcut": "Alt+Shift+Tab",
-            "card_input_tab_indent_decrease_shortcut": "Ctrl+Tab",
-        }
-        event.modifiers.return_value = 4
-        self.assertIsNone(self.integration._card_tab_action(event, config))
-        event.modifiers.return_value = 16 | 32
-        self.assertEqual(
-            self.integration._card_tab_action(event, config),
-            "globalThis.ankiGlobalKitIndentQuestion?.();",
-        )
-        event.modifiers.return_value = 8
-        self.assertEqual(
-            self.integration._card_tab_action(event, config),
-            "globalThis.ankiGlobalKitUnindentQuestion?.();",
-        )
-        config["card_input_tab_indent_decrease_shortcut_enabled"] = False
-        self.assertIsNone(self.integration._card_tab_action(event, config))
-
     def test_closed_preview_is_pruned_before_focus_recovery_touches_qt(self):
         web = Mock()
         web.isAncestorOf.side_effect = RuntimeError(
@@ -370,27 +241,6 @@ class ReviewerShortcutTests(unittest.TestCase):
         )
         self.assertNotIn(web, self.integration._preview_input_webviews)
 
-    def test_closed_editor_and_preview_are_pruned_before_shortcut_routing(self):
-        editor = Mock()
-        preview = Mock()
-        for web in (editor, preview):
-            web.isAncestorOf.side_effect = RuntimeError(
-                "wrapped C/C++ object has been deleted"
-            )
-        self.integration._editor_webviews.add(editor)
-        self.integration._preview_input_webviews.add(preview)
-        self.deleted_widgets.update((editor, preview))
-        self.mw.state = "deckBrowser"
-        settings = ModuleType("kit.desktop.config.service")
-        settings.get_settings = lambda: {"card_input_tab_indentation": True}
-        settings.get_editor_settings = lambda: {"anki_editor_tab_indentation": True}
-        with patch.dict(sys.modules, {"kit.desktop.config.service": settings}):
-            self.assertIsNone(self.integration._tab_shortcut_target(Mock()))
-        self.assertFalse(self.integration._editor_webviews)
-        self.assertFalse(self.integration._preview_input_webviews)
-        editor.isAncestorOf.assert_not_called()
-        preview.isAncestorOf.assert_not_called()
-
     def test_deleted_reviewer_and_focus_widgets_are_not_dereferenced(self):
         self.integration._active_reviewer = self.mw.reviewer
         self.integration._command_comma_handled = True
@@ -399,42 +249,6 @@ class ReviewerShortcutTests(unittest.TestCase):
         self.integration._refresh_question_focus()
         self.mw.reviewer.web.isAncestorOf.assert_not_called()
         self.mw.reviewer.web.eval.assert_not_called()
-
-    def test_editor_customized_tab_combinations_and_individual_switches(self):
-        self.integration.Qt.KeyboardModifier = SimpleNamespace(
-            MetaModifier=4, ControlModifier=8, AltModifier=16, ShiftModifier=32
-        )
-        event = Mock()
-        config = {
-            "anki_editor_indent_increase_shortcut": "Meta+Shift+Tab",
-            "anki_editor_indent_decrease_shortcut": "Alt+Tab",
-        }
-        event.modifiers.return_value = 4 | 32
-        self.assertEqual(
-            self.integration._indentation_tab_action(
-                event, config, "anki_editor_indent"
-            ),
-            "globalThis.ankiGlobalKitEditor?.indent();",
-        )
-        event.modifiers.return_value = 16
-        self.assertEqual(
-            self.integration._indentation_tab_action(
-                event, config, "anki_editor_indent"
-            ),
-            "globalThis.ankiGlobalKitEditor?.unindent();",
-        )
-        config["anki_editor_indent_decrease_shortcut_enabled"] = False
-        self.assertIsNone(
-            self.integration._indentation_tab_action(
-                event, config, "anki_editor_indent"
-            )
-        )
-        event.modifiers.return_value = 4
-        self.assertIsNone(
-            self.integration._indentation_tab_action(
-                event, config, "anki_editor_indent"
-            )
-        )
 
     def test_native_focus_recovery_refreshes_even_when_ownership_was_reset(self):
         self.integration._refresh_question_focus()

@@ -1,4 +1,5 @@
 import { matchesMarkdownShortcut } from './markdown-shortcuts.js';
+import { recoverIndentationShortcut } from '../../../shared/js/shortcut-policy.js';
 
 /** Handle configured indentation shortcuts; leave plain Tab to native navigation. */
 export function handleTabIndentation(textarea, event, shortcuts) {
@@ -6,7 +7,9 @@ export function handleTabIndentation(textarea, event, shortcuts) {
   const isMac = navigator.platform.startsWith('Mac');
   const configured = shortcuts ?? { increase: 'Ctrl+Alt+.', decrease: 'Ctrl+Alt+,' };
   for (const [action, shortcut] of Object.entries(configured)) {
-    if (!shortcut || !matchesMarkdownShortcut(event, shortcut, isMac)) continue;
+    const binding = recoverIndentationShortcut(shortcut, action === 'decrease' ? 'Ctrl+Alt+,' : 'Ctrl+Alt+.');
+
+    if (!binding || !matchesMarkdownShortcut(event, binding, isMac)) continue;
     event.preventDefault();
     event.stopPropagation();
     changeTextareaIndentation(textarea, action === 'decrease');

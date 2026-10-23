@@ -1,3 +1,5 @@
+import { recoverIndentationShortcut } from '../../../shared/js/shortcut-policy.js';
+
 const savedSettings = globalThis.ankiGlobalKitSettings || {};
 
 export const settings = {
@@ -44,11 +46,11 @@ export const settings = {
   cardInputTabShortcutsMap: {
     increase:
       savedSettings.card_input_tab_indent_increase_shortcut_enabled !== false
-        ? (savedSettings.card_input_tab_indent_increase_shortcut ?? 'Ctrl+Alt+.')
+        ? recoverIndentationShortcut(savedSettings.card_input_tab_indent_increase_shortcut, 'Ctrl+Alt+.')
         : '',
     decrease:
       savedSettings.card_input_tab_indent_decrease_shortcut_enabled !== false
-        ? (savedSettings.card_input_tab_indent_decrease_shortcut ?? 'Ctrl+Alt+,')
+        ? recoverIndentationShortcut(savedSettings.card_input_tab_indent_decrease_shortcut, 'Ctrl+Alt+,')
         : '',
   },
   cardReviewMarkdownRendering: savedSettings.card_review_markdown_rendering !== false,

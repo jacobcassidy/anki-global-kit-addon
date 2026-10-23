@@ -14,7 +14,6 @@ _command_comma_handled = False
 _shortcut_filter: "_PreferencesShortcutFilter | None" = None
 _message_hook_installed = False
 _preferences_was_enabled: bool | None = None
-_editor_webviews = WeakSet()
 _preview_input_webviews = WeakSet()
 _toolbar_webviews = WeakSet()
 
@@ -86,58 +85,6 @@ def _refresh_question_focus(*_args) -> None:
         webview.eval("globalThis.ankiGlobalKitReportQuestionFocus?.();")
 
 
-def _register_editor_tab_shortcut(shortcuts, editor) -> None:
-    _register_editor_webview(editor)
-
-
-def _register_editor_webview(editor) -> None:
-    if editor.web is not None and not sip.isdeleted(editor.web):
-        _editor_webviews.add(editor.web)
-
-
-def _indentation_tab_action(event, settings, prefix="card_input_tab_indent"):
-    """Match customized Tab combinations before Qt consumes their keypress."""
-    control = (
-        Qt.KeyboardModifier.MetaModifier
-        if is_mac
-        else Qt.KeyboardModifier.ControlModifier
-    )
-    modifiers = {
-        "Ctrl": Qt.KeyboardModifier.ControlModifier,
-        "Meta": Qt.KeyboardModifier.MetaModifier,
-        "Control": control,
-        "Alt": Qt.KeyboardModifier.AltModifier,
-        "Shift": Qt.KeyboardModifier.ShiftModifier,
-    }
-    for action, default in (("increase", "Alt+Tab"), ("decrease", "Control+Tab")):
-        key = f"{prefix}_{action}_shortcut"
-        if not settings.get(f"{key}_enabled", True):
-            continue
-        shortcut = settings.get(key, default)
-        parts = shortcut.split("+")
-        if parts.pop().lower() != "tab":
-            continue
-        expected = event.modifiers() & ~event.modifiers()
-        if not parts or any(part not in modifiers for part in parts):
-            continue
-        for part in parts:
-            expected |= modifiers[part]
-        if event.modifiers() == expected:
-            if prefix == "anki_editor_indent":
-                method = "indent" if action == "increase" else "unindent"
-                return f"globalThis.ankiGlobalKitEditor?.{method}();"
-            return (
-                "globalThis.ankiGlobalKitIndentQuestion?.();"
-                if action == "increase"
-                else "globalThis.ankiGlobalKitUnindentQuestion?.();"
-            )
-    return None
-
-
-def _card_tab_action(event, settings):
-    return _indentation_tab_action(event, settings)
-
-
 def _card_indent_shortcut_override(event) -> bool:
     """Keep native Anki shortcuts from consuming card indentation keys."""
     if not is_mac:
@@ -190,37 +137,6 @@ def _card_indent_shortcut_override(event) -> bool:
     return False
 
 
-def _tab_shortcut_target(event):
-    """Only claim Control+Tab in webviews whose indentation setting is enabled."""
-    from ..config.service import get_editor_settings, get_settings
-
-    focused = QApplication.focusWidget()
-    if focused is None:
-        return None
-    for webview in _live_webviews(_editor_webviews):
-        if _webview_contains_focus(webview, focused):
-            settings = get_editor_settings()
-            script = _indentation_tab_action(event, settings, "anki_editor_indent")
-            if settings["anki_editor_tab_indentation"] and script:
-                return webview, script
-            return None
-    for webview in _live_webviews(_preview_input_webviews):
-        if _webview_contains_focus(webview, focused):
-            settings = get_settings()
-            script = _card_tab_action(event, settings)
-            if settings["card_input_tab_indentation"] and script:
-                return webview, script
-            return None
-    if mw.state == "review" and _active_reviewer is mw.reviewer:
-        webview = mw.reviewer.web
-        if _webview_contains_focus(webview, focused):
-            settings = get_settings()
-            script = _card_tab_action(event, settings)
-            if settings["card_input_tab_indentation"] and script:
-                return webview, script
-    return None
-
-
 class _PreferencesShortcutFilter(QObject):
     """Route card indentation keys before Qt handles native shortcuts."""
 
@@ -231,17 +147,6 @@ class _PreferencesShortcutFilter(QObject):
             # Let the focused HTML button receive activation/navigation instead
             # of Anki's native Show Answer or Escape shortcuts.
             event.accept()
-            return True
-        if (
-            event.type() in (QEvent.Type.ShortcutOverride, QEvent.Type.KeyPress)
-            and event.key() in (Qt.Key.Key_Tab, Qt.Key.Key_Backtab)
-            and (target := _tab_shortcut_target(event)) is not None
-        ):
-            # Chromium can lose the Tab key in the subsequent native KeyPress.
-            # Handle the intact ShortcutOverride before focus traversal wins.
-            event.accept()
-            if event.type() == QEvent.Type.ShortcutOverride:
-                target[0].eval(target[1])
             return True
         if (
             event.type() == QEvent.Type.ShortcutOverride
@@ -365,8 +270,6 @@ def initialize() -> None:
         app.installEventFilter(_shortcut_filter)
         app.focusChanged.connect(_refresh_question_focus)
     if not _message_hook_installed:
-        gui_hooks.editor_did_init_shortcuts.append(_register_editor_tab_shortcut)
-        gui_hooks.editor_did_load_note.append(_register_editor_webview)
         gui_hooks.webview_did_receive_js_message.append(_on_webview_message)
         gui_hooks.card_will_show.append(_on_card_will_show)
         gui_hooks.state_did_change.append(_sync_preferences_action)

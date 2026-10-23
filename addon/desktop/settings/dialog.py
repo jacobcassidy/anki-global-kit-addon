@@ -31,6 +31,7 @@ from ..shortcuts.formatting import (
     reserved_shortcut_warnings,
     shortcut_has_required_modifier,
 )
+from ..shortcuts.policy import unsupported_shortcut_message
 from ..ui.constants import SECTION_SPACING
 from ..ui.shortcut_rows import style_shortcut_option
 from ..ui.theme import get_theme_color
@@ -206,6 +207,10 @@ def open_settings() -> None:
                 if not shortcut:
                     continue
                 active_shortcuts.append((shortcut, key, label))
+                unsupported = unsupported_shortcut_message(key, shortcut)
+                if unsupported:
+                    messages[key].append(unsupported)
+                    validation_state["invalid"].append(label)
                 if not shortcut_has_required_modifier(shortcut):
                     messages[key].append(f"Use {SHORTCUT_MODIFIER_HINT} with this key.")
                     validation_state["invalid"].append(label)
@@ -260,6 +265,10 @@ def open_settings() -> None:
             if not shortcut:
                 continue
             editor_active_shortcuts.append((shortcut, key, label))
+            unsupported = unsupported_shortcut_message(key, shortcut)
+            if unsupported:
+                editor_messages[key].append(unsupported)
+                validation_state["invalid"].append(f"Anki editor {label}")
             if not shortcut_has_required_modifier(shortcut):
                 editor_messages[key].append(
                     f"Use {SHORTCUT_MODIFIER_HINT} with this key."
@@ -328,6 +337,8 @@ def open_settings() -> None:
             )
 
     def validate_shortcut_candidate(key: str, candidate: str) -> str | None:
+        if message := unsupported_shortcut_message(key, candidate):
+            return message
         if not fields.shortcut_masters[key].isChecked():
             return None
         candidate_normalized = normalize_shortcut(candidate)
@@ -348,6 +359,8 @@ def open_settings() -> None:
         return None
 
     def validate_editor_shortcut_candidate(key, candidate):
+        if message := unsupported_shortcut_message(key, candidate):
+            return message
         if not editor_shortcut_active(key):
             return None
         fixed_action = editor_fixed_shortcut_action(candidate)

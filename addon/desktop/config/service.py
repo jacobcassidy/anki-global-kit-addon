@@ -3,6 +3,7 @@
 from aqt import mw
 from aqt.utils import is_mac
 
+from ..shortcuts.policy import recover_shortcut
 from .constants import ADDON_PACKAGE_NAME
 from .defaults import DEFAULT_SETTINGS
 
@@ -19,6 +20,8 @@ def _read_settings(*, editor: bool) -> dict[str, object]:
         value = config.get(name, default)
         # Exact types keep numbers such as 0/1 from acting as boolean settings.
         settings[name] = value if type(value) is type(default) else default
+        if name.endswith("_shortcut"):
+            settings[name] = recover_shortcut(name, settings[name], default)
     return settings
 
 
@@ -38,14 +41,6 @@ def get_settings() -> dict[str, object]:
 
 def get_editor_settings() -> dict[str, object]:
     settings = _read_settings(editor=True)
-    for name in (
-        "anki_editor_inline_code_shortcut",
-        "anki_editor_indent_increase_shortcut",
-        "anki_editor_indent_decrease_shortcut",
-    ):
-        if settings[name].startswith("CodeBlock+"):
-            modifiers = "Ctrl+Meta" if is_mac else "Ctrl+Alt"
-            settings[name] = f"{modifiers}+{settings[name].split('+', 1)[1]}"
     for name in (
         "anki_editor_indent_increase_shortcut",
         "anki_editor_indent_decrease_shortcut",

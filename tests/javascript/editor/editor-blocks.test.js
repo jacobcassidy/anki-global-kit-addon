@@ -15,8 +15,8 @@ import {
 function editor(html) {
   globalThis.ankiGlobalKitEditorBlockShortcuts = { ...editorBlockShortcuts };
   globalThis.ankiGlobalKitEditorSettings = {
-    anki_editor_indent_increase_shortcut: 'Alt+Tab',
-    anki_editor_indent_decrease_shortcut: 'Control+Tab',
+    anki_editor_indent_increase_shortcut: 'Ctrl+Alt+.',
+    anki_editor_indent_decrease_shortcut: 'Ctrl+Alt+,',
   };
   const dom = new JSDOM(`<div contenteditable="true">${html}</div>`);
   for (const name of ['window', 'document', 'Node', 'NodeFilter', 'Range', 'InputEvent', 'navigator']) {
@@ -261,9 +261,9 @@ for (const numbered of [true, false]) {
           else indentEditorField();
         } else {
           const event = new dom.window.KeyboardEvent('keydown', {
-            key: 'Tab',
-            altKey: !outdent,
-            ctrlKey: outdent,
+            key: outdent ? ',' : '.',
+            altKey: true,
+            ctrlKey: true,
             bubbles: true,
             cancelable: true,
           });
@@ -313,7 +313,7 @@ test('formatting uses one native insertion and keeps the caret on the same conte
   assert.equal(window.getSelection().focusOffset, 1);
 });
 
-test('Alt+Tab and Control+Tab change list levels while Tab retains native navigation', () => {
+test('primary+Alt+Period and primary+Alt+Comma change list levels while Tab retains native navigation', () => {
   const { field, range, dom } = editor('<ul><li>A</li></ul>');
   const commands = nativeInsertion(field);
   range.setStart(field.querySelector('li').firstChild, 1);
@@ -321,7 +321,12 @@ test('Alt+Tab and Control+Tab change list levels while Tab retains native naviga
   window.getSelection().removeAllRanges();
   window.getSelection().addRange(range);
   installBlockFormatting();
-  for (const options of [{}, { shiftKey: true }, { altKey: true }, { ctrlKey: true }]) {
+  for (const options of [
+    {},
+    { shiftKey: true },
+    { key: '.', ctrlKey: true, altKey: true },
+    { key: ',', ctrlKey: true, altKey: true },
+  ]) {
     field.dispatchEvent(
       new dom.window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true, ...options }),
     );
@@ -375,11 +380,13 @@ for (const [platform, modifier] of [
 }
 
 for (const [platform, modifier] of [
-  ['MacIntel', 'ctrlKey'],
+  ['MacIntel', 'metaKey'],
   ['Linux', 'ctrlKey'],
 ]) {
-  test(`editor physical Control+Tab unindents on ${platform}`, () => {
+  test(`editor punctuation shortcuts preserve native Tab navigation on ${platform}`, () => {
     const { field, range, dom } = editor('<ul><li>A</li></ul>');
+    globalThis.ankiGlobalKitEditorSettings.anki_editor_indent_increase_shortcut = 'Alt+Tab';
+    globalThis.ankiGlobalKitEditorSettings.anki_editor_indent_decrease_shortcut = 'Control+Tab';
     Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { platform } });
     const commands = nativeInsertion(field);
     range.setStart(field.querySelector('li').firstChild, 1);
@@ -401,13 +408,15 @@ for (const [platform, modifier] of [
     assert.equal(dispatch({ shiftKey: true }), false);
     assert.equal(dispatch({ altKey: true, [modifier]: true }), false);
     assert.equal(dispatch({ [modifier === 'metaKey' ? 'ctrlKey' : 'metaKey']: true }), false);
-    assert.equal(dispatch({ altKey: true }), true);
-    assert.equal(dispatch({ [modifier]: true }), true);
+    assert.equal(dispatch({ altKey: true }), false);
+    assert.equal(dispatch({ [modifier]: true }), false);
+    assert.equal(dispatch({ key: '.', altKey: true, [modifier]: true }), true);
+    assert.equal(dispatch({ key: ',', altKey: true, [modifier]: true }), true);
     assert.deepEqual(commands, ['indent', 'outdent']);
   });
 }
 
-test('editor Control+Tab removes plain text indentation and preserves formatting and selection', () => {
+test('editor primary+Alt+Comma removes plain text indentation and preserves formatting and selection', () => {
   const { field, range, dom } = editor('<div>    <b>one</b></div><div>  two</div><div>three</div>');
   const selection = window.getSelection();
   range.setStart(field.firstChild.querySelector('b').firstChild, 1);
@@ -423,8 +432,9 @@ test('editor Control+Tab removes plain text indentation and preserves formatting
   installBlockFormatting();
   field.dispatchEvent(
     new dom.window.KeyboardEvent('keydown', {
-      key: 'Tab',
+      key: ',',
       ctrlKey: true,
+      altKey: true,
       bubbles: true,
       cancelable: true,
     }),
@@ -514,7 +524,7 @@ for (const html of [
   '<div>one</div><div>second sentence</div><div>three</div>',
   '<pre>one\nsecond sentence\nthree</pre>',
 ]) {
-  test(`Alt+Tab at the middle of a word indents only its row: ${html}`, () => {
+  test(`primary+Alt+Period at the middle of a word indents only its row: ${html}`, () => {
     const { field, range, dom } = editor(html);
     const walker = document.createTreeWalker(field, NodeFilter.SHOW_TEXT);
     let text;
@@ -540,7 +550,8 @@ for (const html of [
     installBlockFormatting();
     field.dispatchEvent(
       new dom.window.KeyboardEvent('keydown', {
-        key: 'Tab',
+        key: '.',
+        ctrlKey: true,
         altKey: true,
         bubbles: true,
         cancelable: true,

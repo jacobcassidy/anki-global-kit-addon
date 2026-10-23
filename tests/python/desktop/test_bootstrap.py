@@ -42,14 +42,12 @@ class BootstrapTests(unittest.TestCase):
                         "editor_did_init_buttons": [editor._add_button],
                         "editor_did_init_shortcuts": [
                             editor._add_shortcut,
-                            reviewer._register_editor_tab_shortcut,
                         ],
                         "editor_did_load_note": [
                             editor._inject_features,
                             module(
                                 "editor.features.syntax_highlighting"
                             ).reset_editor_language_context,
-                            reviewer._register_editor_webview,
                         ],
                         "editor_will_load_note": [
                             module(

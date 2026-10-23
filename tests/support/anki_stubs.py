@@ -115,6 +115,7 @@ def load_editor_integration(settings, *, mac=False):
     settings_package = ModuleType(f"{DESKTOP_PACKAGE}.config.service")
     settings_package.get_editor_settings = lambda: settings
     paths = ModuleType(f"{DESKTOP_PACKAGE}.paths")
+    paths.ADDON_DIR = ROOT / "addon"
     paths.USER_FILES_DIR = ROOT / "addon/user_files"
     paths.ICON_ASSET_DIR = ROOT / "addon/assets/icons"
     manifest = ModuleType(f"{DESKTOP_PACKAGE}.media.manifest")

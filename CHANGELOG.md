@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Retired Tab/Backtab indentation bindings and card-only `CodeBlock+` aliases in editor settings. Unsupported saved bindings use current defaults without changing configuration until Settings is saved; enabled/disabled choices are preserved. Tab retains native focus navigation, and the card `CodeBlock+C` shortcut remains supported.
+- Removed redundant Desktop color-token fallbacks using the tokens provided by the minimum supported Anki version.
+
 - Renamed kit-prefixed card and editor classes to the `.agk-*` namespace.
 
 - Limited code block headers and copy controls to the Desktop editor. Cards show code without a header.

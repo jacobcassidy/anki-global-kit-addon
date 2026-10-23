@@ -34,20 +34,6 @@ export function watchQuestionInputs() {
   if (isAnkiDroid && !state.boundInputs.has(questionInputs[0])) clearStoredAnswers();
 
   if (isAnkiPC) {
-    globalThis.ankiGlobalKitIndentQuestion = () => {
-      const input = document.activeElement;
-      if (settings.cardInputTabIndentation && input?.matches('.agk-container .question-input'))
-        changeTextareaIndentation(input);
-    };
-    globalThis.ankiGlobalKitUnindentQuestion = () => {
-      const input = document.activeElement;
-      if (settings.cardInputTabIndentation && input?.matches('.agk-container .question-input')) {
-        changeTextareaIndentation(input, true);
-      }
-    };
-  }
-
-  if (isAnkiPC) {
     globalThis.ankiGlobalKitReportQuestionFocus = () =>
       reportQuestionShortcutFocus(true, {
         ...(settings.cardInputMarkdownShortcuts ? settings.cardInputMarkdownShortcutsMap : {}),

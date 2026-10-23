@@ -8,12 +8,14 @@ from aqt import gui_hooks, mw
 from aqt.editor import Editor
 from aqt.qt import QApplication, QKeySequence, QShortcut, sip
 
+from ..config.defaults import DEFAULT_SETTINGS
 from ..config.service import get_editor_settings
 from ..media.manifest import EDITOR_ASSET_PATHS
 from ..paths import ICON_ASSET_DIR, USER_FILES_DIR
 from ..shortcuts.formatting import EDITOR_BLOCK_SHORTCUTS as BLOCK_SHORTCUTS
 from ..shortcuts.formatting import editor_fixed_shortcut_action, normalize_shortcut
 from ..shortcuts.labels import shortcut_label
+from ..shortcuts.policy import recover_shortcut
 from .buttons import toolbar_button, toolbar_groups
 from .features import field_descriptions, syntax_highlighting
 
@@ -263,6 +265,7 @@ def _configured_editor_shortcuts(settings: dict) -> dict[str, str]:
     registered = set()
     active = {}
     for name, keys in configurable.items():
+        keys = recover_shortcut(name, keys, DEFAULT_SETTINGS[name])
         normalized = normalize_shortcut(keys)
         # Saved configuration may predate UI validation or be edited directly.
         # Preserve fixed actions and register each configurable key only once.
