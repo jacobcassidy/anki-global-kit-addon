@@ -192,9 +192,9 @@ src/editor/
 │   ├── runtime/                       # Mount, settings updates, disposal
 │   ├── support/
 │   │   ├── editing/
-│   │   │   ├── selection.js           # Field/shadow selection and source extraction
-│   │   │   ├── edit-transaction.js    # Native undo and selection preservation
-│   │   │   └── rows.js                # Operations shared by block editing features
+│   │   │   ├── selection.js           # Anki field selection and selected-source extraction
+│   │   │   ├── native-undo.js         # Undo-preserving field edits and selection restoration
+│   │   │   └── block-rows.js          # Row operations shared by block-formatting features
 │   │   ├── fields.js                  # Anki field/store access for editor consumers
 │   │   └── bridge/
 │   │       ├── transport.js           # Desktop transport and supplied-action facade
@@ -386,14 +386,14 @@ Python support initially contains `support/bridge.py`, extracted from generic se
 
 Use the following browser migration map:
 
-| Current implementation                                     | Target under `src/editor/js/`         | Consumers/responsibility                                                         |
-| ---------------------------------------------------------- | ------------------------------------- | -------------------------------------------------------------------------------- |
-| `helpers/selection.js`                                     | `support/editing/selection.js`        | Field/shadow-root selection and selected source for multiple formatting features |
-| `helpers/edit-transaction.js`                              | `support/editing/edit-transaction.js` | Shared native undo transactions, marker cleanup, and selection preservation      |
-| `helpers/fields.js`                                        | `support/fields.js`                   | Field/store access used by Markdown, syntax highlighting, and styles             |
-| `helpers/request-id.js`                                    | `support/bridge/request-id.js`        | Common request identities retained across bundle reinjection                     |
-| Shared row/range operations from `formatting/blocks.js`    | `support/editing/rows.js`             | Operations actually reused by lists, blockquote, and indentation                 |
-| Generic Desktop communication from feature implementations | `support/bridge/transport.js`         | Safe transport and existing global API facade bound to supplied feature actions  |
+| Current implementation                                     | Target under `src/editor/js/`    | Consumers/responsibility                                                        |
+| ---------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------- |
+| `helpers/selection.js`                                     | `support/editing/selection.js`   | Anki field/shadow-root selection and selected-source extraction                 |
+| `helpers/edit-transaction.js`                              | `support/editing/native-undo.js` | Undo-preserving edits, marker cleanup, and selection restoration                |
+| `helpers/fields.js`                                        | `support/fields.js`              | Field/store access used by Markdown, syntax highlighting, and styles            |
+| `helpers/request-id.js`                                    | `support/bridge/request-id.js`   | Common request identities retained across bundle reinjection                    |
+| Shared row/range operations from `formatting/blocks.js`    | `support/editing/block-rows.js`  | Operations actually reused by lists, blockquote, and indentation                |
+| Generic Desktop communication from feature implementations | `support/bridge/transport.js`    | Safe transport and existing global API facade bound to supplied feature actions |
 
 These locations replace the earlier standalone editor `editing/` and `bridge/` infrastructure directories. Preserve Anki-specific field handling, request identities, public API names, native edit semantics, and lifetime ownership while moving code. Extract common mechanics only; keep feature-specific selection policies and asynchronous target snapshots in their features.
 
