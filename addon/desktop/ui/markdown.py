@@ -10,10 +10,12 @@ def make_markdown_browser(parent: QWidget, markdown: str) -> QTextBrowser:
     browser = QTextBrowser(parent)
     browser.setReadOnly(True)
     browser.setOpenExternalLinks(True)
-    browser.document().setDocumentMargin(16)
-    browser.document().setIndentWidth(24)
+    document = browser.document()
+    assert document is not None
+    document.setDocumentMargin(16)
+    document.setIndentWidth(24)
     browser.setMarkdown(markdown)
-    block = browser.document().begin()
+    block = document.begin()
     first_heading = True
     while block.isValid():
         if block.blockFormat().headingLevel() > 0:

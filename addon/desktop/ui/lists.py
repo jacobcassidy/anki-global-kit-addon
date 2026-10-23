@@ -20,11 +20,18 @@ class RoundedListWidget(QListWidget):
             f"background-color: {get_theme_color('CANVAS_ELEVATED')}; "
             f"alternate-background-color: {get_theme_color('CANVAS')}; }}"
         )
-        self.viewport().installEventFilter(self)
+        viewport = self.viewport()
+        assert viewport is not None
+        viewport.installEventFilter(self)
 
     def eventFilter(self, watched, event) -> bool:
-        if watched is self.viewport() and event.type() == QEvent.Type.Resize:
+        viewport = self.viewport()
+        if (
+            viewport is not None
+            and watched is viewport
+            and event.type() == QEvent.Type.Resize
+        ):
             path = QPainterPath()
-            path.addRoundedRect(QRectF(self.viewport().rect()), 5, 5)
-            self.viewport().setMask(QRegion(path.toFillPolygon().toPolygon()))
+            path.addRoundedRect(QRectF(viewport.rect()), 5, 5)
+            viewport.setMask(QRegion(path.toFillPolygon().toPolygon()))
         return super().eventFilter(watched, event)

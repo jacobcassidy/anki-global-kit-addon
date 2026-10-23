@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from typing import cast
 from weakref import WeakSet
 
+from anki.utils import is_mac
 from aqt import gui_hooks, mw
 from aqt.qt import QApplication, QEvent, QObject, Qt, sip
 from aqt.reviewer import Reviewer
-from aqt.utils import is_mac
 
 _active_reviewer: Reviewer | None = None
 _command_comma_handled = False
@@ -119,9 +120,12 @@ def _card_indent_shortcut_override(event) -> bool:
         name = f"card_input_tab_indent_{action}_shortcut"
         if not settings.get(f"{name}_enabled", True):
             continue
-        parts = settings.get(
+        shortcut = settings.get(
             name, "Ctrl+Alt+." if action == "increase" else "Ctrl+Alt+,"
-        ).split("+")
+        )
+        if not isinstance(shortcut, str):
+            continue
+        parts = shortcut.split("+")
         key = parts.pop()
         if "Shift" in parts:
             key = {"<": ",", ">": "."}.get(key, key)
@@ -268,7 +272,8 @@ def initialize() -> None:
     if app is not None and _shortcut_filter is None:
         _shortcut_filter = _PreferencesShortcutFilter(app)
         app.installEventFilter(_shortcut_filter)
-        app.focusChanged.connect(_refresh_question_focus)
+        # Anki owns a QApplication; Qt types expose the base QCoreApplication.
+        cast(QApplication, app).focusChanged.connect(_refresh_question_focus)
     if not _message_hook_installed:
         gui_hooks.webview_did_receive_js_message.append(_on_webview_message)
         gui_hooks.card_will_show.append(_on_card_will_show)

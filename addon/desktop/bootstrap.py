@@ -10,12 +10,16 @@ from .shortcuts.reviewer import initialize as initialize_reviewer
 _initialized = False
 
 
+def _on_profile_open() -> None:
+    update_assets_for_profile()
+
+
 def initialize() -> None:
     global _initialized
     if _initialized:
         return
 
-    gui_hooks.profile_did_open.append(update_assets_for_profile)
+    gui_hooks.profile_did_open.append(_on_profile_open)
     initialize_settings()
     initialize_editor()
     initialize_reviewer()

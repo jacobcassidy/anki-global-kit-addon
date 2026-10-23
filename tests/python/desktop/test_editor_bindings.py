@@ -61,7 +61,7 @@ class EditorBindingsTests(unittest.TestCase):
                         r"globalThis.ankiGlobalKitEditorBlockShortcuts = (.*?);\n",
                         script,
                     )
-                    self.assertIsNotNone(injected)
+                    assert injected is not None
                     self.assertEqual(json.loads(injected.group(1)), shortcuts)
                     for action, keys in shortcuts.items():
                         self.assertIsNotNone(
@@ -90,6 +90,7 @@ class EditorBindingsTests(unittest.TestCase):
         blockquote = toolbar.find(
             ".//button[@data-command='anki_global_kit_blockquote']"
         )
+        assert blockquote is not None
         self.assertIn("display: none;", blockquote.attrib["style"])
         self.assertEqual(len(list(toolbar.iter("img"))), 0)
         for icon in toolbar.iter("button"):

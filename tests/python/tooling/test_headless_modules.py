@@ -25,6 +25,18 @@ assert 'aqt' not in sys.modules and 'anki' not in sys.modules
 """
         subprocess.run([sys.executable, "-c", script], cwd=ROOT, check=True)
 
+    def test_template_asset_validation_reads_annotated_service_constants(self):
+        script = """
+import sys
+from scripts.package_addon import package_files
+from scripts.verify_package_assets import validate_templates
+
+paths = {path.resolve() for path in package_files()}
+assert validate_templates(paths) > 0
+assert 'aqt' not in sys.modules and 'anki' not in sys.modules
+"""
+        subprocess.run([sys.executable, "-c", script], cwd=ROOT, check=True)
+
 
 if __name__ == "__main__":
     unittest.main()

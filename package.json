@@ -32,6 +32,7 @@
     "markdownlint-cli2": "^0.23.3",
     "prettier": "^3.9.9",
     "prettier-plugin-multiline-arrays": "^4.1.11",
+    "pyright": "1.1.414",
     "stylelint": "^17.16.0",
     "stylelint-config-standard": "^40.0.0",
     "stylelint-declaration-block-no-ignored-properties": "^3.0.0",
@@ -51,7 +52,7 @@
   },
   "scripts": {
     "build": "node scripts/build-assets.js",
-    "check": "npm run check:prettier && npm run check:py",
+    "check": "npm run check:prettier && npm run check:py && npm run typecheck:py",
     "check:prettier": "npx prettier . --check",
     "check:py": "uv run --locked ruff format --check .",
     "dev:link-addon": "node scripts/link_addon.js",
@@ -72,6 +73,7 @@
     "test": "npm run test:js && npm run test:py",
     "test:js": "node --import ./tests/support/register-svg.js --test \"tests/javascript/**/*.test.js\"",
     "test:py": "python3 -m unittest discover -s tests/python -t . -p \"test_*.py\"",
+    "typecheck:py": "pyright",
     "verify:package-assets": "python3 scripts/verify_package_assets.py",
     "watch": "node scripts/watch-assets.js"
   },

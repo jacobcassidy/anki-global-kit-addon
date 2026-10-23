@@ -30,30 +30,38 @@ class CardShortcutInputTests(unittest.TestCase):
             if isinstance(item, ast.ImportFrom) and item.module == "aqt.qt":
                 for name in item.names:
                     setattr(qt, name.name, Button)
-        qt.Qt = SimpleNamespace(
-            Key=SimpleNamespace(
-                Key_Tab=9,
-                Key_Backtab=10,
-                Key_Escape=27,
-                Key_Backspace=8,
-                Key_Delete=127,
-                Key_Control=101,
-                Key_Alt=102,
-                Key_Shift=103,
-                Key_Meta=104,
-            ),
-            KeyboardModifier=SimpleNamespace(
-                ControlModifier=1, MetaModifier=2, AltModifier=4, ShiftModifier=8
+        setattr(
+            qt,
+            "Qt",
+            SimpleNamespace(
+                Key=SimpleNamespace(
+                    Key_Tab=9,
+                    Key_Backtab=10,
+                    Key_Escape=27,
+                    Key_Backspace=8,
+                    Key_Delete=127,
+                    Key_Control=101,
+                    Key_Alt=102,
+                    Key_Shift=103,
+                    Key_Meta=104,
+                ),
+                KeyboardModifier=SimpleNamespace(
+                    ControlModifier=1, MetaModifier=2, AltModifier=4, ShiftModifier=8
+                ),
             ),
         )
-        qt.QEvent = SimpleNamespace(
-            Type=SimpleNamespace(
-                ShortcutOverride=1,
-                KeyPress=2,
-                KeyRelease=3,
-                FocusOut=4,
-                MouseButtonPress=5,
-            )
+        setattr(
+            qt,
+            "QEvent",
+            SimpleNamespace(
+                Type=SimpleNamespace(
+                    ShortcutOverride=1,
+                    KeyPress=2,
+                    KeyRelease=3,
+                    FocusOut=4,
+                    MouseButtonPress=5,
+                )
+            ),
         )
 
         class Sequence:
@@ -65,9 +73,9 @@ class CardShortcutInputTests(unittest.TestCase):
             def toString(self, _):
                 return "Tab" if self.key == 9 else "Backtab"
 
-        qt.QKeySequence = Sequence
+        setattr(qt, "QKeySequence", Sequence)
         utils = ModuleType("aqt.utils")
-        utils.is_mac = True
+        setattr(utils, "is_mac", True)
         constants = ModuleType("kit.desktop.ui.constants")
         for name in (
             "COLOR_TRANSPARENT",
@@ -79,21 +87,26 @@ class CardShortcutInputTests(unittest.TestCase):
         ):
             setattr(constants, name, 0)
         theme = ModuleType("kit.desktop.ui.theme")
-        theme.get_theme_color = Mock()
+        setattr(theme, "get_theme_color", Mock())
         shortcuts = ModuleType("kit.desktop.shortcuts.formatting")
-        shortcuts.SHORTCUT_MODIFIER_HINT = "Command, Control, or Option"
-        shortcuts.format_shortcut = lambda value: value
-        shortcuts.normalize_shortcut = lambda value: value
-        shortcuts.reserved_shortcut_warnings = lambda: {}
-        shortcuts.split_shortcut = lambda value: (
-            ["+"]
-            if value == "+"
-            else [*value[:-2].split("+"), "+"]
-            if value.endswith("++")
-            else value.split("+")
+        setattr(shortcuts, "SHORTCUT_MODIFIER_HINT", "Command, Control, or Option")
+        setattr(shortcuts, "format_shortcut", lambda value: value)
+        setattr(shortcuts, "normalize_shortcut", lambda value: value)
+        setattr(shortcuts, "reserved_shortcut_warnings", lambda: {})
+        setattr(
+            shortcuts,
+            "split_shortcut",
+            lambda value: (
+                ["+"]
+                if value == "+"
+                else [*value[:-2].split("+"), "+"]
+                if value.endswith("++")
+                else value.split("+")
+            ),
         )
         modules = {
             "aqt.qt": qt,
+            "anki.utils": utils,
             "aqt.utils": utils,
             "kit.desktop.ui.constants": constants,
             "kit.desktop.ui.theme": theme,
@@ -103,6 +116,7 @@ class CardShortcutInputTests(unittest.TestCase):
             spec = importlib.util.spec_from_file_location(
                 "kit.desktop.ui.shortcut_input", path
             )
+            assert spec is not None and spec.loader is not None
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
         self.module = module
@@ -155,7 +169,7 @@ class CardShortcutInputTests(unittest.TestCase):
             (False, "Ctrl+Alt+C", "Ctrl+Alt+C"),
         ):
             with self.subTest(mac=mac):
-                self.module.is_mac = mac
+                setattr(self.module, "is_mac", mac)
                 self.input.label = label
                 self.assertEqual(self.input.stored_shortcut(), expected)
 
@@ -163,7 +177,7 @@ class CardShortcutInputTests(unittest.TestCase):
         self.input._code_block_alias = True
         for mac, label in ((True, "⌃⌘C"), (False, "Ctrl+Alt+C")):
             with self.subTest(mac=mac):
-                self.module.is_mac = mac
+                setattr(self.module, "is_mac", mac)
                 self.input.label = label
                 self.assertEqual(self.input.stored_shortcut(), "CodeBlock+C")
 

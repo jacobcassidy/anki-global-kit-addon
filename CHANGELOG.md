@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added pinned Pyright validation with shared Pylance configuration, locked Anki/Qt development dependencies, and full Python checks in the commit hook and CI.
+
 - Added a darker language header and a **Copy code** button to editor and card code blocks. Copying preserves plain source text and blank lines while excluding HTML and line numbers. **Syntax Highlighting → Lines** controls whether new blocks show the copy button.
 
 - Added clickable code block line numbers that select the line content for copying, cutting, deleting, or replacing. Code selections copy as plain text without line numbers.
@@ -59,6 +61,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved Help content beside its Settings page and the AnkiWeb listing description into publishing documentation. Updated guide links and package validation for the new locations.
 
 ### Fixed
+
+- Passed the editor window as the parent of background syntax-highlighting operations and made Qt optional-value and hook return contracts explicit.
 
 - Chose a contrasting foreground for newly resolved Pygments palettes that leave text color unspecified, preserving readability on light backgrounds without replacing existing synced palettes.
 

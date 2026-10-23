@@ -1,6 +1,6 @@
 """Shortcut formatting, normalization, and warning rules."""
 
-from aqt.utils import is_mac
+from anki.utils import is_mac
 
 SHORTCUT_MODIFIER_HINT = (
     "Command, Control, or Option" if is_mac else "Ctrl, Alt, or Meta"

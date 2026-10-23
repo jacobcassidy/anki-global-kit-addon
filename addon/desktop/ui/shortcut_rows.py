@@ -62,7 +62,7 @@ def build_shortcut_rows(
         row.setContentsMargins(*ZERO_MARGINS)
         enabled_key = f"{key}_enabled"
         checkbox = QCheckBox(f"Enable {label} shortcut", row_widget)
-        checkbox.shortcut_conflict = False
+        setattr(checkbox, "shortcut_conflict", False)
         style_shortcut_option(checkbox, inactive=not master.isChecked())
         checkbox.setChecked(
             current_settings.get(enabled_key, DEFAULT_SETTINGS[enabled_key])

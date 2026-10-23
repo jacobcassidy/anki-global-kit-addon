@@ -27,9 +27,9 @@ class SettingsBindingsTests(unittest.TestCase):
     def setUp(self):
         prefix = "kit_bindings.desktop"
         defaults = ModuleType(f"{prefix}.config.defaults")
-        defaults.DEFAULT_SETTINGS = {"enabled": True}
+        setattr(defaults, "DEFAULT_SETTINGS", {"enabled": True})
         shortcut_input = ModuleType(f"{prefix}.ui.shortcut_input")
-        shortcut_input.CardShortcutInput = type("CardShortcutInput", (), {})
+        setattr(shortcut_input, "CardShortcutInput", type("CardShortcutInput", (), {}))
         with patch.dict(
             sys.modules,
             {defaults.__name__: defaults, shortcut_input.__name__: shortcut_input},

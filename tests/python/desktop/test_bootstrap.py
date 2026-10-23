@@ -23,6 +23,7 @@ class BootstrapTests(unittest.TestCase):
                         ROOT / "addon/__init__.py",
                         submodule_search_locations=[str(ROOT / "addon")],
                     )
+                    assert spec is not None and spec.loader is not None
                     entry = importlib.util.module_from_spec(spec)
                     sys.modules[package_name] = entry
                     spec.loader.exec_module(entry)
@@ -36,9 +37,7 @@ class BootstrapTests(unittest.TestCase):
                     editor = module("editor.integration")
                     reviewer = module("shortcuts.reviewer")
                     expected_hooks = {
-                        "profile_did_open": [
-                            module("media.install").update_assets_for_profile
-                        ],
+                        "profile_did_open": [module("bootstrap")._on_profile_open],
                         "editor_did_init_buttons": [editor._add_button],
                         "editor_did_init_shortcuts": [
                             editor._add_shortcut,
@@ -82,15 +81,15 @@ class BootstrapTests(unittest.TestCase):
     def test_repeated_startup_registers_each_hook_and_initializer_once(self):
         ensure_package("kit.desktop")
         aqt = ModuleType("aqt")
-        aqt.gui_hooks = SimpleNamespace(profile_did_open=[])
+        setattr(aqt, "gui_hooks", SimpleNamespace(profile_did_open=[]))
         editor = ModuleType("kit.desktop.editor.integration")
-        editor.initialize = Mock()
+        setattr(editor, "initialize", Mock())
         media = ModuleType("kit.desktop.media.install")
-        media.update_assets_for_profile = Mock()
+        setattr(media, "update_assets_for_profile", Mock())
         settings = ModuleType("kit.desktop.settings.dialog")
-        settings.initialize = Mock()
+        setattr(settings, "initialize", Mock())
         reviewer = ModuleType("kit.desktop.shortcuts.reviewer")
-        reviewer.initialize = Mock()
+        setattr(reviewer, "initialize", Mock())
         with patch.dict(
             sys.modules,
             {
@@ -107,9 +106,9 @@ class BootstrapTests(unittest.TestCase):
             bootstrap.initialize()
             bootstrap.initialize()
 
-        self.assertEqual(
-            aqt.gui_hooks.profile_did_open, [media.update_assets_for_profile]
-        )
+        self.assertEqual(aqt.gui_hooks.profile_did_open, [bootstrap._on_profile_open])
+        self.assertIsNone(bootstrap._on_profile_open())
+        media.update_assets_for_profile.assert_called_once_with()
         editor.initialize.assert_called_once()
         settings.initialize.assert_called_once()
         reviewer.initialize.assert_called_once()

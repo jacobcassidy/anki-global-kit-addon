@@ -2,6 +2,7 @@
 
 import json
 import re
+from collections.abc import Mapping
 from html import escape
 from weakref import WeakKeyDictionary
 
@@ -66,19 +67,27 @@ def highlight_code_tip(settings: dict) -> str:
     return tip
 
 
-def _language_button_label(settings: dict, language: str | None = None) -> str:
-    alias = language or settings.get(
+def _enabled_languages(settings: Mapping[str, object]) -> list[object]:
+    languages = settings.get("anki_editor_syntax_highlighting_languages", [])
+    return languages if isinstance(languages, list) else []
+
+
+def _default_language(settings: Mapping[str, object]) -> str:
+    language = settings.get(
         "anki_editor_syntax_highlighting_default_language", "python"
     )
-    if alias not in settings.get("anki_editor_syntax_highlighting_languages", []):
+    return language if isinstance(language, str) else "python"
+
+
+def _language_button_label(settings: dict, language: str | None = None) -> str:
+    alias = language or _default_language(settings)
+    if alias not in _enabled_languages(settings):
         try:
             from ...syntax_highlighting.rendering import select_editor_language
 
             alias = select_editor_language(
-                settings.get(
-                    "anki_editor_syntax_highlighting_default_language", "python"
-                ),
-                settings.get("anki_editor_syntax_highlighting_languages", []),
+                _default_language(settings),
+                _enabled_languages(settings),
             )
         except ModuleNotFoundError:
             alias = None
@@ -88,17 +97,19 @@ def _language_button_label(settings: dict, language: str | None = None) -> str:
         names = {item[1]: item[0] for item in available_languages()}
     except ModuleNotFoundError:
         names = {}
-    return names.get(alias, alias or "Choose language")
+    return names.get(alias, alias) if alias else "Choose language"
 
 
 def _set_language_choice(editor: Editor, language: str) -> None:
     settings = get_editor_settings()
-    enabled = settings.get("anki_editor_syntax_highlighting_languages", [])
+    enabled = _enabled_languages(settings)
     if language not in enabled:
         return
 
-    editor._anki_global_kit_language_override = language
-    editor._anki_global_kit_language_deck_id = _resolve_editor_deck_id(editor)
+    setattr(editor, "_anki_global_kit_language_override", language)
+    setattr(
+        editor, "_anki_global_kit_language_deck_id", _resolve_editor_deck_id(editor)
+    )
     if editor.web is not None:
         editor.web.eval(
             "globalThis.ankiGlobalKitEditor?.setExplicitLanguage("
@@ -116,7 +127,7 @@ def show_language_menu(editor: Editor, anchor: list | None = None) -> None:
     )
 
     settings = get_editor_settings()
-    enabled = settings.get("anki_editor_syntax_highlighting_languages", [])
+    enabled = _enabled_languages(settings)
     if not enabled:
         from aqt.utils import showWarning
 
@@ -131,13 +142,13 @@ def show_language_menu(editor: Editor, anchor: list | None = None) -> None:
         selected = getattr(editor, "_anki_global_kit_language_remembered", None)
     if selected not in enabled:
         selected = select_editor_language(
-            settings.get("anki_editor_syntax_highlighting_default_language", "python"),
+            _default_language(settings),
             enabled,
         )
     languages = [
         {"alias": alias, "label": names[alias]}
         for alias in sorted(
-            (alias for alias in enabled if alias in names),
+            (alias for alias in enabled if isinstance(alias, str) and alias in names),
             key=lambda alias: names[alias].casefold(),
         )
     ]
@@ -156,17 +167,17 @@ def show_language_menu(editor: Editor, anchor: list | None = None) -> None:
 def set_editor_language_context(editor: Editor, *, reset: bool = False) -> None:
     """Refresh transient choices and collection memory after loading a note."""
     settings = get_editor_settings()
-    enabled = settings.get("anki_editor_syntax_highlighting_languages", [])
+    enabled = _enabled_languages(settings)
     override = getattr(editor, "_anki_global_kit_language_override", None)
     if reset:
         override = None
-        editor._anki_global_kit_language_override = None
-        editor._anki_global_kit_language_deck_id = None
+        setattr(editor, "_anki_global_kit_language_override", None)
+        setattr(editor, "_anki_global_kit_language_deck_id", None)
     if override not in enabled:
         override = None
-        editor._anki_global_kit_language_override = None
+        setattr(editor, "_anki_global_kit_language_override", None)
     deck_id = _resolve_editor_deck_id(editor)
-    editor._anki_global_kit_language_context_deck_id = deck_id
+    setattr(editor, "_anki_global_kit_language_context_deck_id", deck_id)
     remembered = None
     if deck_id is not None and settings.get(
         "anki_editor_syntax_highlighting_remember_language_per_deck"
@@ -174,7 +185,7 @@ def set_editor_language_context(editor: Editor, *, reset: bool = False) -> None:
         from ...syntax_highlighting.language_memory import remembered_language
 
         remembered = remembered_language(editor.mw.col, deck_id, enabled)
-    editor._anki_global_kit_language_remembered = remembered
+    setattr(editor, "_anki_global_kit_language_remembered", remembered)
     _watch_add_deck_chooser(editor)
     if editor.web is not None:
         from ...syntax_highlighting.rendering import available_languages
@@ -209,7 +220,7 @@ def _watch_add_deck_chooser(editor: Editor) -> None:
     ):
         return
 
-    editor._anki_global_kit_deck_chooser_watched = True
+    setattr(editor, "_anki_global_kit_deck_chooser_watched", True)
     for signal_name in ("currentIndexChanged", "activated"):
         signal = getattr(chooser, signal_name, None)
         if signal is not None and hasattr(signal, "connect"):
@@ -275,7 +286,7 @@ def _resolve_authoring_language(
     )
 
     settings = get_editor_settings()
-    enabled = settings.get("anki_editor_syntax_highlighting_languages", [])
+    enabled = _enabled_languages(settings)
     rows = available_languages()
     supported = {alias for _name, alias, _aliases in rows}
     requested = request.get("language")
@@ -315,7 +326,7 @@ def _resolve_authoring_language(
 
     return (
         select_editor_language(
-            settings.get("anki_editor_syntax_highlighting_default_language", "python"),
+            _default_language(settings),
             enabled,
         )
         or "python",
@@ -327,25 +338,30 @@ def highlight_selection(editor: Editor) -> None:
     from aqt.utils import showWarning
 
     settings = get_editor_settings()
-    languages = settings.get("anki_editor_syntax_highlighting_languages", [])
+    languages = _enabled_languages(settings)
     if not languages:
         showWarning(
             "Choose at least one language in the Syntax Highlighting settings tab to enable code highlighting."
         )
         return
 
-    clipboard = QApplication.clipboard().text()
+    clipboard = QApplication.clipboard()
+
+    if editor.web is None or clipboard is None:
+        return
+
+    clipboard_text = clipboard.text()
     from ...syntax_highlighting.rendering import select_editor_language
 
     language = select_editor_language(
-        settings.get("anki_editor_syntax_highlighting_default_language", "python"),
+        _default_language(settings),
         languages,
     )
     if language is None:
         return
     editor.web.eval(
         "globalThis.ankiGlobalKitEditor?.highlightCode("
-        f"{json.dumps(clipboard)}, {json.dumps(language)});"
+        f"{json.dumps(clipboard_text)}, {json.dumps(language)});"
     )
 
 
@@ -594,7 +610,7 @@ def _on_markdown_message(message: str, context: Editor):
     from aqt.operations import QueryOp
 
     operation = QueryOp(
-        parent=context,
+        parent=context.parentWindow,
         op=lambda _collection: _render_markdown_blocks(validated),
         success=lambda result: _on_markdown_success(context, request_id, html, result),
     )
@@ -619,11 +635,9 @@ def _on_message(handled: tuple[bool, object], message: str, context):
             return (True, None)
         if isinstance(anchor, list) and len(anchor) == 3:
             selected = anchor.pop()
-            enabled = get_editor_settings().get(
-                "anki_editor_syntax_highlighting_languages", []
-            )
+            enabled = _enabled_languages(get_editor_settings())
             if isinstance(selected, str) and selected in enabled:
-                context._anki_global_kit_language_override = selected
+                setattr(context, "_anki_global_kit_language_override", selected)
         show_language_menu(context, anchor[:2] if isinstance(anchor, list) else None)
         return (True, None)
 
@@ -701,8 +715,8 @@ def _on_message(handled: tuple[bool, object], message: str, context):
     if deck_changed:
         if explicit_deck_id != request_deck_id:
             explicit_language = False
-            context._anki_global_kit_language_override = None
-            context._anki_global_kit_language_deck_id = None
+            setattr(context, "_anki_global_kit_language_override", None)
+            setattr(context, "_anki_global_kit_language_deck_id", None)
     language, explicit_language = _resolve_authoring_language(
         request, context, request_deck_id, explicit_language
     )
@@ -738,7 +752,7 @@ def _on_message(handled: tuple[bool, object], message: str, context):
     from aqt.operations import QueryOp
 
     operation = QueryOp(
-        parent=context,
+        parent=context.parentWindow,
         op=lambda _collection: _render_code(source, language, cloze_mode),
         success=lambda result: _on_success(
             context,

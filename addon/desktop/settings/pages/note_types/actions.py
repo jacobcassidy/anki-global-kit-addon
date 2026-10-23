@@ -30,7 +30,7 @@ from ....note_types.service import (
 from .selection import select_note_types
 
 
-@dataclass(frozen=True)
+@dataclass
 class _OperationResult:
     changes: OpChanges
     result: NoteTypeChangeResult | None = None
@@ -156,6 +156,7 @@ def apply_selected_note_type_changes(
             _show_note_type_service_error(outcome.error)
             on_complete(False)
             return
+        assert outcome.result is not None
         _show_note_type_result(outcome.result)
         on_complete(True)
 

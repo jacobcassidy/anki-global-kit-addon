@@ -6,10 +6,21 @@ requires-python = ">=3.11"
 dependencies = []
 
 [dependency-groups]
-dev = ["ruff"]
+dev = ["anki==26.5", "aqt[qt]==26.5", "ruff"]
 
 [tool.uv]
 package = false
+
+[tool.pyright]
+typeCheckingMode = "basic"
+pythonVersion = "3.11"
+venvPath = "."
+venv = ".venv"
+include = ["addon", "scripts", "tests/python", "tests/support"]
+exclude = ["**/vendor/**", "**/.venv/**", "dist", "build", "**/__pycache__"]
+extraPaths = ["addon/vendor"]
+reportMissingImports = "error"
+reportMissingTypeStubs = false
 
 [tool.ruff]
 line-length = 88

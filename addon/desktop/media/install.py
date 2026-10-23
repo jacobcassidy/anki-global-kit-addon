@@ -13,6 +13,7 @@ from .manifest import ASSET_NAMES, ASSET_PATHS, JS_ASSET_NAME, SYNTAX_CSS_ASSET_
 
 
 def _write_managed_asset(name: str, data: bytes) -> None:
+    assert mw.col is not None
     destination = Path(mw.col.media.dir()) / name
     previous = destination.read_bytes() if destination.is_file() else None
     if previous == data:

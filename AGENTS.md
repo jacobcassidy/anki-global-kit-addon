@@ -65,7 +65,9 @@ Useful project scripts:
 - `npm run lint:css` — CSS linting.
 - `npm run lint:md` — Markdown linting.
 - `npm run lint:py` — Python linting.
-- `npm run check` — Prettier and Ruff formatting checks.
+- `npm run check` — Prettier and Ruff formatting checks, followed by Pyright.
+- `npm run typecheck:py` — Pyright checks the configured first-party Python scope using the `[tool.pyright]` settings in `pyproject.toml` and the locked `.venv` environment. Run it with Ruff checks and formatting for Python changes before committing.
+- `uv sync --locked` — Install the pinned Python development dependencies, including Anki 26.05 and Qt types; these are not included in the add-on package.
 
 ## Implementation boundaries
 

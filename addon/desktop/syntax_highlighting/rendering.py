@@ -8,6 +8,7 @@ import re
 import sys
 import threading
 from contextlib import contextmanager
+from types import ModuleType
 
 from ..paths import ADDON_DIR
 
@@ -15,14 +16,14 @@ MAX_SOURCE_CHARACTERS = 50_000
 _PYGMENTS_VERSION = "2.19.2"
 _PYGMENTS_PATH = ADDON_DIR / "vendor"
 _IMPORT_LOCK = threading.RLock()
-_PYGMENTS_MODULES: dict[str, object] | None = None
+_PYGMENTS_MODULES: dict[str, ModuleType] | None = None
 
 
 class SyntaxHighlightingError(ValueError):
     """Raised when a language or the bundled renderer is unavailable."""
 
 
-def _load_pygments_modules() -> dict[str, object]:
+def _load_pygments_modules() -> dict[str, ModuleType]:
     """Load the bundled Pygments tree without replacing another add-on's copy."""
     global _PYGMENTS_MODULES
 

@@ -36,7 +36,7 @@ class Models:
         self.notes = {}
         self.cards = []
         self.writes = []
-        self.fail_name = None
+        self.fail_name: str | None = None
 
     def all_names_and_ids(self):
         return [
@@ -124,6 +124,7 @@ class NoteTypeTests(unittest.TestCase):
         self.assertEqual(len(result.created), 2)
         for card_format, kind in (("Advance", 0), ("Cloze", 1)):
             nt = self.models.by_name(f"{topic} ({card_format})")
+            assert nt is not None
             self.assertEqual(nt["type"], kind)
             self.assertEqual(
                 [f["name"] for f in nt["flds"]],
@@ -140,10 +141,12 @@ class NoteTypeTests(unittest.TestCase):
     def test_replacement_keeps_identity_fields_sort_order_notes_and_cached_source(self):
         self.models.notes[42] = [["original question", "custom value"]]
         old = self.models.by_name("Python (Advance)")
+        assert old is not None
         before = deepcopy(old)
         notes = deepcopy(self.models.notes)
         result = self.service.apply_note_type_changes(self.replacement_plan(), self.col)
         new = self.models.by_name("Python (Advance)")
+        assert new is not None
         self.assertEqual(new["id"], 42)
         self.assertEqual(new["sortf"], 1)
         self.assertEqual(new["flds"][:2], before["flds"])
@@ -163,7 +166,9 @@ class NoteTypeTests(unittest.TestCase):
         )
         self.assertEqual(plan.replacement_impacts[0].removed_templates, ())
         self.service.apply_note_type_changes(plan, self.col)
-        self.assertEqual(self.models.by_name(nt["name"])["type"], 1)
+        updated = self.models.by_name(nt["name"])
+        assert updated is not None
+        self.assertEqual(updated["type"], 1)
 
     def test_plan_counts_only_cards_in_the_additional_standard_templates(self):
         self.models.cards = [
@@ -220,9 +225,11 @@ class NoteTypeTests(unittest.TestCase):
 
     def test_confirmed_syntax_style_update_adds_only_one_import(self):
         before = deepcopy(self.models.by_name("Python (Advance)"))
+        assert before is not None
         plan = self.service.plan_syntax_style_import("Python (Advance)")
         changes = self.service.apply_syntax_style_import(plan, self.col)
         updated = self.models.by_name("Python (Advance)")
+        assert updated is not None
 
         self.assertTrue(changes.notetype)
         self.assertEqual(

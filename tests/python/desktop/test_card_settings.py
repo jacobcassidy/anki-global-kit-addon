@@ -16,12 +16,16 @@ ROOT = Path(__file__).resolve().parents[3]
 class CardSettingsTests(unittest.TestCase):
     def installed_settings(self, *, mac, config=None):
         aqt = ModuleType("aqt")
-        aqt.mw = SimpleNamespace(
-            addonManager=SimpleNamespace(getConfig=lambda _name: config or {})
+        setattr(
+            aqt,
+            "mw",
+            SimpleNamespace(
+                addonManager=SimpleNamespace(getConfig=lambda _name: config or {})
+            ),
         )
         utils = ModuleType("aqt.utils")
-        utils.is_mac = mac
-        utils.showWarning = Mock()
+        setattr(utils, "is_mac", mac)
+        setattr(utils, "showWarning", Mock())
         prefix = "kit.desktop"
         paths = load_module(f"{prefix}.paths", "addon/desktop/paths.py")
         manifest = load_module(
@@ -34,6 +38,7 @@ class CardSettingsTests(unittest.TestCase):
                 sys.modules,
                 {
                     "aqt": aqt,
+                    "anki.utils": utils,
                     "aqt.utils": utils,
                     f"{prefix}.media.manifest": manifest,
                     f"{prefix}.paths": paths,
@@ -73,7 +78,7 @@ class CardSettingsTests(unittest.TestCase):
                 ),
                 set_config=lambda key, value: collection_config.__setitem__(key, value),
             )
-            assets.ASSET_NAMES = (manifest.JS_ASSET_NAME,)
+            setattr(assets, "ASSET_NAMES", (manifest.JS_ASSET_NAME,))
             assets.update_assets_for_profile()
             utils.showWarning.assert_not_called()
             source = (Path(directory) / manifest.JS_ASSET_NAME).read_text()

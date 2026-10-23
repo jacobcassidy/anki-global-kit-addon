@@ -85,9 +85,17 @@ def validate_templates(packaged_paths: set[Path]) -> int:
     definitions = {}
     for node in ast.parse(read_source(service), filename=str(service)).body:
         if isinstance(node, ast.Assign):
-            for target in node.targets:
-                if isinstance(target, ast.Name) and target.id in {"TOPICS", "FORMATS"}:
-                    definitions[target.id] = ast.literal_eval(node.value)
+            targets = node.targets
+            value = node.value
+        elif isinstance(node, ast.AnnAssign) and node.value is not None:
+            targets = [node.target]
+            value = node.value
+        else:
+            continue
+
+        for target in targets:
+            if isinstance(target, ast.Name) and target.id in {"TOPICS", "FORMATS"}:
+                definitions[target.id] = ast.literal_eval(value)
     if set(definitions) != {"TOPICS", "FORMATS"}:
         raise ValueError("Cannot read TOPICS and FORMATS from the note type service")
 

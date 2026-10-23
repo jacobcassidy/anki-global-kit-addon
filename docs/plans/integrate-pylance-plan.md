@@ -2,13 +2,13 @@
 
 ## Status and purpose
 
-Planned; implementation has not started. Make the core type errors reported by Pylance visible through a reproducible command, fix the initial diagnostics, and require type checking alongside Ruff before committing and in CI.
+Implemented on 2026-10-24. The pinned Pyright CLI checks all agreed first-party Python directories with the locked Anki 26.05/Qt environment. The initial diagnostics are resolved, and type checking runs alongside Ruff in `npm run check`, the commit hook, and CI. VS Code interpreter selection and live Pylance/Anki behavior still need to be verified in the actual application; CLI and isolated tests do not establish those results.
 
 Use the official Pyright CLI, which supplies the type checker used by Pylance. Keep Pylance as the editor language server and Ruff as the formatter/linter. Type checking reports problems that generally require code changes; it does not provide a general automatic fix equivalent to `ruff check --fix`.
 
 Pylance has additional editor capabilities and can bundle a different checker version, so identical diagnostics are not guaranteed. Align configuration, import resolution, and interpreter selection, and investigate remaining differences rather than promising exact parity.
 
-## Current repository state
+## Starting repository state (before integration)
 
 - `pyproject.toml` declares Python `>=3.11`, development dependencies containing only Ruff, and Ruff's Python 3.11 target. There is no shared Pyright configuration.
 - `package.json` has Python lint/format commands but no type-checking command. `npm run check` currently runs Prettier and Ruff formatting checks.

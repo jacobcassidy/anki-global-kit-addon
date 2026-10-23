@@ -1,5 +1,6 @@
 """Qt controls for recording and resetting shortcut settings."""
 
+from anki.utils import is_mac
 from aqt.qt import (
     QApplication,
     QEvent,
@@ -10,7 +11,6 @@ from aqt.qt import (
     QTimer,
     QWidget,
 )
-from aqt.utils import is_mac
 
 from ..shortcuts.formatting import (
     SHORTCUT_MODIFIER_HINT,
@@ -228,7 +228,7 @@ class CardShortcutInput(QPushButton):
             return
 
         modifiers = event.modifiers()
-        parts = []
+        parts: list[str] = []
         # Store Qt's modifier names on every platform: Ctrl is Command on macOS,
         # while Meta is physical Control there.
         modifier_names = (
@@ -249,6 +249,8 @@ class CardShortcutInput(QPushButton):
             )
             or event.text().upper()
         )
+        if key_name is None:
+            key_name = ""
         if key_name and key_name not in parts:
             parts.append(key_name)
 
@@ -378,8 +380,10 @@ class ResetShortcutLink(QLabel):
 
     def _set_pressed(self, pressed: bool) -> None:
         self.setProperty("pressed", pressed)
-        self.style().unpolish(self)
-        self.style().polish(self)
+        style = self.style()
+        assert style is not None
+        style.unpolish(self)
+        style.polish(self)
 
     def _reset(self) -> None:
         if self.isEnabled():

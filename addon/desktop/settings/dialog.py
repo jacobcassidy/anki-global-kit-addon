@@ -247,7 +247,7 @@ def open_settings() -> None:
                 seen_shortcuts[normalized] = (key, label)
 
         for key, checkbox in markdown_shortcut_option_checkboxes.items():
-            checkbox.shortcut_conflict = key in conflict_highlights
+            setattr(checkbox, "shortcut_conflict", key in conflict_highlights)
             style_shortcut_option(
                 checkbox,
                 inactive=not fields.shortcut_masters[key].isChecked(),
@@ -307,7 +307,7 @@ def open_settings() -> None:
                 editor_seen[normalized] = (key, label)
         for key, _label in INDENTATION_SHORTCUT_DEFINITIONS:
             checkbox = editor_checks[f"{key}_enabled"]
-            checkbox.shortcut_conflict = key in editor_conflicts
+            setattr(checkbox, "shortcut_conflict", key in editor_conflicts)
             style_shortcut_option(
                 checkbox,
                 inactive=not all_controls["anki_editor_tab_indentation"].isChecked(),

@@ -546,7 +546,7 @@ class SyntaxRenderingTests(unittest.TestCase):
 
     def test_markdown_bridge_accepts_exact_conversion_limits(self):
         feature = load_editor_integration({}).syntax_highlighting
-        editor = SimpleNamespace(web=SimpleNamespace(eval=Mock()))
+        editor = SimpleNamespace(web=SimpleNamespace(eval=Mock()), parentWindow=Mock())
         operation = Mock()
         operation.failure.return_value = operation
         operation.without_collection.return_value = operation
@@ -572,6 +572,7 @@ class SyntaxRenderingTests(unittest.TestCase):
 
         self.assertEqual(result, (True, None))
         factory.assert_called_once()
+        self.assertIs(factory.call_args.kwargs["parent"], editor.parentWindow)
         operation.run_in_background.assert_called_once_with()
         warning.assert_not_called()
         editor.web.eval.assert_not_called()
@@ -691,11 +692,14 @@ class SyntaxRenderingTests(unittest.TestCase):
             get_config=lambda key, default=None: config.get(key, default),
             set_config=lambda key, value: config.__setitem__(key, value),
         )
-        editors = [type("Editor", (), {})() for _ in range(2)]
-        for index, editor in enumerate(editors):
-            editor.web = Mock()
-            editor.mw = SimpleNamespace(col=collection)
-            editor.deck_id = 19 + index
+
+        class EditorStub:
+            def __init__(self, deck_id):
+                self.web = Mock()
+                self.mw = SimpleNamespace(col=collection)
+                self.deck_id = deck_id
+
+        editors = [EditorStub(19 + index) for index in range(2)]
 
         with (
             patch.object(

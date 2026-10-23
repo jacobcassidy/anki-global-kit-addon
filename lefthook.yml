@@ -48,3 +48,15 @@ pre-commit:
         - "**/*.py"
       run: uv run --locked ruff format {staged_files}
       stage_fixed: true
+    pyright:
+      priority: 6
+      glob:
+        - "*.{py,pyi}"
+        - "**/*.{py,pyi}"
+        - "pyproject.toml"
+        - "pyrightconfig.json"
+        - "uv.lock"
+        - "package.json"
+        - "package-lock.json"
+        - ".vscode/settings.json"
+      run: npm run typecheck:py

@@ -6,6 +6,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from html import escape
 from pathlib import Path
+from typing import TYPE_CHECKING, TypedDict
 
 from anki.collection import Collection, OpChanges
 from anki.consts import MODEL_CLOZE, MODEL_STD
@@ -15,6 +16,9 @@ from aqt import mw
 from ..media.manifest import SYNTAX_CSS_ASSET_NAME
 from ..paths import ADDON_DIR
 from .stylesheet import has_stylesheet_import
+
+if TYPE_CHECKING:
+    from anki.models import NotetypeDict
 
 TEMPLATE_DIR = ADDON_DIR / "templates" / "note-types" / "parts"
 HTML_DIR = TEMPLATE_DIR / "html"
@@ -130,7 +134,16 @@ TOPICS = (
     "Vocabulary",
     "WordPress",
 )
-FORMATS = {
+
+
+class FormatSpec(TypedDict):
+    front: str
+    back: str
+    fields: list[str]
+    cloze: bool
+
+
+FORMATS: dict[str, FormatSpec] = {
     "Advance": {
         "front": "advance-front.html",
         "back": "advance-back.html",
@@ -250,7 +263,7 @@ def _card_template(filename: str, topic: str, script: str) -> str:
     return f"{html.rstrip()}\n\n<script>\n{script.rstrip()}\n</script>\n"
 
 
-def _stock_cloze_note_type(col: Collection) -> dict[str, object]:
+def _stock_cloze_note_type(col: Collection) -> NotetypeDict:
     # Stock definitions come from Anki, independently of the profile's types.
     # Copy the factory result before customizing its fields and templates.
     for _name, factory in get_stock_notetypes(col):
@@ -262,8 +275,8 @@ def _stock_cloze_note_type(col: Collection) -> dict[str, object]:
 
 def _validate_replacement_type(
     name: str,
-    spec: dict[str, object],
-    notetype: dict[str, object] | None,
+    spec: FormatSpec,
+    notetype: NotetypeDict | None,
 ) -> None:
     if notetype is None:
         raise ReplacementValidationError(
@@ -292,6 +305,7 @@ def _replacement_impacts(
             FORMATS[operation.card_format],
             notetype,
         )
+        assert notetype is not None
         # Cloze card ordinals identify deletions, not separate card templates.
         removed_templates: tuple[NoteTypeTemplateRemoval, ...] = ()
         if notetype["type"] == MODEL_STD:
@@ -319,9 +333,9 @@ def _replacement_impacts(
 def _create_note_type(
     name: str,
     topic: str,
-    spec: dict[str, object],
+    spec: FormatSpec,
     col: Collection,
-    existing_notetype: dict[str, object] | None = None,
+    existing_notetype: NotetypeDict | None = None,
 ) -> OpChanges:
     models = col.models
     if existing_notetype is not None:

@@ -90,7 +90,9 @@ class LanguageStatusDelegate(QStyledItemDelegate):
         status = index.data(Qt.ItemDataRole.UserRole + 2) or ""
         badge_width = option.fontMetrics.horizontalAdvance("Auto") + 12
         status_width = badge_width + 8
+        assert option.widget is not None and painter is not None
         style = option.widget.style()
+        assert style is not None
         text_rect = style.subElementRect(
             QStyle.SubElement.SE_ItemViewItemText, option, option.widget
         )
@@ -235,6 +237,7 @@ def build_syntax_highlighting_tab(parent: QWidget, current_settings: dict, theme
         for widget in (shown_list, other_list):
             for index in range(widget.count()):
                 item = widget.item(index)
+                assert item is not None
                 alias = item.data(Qt.ItemDataRole.UserRole)
                 name, aliases = rows[alias]
                 item.setHidden(

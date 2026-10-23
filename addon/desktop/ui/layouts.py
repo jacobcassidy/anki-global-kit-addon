@@ -81,6 +81,8 @@ def make_scroll_area(parent: QWidget, content: QWidget) -> QScrollArea:
     scroll_area.setFrameShape(QFrame.Shape.NoFrame)
     scroll_area.setWidget(content)
     scroll_area.setAutoFillBackground(False)
-    scroll_area.viewport().setAutoFillBackground(False)
+    viewport = scroll_area.viewport()
+    assert viewport is not None
+    viewport.setAutoFillBackground(False)
     content.setAutoFillBackground(False)
     return scroll_area

@@ -55,14 +55,17 @@ def select_note_types(parent: QWidget, names: list[str]) -> tuple[str, ...]:
 
     def selected_names() -> tuple[str, ...]:
         return tuple(
-            checklist.item(index).text()
+            item.text()
             for index in range(checklist.count())
-            if checklist.item(index).checkState() == Qt.CheckState.Checked
+            if (item := checklist.item(index)) is not None
+            and item.checkState() == Qt.CheckState.Checked
         )
 
     def set_checked(state: Qt.CheckState) -> None:
         for index in range(checklist.count()):
-            checklist.item(index).setCheckState(state)
+            item = checklist.item(index)
+            assert item is not None
+            item.setCheckState(state)
 
     checklist.itemChanged.connect(
         lambda _item: continue_button.setEnabled(bool(selected_names()))

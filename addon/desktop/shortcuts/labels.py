@@ -2,7 +2,8 @@
 
 import re
 
-from aqt.utils import is_mac, shortcut
+from anki.utils import is_mac
+from aqt.utils import shortcut
 
 
 def shortcut_label(keys):

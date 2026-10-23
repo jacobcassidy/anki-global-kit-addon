@@ -29,16 +29,21 @@ class _RoundedScrollArea(QScrollArea):
         self._header_grid = None
         self._body_grid = None
         self._header_viewport = QWidget(self)
-        self.viewport().installEventFilter(self)
-        self.horizontalScrollBar().valueChanged.connect(self._update_header)
-        self.horizontalScrollBar().rangeChanged.connect(self._update_header)
-        self.verticalScrollBar().rangeChanged.connect(self._update_header)
+        viewport = self.viewport()
+        horizontal = self.horizontalScrollBar()
+        vertical = self.verticalScrollBar()
+        assert viewport is not None and horizontal is not None and vertical is not None
+        viewport.installEventFilter(self)
+        horizontal.valueChanged.connect(self._update_header)
+        horizontal.rangeChanged.connect(self._update_header)
+        vertical.rangeChanged.connect(self._update_header)
 
     def sizeHint(self):
         size = super().sizeHint()
-        if self._header is not None and self.widget() is not None:
+        body = self.widget()
+        if self._header is not None and body is not None:
             size.setHeight(
-                self.widget().sizeHint().height()
+                body.sizeHint().height()
                 + self._header.sizeHint().height()
                 + 2 * self.frameWidth()
             )
@@ -52,7 +57,9 @@ class _RoundedScrollArea(QScrollArea):
         self._body_grid = body_grid
         header.setParent(self._header_viewport)
         header.show()
-        self.widget().installEventFilter(self)
+        body = self.widget()
+        assert body is not None
+        body.installEventFilter(self)
         self.setViewportMargins(0, header.sizeHint().height(), 0, 0)
         self._update_viewport_mask()
         self._update_header()
@@ -60,7 +67,12 @@ class _RoundedScrollArea(QScrollArea):
     def _update_header(self, *_args) -> None:
         if self._header is None:
             return
-        viewport_rect = self.viewport().geometry()
+        viewport = self.viewport()
+        body = self.widget()
+        horizontal = self.horizontalScrollBar()
+        assert viewport is not None and body is not None and horizontal is not None
+        assert self._body_grid is not None and self._header_grid is not None
+        viewport_rect = viewport.geometry()
         header_height = self._header.sizeHint().height()
         self._header_viewport.setGeometry(
             viewport_rect.x(),
@@ -75,9 +87,9 @@ class _RoundedScrollArea(QScrollArea):
             )
         self._header_grid.activate()
         self._header.setGeometry(
-            -self.horizontalScrollBar().value(),
+            -horizontal.value(),
             0,
-            self.widget().width(),
+            body.width(),
             header_height,
         )
         self._header_grid.activate()
@@ -91,6 +103,7 @@ class _RoundedScrollArea(QScrollArea):
 
     def _update_viewport_mask(self) -> None:
         viewport = self.viewport()
+        assert viewport is not None
         path = QPainterPath()
         path.setFillRule(Qt.FillRule.WindingFill)
         path.addRoundedRect(
@@ -123,6 +136,7 @@ class NoteTypesTable:
             "}"
         )
         scroll_viewport = self.scroll.viewport()
+        assert scroll_viewport is not None
         scroll_viewport.setObjectName("noteTypesScrollViewport")
         scroll_viewport.setAutoFillBackground(False)
         scroll_viewport.setStyleSheet(
@@ -278,6 +292,7 @@ class NoteTypesTable:
                 grid.setColumnStretch(column, 0)
             for index in range(grid.count() - 1, -1, -1):
                 item = grid.takeAt(index)
+                assert item is not None
                 widget = item.widget()
                 if widget is not None:
                     widget.deleteLater()

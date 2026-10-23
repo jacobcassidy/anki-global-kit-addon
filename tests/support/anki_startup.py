@@ -19,8 +19,8 @@ def make_startup_stubs(*, mac: bool):
         theme_did_change=[],
     )
     menu = Mock()
-    aqt.gui_hooks = hooks
-    aqt.mw = SimpleNamespace(form=SimpleNamespace(menuTools=menu))
+    setattr(aqt, "gui_hooks", hooks)
+    setattr(aqt, "mw", SimpleNamespace(form=SimpleNamespace(menuTools=menu)))
     qt = ModuleType("aqt.qt")
     for name in (
         "QByteArray",
@@ -63,36 +63,36 @@ def make_startup_stubs(*, mac: bool):
             self.parent = parent
 
     app = Mock()
-    qt.QObject = QObject
-    qt.QApplication = Mock()
+    setattr(qt, "QObject", QObject)
+    setattr(qt, "QApplication", Mock())
     qt.QApplication.instance.return_value = app
-    qt.QAction = Mock()
-    qt.QIcon = Mock()
-    qt.Qt = SimpleNamespace()
-    qt.sip = SimpleNamespace(isdeleted=lambda _widget: False)
+    setattr(qt, "QAction", Mock())
+    setattr(qt, "QIcon", Mock())
+    setattr(qt, "Qt", SimpleNamespace())
+    setattr(qt, "sip", SimpleNamespace(isdeleted=lambda _widget: False))
     utils = ModuleType("aqt.utils")
-    utils.is_mac = mac
+    setattr(utils, "is_mac", mac)
     for name in ("askUser", "openFolder", "shortcut", "showInfo", "showWarning"):
         setattr(utils, name, Mock())
     editor = ModuleType("aqt.editor")
-    editor.Editor = type("Editor", (), {})
+    setattr(editor, "Editor", type("Editor", (), {}))
     reviewer = ModuleType("aqt.reviewer")
-    reviewer.Reviewer = type("Reviewer", (), {})
+    setattr(reviewer, "Reviewer", type("Reviewer", (), {}))
     operations = ModuleType("aqt.operations")
-    operations.CollectionOp = Mock()
+    setattr(operations, "CollectionOp", Mock())
     colors = ModuleType("aqt.colors")
-    aqt.colors = colors
+    setattr(aqt, "colors", colors)
     theme = ModuleType("aqt.theme")
-    theme.theme_manager = Mock()
+    setattr(theme, "theme_manager", Mock())
     anki = ModuleType("anki")
     collection = ModuleType("anki.collection")
-    collection.Collection = type("Collection", (), {})
-    collection.OpChanges = type("OpChanges", (), {})
+    setattr(collection, "Collection", type("Collection", (), {}))
+    setattr(collection, "OpChanges", type("OpChanges", (), {}))
     consts = ModuleType("anki.consts")
-    consts.MODEL_STD = 0
-    consts.MODEL_CLOZE = 1
+    setattr(consts, "MODEL_STD", 0)
+    setattr(consts, "MODEL_CLOZE", 1)
     stdmodels = ModuleType("anki.stdmodels")
-    stdmodels.get_stock_notetypes = Mock()
+    setattr(stdmodels, "get_stock_notetypes", Mock())
     modules = {
         module.__name__: module
         for module in (
@@ -110,4 +110,5 @@ def make_startup_stubs(*, mac: bool):
             stdmodels,
         )
     }
+    modules["anki.utils"] = utils
     return SimpleNamespace(modules=modules, hooks=hooks, app=app, menu=menu, qt=qt)

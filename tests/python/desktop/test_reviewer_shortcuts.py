@@ -11,7 +11,8 @@ from tests.support.anki_stubs import ensure_package
 
 
 class Reviewer:
-    pass
+    def __init__(self, web):
+        self.web = web
 
 
 class Action:
@@ -27,7 +28,7 @@ class Action:
 
 class ReviewerShortcutTests(unittest.TestCase):
     def test_tab_and_backtab_are_left_to_native_navigation(self):
-        self.integration._active_reviewer = self.mw.reviewer
+        setattr(self.integration, "_active_reviewer", self.mw.reviewer)
         self.integration.QEvent.Type = SimpleNamespace(ShortcutOverride=1, KeyPress=2)
         self.integration.Qt.Key = SimpleNamespace(
             Key_Comma=44,
@@ -50,8 +51,7 @@ class ReviewerShortcutTests(unittest.TestCase):
     def setUp(self):
         web = Mock()
         web.isAncestorOf.return_value = False
-        reviewer = Reviewer()
-        reviewer.web = web
+        reviewer = Reviewer(web)
         self.mw = SimpleNamespace(
             state="review",
             reviewer=reviewer,
@@ -60,27 +60,30 @@ class ReviewerShortcutTests(unittest.TestCase):
         self.application = Mock()
         self.application.focusWidget.return_value = web
         aqt = ModuleType("aqt")
-        aqt.mw = self.mw
-        aqt.gui_hooks = SimpleNamespace()
+        setattr(aqt, "mw", self.mw)
+        setattr(aqt, "gui_hooks", SimpleNamespace())
         qt = ModuleType("aqt.qt")
-        qt.QApplication = self.application
-        qt.QObject = object
-        qt.QEvent = SimpleNamespace()
-        qt.Qt = SimpleNamespace()
+        setattr(qt, "QApplication", self.application)
+        setattr(qt, "QObject", object)
+        setattr(qt, "QEvent", SimpleNamespace())
+        setattr(qt, "Qt", SimpleNamespace())
         self.deleted_widgets = set()
-        qt.sip = SimpleNamespace(
-            isdeleted=lambda widget: widget in self.deleted_widgets
+        setattr(
+            qt,
+            "sip",
+            SimpleNamespace(isdeleted=lambda widget: widget in self.deleted_widgets),
         )
         reviewer_module = ModuleType("aqt.reviewer")
-        reviewer_module.Reviewer = Reviewer
+        setattr(reviewer_module, "Reviewer", Reviewer)
         utils = ModuleType("aqt.utils")
-        utils.is_mac = True
+        setattr(utils, "is_mac", True)
         with patch.dict(
             sys.modules,
             {
                 "aqt": aqt,
                 "aqt.qt": qt,
                 "aqt.reviewer": reviewer_module,
+                "anki.utils": utils,
                 "aqt.utils": utils,
             },
         ):
@@ -92,11 +95,12 @@ class ReviewerShortcutTests(unittest.TestCase):
             spec = importlib.util.spec_from_file_location(
                 "kit.desktop.shortcuts.reviewer", path
             )
+            assert spec is not None and spec.loader is not None
             self.integration = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(self.integration)
 
     def test_card_indent_override_accepts_base_keys_and_shifted_glyph_aliases(self):
-        self.integration._active_reviewer = self.mw.reviewer
+        setattr(self.integration, "_active_reviewer", self.mw.reviewer)
         self.integration.QEvent.Type = SimpleNamespace(ShortcutOverride=1, KeyPress=2)
         self.integration.Qt.Key = SimpleNamespace(
             Key_Tab=9,
@@ -110,8 +114,8 @@ class ReviewerShortcutTests(unittest.TestCase):
             MetaModifier=4, ControlModifier=8, AltModifier=16, ShiftModifier=32
         )
         settings = ModuleType("kit.desktop.config.service")
-        config = {"card_input_tab_indentation": True}
-        settings.get_settings = lambda: config
+        config: dict[str, bool | str] = {"card_input_tab_indentation": True}
+        setattr(settings, "get_settings", lambda: config)
         event = Mock()
         event.type.return_value = 1
         event.modifiers.return_value = 8 | 32
@@ -141,7 +145,7 @@ class ReviewerShortcutTests(unittest.TestCase):
             event.modifiers.return_value = 4 | 32
             self.assertFalse(filter.eventFilter(self.mw.reviewer.web, event))
             event.modifiers.return_value = 8 | 32
-            self.integration._active_reviewer = None
+            setattr(self.integration, "_active_reviewer", None)
             self.assertFalse(filter.eventFilter(self.mw.reviewer.web, event))
 
     def test_toolbar_focus_keeps_activation_and_navigation_out_of_native_review_actions(
@@ -242,8 +246,8 @@ class ReviewerShortcutTests(unittest.TestCase):
         self.assertNotIn(web, self.integration._preview_input_webviews)
 
     def test_deleted_reviewer_and_focus_widgets_are_not_dereferenced(self):
-        self.integration._active_reviewer = self.mw.reviewer
-        self.integration._command_comma_handled = True
+        setattr(self.integration, "_active_reviewer", self.mw.reviewer)
+        setattr(self.integration, "_command_comma_handled", True)
         self.deleted_widgets.add(self.mw.reviewer.web)
         self.assertFalse(self.integration._input_owns_command_comma())
         self.integration._refresh_question_focus()

@@ -10,6 +10,8 @@
       "source.organizeImports.ruff": "explicit"
     }
   },
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv",
+  "python.analysis.diagnosticMode": "workspace",
   "ruff.path": [
     "${workspaceFolder}/.venv/bin/ruff",
     "${workspaceFolder}/.venv/Scripts/ruff.exe"

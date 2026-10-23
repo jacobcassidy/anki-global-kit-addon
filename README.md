@@ -142,6 +142,7 @@ Development supports Node.js 22.22.2 or later in the 22.x series, 24.15.0 or lat
 
 ```sh
 npm install
+uv sync --locked
 npm run build
 npm run verify:package-assets
 npm run package:addon
@@ -155,7 +156,7 @@ The development copy appears as **Anki Global Kit (dev vX.X.X)** in Anki's Add-o
 
 The link command uses the standard [Anki data location](https://docs.ankiweb.net/files.html) for macOS, Windows, or Linux, including `ANKI_BASE` and Linux's `XDG_DATA_HOME` overrides. For a custom installation or Flatpak, pass the add-ons folder explicitly: `npm run dev:link-addon -- "/path/to/Anki2/addons21"`. Repeating the command is safe; it refuses to overwrite an existing folder or a link to another checkout. Use `npm run watch` while editing assets, and restart Anki to load Python changes.
 
-Run `npm test` for the JavaScript and Python suites, or `npm run test:js` and `npm run test:py` separately. The JavaScript script loads SVG imports as text to match the asset build. Use `npm run lint` for JavaScript, CSS, Markdown, and Python linting, and `npm run check` for Prettier and Ruff formatting checks. GitHub Actions runs both suites on pushes, pull requests, and manual workflow runs using Node.js 24 and Python 3.13. The suites use Node/jsdom and isolated Anki/Qt stand-ins. They cover card and editor shortcuts, note type creation and replacement, deletion safeguards, removal confirmations, changed-plan rejection, and managed media installation and failed-write recovery. Live Anki and cross-client release checks are described in the publishing guide.
+Run `npm test` for the JavaScript and isolated Python suites, or `npm run test:js` and `npm run test:py` separately. Use `npm run lint` for JavaScript, CSS, Markdown, and Python linting; `npm run check` runs Prettier, Ruff formatting, and Pyright; `npm run typecheck:py` runs the pinned Pyright CLI against the shared `[tool.pyright]` configuration in `pyproject.toml`. Install the locked Anki 26.05, Qt, and Ruff development environment with `uv sync --locked`; these dependencies are not included in the add-on archive. Pylance reads the shared project configuration but uses VS Code's selected interpreter. Run **Python: Select Interpreter** and choose this checkout's `.venv` if the workspace already had another interpreter selected; `python.defaultInterpreterPath` only supplies the default. Pyright and Pylance may bundle different checker versions. The type check analyzes add-on code, scripts, and Python tests, while isolated tests use Anki/Qt stand-ins to verify behavior without a live application. The commit hook checks the full Python scope after Ruff when staged Python files or checker/dependency configuration change, and CI runs the same check. Type checking and isolated tests do not verify live Qt behavior; live Anki and cross-client release checks are described in the publishing guide.
 
 Desktop services and Settings presentation live under `addon/desktop`; shipped card, editor, icon, and font assets live under `addon/assets`. Card, editor, and shared browser sources live under `src/cards`, `src/editor`, and `src/shared`; tests live under `tests/`. Runtime note type parts live under `addon/templates/note-types/parts`.
 

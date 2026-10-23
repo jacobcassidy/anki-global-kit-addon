@@ -28,7 +28,7 @@ _open_editors = WeakSet()
 
 
 def _inject_features(editor: Editor) -> None:
-    if not EDITOR_ASSET.is_file():
+    if editor.web is None or not EDITOR_ASSET.is_file():
         return
     editor_settings = get_editor_settings()
     settings = json.dumps(editor_settings, separators=(",", ":"))
@@ -56,14 +56,14 @@ def _inject_features(editor: Editor) -> None:
         "ui": _read_editor_styles(
             "editor-ui.min.css",
             custom_filename="editor-ui.css",
-            include_default=editor_settings["anki_editor_default_ui_styles"],
-            include_custom=editor_settings["anki_editor_custom_ui_styles"],
+            include_default=bool(editor_settings["anki_editor_default_ui_styles"]),
+            include_custom=bool(editor_settings["anki_editor_custom_ui_styles"]),
         ),
         "fields": _read_editor_styles(
             "editor-fields.min.css",
             custom_filename="editor-fields.css",
-            include_default=editor_settings["anki_editor_default_fields_styles"],
-            include_custom=editor_settings["anki_editor_custom_fields_styles"],
+            include_default=bool(editor_settings["anki_editor_default_fields_styles"]),
+            include_custom=bool(editor_settings["anki_editor_custom_fields_styles"]),
         ),
     }
     if mw.col is not None and editor_settings["anki_editor_default_fields_styles"]:
@@ -119,28 +119,45 @@ def _read_editor_styles(
 
 
 def _toggle_inline_code(editor: Editor) -> None:
+    if editor.web is None:
+        return
+
     editor.web.eval("globalThis.ankiGlobalKitEditor?.toggleInlineCode();")
 
 
 def _toggle_block(editor: Editor, format_name: str) -> None:
+    if editor.web is None:
+        return
+
     editor.web.eval(
         f"globalThis.ankiGlobalKitEditor?.toggleBlock({json.dumps(format_name)});"
     )
 
 
 def _convert_markdown(editor: Editor) -> None:
-    markdown = QApplication.clipboard().text()
+    clipboard = QApplication.clipboard()
+
+    if editor.web is None or clipboard is None:
+        return
+
+    markdown = clipboard.text()
     editor.web.eval(
         f"globalThis.ankiGlobalKitEditor?.convertMarkdown({json.dumps(markdown)});"
     )
 
 
 def _change_indentation(editor: Editor, action: str) -> None:
+    if editor.web is None:
+        return
+
     method = "indent" if action == "increase" else "unindent"
     editor.web.eval(f"globalThis.ankiGlobalKitEditor?.{method}();")
 
 
 def _exit_code_block(editor: Editor) -> None:
+    if editor.web is None:
+        return
+
     editor.web.eval("globalThis.ankiGlobalKitEditor?.exitCodeBlock();")
 
 
@@ -234,7 +251,7 @@ def _add_shortcut(shortcuts: list, editor: Editor) -> None:
         ]
     _open_editors.add(editor)
     if not isinstance(getattr(editor, "_anki_global_kit_shortcuts", None), dict):
-        editor._anki_global_kit_shortcuts = {}
+        setattr(editor, "_anki_global_kit_shortcuts", {})
     _refresh_editor_shortcuts(editor, settings)
 
 
@@ -281,7 +298,7 @@ def _activate_editor_shortcut(editor_ref, name: str) -> None:
     if editor is None or sip.isdeleted(editor.widget) or editor.currentField is None:
         return
     configured = _configured_editor_shortcuts(get_editor_settings()).get(name)
-    shortcut, registered = editor._anki_global_kit_shortcuts[name]
+    shortcut, registered = getattr(editor, "_anki_global_kit_shortcuts")[name]
     if (
         not shortcut.isEnabled()
         or not configured
@@ -305,7 +322,9 @@ def _activate_editor_shortcut(editor_ref, name: str) -> None:
 def _refresh_editor_shortcuts(editor: Editor, settings: dict) -> None:
     # Keep references to the kit's own shortcuts, so a settings save can rebind
     # them without touching other add-ons' shortcuts or rebuilding the editor.
-    shortcuts = editor._anki_global_kit_shortcuts
+    shortcuts: dict[str, tuple[QShortcut, str]] = getattr(
+        editor, "_anki_global_kit_shortcuts"
+    )
     for shortcut, _keys in shortcuts.values():
         shortcut.setEnabled(False)
     for name, keys in _configured_editor_shortcuts(settings).items():
@@ -316,7 +335,9 @@ def _refresh_editor_shortcuts(editor: Editor, settings: dict) -> None:
             shortcut = QShortcut(
                 QKeySequence(keys),
                 editor.widget,
-                activated=partial(_activate_editor_shortcut, ref(editor), name),
+            )
+            shortcut.activated.connect(
+                partial(_activate_editor_shortcut, ref(editor), name)
             )
         shortcuts[name] = (shortcut, keys)
         shortcut.setEnabled(True)

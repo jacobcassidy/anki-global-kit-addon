@@ -1,7 +1,7 @@
 """Read and write add-on settings."""
 
+from anki.utils import is_mac
 from aqt import mw
-from aqt.utils import is_mac
 
 from ..shortcuts.policy import recover_shortcut
 from .constants import ADDON_PACKAGE_NAME
@@ -33,9 +33,9 @@ def get_settings() -> dict[str, object]:
     ):
         # These new settings already store Qt modifier names. Only translate
         # the portable physical-Control default, never swap a saved Meta key.
-        settings[name] = settings[name].replace(
-            "Control+", "Meta+" if is_mac else "Ctrl+"
-        )
+        shortcut = settings[name]
+        assert isinstance(shortcut, str)
+        settings[name] = shortcut.replace("Control+", "Meta+" if is_mac else "Ctrl+")
     return settings
 
 
@@ -45,9 +45,9 @@ def get_editor_settings() -> dict[str, object]:
         "anki_editor_indent_increase_shortcut",
         "anki_editor_indent_decrease_shortcut",
     ):
-        settings[name] = settings[name].replace(
-            "Control+", "Meta+" if is_mac else "Ctrl+"
-        )
+        shortcut = settings[name]
+        assert isinstance(shortcut, str)
+        settings[name] = shortcut.replace("Control+", "Meta+" if is_mac else "Ctrl+")
     return settings
 
 
@@ -57,9 +57,10 @@ def get_card_web_settings() -> dict[str, object]:
     if is_mac:
         for action in ("increase", "decrease"):
             key = f"card_input_tab_indent_{action}_shortcut"
+            shortcut = settings[key]
+            assert isinstance(shortcut, str)
             settings[key] = "+".join(
-                "Control" if part == "Meta" else part
-                for part in settings[key].split("+")
+                "Control" if part == "Meta" else part for part in shortcut.split("+")
             )
     return settings
 
