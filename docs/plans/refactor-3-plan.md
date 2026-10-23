@@ -126,14 +126,14 @@ addon/
 │   │       │   └── placeholders.py    # Temporary editor field hints, such as Compare
 │   │       ├── styles/
 │   │       │   ├── sources.py         # Read packaged CSS and optional user overrides
-│   │       │   └── injection.py       # Assemble and inject editor style payloads
+│   │       │   └── payload.py         # Assemble the CSS payload for the editor browser
 │   │       └── syntax_highlighting/
 │   │           ├── actions.py
 │   │           ├── bridge.py         # Editor-only commands, guarded requests, and results
 │   │           ├── language_memory.py # Per-deck editor language memory
 │   │           ├── language_menu.py  # Native Qt language menu and selection behavior
 │   │           ├── language_selection.py # Editor default/allowed language choice and label
-│   │           ├── ui.py              # Other editor-only controls, if needed after extraction
+│   │           ├── ui.py              # Code-block options dialog and its controls
 │   │           ├── shortcuts.py       # Highlight and exit-code-block declarations
 │   │           └── toolbar.py
 │   ├── syntax_highlighting/
@@ -399,7 +399,7 @@ These locations replace the earlier standalone editor `editing/` and `bridge/` i
 
 Keep `integration.py`, browser `runtime/`, and catalogs outside support as the explicit lifecycle/composition owners. Build generators remain under `scripts/`; shared Desktop shortcut services remain in `desktop/shortcuts/`; syntax rendering/themes remain in `desktop/syntax_highlighting/`; common card/editor web behavior remains in `src/shared/`. A reusable toolbar renderer still belongs to `features/toolbar/`, and native editor registration still belongs to `features/shortcuts/`.
 
-Do not introduce `features/utils/`, `support/toolbar/`, or `support/shortcuts/` as alternate homes for those feature implementations. A helper used only by Markdown stays under `features/markdown/`; inline-code caret workarounds stay with inline code; style insertion/retry helpers stay with styles. The styles feature separates stylesheet source reading and override selection in `sources.py` from payload assembly and editor injection in `injection.py`. Keep syntax theme resolution and CSS generation in `desktop/syntax_highlighting/`. Put feature-local helpers in the owning directory, using descriptive module names; do not create empty support or helper modules to match a diagram.
+Do not introduce `features/utils/`, `support/toolbar/`, or `support/shortcuts/` as alternate homes for those feature implementations. A helper used only by Markdown stays under `features/markdown/`; inline-code caret workarounds stay with inline code; style insertion/retry helpers stay with styles. The Python styles feature separates stylesheet source reading and override selection in `sources.py` from CSS payload assembly in `payload.py`; browser-side style installation belongs to `src/editor/js/features/styles/`. Keep syntax theme resolution and CSS generation in `desktop/syntax_highlighting/`. Put feature-local helpers in the owning directory, using descriptive module names; do not create empty support or helper modules to match a diagram.
 
 ### Toolbar is a feature
 
@@ -443,7 +443,7 @@ Move Markdown request validation, conversion-limit warnings, background-request 
 
 Both Markdown and syntax-highlighting features call the reusable renderer under `desktop/syntax_highlighting/`. Keep Pygments rendering, source-size limits, and language discovery there because both features and the Settings page consume them. Keep `rendering.py` limited to plain-input rendering and language metadata; it must not import Anki editor classes, Qt, Settings, or editor feature modules. Move editor-only default/allowed language selection to `editor/features/syntax_highlighting/language_selection.py`. Per-deck language memory belongs to `editor/features/syntax_highlighting/language_memory.py`, where its editor-only policy can stay with the feature. Theme resolution and generation stay in the shared theme service. Shared rendering and theme services must not import editor feature modules, toolbar code, or editor bridge handlers. Preserve any shared serialization/scheduling required by the renderer without coupling Markdown's request lifecycle to the syntax-highlighting feature's UI state.
 
-The Desktop editor feature owns toolbar and shortcut contributions, editor settings access, native Qt language-menu presentation, per-editor and per-deck state, syntax-highlight/code-block-options message handling, and guarded result delivery. Keep the native menu in `language_menu.py`; use `ui.py` only for other syntax-highlighting controls that remain after the menu has a clear owner. Keep `language_selection.py` as pure feature policy over supplied settings and shared language metadata. The syntax-highlighting bridge handles only syntax-highlight and code-block-options requests; Markdown conversion requests and their pending state belong to the Markdown feature. Both feature bridges call the shared renderer directly and own their own request lifecycle.
+The Desktop editor feature owns toolbar and shortcut contributions, editor settings access, native Qt language-menu presentation, per-editor and per-deck state, syntax-highlight/code-block-options message handling, and guarded result delivery. Keep the native menu and its language-choice presentation in `language_menu.py`; keep the code-block options dialog and its controls in `ui.py`. Keep `language_selection.py` as pure feature policy over supplied settings and shared language metadata. The syntax-highlighting bridge handles only syntax-highlight and code-block-options requests; Markdown conversion requests and their pending state belong to the Markdown feature. Both feature bridges call the shared renderer directly and own their own request lifecycle.
 
 The browser editor feature owns DOM selection, request IDs and payload assembly for its commands, code-block DOM changes, native editor transaction integration, and result application. Its `language-menu.js` owns the browser-side menu opened from code-block language labels; it does not own the native Qt toolbar menu. Keep generic transport in `support/bridge/transport.js` and keep command names and payload schemas in generated contracts. Shared browser syntax-highlighting helpers expose DOM presentation or pure language/classification operations through explicit inputs and callbacks; they do not call `pycmd` or access editor globals. Card review keeps its own highlighting engine and lifecycle, using only those shared helpers it actually needs.
 
