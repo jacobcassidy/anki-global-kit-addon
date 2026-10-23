@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { JSDOM } from 'jsdom';
+import { editorBlockShortcuts } from '../../support/editor-shortcuts.js';
 import { tokenHtmlByLine, textFromCode } from '../../../src/shared/js/syntax-highlighting/code-lines.js';
 import { decorateCodeBlock } from '../../../src/shared/js/syntax-highlighting/code-block-controls.js';
 import {
@@ -12,6 +13,7 @@ import {
 } from '../../../src/editor/js/formatting/blocks.js';
 
 function editor(html) {
+  globalThis.ankiGlobalKitEditorBlockShortcuts = { ...editorBlockShortcuts };
   globalThis.ankiGlobalKitEditorSettings = {
     anki_editor_indent_increase_shortcut: 'Alt+Tab',
     anki_editor_indent_decrease_shortcut: 'Control+Tab',
@@ -728,4 +730,35 @@ test('an element-boundary caret selects the child list level', () => {
   window.getSelection().addRange(range);
   assert.equal(toggleEditorBlock('ordered-list'), true);
   assert.equal(field.innerHTML, '<ul><li>A<ol><li>B</li></ol></li></ul>');
+});
+
+test('browser list handlers use refreshed injected shortcuts without retaining hardcoded keys', () => {
+  const { field, range, dom } = editor('<div>row</div>');
+
+  nativeInsertion(field);
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { platform: 'Linux' } });
+  window.getSelection().addRange(range);
+  installBlockFormatting();
+  globalThis.ankiGlobalKitEditorBlockShortcuts = { 'unordered-list': 'Ctrl+Alt+7' };
+
+  const dispatch = (key) => {
+    const event = new dom.window.KeyboardEvent('keydown', {
+      key,
+      ctrlKey: true,
+      altKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+
+    field.dispatchEvent(event);
+    return event.defaultPrevented;
+  };
+
+  assert.equal(dispatch('8'), false);
+  assert.equal(field.innerHTML, '<div>row</div>');
+  assert.equal(dispatch('7'), true);
+  assert.equal(field.innerHTML, '<ul><li>row</li></ul>');
+  delete globalThis.ankiGlobalKitEditorBlockShortcuts;
+  assert.equal(dispatch('7'), false);
+  assert.equal(dispatch('8'), false);
 });

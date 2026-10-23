@@ -31,6 +31,7 @@ def _inject_features(editor: Editor) -> None:
     editor_settings = get_editor_settings()
     settings = json.dumps(editor_settings, separators=(",", ":"))
     settings = settings.replace("<", "\\u003c")
+    block_shortcuts = json.dumps(BLOCK_SHORTCUTS).replace("<", "\\u003c")
     list_labels = json.dumps(
         {
             name: shortcut_label(keys)
@@ -78,6 +79,7 @@ def _inject_features(editor: Editor) -> None:
         "globalThis.ankiGlobalKitEditorSettings = Object.assign("
         "globalThis.ankiGlobalKitEditorSettings || {}, "
         f"{settings});\n"
+        f"globalThis.ankiGlobalKitEditorBlockShortcuts = {block_shortcuts};\n"
         f"globalThis.ankiGlobalKitEditorListLabels = {list_labels};\n"
         f"globalThis.ankiGlobalKitEditorIndentLabels = {indent_labels};\n"
         f"globalThis.ankiGlobalKitEditorStyles = {styles_json};\n{script}"

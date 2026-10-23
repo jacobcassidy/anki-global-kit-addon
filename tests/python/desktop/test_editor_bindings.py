@@ -1,5 +1,7 @@
 """Check native editor bindings preserve fixed actions and avoid ambiguity."""
 
+import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,6 +12,44 @@ from tests.support.anki_stubs import load_editor_integration, load_settings_serv
 
 
 class EditorBindingsTests(unittest.TestCase):
+    def test_injected_browser_shortcuts_follow_the_native_definitions(self):
+        for mac in (False, True):
+            with self.subTest(mac=mac):
+                settings = load_settings_services(mac=mac).config.get_editor_settings()
+                integration = load_editor_integration(settings, mac=mac)
+                editor = Mock(currentField=0)
+                shortcuts = {
+                    "unordered-list": "Ctrl+Alt+7",
+                    "ordered-list": "Ctrl+Alt+6",
+                    "no-list": "Ctrl+Alt+5",
+                }
+                with (
+                    patch.dict(integration.BLOCK_SHORTCUTS, shortcuts, clear=True),
+                    patch.object(integration, "_read_editor_styles", return_value=""),
+                    patch.object(
+                        integration.syntax_highlighting, "set_editor_language_context"
+                    ),
+                ):
+                    bindings = []
+                    integration._add_shortcut(bindings, editor)
+                    integration._inject_features(editor)
+                    script = editor.web.eval.call_args.args[0]
+                    injected = re.search(
+                        r"globalThis.ankiGlobalKitEditorBlockShortcuts = (.*?);\n",
+                        script,
+                    )
+                    self.assertIsNotNone(injected)
+                    self.assertEqual(json.loads(injected.group(1)), shortcuts)
+                    for action, keys in shortcuts.items():
+                        self.assertIsNotNone(
+                            integration.editor_fixed_shortcut_action(keys)
+                        )
+                        callbacks = [
+                            callback for key, callback in bindings if key == keys
+                        ]
+                        self.assertEqual(len(callbacks), 1)
+                        self.assertEqual(callbacks[0].args[-1], action)
+
     def test_toolbar_defaults_and_theme_inheriting_icons(self):
         settings = load_settings_services().config.get_editor_settings()
         self.assertFalse(settings["anki_editor_blockquote_button"])

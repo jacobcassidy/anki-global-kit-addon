@@ -56,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Removed the duplicate browser list shortcut map; native bindings, browser handling, and Settings reservations now use the same Python definitions.
+
 - Added an actionable warning when Markdown conversion exceeds 100 code blocks or 2,000,000 generated HTML characters, preserving the current field.
 
 - Reused one field input listener across editor bundle reinjection while refreshing the edit callback.

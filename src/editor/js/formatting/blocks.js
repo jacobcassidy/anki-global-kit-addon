@@ -7,11 +7,6 @@ const FIELD = 'anki-editable,[contenteditable="true"]';
 const BLOCK = 'li,div,p,pre,h1,h2,h3,h4,h5,h6,blockquote';
 const isList = (node) => node?.matches?.('ul,ol');
 const elementOf = (node) => (node?.nodeType === 1 ? node : node?.parentElement);
-const BLOCK_SHORTCUTS = {
-  'unordered-list': 'Ctrl+Alt+8',
-  'ordered-list': 'Ctrl+Alt+9',
-  'no-list': 'Ctrl+Alt+0',
-};
 
 function textOffset(root, node, offset) {
   const range = document.createRange();
@@ -544,9 +539,8 @@ export function installBlockFormatting() {
       if (event.isComposing) return;
       const field = event.composedPath().find((node) => node?.matches?.(FIELD));
       if (!field) return;
-      const format = Object.keys(BLOCK_SHORTCUTS).find((key) =>
-        matchesKeyboardShortcut(event, BLOCK_SHORTCUTS[key], isMac),
-      );
+      const shortcuts = globalThis.ankiGlobalKitEditorBlockShortcuts || {};
+      const format = Object.keys(shortcuts).find((key) => matchesKeyboardShortcut(event, shortcuts[key], isMac));
       if (format) {
         if (toggleEditorBlock(format)) stop(event);
       } else {
