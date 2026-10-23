@@ -111,6 +111,7 @@ Exceptions to these spacing rules:
   before committing. If a commit is requested while `main` is checked out,
   including an explicit request to commit to `main`, ask the user whether to
   switch to `dev` or another branch and wait for their choice before committing.
+- Use `git merge --no-ff` when merging a branch so the merge remains explicit in history.
 - Stage only files belonging to that change. Do not include unrelated user work.
 - Check the repository root before committing, especially when accessing this
   directory through a symlink. If no repository is available, report that and
