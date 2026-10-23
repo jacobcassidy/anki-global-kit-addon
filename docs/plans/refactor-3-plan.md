@@ -162,16 +162,17 @@ addon/
 │   │           ├── help.py
 │   │           └── help-content.md   # Retained beside its owning Settings page
 │   └── ui/
-│       ├── constants.py
-│       ├── help.py
-│       ├── icons.py
-│       ├── input_styles.py
-│       ├── layouts.py
-│       ├── lists.py
-│       ├── markdown.py
-│       ├── shortcut_input.py
-│       ├── shortcut_rows.py
-│       └── theme.py
+│       ├── __init__.py             # Shared Qt controls and presentation helpers
+│       ├── constants.py            # Shared spacing, padding, and transparent-color values
+│       ├── help.py                 # Settings help indicators and popups
+│       ├── icons.py                # Theme-aware rendering for settings icons
+│       ├── input_styles.py         # Theme-aware styles for editable settings fields
+│       ├── layouts.py              # Reusable Qt layout and row helpers
+│       ├── lists.py                # Rounded, theme-aware Settings list widgets
+│       ├── markdown.py             # Read-only Markdown browser setup for Settings content
+│       ├── shortcut_input.py       # Shortcut recording, display, and reset controls
+│       ├── shortcut_rows.py        # Shared nested shortcut controls and row styling
+│       └── theme.py                # Accessors for Anki's active semantic theme colors
 └── vendor/                            # Pinned ignored dependencies and upstream notices
     ├── pygments/
     └── pygments-LICENSE
