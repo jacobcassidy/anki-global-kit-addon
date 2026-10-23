@@ -128,6 +128,7 @@ addon/
 │   │           ├── actions.py
 │   │           ├── bridge.py
 │   │           ├── language_menu.py
+│   │           ├── ui.py              # Editor-only language/theme controls and menus
 │   │           ├── shortcuts.py       # Highlight and exit-code-block declarations
 │   │           └── toolbar.py
 │   ├── syntax_highlighting/
@@ -396,6 +397,8 @@ Move `editor/buttons.py` into `editor/features/toolbar/buttons.py`. Move browser
 Individual features own their button labels, icon references, setting references, and action callbacks. The toolbar renders those contributions. Replace positional slices of `custom_buttons` with explicit ordered contributions/groups supplied through the catalog. A Markdown or blockquote addition should require changing its owning feature and composition, while the renderer remains generic.
 
 Keep genuinely shared Qt widgets in `desktop/ui/` when multiple Desktop areas consume them. Keep editor-specific toolbar helpers with the toolbar feature; do not introduce another generic `editor/ui/` folder for its implementation.
+
+Apply this ownership rule to all Desktop UI code, not only toolbar code: Qt widgets, dialogs, labels, layout helpers, and presentation functions used only by an editor feature belong in that feature's package. For example, syntax-highlighting menus and controls belong beside its actions and bridge; a `ui.py` module is appropriate when that gives the feature a clear home. Keep `desktop/ui/` for controls and presentation utilities with real consumers in multiple Desktop areas, such as Settings and the editor. Settings-page UI remains under `desktop/settings/pages/`, owned by its Settings page. During migration, check actual imports and call sites before moving each `desktop/ui/` module; split a module when only some of its pieces are editor-specific. Do not move code into a feature solely because it creates a Qt widget.
 
 ### Actions and shortcut contributions
 
