@@ -8,7 +8,7 @@ Keep the runtime-first organization: Python Desktop integration in `addon/`, rev
 
 This plan updates and supersedes the target architecture in the [second architecture refactor plan](refactor-2-plan.md). It carries forward its contracts, shared-code boundaries, note-type separation, lifecycle ownership, and resource/package assembly work, and adds complete editor feature ownership and shortcut separation. Keep the earlier plan unchanged as design history.
 
-It also incorporates the [Desktop shortcuts refactor plan](refactor-shortcuts.md), with one revision: feature action callbacks stay with their owning feature instead of collecting in a central `editor/actions.py`. Toolbar rendering and presentation belong to the toolbar feature. Browser-only features remain represented in the feature inventory without empty Python modules.
+It also incorporates the [Desktop shortcuts refactor plan](refactor-shortcuts.md), with revised feature boundaries: feature action callbacks and shortcut contributions stay with their owning feature, and native editor shortcut coordination lives in `editor/features/shortcuts/`. Shared Desktop shortcut support and the reviewer/preview adapter remain in `desktop/shortcuts/`. Toolbar rendering and presentation belong to the toolbar feature. Browser-only features remain represented in the feature inventory without empty Python modules.
 
 The existing layout and `AGENTS.md` remain authoritative until the corresponding implementation phase updates them together. Preserve feature behavior documented in the [syntax highlighting plan](archive/syntax-highlighting-plan.md). Inventory the current branch at implementation time, including completed legacy-removal work; preserve current shortcut recovery policies and do not restore retired Tab handling or editor `CodeBlock+` compatibility from earlier plans.
 
@@ -17,7 +17,7 @@ The existing layout and `AGENTS.md` remain authoritative until the corresponding
 - Give every editor feature a named home under `features/` in each runtime where it has an implementation.
 - Keep feature actions, toolbar contributions, request handlers, and feature state with their owners; keep integration, transport, selection, and transactions as shared infrastructure.
 - Treat the editor toolbar and style installation as features with explicit ownership.
-- Move native editor shortcut registration out of `editor/integration.py` into `shortcuts/editor.py`.
+- Move native editor shortcut registration out of `editor/integration.py` into `editor/features/shortcuts/`, consuming shortcut contributions owned by individual features.
 - Make features traceable through an explicit catalog, matching runtime names, feature-oriented tests, and documented dependencies.
 - Remove Desktop bridge dependencies from shared web controls.
 - Centralize settings, asset, and bridge contracts without duplicating release defaults.
@@ -83,28 +83,34 @@ addon/
 │   │   └── stylesheet.py              # Existing CSS-import recognition
 │   ├── shortcuts/
 │   │   ├── helpers.py                 # Pure string parsing and normalization
-│   │   ├── definitions.py             # Fixed keys, aliases, reserved/built-in tables
+│   │   ├── definitions.py             # Shared aliases and reserved/built-in tables
 │   │   ├── validation.py              # Reservations and conflict warnings
 │   │   ├── policy.py                  # Current unsupported-value/recovery policy
 │   │   ├── labels.py                  # Display labels and modifier hints
 │   │   ├── qt_helpers.py              # Reusable Qt matching where consumers need it
-│   │   ├── editor.py                  # Native editor registration and rebinding
 │   │   └── reviewer.py                # Reviewer routing, focus ownership, Qt filter
 │   ├── editor/
 │   │   ├── integration.py             # Anki lifecycle and feature coordination
 │   │   ├── catalog.py                 # Ordered feature contributions and inventory
 │   │   ├── bridge.py                  # Safe transport and command dispatch
 │   │   └── features/
+│   │       ├── shortcuts/
+│   │       │   ├── registration.py    # Editor binding lifecycle and activation guards
+│   │       │   ├── definitions.py     # Pure aggregation of feature shortcut declarations
+│   │       │   └── validation.py      # Editor-specific reservations and conflicts
 │   │       ├── toolbar/
 │   │       │   ├── buttons.py         # Generic editor button/group rendering
 │   │       │   └── presentation.py    # Toolbar assembly and presentation refresh
 │   │       ├── markdown/
 │   │       │   ├── actions.py         # Convert action and clipboard access
 │   │       │   ├── bridge.py          # Markdown request validation and responses
+│   │       │   ├── shortcuts.py       # Setting references and conversion action identifier
 │   │       │   └── toolbar.py         # Markdown button contribution
-│   │       ├── inline_code.py         # Small feature: action and button contribution
+│   │       ├── inline_code.py         # Small feature: action, button, shortcut contribution
 │   │       ├── blockquote.py
-│   │       ├── lists.py
+│   │       ├── lists/
+│   │       │   ├── actions.py
+│   │       │   └── shortcuts.py       # Pure fixed-key/action declarations
 │   │       ├── indentation.py
 │   │       ├── field_descriptions.py
 │   │       ├── styles.py              # Packaged/custom CSS and theme composition
@@ -310,30 +316,31 @@ Preserve existing bridge commands, globals, payload shapes, and safe serializati
 
 Every user-facing editor feature belongs under `editor/features/` or `src/editor/js/features/` for each runtime it uses. `integration.py`, browser entry points, and generic transport contain lifecycle or dispatch code; feature implementations have an explicit owner in the following inventory.
 
-| Feature                                                | Python owner under `editor/features/` | Browser owner under `js/features/`         |
-| ------------------------------------------------------ | ------------------------------------- | ------------------------------------------ |
-| Toolbar                                                | `toolbar/`                            | `toolbar/`                                 |
-| Convert Markdown to HTML                               | `markdown/`                           | `markdown/`                                |
-| Inline code                                            | `inline_code.py`                      | `inline-code/`                             |
-| Blockquote                                             | `blockquote.py`                       | `blockquote/`                              |
-| Lists                                                  | `lists.py`                            | `lists/`                                   |
-| Indentation                                            | `indentation.py`                      | `indentation/`                             |
-| Syntax highlighting, language menu, code-block editing | `syntax_highlighting/`                | `syntax-highlighting/`                     |
-| Field descriptions                                     | `field_descriptions.py`               | Uses Anki's existing field-description API |
-| Editor styles                                          | `styles.py`                           | `styles/`                                  |
-| Cloze keyboard behavior                                | Browser implementation only           | `cloze/`                                   |
-| Copy source/code                                       | Browser implementation only           | `code-copy/`                               |
-| Code space normalization                               | Browser implementation only           | `code-spaces/`                             |
+| Feature                                                | Python owner under `editor/features/` | Browser owner under `js/features/`                                     |
+| ------------------------------------------------------ | ------------------------------------- | ---------------------------------------------------------------------- |
+| Native editor shortcuts                                | `shortcuts/`                          | Python implementation; browser actions remain in their owning features |
+| Toolbar                                                | `toolbar/`                            | `toolbar/`                                                             |
+| Convert Markdown to HTML                               | `markdown/`                           | `markdown/`                                                            |
+| Inline code                                            | `inline_code.py`                      | `inline-code/`                                                         |
+| Blockquote                                             | `blockquote.py`                       | `blockquote/`                                                          |
+| Lists                                                  | `lists/`                              | `lists/`                                                               |
+| Indentation                                            | `indentation.py`                      | `indentation/`                                                         |
+| Syntax highlighting, language menu, code-block editing | `syntax_highlighting/`                | `syntax-highlighting/`                                                 |
+| Field descriptions                                     | `field_descriptions.py`               | Uses Anki's existing field-description API                             |
+| Editor styles                                          | `styles.py`                           | `styles/`                                                              |
+| Cloze keyboard behavior                                | Browser implementation only           | `cloze/`                                                               |
+| Copy source/code                                       | Browser implementation only           | `code-copy/`                                                           |
+| Code space normalization                               | Browser implementation only           | `code-spaces/`                                                         |
 
 Update this inventory when the baseline identifies additional features. Keep `catalog.py` and `catalog.js` as explicit composition lists for their runtime. Document each feature's settings references, action identifiers, bridge commands, source entry points, styles, shared-service dependencies, and tests in the developer feature map. Document browser-only/Python-only entries explicitly; a feature's absence from another runtime must be explained by its responsibilities.
 
 ### Feature contributions and catalog
 
-A feature supplies its actions, button descriptions, settings-key references, and optional lifecycle/message handlers through a small, explicit interface. Small modules can export these directly; larger features can assemble them through an entry module. Use plain functions and small data structures, with no filesystem discovery or general plugin framework.
+A feature supplies its actions, button descriptions, shortcut contributions, settings-key references, and optional lifecycle/message handlers through a small, explicit interface. Small modules can export these directly; larger features can assemble them through an entry module. Use plain functions and small data structures, with no filesystem discovery or general plugin framework.
 
-The catalog establishes feature participation and existing action/group ordering. It passes action callbacks to native shortcut registration, button contributions to the toolbar, and command handlers to bridge dispatch. Keep ordering explicit, including current configurable-shortcut priority. Derive each runtime's dispatch and toolbar lists from its catalog so adding a feature does not require another feature-specific branch in integration.
+The catalog establishes feature participation and existing action/group ordering. It passes feature shortcut declarations and action callbacks to the editor shortcuts feature, button contributions to the toolbar, and command handlers to bridge dispatch. Keep ordering explicit, including current configurable-shortcut priority. Derive each runtime's dispatch and toolbar lists from its catalog so adding a feature does not require another feature-specific branch in integration.
 
-Feature catalogs compose implementations; canonical settings, asset identities, and bridge strings remain in the contracts below. Catalogs refer to those definitions rather than creating competing metadata/default tables. Keep the canonical fixed shortcut map in `shortcuts/definitions.py`; browser handling continues using its injected values. Browser and Python composition lists may differ according to runtime responsibilities.
+Feature catalogs compose implementations; canonical settings, asset identities, and bridge strings remain in the contract sources above. Catalogs refer to those definitions rather than creating competing metadata/default tables. Assemble the canonical editor fixed-shortcut map from pure feature declarations through `editor/features/shortcuts/definitions.py`; Settings reservations, native registration, and browser injection consume that same aggregate. Shared aliases and common warning tables remain in `desktop/shortcuts/definitions.py`. Browser and Python composition lists may differ according to runtime responsibilities.
 
 ### Toolbar is a feature
 
@@ -343,13 +350,31 @@ Individual features own their button labels, icon references, setting references
 
 Keep genuinely shared Qt widgets in `desktop/ui/` when multiple Desktop areas consume them. Keep editor-specific toolbar helpers with the toolbar feature; do not introduce another generic `editor/ui/` folder for its implementation.
 
-### Actions and native shortcuts
+### Actions and shortcut contributions
 
 Move `_toggle_inline_code()`, blockquote/list action adapters, `_convert_markdown()`, indentation adapters, exit-code-block behavior, and syntax-highlighting action entry points to their owning features. Toolbar and native keyboard activation invoke the same feature callbacks. Preserve clipboard-read timing, selected-field guards, existing browser globals, and current feature calls.
 
-Move `_add_shortcut()`, configurable-binding selection, native activation guards, shortcut creation/reuse/rebinding/disabling, and the weak registered-editor registry from integration into `shortcuts/editor.py`. Accept supplied feature actions/shortcut references through the catalog; keep registration free of a hardcoded action-dispatch chain. Do not create a central `editor/actions.py` or import `editor/integration.py` from native registration.
+Each feature owns its shortcut contribution: action identifier, references to existing shortcut/enabled settings, any fixed key declaration, and the associated action callback supplied during composition. Configurable defaults remain in `addon/config.json`. Markdown can use `features/markdown/shortcuts.py`; a small inline-code feature can keep its contribution in `inline_code.py` and split into a package with `shortcuts.py` when its responsibilities justify it.
 
-`editor/integration.py` remains the Anki hook coordinator. It connects the native registration entry point once and coordinates Settings refresh: obtain settings, iterate live registered editors, refresh bindings, and dispatch feature settings/presentation updates. `shortcuts/editor.py` owns only its registry and native shortcut lifecycle; runtime-specific state stays with its actual owner.
+Separate pure declarations from Qt-dependent callbacks when Settings, configuration validation, or headless tools need them. For example, `features/lists/shortcuts.py` owns fixed list bindings, while `features/shortcuts/definitions.py` assembles their canonical aggregate. Metadata modules and package initializers must load without importing integration, Qt, Settings services, or runtime catalogs. Bind callbacks to declared action identifiers at composition time. Detect duplicate declarations instead of silently overriding them.
+
+### Editor shortcuts is a feature
+
+Move `_add_shortcut()`, configurable-binding selection, native activation guards, shortcut creation/reuse/rebinding/disabling, and the weak registered-editor registry from integration into `editor/features/shortcuts/registration.py`. Keep editor-specific fixed reservations, duplicate-binding resolution, and intended native-indentation exceptions under `editor/features/shortcuts/validation.py`. Consume supplied feature declarations/actions through the catalog, preserving existing action priority and activation guards.
+
+This feature coordinates native registration across all editor actions. Individual features contribute their shortcuts to it rather than independently creating competing `QShortcut` objects. Expose a small API such as `register(shortcuts, editor, contributions)`, `refresh_bindings(editor, settings, contributions)`, and `iter_live_editors()`. Preserve editor-widget ownership, weak activation references, object reuse, and cleanup. Keep registration free of a hardcoded feature-action dispatch chain.
+
+`editor/integration.py` remains the Anki hook coordinator. It connects the native registration entry point once and coordinates Settings refresh: obtain settings, iterate live registered editors, refresh bindings, and dispatch feature settings/presentation updates. The shortcuts feature owns its editor registry and native binding lifecycle. Neither registration nor individual action features import `editor/integration.py`. Do not create a central `editor/actions.py` or a native registration module at `desktop/shortcuts/editor.py`.
+
+The native editor shortcuts feature needs no empty browser counterpart. Browser action implementations and any feature-specific key handling remain under their owning browser features, consuming the injected fixed map and existing platform conventions. Keep their registrations/lifecycle coordinated through the browser catalog/runtime.
+
+### Shared Desktop shortcut support
+
+Retain `desktop/shortcuts/` for the existing consumers beyond the editor: Settings shortcut capture/conflict checks for cards and editor, configuration recovery for both contexts, and Desktop reviewer/preview keyboard routing. Shared parsing, normalization, labels, common reserved/built-in tables, reusable Qt matching, and genuinely shared policy belong here.
+
+Keep `reviewer.py` outside editor features. It owns card review/preview focus tracking, card indentation overrides, card-toolbar navigation ownership, and Preferences restoration. Preserve these behaviors and the Desktop-only adapter boundary; review behavior needed across clients remains in `src/cards/`.
+
+Editor-specific key definitions and validation move to the editor shortcuts feature. Shared validation accepts supplied definitions when needed and must not import editor catalogs or feature implementations. Settings can combine shared checks with the pure editor reservation API explicitly. Keep the existing shared recovery policy for card/editor saved values, preserving its behavior without introducing a configuration-to-feature-runtime dependency.
 
 ### Markdown and highlighting
 
@@ -371,10 +396,10 @@ The browser runtime coordinates feature mount, settings updates, note-context re
 
 - `src/shared/` may use browser APIs but must not invoke `pycmd`, access `ankiGlobalKitEditor`, or import card/editor application modules. Shared controls receive callbacks or capabilities from their owning runtime.
 - Shared code owns common DOM presentation and interactions. Editor selection, native undo integration, and Desktop commands remain editor responsibilities; review observation and answer persistence remain card responsibilities.
-- Editor feature modules must not import `integration.py`, catalogs, or native shortcut registration. Catalogs/coordinators compose feature contributions; generic transport dispatches handlers supplied during composition.
+- Individual action features must not import `integration.py`, catalogs, or the editor shortcuts registration module. Catalogs/coordinators compose feature contributions; generic transport dispatches handlers supplied during composition.
 - The toolbar consumes feature button contributions; other features must not depend on its internal renderer. Shared editing utilities must not import feature implementations.
 - Feature bridge modules use transport and generated contracts; generic transport must not import concrete feature handlers. Shared renderer services must not import editor features.
-- Pure shortcut helpers, definitions, validation, and recovery policy remain free of Anki/Qt imports. Qt matching helpers resolve explicit inputs; runtime routers own Settings access, target selection, focus, event acceptance, and action invocation.
+- Shared shortcut helpers, common definitions/validation, recovery policy, and pure editor feature shortcut declarations/aggregates remain free of Anki/Qt imports. Shared Desktop support must not import editor feature implementations; Settings explicitly combines shared and editor-specific pure validation. Qt matching helpers resolve explicit inputs; runtime routers own Settings access, target selection, focus, event acceptance, and action invocation.
 - Desktop services must not import Settings pages or the dialog. Settings collects user intent, presents confirmations, and calls services.
 - Note-type template assembly and definitions must load without Anki/Qt. Planning receives a collection explicitly; application/revalidation uses documented collection APIs. Resolve `mw.col` at UI or hook boundaries.
 - Keep `scripts/addon_module_loader.py` as the supported startup-free import path. Pure-module imports must neither execute `addon/__init__.py` nor register hooks.
@@ -415,7 +440,7 @@ Exit criteria: shared code runs with no Desktop bridge present, existing card/ed
 ### Phase 3: Establish complete editor feature ownership
 
 1. Introduce explicit Python/browser catalogs and the feature map, preserving current ordering and public interfaces. Move toolbar rendering into `features/toolbar/`, with each feature supplying its button definitions and callbacks.
-2. Extract Markdown, inline-code, blockquote, list, and indentation adapters from integration into their feature owners. Move feature-specific labels/tooltips and settings references with them; keep generic injection and lifecycle dispatch in integration/bridge.
+2. Extract Markdown, inline-code, blockquote, list, and indentation adapters from integration into their feature owners. Move feature-specific labels/tooltips, shortcut contributions, and settings references with them; keep generic injection and lifecycle dispatch in integration/bridge.
 3. Split the Python syntax-highlighting module by actual responsibilities. Move Markdown request handling to Markdown and preserve shared renderer safety, queue/busy behavior, request validation, warnings, and asynchronous result guards.
 4. Reorganize browser implementations under `js/features/`, including toolbar, syntax highlighting/language menus/code-block editing, styles, cloze, code-copy, and code-spaces. Extract common editing operations while preserving DOM structure, selection, and undo behavior.
 5. Move custom/packaged CSS composition from integration into the styles feature. Keep document versus field/shadow-root style installation and existing user overrides intact; group feature-specific CSS under matching stylesheet paths where useful.
@@ -425,14 +450,14 @@ Exit criteria: every editor feature has a documented owner in the runtime(s) it 
 
 ### Phase 4: Separate shortcut helpers and runtime registration
 
-1. Extract pure parsing/normalization to `shortcuts/helpers.py`, raw maps/action names to `definitions.py`, and reservations/warnings to `validation.py`. Keep unsupported saved-value recovery in the existing `policy.py`; move display formatting and hints into `labels.py`.
+1. Extract pure parsing/normalization to `desktop/shortcuts/helpers.py`, shared aliases/common tables to `definitions.py`, and common reservations/warnings to `validation.py`. Keep shared unsupported saved-value recovery in the existing `policy.py`; move display formatting and hints into `labels.py`. Move editor-specific validation and fixed-key aggregation into `editor/features/shortcuts/`.
 2. Supply platform inputs explicitly to pure helpers. Preserve current aliases, literal plus parsing, shifted punctuation, supported modifier conventions, fixed reservations, intended native-indentation exceptions, and current unsupported-value recovery. Preserve the active card `CodeBlock+` convention without restoring retired editor compatibility.
 3. Extract reusable Qt modifier/key matching to `qt_helpers.py` where the current baseline has real consumers. Leave focus ownership, webview selection, Qt event acceptance, Preferences restoration, and reviewer hooks in `reviewer.py`. Do not reintroduce retired Tab interception from the older shortcuts plan.
-4. Move native editor registration, guarded activation, binding refresh, and weak registry ownership into `shortcuts/editor.py`, consuming the feature action contributions established in Phase 3. Keep Anki hook registration and Settings-facing refresh coordinated once through integration/bootstrap.
-5. Update Settings validation, input controls, action labels, browser-map injection, test fixtures, and tooling to consume the canonical modules. Preserve shortcut-object reuse and disabling/rebinding without touching other add-ons' bindings.
+4. Move native editor registration, guarded activation, binding refresh, and weak registry ownership into `editor/features/shortcuts/registration.py`, consuming the feature-owned shortcut declarations/actions established in Phase 3. Preserve centralized conflict resolution and action priority. Keep Anki hook registration and Settings-facing refresh coordinated once through integration/bootstrap.
+5. Update Settings validation, input controls, action labels, browser-map injection, test fixtures, and tooling to consume shared helpers and the pure editor aggregate/validation API. Verify that Settings/headless imports do not load Qt-dependent feature callbacks or catalogs. Preserve shortcut-object reuse and disabling/rebinding without touching other add-ons' bindings.
 6. Remove `formatting.py` after internal consumers migrate. Retain forwarding only for a documented external interface; avoid duplicate definitions and temporary central action collections.
 
-Exit criteria: shortcut helpers import without Qt, fixed definitions have one owner, native registration lives in `shortcuts/editor.py`, toolbar/keyboard activation reaches the same feature actions, and existing conflict/rebinding/platform behavior is preserved.
+Exit criteria: shortcut helpers import without Qt, fixed definitions have one owner, native registration lives in `editor/features/shortcuts/registration.py`, toolbar/keyboard activation reaches the same feature actions, and existing conflict/rebinding/platform behavior is preserved.
 
 ### Phase 5: Split note-type responsibilities
 
@@ -479,7 +504,7 @@ Automated validation:
 - Add a generator freshness command to CI. Clean builds must reproduce all tracked generated files without a diff; ignored assembled outputs must independently pass manifest/archive verification.
 - Check feature-catalog coverage and dependency direction: no user-facing behavior left in integration/transport, no feature imports from shared editing/rendering services, and no duplicate fixed shortcut maps or action definitions.
 - Cover Markdown selection versus clipboard conversion, rendering limits/failures, stale results, and shared renderer scheduling after handler extraction. Cover inline-code entry/exit, quote/list nesting, indentation, saved code rows, copy, cloze, style installation, toolbar visibility/order, and native undo/redo.
-- Cover pure shortcut imports, labels and modifier mapping on both platform paths, fixed reservations, policy recovery, duplicate assignments, activation guards, object reuse, native/browser parity, Settings rebinding, deleted-editor pruning, and preservation of unrelated bindings.
+- Cover pure shared-helper and editor-declaration/aggregate imports without Qt, labels and modifier mapping on both platform paths, feature-contribution completeness and duplicate declarations, fixed reservations, shared/editor validation boundaries, policy recovery, duplicate assignments, activation guards, object reuse, native/browser parity, Settings rebinding, deleted-editor pruning, and preservation of unrelated bindings.
 - Verify startup registration once, headless imports in a fresh process, contract validation, shared-code boundaries, lifecycle cleanup, and note-type revalidation with targeted regressions.
 - Exercise the assembly/watch dependency chain for settings, bridge definitions, icons, template parts, Python modules, theme sources, font notice sources, and removed resources. Check failures leave the last successful runnable assets intact.
 - Inspect archive contents and resource resolution after extraction outside the repository. Verify required notices and supplied defaults are present, with local metadata and user data excluded.
@@ -498,7 +523,7 @@ Do not claim live verification from Qt stubs or DOM simulations. Record unavaila
 
 ## Completion and rollback
 
-The refactor is complete when feature ownership, shortcut separation, contracts, shared-code boundaries, note-type separation, lifecycle coordination, and package assembly are implemented; canonical definitions have one owner; package/resource paths are verified; documented commands work from a clean checkout; and acceptance results and limitations are recorded. Every editor feature must have an inventory entry and an implementation under `features/` in each runtime where it needs one, including toolbar and styles.
+The refactor is complete when feature ownership, shortcut separation, contracts, shared-code boundaries, note-type separation, lifecycle coordination, and package assembly are implemented; canonical definitions have one owner; package/resource paths are verified; documented commands work from a clean checkout; and acceptance results and limitations are recorded. Every editor feature must have an inventory entry and an implementation under `features/` in each runtime where it needs one, including toolbar, native shortcuts, and styles. Shared Desktop shortcut support remains reusable by Settings, configuration, and reviewer/preview code.
 
 Keep compatibility facades only where external interfaces require them; remove temporary internal forwarding modules after consumers migrate. Update `README.md`, `CHANGELOG.md`, `docs/development/architecture.md`, dependency/publishing instructions, and `AGENTS.md` to describe the resulting system. Do not mark implementation phases complete when only this plan exists.
 
