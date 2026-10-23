@@ -129,13 +129,14 @@ addon/
 │   │       │   └── injection.py       # Assemble and inject editor style payloads
 │   │       └── syntax_highlighting/
 │   │           ├── actions.py
-│   │           ├── bridge.py
-│   │           ├── language_menu.py
-│   │           ├── ui.py              # Editor-only language/theme controls and menus
+│   │           ├── bridge.py         # Editor-only commands, guarded requests, and results
+│   │           ├── language_memory.py # Per-deck editor language memory
+│   │           ├── language_menu.py  # Native Qt language menu and selection behavior
+│   │           ├── language_selection.py # Editor default/allowed language choice and label
+│   │           ├── ui.py              # Other editor-only controls, if needed after extraction
 │   │           ├── shortcuts.py       # Highlight and exit-code-block declarations
 │   │           └── toolbar.py
 │   ├── syntax_highlighting/
-│   │   ├── language_memory.py
 │   │   ├── preferences.py
 │   │   ├── rendering.py
 │   │   └── themes/
@@ -205,6 +206,10 @@ src/editor/
 │       ├── lists/
 │       ├── indentation/
 │       ├── syntax-highlighting/
+│       │   ├── index.js               # Feature setup and cleanup
+│       │   ├── highlighting.js        # Selection, requests, and result application
+│       │   ├── language-menu.js       # Browser-side language menu behavior
+│       │   └── code-block-editing.js  # Code-block editing and exit behavior
 │       ├── cloze/
 │       ├── code-copy/
 │       ├── code-spaces/
@@ -433,7 +438,11 @@ Editor-specific key definitions and validation move to the editor shortcuts feat
 
 Move Markdown request validation, conversion-limit warnings, background-request coordination, and result/failure responses out of `features/syntax_highlighting.py` into `features/markdown/bridge.py`. Browser selection preference, Markdown conversion, pending request snapshots, code-block result assembly, and insertion stay in `js/features/markdown/`.
 
-Both Markdown and syntax-highlighting features call the reusable service under `desktop/syntax_highlighting/`. Keep rendering, theme resolution, and collection language-memory services there when shared with Settings or other consumers. These services must not import editor feature modules, toolbar code, or editor bridge handlers. Preserve any shared serialization/scheduling required by the renderer without coupling Markdown's request lifecycle to the syntax-highlighting feature's UI state.
+Both Markdown and syntax-highlighting features call the reusable renderer under `desktop/syntax_highlighting/`. Keep Pygments rendering, source-size limits, and language discovery there because both features and the Settings page consume them. Keep `rendering.py` limited to plain-input rendering and language metadata; it must not import Anki editor classes, Qt, Settings, or editor feature modules. Move editor-only default/allowed language selection to `editor/features/syntax_highlighting/language_selection.py`. Per-deck language memory belongs to `editor/features/syntax_highlighting/language_memory.py`, where its editor-only policy can stay with the feature. Theme resolution and generation stay in the shared theme service. Shared rendering and theme services must not import editor feature modules, toolbar code, or editor bridge handlers. Preserve any shared serialization/scheduling required by the renderer without coupling Markdown's request lifecycle to the syntax-highlighting feature's UI state.
+
+The Desktop editor feature owns toolbar and shortcut contributions, editor settings access, native Qt language-menu presentation, per-editor and per-deck state, syntax-highlight/code-block-options message handling, and guarded result delivery. Keep the native menu in `language_menu.py`; use `ui.py` only for other syntax-highlighting controls that remain after the menu has a clear owner. Keep `language_selection.py` as pure feature policy over supplied settings and shared language metadata. The syntax-highlighting bridge handles only syntax-highlight and code-block-options requests; Markdown conversion requests and their pending state belong to the Markdown feature. Both feature bridges call the shared renderer directly and own their own request lifecycle.
+
+The browser editor feature owns DOM selection, request IDs and payload assembly for its commands, code-block DOM changes, native editor transaction integration, and result application. Its `language-menu.js` owns the browser-side menu opened from code-block language labels; it does not own the native Qt toolbar menu. Keep generic transport in `support/bridge/transport.js` and keep command names and payload schemas in generated contracts. Shared browser syntax-highlighting helpers expose DOM presentation or pure language/classification operations through explicit inputs and callbacks; they do not call `pycmd` or access editor globals. Card review keeps its own highlighting engine and lifecycle, using only those shared helpers it actually needs.
 
 The trace for a conversion is: toolbar or shortcut contribution, Markdown action, browser conversion, Markdown request handler when code blocks need rendering, shared renderer, Markdown response, then guarded browser insertion. Every application step has a Markdown owner; shared dependencies are explicit.
 
@@ -441,7 +450,7 @@ The trace for a conversion is: toolbar or shortcut contribution, Markdown action
 
 Split `formatting/blocks.js` by behavior: blockquote owns quote toggling, lists own list transformations, and indentation owns indentation behavior. Extract only operations actually shared by these features into `support/editing/`, such as row traversal, selection mapping, and native edit transactions. Preserve selection, native undo/redo, list nesting, saved code rows, and toolbar controls during extraction.
 
-Move browser `helpers/selection.js` and `helpers/edit-transaction.js` into `support/editing/`, `helpers/fields.js` into `support/fields.js`, and `helpers/request-id.js` into `support/bridge/`. Keep the runtime responsible for lifecycle coordination of support-owned state/listeners. Keep feature-specific entry/exit workarounds, normalization listeners, and clipboard behavior with their features. Move code-block highlighting/editing and language menus into syntax highlighting, copy behavior into code-copy, cloze handling into cloze, and style installation into styles.
+Move browser `helpers/selection.js` and `helpers/edit-transaction.js` into `support/editing/`, `helpers/fields.js` into `support/fields.js`, and `helpers/request-id.js` into `support/bridge/`. Keep the runtime responsible for lifecycle coordination of support-owned state/listeners. Keep feature-specific entry/exit workarounds, normalization listeners, and clipboard behavior with their features. Move code-block highlighting/editing and browser language menus into the syntax-highlighting feature, copy behavior into code-copy, cloze handling into cloze, and style installation into styles. The browser syntax-highlighting feature owns editor DOM behavior and invokes the Desktop feature through the stable bridge contract; shared browser helpers and the card runtime must not depend on that feature.
 
 The browser runtime coordinates feature mount, settings updates, note-context resets, and disposal. Features own their listeners, observers, timers, and pending operations, returning cleanup functions or registering them with the runtime. Toolbar and styles mount in an explicit dependency order. Preserve a stable runtime identity across reinjection and keep existing browser globals as thin dispatch facades to the current feature actions.
 
@@ -516,8 +525,8 @@ Exit criteria: shared code runs with no Desktop bridge present, existing card/ed
 
 1. Introduce explicit Python/browser catalogs and the feature map, preserving current ordering and public interfaces. Move toolbar rendering into `features/toolbar/`, with each feature supplying its button definitions and callbacks.
 2. Extract Markdown, inline-code, blockquote, list, and indentation adapters from integration into their feature owners. Move feature-specific labels/tooltips and settings references with them, and create `<feature>/shortcuts.py` for every shortcut-bearing Python feature regardless of size; keep lifecycle dispatch in integration/runtime, generic communication in support/bridge, and style payload preparation with the styles feature.
-3. Split the Python syntax-highlighting module by actual responsibilities. Move Markdown request handling to Markdown and preserve shared renderer safety, queue/busy behavior, request validation, warnings, and asynchronous result guards.
-4. Reorganize browser implementations under `js/features/`, including toolbar, syntax highlighting/language menus/code-block editing, styles, cloze, code-copy, and code-spaces. Extract common editing operations into `support/editing/` and migrate field access/request IDs according to the support map, while preserving DOM structure, selection, and undo behavior. Keep single-feature helpers inside their feature.
+3. Split the Python syntax-highlighting module by responsibility into its editor feature modules, and move Markdown request handling to Markdown. Keep Pygments rendering/language discovery shared under `desktop/syntax_highlighting/`; move editor language selection and per-deck memory into the editor feature. Preserve renderer safety, feature-owned busy/request state, validation, warnings, and asynchronous result guards.
+4. Reorganize browser implementations under `js/features/`, including toolbar, syntax highlighting/language menus/code-block editing, styles, cloze, code-copy, and code-spaces. Extract common editing operations into `support/editing/` and migrate field access/request IDs according to the support map, while preserving DOM structure, selection, and undo behavior. Keep single-feature helpers inside their feature and keep browser/editor bridge contracts explicit.
 5. Move custom/packaged CSS composition from integration into the styles feature. Keep document versus field/shadow-root style installation and existing user overrides intact; group feature-specific CSS under matching stylesheet paths where useful.
 6. Split the shared theme service into the `syntax_highlighting/themes/` package described above. Move Cassidy Dark and Pygments adaptation into their dedicated modules, preserve the public facade and saved-data/CSS behavior, and remove `custom_themes/` after migration. Update build/watch/export/package tooling for the package layout.
 7. Migrate feature tests, imports, build/watch inputs, test support, and dependency checks with each move. Regenerate affected assets at their existing output paths. Keep lifecycle installers working through this phase; complete replacement/disposal coordination in Phase 6.
