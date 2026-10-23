@@ -261,7 +261,7 @@ resources/
 │       └── lezer.txt
 ├── templates/
 │   ├── README.md
-│   └── note-types/parts/
+│   └── note-types/
 │       ├── html/
 │       │   ├── advance-front.html
 │       │   ├── advance-back.html
@@ -553,7 +553,7 @@ Exit criteria: shortcut helpers import without Qt, fixed definitions have one ow
 2. Pass the collection explicitly from Settings/action coordinators. Preserve collection identity checks in confirmed plans and current partial-result/error reporting.
 3. Preserve the complete plan/confirm/revalidate/apply sequence. Revalidate replacement targets and removal impact before writing; retain template names and template/card counts in confirmation. Allow deletion only under the existing empty-type/uncreated-topic rules.
 4. Update Settings imports and existing tests together. Update `scripts/verify_package_assets.py` to load canonical pure definitions through the headless loader rather than extracting `TOPICS` and `FORMATS` from service source with AST parsing.
-5. Keep template parts in their current location until Phase 7. Do not change required markup or existing note types during extraction.
+5. Keep note-type HTML, script, and styling source files in their current location until Phase 7. Do not change required markup or existing note types during extraction.
 
 Exit criteria: template assembly loads without Anki/Qt, collection dependencies are explicit, and all create/skip/replace/delete and confirmation-change regressions pass without altered outcomes.
 
@@ -569,7 +569,7 @@ Exit criteria: repeated bundle evaluation, card transitions, editor note loads, 
 
 ### Phase 7: Move resources and assemble installable packages
 
-1. Move editable icons, fonts/notices, JavaScript dependency notices, template parts, and supplied user-file defaults into `resources/` using the target tree. Move only supplied tracked user-file defaults; preserve local overrides separately.
+1. Move editable icons, fonts/notices, JavaScript dependency notices, note-type HTML/script/styling sources, and supplied user-file defaults into `resources/` using the target tree. Move only supplied tracked user-file defaults; preserve local overrides separately.
 2. Add an assembly script with explicit development and release modes. Copy Python/vendor/resources, build bundles, generate notices, and verify the complete staged package. Retain runtime `assets/` and `templates/` paths and public filenames.
 3. Change source SVG imports to `resources/icons/`. Update `scripts/build.config.js`, `font_notices.py`, `export_syntax_themes.py` where affected, the asset contract, package verification, and source/bundle tests in the same migration.
 4. Build the development package at `dist/addon/`. Update `scripts/link_addon.js` to assemble before linking while retaining the installed `anki-global-kit-dev` destination and configuration identity. Recognize the previous checkout-owned source symlink and migrate it explicitly; continue refusing to overwrite unrelated destinations.
@@ -595,7 +595,7 @@ Automated validation:
 - Cover pure shared-helper and editor-declaration/aggregate imports without Qt, labels and modifier mapping on both platform paths, feature-contribution completeness, the required `<feature>/shortcuts.py` structure for small and large shortcut-bearing features, and duplicate declarations, fixed reservations, shared/editor validation boundaries, policy recovery, duplicate assignments, activation guards, object reuse, native/browser parity, Settings rebinding, deleted-editor pruning, and preservation of unrelated bindings.
 - Verify startup registration once, headless imports in a fresh process, contract validation, shared-code boundaries, lifecycle cleanup, and note-type revalidation with targeted regressions.
 - Cover the theme file-to-package transition: public facade/headless imports, Pygments discovery and isolation, Cassidy Dark resolution, saved palette validation/revisions, preview generation, independent light/dark styles, and card/editor CSS selectors. Verify generated CSS freshness and unchanged output for the same theme inputs.
-- Exercise the assembly/watch dependency chain for settings, bridge definitions, icons, template parts, Python modules, nested theme package sources, font notice sources, and removed resources. Check failures leave the last successful runnable assets intact.
+- Exercise the assembly/watch dependency chain for settings, bridge definitions, icons, note-type template sources, Python modules, nested theme package sources, font notice sources, and removed resources. Check failures leave the last successful runnable assets intact.
 - Inspect archive contents and resource resolution after extraction outside the repository. Verify required notices and supplied defaults are present, with local metadata and user data excluded.
 - Search active source, tests, tooling, CI, and documentation for retired paths and commands. Historical plans/archive references may remain when clearly identified as history.
 
