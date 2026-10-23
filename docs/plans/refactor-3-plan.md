@@ -122,8 +122,11 @@ addon/
 │   │       ├── indentation/
 │   │       │   ├── actions.py
 │   │       │   └── shortcuts.py
-│   │       ├── field_descriptions.py
-│   │       ├── styles.py              # Packaged/custom CSS and theme composition
+│   │       ├── fields/
+│   │       │   └── placeholders.py    # Temporary editor field hints, such as Compare
+│   │       ├── styles/
+│   │       │   ├── sources.py         # Read packaged CSS and optional user overrides
+│   │       │   └── injection.py       # Assemble and inject editor style payloads
 │   │       └── syntax_highlighting/
 │   │           ├── actions.py
 │   │           ├── bridge.py
@@ -212,7 +215,7 @@ src/editor/
     └── features/                      # Styles grouped by their owning feature
 ```
 
-Use Python underscores and JavaScript hyphens for matching feature names. Every Python editor feature that contributes shortcuts is a package with its own `shortcuts.py`, regardless of feature size. Features without shortcut contributions may remain single modules; do not add empty shortcut files. Browser feature directories have clear entry modules. Do not add empty Python counterparts for browser-only behavior, or empty browser counterparts for Python-only hooks. Keep stylesheet entry points and output names stable while extracting feature styles; move feature-specific rules into matching files under `css/features/` only where meaningful.
+Use Python underscores and JavaScript hyphens for matching feature names. Every Python editor feature lives in its own directory; never implement a feature as a standalone module directly under `editor/features/`, even when it currently needs only one implementation file. Put feature-specific actions, adapters, metadata, UI, and helpers in descriptively named modules within that directory. Every shortcut-bearing feature has its own pure `shortcuts.py`, regardless of feature size; features without shortcut contributions do not add empty shortcut files. Browser feature directories have clear entry modules. Do not add empty Python counterparts for browser-only behavior, or empty browser counterparts for Python-only hooks. Keep stylesheet entry points and output names stable while extracting feature styles; move feature-specific rules into matching files under `css/features/` only where meaningful.
 
 ### Test organization
 
@@ -351,8 +354,8 @@ Every user-facing editor feature belongs under `editor/features/` or `src/editor
 | Lists                                                  | `lists/`                              | `lists/`                                                               |
 | Indentation                                            | `indentation/`                        | `indentation/`                                                         |
 | Syntax highlighting, language menu, code-block editing | `syntax_highlighting/`                | `syntax-highlighting/`                                                 |
-| Field descriptions                                     | `field_descriptions.py`               | Uses Anki's existing field-description API                             |
-| Editor styles                                          | `styles.py`                           | `styles/`                                                              |
+| Field placeholders                                     | `fields/placeholders.py`              | Uses Anki's existing field-description API                             |
+| Editor styles                                          | `styles/`                             | `styles/`                                                              |
 | Cloze keyboard behavior                                | Browser implementation only           | `cloze/`                                                               |
 | Copy source/code                                       | Browser implementation only           | `code-copy/`                                                           |
 | Code space normalization                               | Browser implementation only           | `code-spaces/`                                                         |
@@ -361,7 +364,7 @@ Update this inventory when the baseline identifies additional features. Keep `ca
 
 ### Feature contributions and catalog
 
-A feature supplies its actions, button descriptions, shortcut contributions, settings-key references, and optional lifecycle/message handlers through a small, explicit interface. Shortcut-bearing Python features export their pure shortcut declarations from `<feature>/shortcuts.py` and assemble contributions with their action callbacks through an explicit entry point or the catalog. A feature without shortcuts can remain a single module. Use plain functions and small data structures, with no filesystem discovery or general plugin framework.
+A feature supplies its actions, button descriptions, shortcut contributions, settings-key references, and optional lifecycle/message handlers through a small, explicit interface. Every Python feature has a directory; implementation belongs in descriptive modules within that directory, including for small features. Shortcut-bearing Python features export their pure shortcut declarations from `<feature>/shortcuts.py` and assemble contributions with their action callbacks through an explicit entry point or the catalog. Use plain functions and small data structures, with no filesystem discovery or general plugin framework.
 
 The catalog establishes feature participation and existing action/group ordering. It passes feature shortcut declarations and action callbacks to the editor shortcuts feature, button contributions to the toolbar, and command handlers to bridge dispatch. Keep ordering explicit, including current configurable-shortcut priority. Derive each runtime's dispatch and toolbar lists from its catalog so adding a feature does not require another feature-specific branch in integration.
 
@@ -388,7 +391,7 @@ These locations replace the earlier standalone editor `editing/` and `bridge/` i
 
 Keep `integration.py`, browser `runtime/`, and catalogs outside support as the explicit lifecycle/composition owners. Build generators remain under `scripts/`; shared Desktop shortcut services remain in `desktop/shortcuts/`; syntax rendering/themes remain in `desktop/syntax_highlighting/`; common card/editor web behavior remains in `src/shared/`. A reusable toolbar renderer still belongs to `features/toolbar/`, and native editor registration still belongs to `features/shortcuts/`.
 
-Do not introduce `features/utils/`, `support/toolbar/`, or `support/shortcuts/` as alternate homes for those feature implementations. A helper used only by Markdown stays under `features/markdown/`; inline-code caret workarounds stay with inline code; style insertion/retry helpers stay with styles. Use feature-local `helpers.py` or `helpers.js` only when splitting the implementation improves clarity, with descriptive module names where practical. Do not create empty support or helper modules to match a diagram.
+Do not introduce `features/utils/`, `support/toolbar/`, or `support/shortcuts/` as alternate homes for those feature implementations. A helper used only by Markdown stays under `features/markdown/`; inline-code caret workarounds stay with inline code; style insertion/retry helpers stay with styles. The styles feature separates stylesheet source reading and override selection in `sources.py` from payload assembly and editor injection in `injection.py`. Keep syntax theme resolution and CSS generation in `desktop/syntax_highlighting/`. Put feature-local helpers in the owning directory, using descriptive module names; do not create empty support or helper modules to match a diagram.
 
 ### Toolbar is a feature
 
