@@ -21,6 +21,7 @@ The existing layout and `AGENTS.md` remain authoritative until the corresponding
 - Make features traceable through an explicit catalog, matching runtime names, feature-oriented tests, and documented dependencies.
 - Remove Desktop bridge dependencies from shared web controls.
 - Centralize settings, asset, and bridge contracts without duplicating release defaults.
+- Split the shared syntax theme service into palette definitions, Pygments adaptation, resolution, validation, CSS generation, and preview generation under `syntax_highlighting/themes/`.
 - Separate note-type definitions, template assembly, change planning, and collection writes.
 - Give card and editor runtimes explicit ownership of initialization, updates, and cleanup.
 - Separate editable resources from generated bundles and assembled installable packages.
@@ -133,8 +134,14 @@ addon/
 │   │   ├── language_memory.py
 │   │   ├── preferences.py
 │   │   ├── rendering.py
-│   │   ├── themes.py
-│   │   └── custom_themes/cassidy_dark.py
+│   │   └── themes/
+│   │       ├── __init__.py            # Lightweight public API facade
+│   │       ├── cassidy_dark_theme.py  # Kit-owned palette and font styles
+│   │       ├── pygments_themes.py     # Discover/adapt bundled Pygments styles
+│   │       ├── service.py             # List and resolve available themes
+│   │       ├── validation.py          # Validate resolved/synced palettes
+│   │       ├── css.py                 # Fallback and light/dark CSS generation
+│   │       └── preview.py             # Theme preview HTML
 │   ├── settings/
 │   │   ├── dialog.py
 │   │   ├── bindings.py
@@ -432,13 +439,35 @@ Move browser `helpers/selection.js` and `helpers/edit-transaction.js` into `supp
 
 The browser runtime coordinates feature mount, settings updates, note-context resets, and disposal. Features own their listeners, observers, timers, and pending operations, returning cleanup functions or registering them with the runtime. Toolbar and styles mount in an explicit dependency order. Preserve a stable runtime identity across reinjection and keep existing browser globals as thin dispatch facades to the current feature actions.
 
+## Syntax theme service
+
+Replace `addon/desktop/syntax_highlighting/themes.py` with a `themes/` package. Keep this service outside editor features because Settings, editor styles, card-media installation, and build/export tooling all consume it.
+
+| Current responsibility                                                                           | Target module under `syntax_highlighting/themes/` |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------- |
+| `custom_themes/cassidy_dark.py` palette and font-style `PRESET`                                  | `cassidy_dark_theme.py`                           |
+| Bundled Pygments discovery, style display names, token-role adaptation, and adaptation fallbacks | `pygments_themes.py`                              |
+| `available_themes()` and `resolve_preset()` orchestration                                        | `service.py`                                      |
+| `validate_resolved_theme()`, palette-role validation, and existing role fallback rules           | `validation.py`                                   |
+| `generate_theme_css()`, `generate_theme_pair_css()`, CSS variables, and token-selector rules     | `css.py`                                          |
+| `theme_preview_html()`                                                                           | `preview.py`                                      |
+| Existing public theme functions used by consumers                                                | Lightweight exports from `__init__.py`            |
+
+Use `pygments_themes.py` to identify the bundled theme provider explicitly; avoid the ambiguous name `default_themes.py`. Enumerate and adapt the existing vendored Pygments styles without copying their palettes into first-party source. Move the Kit-owned Cassidy Dark definition into `cassidy_dark_theme.py` and remove `custom_themes/` after its consumers migrate. Preserve the existing preset identifiers and fallback choices, including `cassidy-dark` and `pygments:<name>`.
+
+Keep `themes/__init__.py` as a small public facade so imports such as `from ...syntax_highlighting.themes import generate_theme_pair_css` and `load_addon_module("desktop.syntax_highlighting.themes")` continue working. It must not register hooks, import Qt/Settings/editor features, enumerate Pygments styles, or generate artifacts on import. Internal modules import sibling implementations directly, avoiding cycles through facade exports. Preserve startup-free loading and the renderer's bundled-module isolation when accessing Pygments.
+
+Theme preferences remain in `syntax_highlighting/preferences.py`, including collection storage, validation calls, format versions, and revisions. Preserve resolved saved palettes, IDs, display names, role fallback behavior, bold/italic resets, light/dark mode independence, card/editor selectors, and generated CSS behavior during extraction. This refactor does not change default selections or duplicate release defaults. Preserve CSS-variable-based consumption of palette colors.
+
+`themes/css.py` and `themes/preview.py` provide reusable generation functions. `scripts/export_syntax_themes.py` remains the build entry point that writes the generated fallback stylesheet; profile media installation remains responsible for the collection-specific `_syntax-highlighting.css`. Update generator, watcher, package verification, headless-loader support, tests, and consumers as needed for the file-to-package transition. Regenerate affected tracked CSS/bundles and check output freshness before committing the implementation.
+
 ## Dependency rules
 
 - `src/shared/` may use browser APIs but must not invoke `pycmd`, access `ankiGlobalKitEditor`, or import card/editor application modules. Shared controls receive callbacks or capabilities from their owning runtime.
 - Shared code owns common DOM presentation and interactions. Editor selection, native undo integration, and Desktop commands remain editor responsibilities; review observation and answer persistence remain card responsibilities.
 - Individual action features must not import `integration.py`, catalogs, or the editor shortcuts registration module. Catalogs/coordinators compose feature contributions; generic transport dispatches handlers supplied during composition.
 - The toolbar consumes feature button contributions; other features must not depend on its internal renderer. Editor `support/` modules must not import feature implementations, catalogs, or integration; shared editing/transport receives explicit inputs or supplied callbacks. Feature-specific helpers remain inside their owning feature.
-- Feature bridge modules use `support/bridge` transport and generated contracts; generic transport must not import concrete feature handlers. Shared renderer services must not import editor features.
+- Feature bridge modules use `support/bridge` transport and generated contracts; generic transport must not import concrete feature handlers. Shared renderer and theme services must not import editor features. Theme data/validation/resolution/generation remain startup-free, with Pygments access isolated through the existing bundled-module mechanism.
 - Shared shortcut helpers, common definitions/validation, recovery policy, and pure editor feature shortcut declarations/aggregates remain free of Anki/Qt imports. Shared Desktop support must not import editor feature implementations; Settings explicitly combines shared and editor-specific pure validation. Qt matching helpers resolve explicit inputs; runtime routers own Settings access, target selection, focus, event acceptance, and action invocation.
 - Desktop services must not import Settings pages or the dialog. Settings collects user intent, presents confirmations, and calls services.
 - Note-type template assembly and definitions must load without Anki/Qt. Planning receives a collection explicitly; application/revalidation uses documented collection APIs. Resolve `mw.col` at UI or hook boundaries.
@@ -484,9 +513,10 @@ Exit criteria: shared code runs with no Desktop bridge present, existing card/ed
 3. Split the Python syntax-highlighting module by actual responsibilities. Move Markdown request handling to Markdown and preserve shared renderer safety, queue/busy behavior, request validation, warnings, and asynchronous result guards.
 4. Reorganize browser implementations under `js/features/`, including toolbar, syntax highlighting/language menus/code-block editing, styles, cloze, code-copy, and code-spaces. Extract common editing operations into `support/editing/` and migrate field access/request IDs according to the support map, while preserving DOM structure, selection, and undo behavior. Keep single-feature helpers inside their feature.
 5. Move custom/packaged CSS composition from integration into the styles feature. Keep document versus field/shadow-root style installation and existing user overrides intact; group feature-specific CSS under matching stylesheet paths where useful.
-6. Migrate feature tests, imports, build/watch inputs, test support, and dependency checks with each move. Regenerate affected assets at their existing output paths. Keep lifecycle installers working through this phase; complete replacement/disposal coordination in Phase 6.
+6. Split the shared theme service into the `syntax_highlighting/themes/` package described above. Move Cassidy Dark and Pygments adaptation into their dedicated modules, preserve the public facade and saved-data/CSS behavior, and remove `custom_themes/` after migration. Update build/watch/export/package tooling for the package layout.
+7. Migrate feature tests, imports, build/watch inputs, test support, and dependency checks with each move. Regenerate affected assets at their existing output paths. Keep lifecycle installers working through this phase; complete replacement/disposal coordination in Phase 6.
 
-Exit criteria: every editor feature has a documented owner in the runtime(s) it uses; toolbar and styles are included; integration contains coordination; feature actions can be traced without following feature-specific dispatch branches through infrastructure.
+Exit criteria: every editor feature has a documented owner in the runtime(s) it uses; toolbar and styles are included; integration contains coordination; feature actions can be traced without following feature-specific dispatch branches through infrastructure; and the shared theme package loads headlessly with stable public functions, saved palettes, and generated output.
 
 ### Phase 4: Separate shortcut helpers and runtime registration
 
@@ -546,7 +576,8 @@ Automated validation:
 - Cover Markdown selection versus clipboard conversion, rendering limits/failures, stale results, and shared renderer scheduling after handler extraction. Cover inline-code entry/exit, quote/list nesting, indentation, saved code rows, copy, cloze, style installation, toolbar visibility/order, and native undo/redo.
 - Cover pure shared-helper and editor-declaration/aggregate imports without Qt, labels and modifier mapping on both platform paths, feature-contribution completeness, the required `<feature>/shortcuts.py` structure for small and large shortcut-bearing features, and duplicate declarations, fixed reservations, shared/editor validation boundaries, policy recovery, duplicate assignments, activation guards, object reuse, native/browser parity, Settings rebinding, deleted-editor pruning, and preservation of unrelated bindings.
 - Verify startup registration once, headless imports in a fresh process, contract validation, shared-code boundaries, lifecycle cleanup, and note-type revalidation with targeted regressions.
-- Exercise the assembly/watch dependency chain for settings, bridge definitions, icons, template parts, Python modules, theme sources, font notice sources, and removed resources. Check failures leave the last successful runnable assets intact.
+- Cover the theme file-to-package transition: public facade/headless imports, Pygments discovery and isolation, Cassidy Dark resolution, saved palette validation/revisions, preview generation, independent light/dark styles, and card/editor CSS selectors. Verify generated CSS freshness and unchanged output for the same theme inputs.
+- Exercise the assembly/watch dependency chain for settings, bridge definitions, icons, template parts, Python modules, nested theme package sources, font notice sources, and removed resources. Check failures leave the last successful runnable assets intact.
 - Inspect archive contents and resource resolution after extraction outside the repository. Verify required notices and supplied defaults are present, with local metadata and user data excluded.
 - Search active source, tests, tooling, CI, and documentation for retired paths and commands. Historical plans/archive references may remain when clearly identified as history.
 
@@ -563,7 +594,7 @@ Do not claim live verification from Qt stubs or DOM simulations. Record unavaila
 
 ## Completion and rollback
 
-The refactor is complete when feature ownership, shortcut separation, contracts, shared-code boundaries, note-type separation, lifecycle coordination, and package assembly are implemented; canonical definitions have one owner; package/resource paths are verified; documented commands work from a clean checkout; and acceptance results and limitations are recorded. Every editor feature must have an inventory entry and an implementation under `features/` in each runtime where it needs one, including toolbar, native shortcuts, and styles. Every shortcut-bearing Python editor feature has a dedicated `<feature>/shortcuts.py`, including small features. Reusable editor transport/editing/field utilities live under the corresponding `support/` tree, feature-local helpers remain with their feature, and integration/runtime retains lifecycle coordination. Shared Desktop shortcut support remains reusable by Settings, configuration, and reviewer/preview code.
+The refactor is complete when feature ownership, shortcut separation, contracts, shared-code boundaries, note-type separation, lifecycle coordination, and package assembly are implemented; canonical definitions have one owner; package/resource paths are verified; documented commands work from a clean checkout; and acceptance results and limitations are recorded. Every editor feature must have an inventory entry and an implementation under `features/` in each runtime where it needs one, including toolbar, native shortcuts, and styles. Every shortcut-bearing Python editor feature has a dedicated `<feature>/shortcuts.py`, including small features. Reusable editor transport/editing/field utilities live under the corresponding `support/` tree, feature-local helpers remain with their feature, and integration/runtime retains lifecycle coordination. Shared Desktop shortcut support remains reusable by Settings, configuration, and reviewer/preview code. The shared theme service uses the `themes/` package with separate Cassidy Dark/Pygments modules and stable public imports, saved theme records, and generated CSS.
 
 Keep compatibility facades only where external interfaces require them; remove temporary internal forwarding modules after consumers migrate. Update `README.md`, `CHANGELOG.md`, `docs/development/architecture.md`, dependency/publishing instructions, and `AGENTS.md` to describe the resulting system. Do not mark implementation phases complete when only this plan exists.
 
