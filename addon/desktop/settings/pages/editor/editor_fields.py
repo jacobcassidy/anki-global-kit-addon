@@ -73,9 +73,7 @@ def build_editor_fields_section(
         controls_layout.addWidget(input_widget)
         validation = QLabel(section)
         validation.setWordWrap(True)
-        validation.setStyleSheet(
-            f"color: {get_theme_color('ACCENT_DANGER', 'FLAG_1', 'FG')};"
-        )
+        validation.setStyleSheet(f"color: {get_theme_color('ACCENT_DANGER')};")
         validation.hide()
         input_widget.set_validation_label(validation)
 

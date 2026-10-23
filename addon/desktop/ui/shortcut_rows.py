@@ -24,7 +24,7 @@ def style_shortcut_option(checkbox: QCheckBox, *, inactive: bool) -> None:
     if inactive:
         color = get_theme_color("FG_DISABLED")
     elif getattr(checkbox, "shortcut_conflict", False):
-        color = get_theme_color("FLAG_2", "FLAG_1", "FG_LINK")
+        color = get_theme_color("FLAG_2")
     else:
         color = get_theme_color("FG")
     checkbox.setStyleSheet(f"QCheckBox {{ color: {color}; }}")
@@ -94,9 +94,7 @@ def build_shortcut_rows(
         checkbox.toggled.connect(set_row_enabled)
         warning_label = QLabel(row_container)
         warning_label.setWordWrap(True)
-        warning_label.setStyleSheet(
-            f"color: {get_theme_color('ACCENT_DANGER', 'FLAG_1', 'FG')};"
-        )
+        warning_label.setStyleSheet(f"color: {get_theme_color('ACCENT_DANGER')};")
         warning_label.hide()
         shortcut_input.set_validation_label(warning_label)
         row_container_layout.addWidget(row_widget)

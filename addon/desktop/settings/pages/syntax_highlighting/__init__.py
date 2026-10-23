@@ -109,7 +109,7 @@ class LanguageStatusDelegate(QStyledItemDelegate):
         badge_rect.setLeft(badge_rect.right() - badge_width + 1)
         painter.save()
         painter.setPen(QColor(get_theme_color("BORDER_SUBTLE")))
-        painter.setBrush(QColor(get_theme_color("BUTTON_BG", "CANVAS_ELEVATED")))
+        painter.setBrush(QColor(get_theme_color("BUTTON_BG")))
         painter.drawRoundedRect(badge_rect, 3, 3)
         painter.setPen(QColor(get_theme_color("FG_SUBTLE")))
         painter.drawText(

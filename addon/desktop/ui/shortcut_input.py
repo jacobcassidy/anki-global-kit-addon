@@ -50,14 +50,10 @@ class CardShortcutInput(QPushButton):
         self.setMinimumWidth(SHORTCUT_MIN_WIDTH)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setToolTip("Click to record a shortcut. Click outside to finish.")
-        button_bg = get_theme_color("BUTTON_BG", "CANVAS_ELEVATED")
-        button_hover_bg = get_theme_color(
-            "BUTTON_GRADIENT_START", "BUTTON_BG", "CANVAS_ELEVATED"
-        )
-        button_pressed_bg = get_theme_color(
-            "BUTTON_GRADIENT_END", "BUTTON_BG", "CANVAS_ELEVATED"
-        )
-        button_disabled_bg = get_theme_color("BUTTON_DISABLED", "BUTTON_BG", "CANVAS")
+        button_bg = get_theme_color("BUTTON_BG")
+        button_hover_bg = get_theme_color("BUTTON_GRADIENT_START")
+        button_pressed_bg = get_theme_color("BUTTON_GRADIENT_END")
+        button_disabled_bg = get_theme_color("BUTTON_DISABLED")
         self._base_style_sheet = (
             f"QPushButton {{ text-align: right; padding: 0 4px; "
             f"border: 1px solid {COLOR_TRANSPARENT}; "
