@@ -4,11 +4,26 @@
 
 This inventory covers active first-party Desktop, card, editor, and shared source, runtime templates, build and packaging scripts, and the tests and documentation describing their contracts. Generated bundles duplicate their source and should be rebuilt after implementation. Vendored dependencies and historical documentation are outside the removal inventory.
 
-Last refreshed against the working tree on **2026-10-23**. All four findings below remain present; none of the removal work is complete. This update changes the plan only.
+Implemented on **2026-10-23** on `refactor-legacy-removal`. The original inventory and requirements below are retained as the baseline; the implementation status records the resulting behavior.
 
-The supported minimum remains Anki Desktop **26.05** (`min_point_version: 260500` in `addon/manifest.json`). The original audit checked the official 26.05 source for editor shortcuts, cloze handlers, and color definitions. This refresh checked repository source and existing test assertions; the linked upstream files could not be fetched again. Recheck version-sensitive assumptions against 26.05 before implementation. No runtime tests or live Anki behavior were run for this refresh.
+The supported minimum remains Anki Desktop **26.05** (`min_point_version: 260500` in `addon/manifest.json`). The original audit checked the official 26.05 source for editor shortcuts, cloze handlers, and color definitions. Implementation rechecked the upstream 26.05 color map. The excluded list/cloze handlers and editor reinjection behavior remain unchanged.
 
-## Findings
+## Implementation status
+
+| Area                               | Result                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Modifier-plus-Tab indentation      | Removed dedicated Qt Tab routing, editor webview registration hooks, and card indentation globals. Settings rejects new Tab/Backtab indentation bindings; saved bindings recover to current defaults in Desktop and browser paths. Current punctuation, Preferences, focus-reporting, and toolbar behavior is retained.                                                                                     |
+| Editor `CodeBlock+` migration      | Removed alias expansion. All editor shortcut settings recover unsupported aliases to their corresponding release defaults; card `CodeBlock+C` remains supported. Recovery does not write configuration, preserves switches, and occurs before native duplicate/fixed-binding checks. Settings save persists the displayed replacement values.                                                               |
+| Anki color-token fallback chains   | Removed all alternate-token arguments and the helper's iteration. Required tokens still resolve through `theme_manager.var()` and fail explicitly when unavailable.                                                                                                                                                                                                                                         |
+| Unscoped syntax styles and palette | Consolidated saved `pre` markup, `.agk-code-block`, and `.syntax-highlights` into generated theme rules. Covered every standard token class in bundled Pygments, retained emphasis/error indicators, removed the duplicate stylesheet rules and all `--syntax-*` definitions/consumers, and moved inline code and line numbers to maintained variables. Saved fields and synced palettes are not rewritten. |
+
+The syntax consolidation intentionally makes older unscoped snippets follow selected semantic theme colors. Number and string subtypes inherit maintained roles; unclassified names use the foreground. README and changelog document this presentation change and the replacement variables for custom CSS. Newly resolved Pygments presets with no text color now choose a contrasting foreground; existing synced palettes retain their saved values.
+
+Validation completed: **270 JavaScript tests**, **120 Python tests**, rebuilt assets, generated-theme freshness, package-asset verification, and focused formatting/lint checks. A local Chromium fixture passed **248 computed-style checks** across fallback/selected palettes, saved/current/submitted code, light/dark mode switching, line numbers, ordinary inline code, and editor shadow roots; its rendered preview was inspected.
+
+Live Anki verification remains outstanding: native event interception, cross-client review/preview/editor focus behavior, and actual Qt widget states were not exercised. Isolated tests and a local Chromium fixture do not establish live Anki behavior.
+
+## Original findings and implementation requirements
 
 | Area                                             | Disposition                                                                                                                                                |
 | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |

@@ -33,51 +33,28 @@ _ROLE_FALLBACKS = {
     "variable": "foreground",
     "library-variable": "builtin",
 }
-_CASSIDY_DARK_SYNTAX_VARIABLES = {
-    "background": "gray-900",
-    "foreground": "gray-200",
-    "comment": "gray-500",
-    "punctuation": "gray-400",
-    "muted": "gray-200",
-    "builtin": "gray-000",
-    "builtin-constant": "purple",
-    "keyword": "red",
-    "declaration": "blue",
-    "function": "cyan",
-    "method": "gray-000",
-    "class": "cyan",
-    "namespace": "purple",
-    "parameter": "orange",
-    "attribute": "green",
-    "variable": "pink",
-    "library-variable": "gray-100",
-    "constant": "purple",
-    "operator": "red",
-    "string": "yellow",
-    "error": "red-deep",
-}
 _COLOR_ROLES = _BASE_COLOR_ROLES | set(_ROLE_FALLBACKS)
 _STYLE_ROLES = _COLOR_ROLES - {"background", "foreground"}
 _TOKEN_SELECTORS = {
-    "comment": ".c, .c1, .cm, .cs, .hljs-comment, .hljs-quote",
-    "punctuation": ".p, .hljs-punctuation",
+    "comment": ".c, .c1, .ch, .cm, .cp, .cpf, .cs, .sd, .gh, .gu, .hljs-comment, .hljs-quote",
+    "punctuation": ".p, .pm, .gp, .hljs-punctuation",
     "muted": ".x, .go, .gt, .hljs-text",
-    "builtin": ".nb, .ne, .hljs-built_in",
+    "builtin": ".nb, .nd, .ne, .hljs-built_in",
     "builtin-constant": ".kc, .hljs-literal",
-    "keyword": ".k, .kn, .kp, .kr, .kt, .hljs-keyword",
+    "keyword": ".k, .kn, .kp, .kr, .kt, .nt, .hljs-keyword",
     "declaration": ".kd",
     "function": ".nf, .hljs-title.function_, .hljs-function",
     "method": ".fm",
     "class": ".nc, .hljs-title.class_",
     "namespace": ".nn",
     "parameter": ".hljs-params",
-    "attribute": ".na, .nl, .hljs-attr, .hljs-attribute, .hljs-property",
+    "attribute": ".na, .nl, .py, .gi, .hljs-attr, .hljs-attribute, .hljs-property",
     "variable": ".nv, .vc, .vg, .vi, .hljs-variable",
     "library-variable": ".vm, .bp, .hljs-variable.language_",
-    "constant": ".m, .no, .hljs-number, .hljs-symbol",
+    "constant": ".l, .ld, .m, .mb, .mf, .mh, .mi, .il, .mo, .ni, .no, .hljs-number, .hljs-symbol",
     "operator": ".o, .ow, .hljs-operator",
-    "string": ".s, .s1, .s2, .sb, .sc, .sh, .hljs-string, .hljs-regexp",
-    "error": ".err, .hljs-invalid",
+    "string": ".s, .s1, .s2, .sa, .sb, .sc, .dl, .se, .sh, .si, .sr, .ss, .sx, .hljs-string, .hljs-regexp",
+    "error": ".err, .gd, .gr, .hljs-invalid",
 }
 
 
@@ -224,9 +201,12 @@ def _resolve_pygments_preset(style_name: str) -> dict:
             "error": tokens.Token.Error,
         }
         default = style.style_for_token(tokens.Token.Name)
-        foreground = _style_color(default.get("color"), "#c4c4c4")
+        background = _style_color(style.background_color, "#242424")
+        foreground = _style_color(
+            default.get("color"), _contrasting_foreground(background)
+        )
         colors = {
-            "background": _style_color(style.background_color, "#242424"),
+            "background": background,
             "foreground": foreground,
         }
         bold = []
@@ -257,6 +237,30 @@ def _style_color(value: str | None, fallback: str) -> str:
     return fallback
 
 
+def _contrasting_foreground(background: str) -> str:
+    """Choose a readable default when a Pygments style inherits its text color."""
+
+    def luminance(color: str) -> float:
+        channels = [int(color[index : index + 2], 16) / 255 for index in (1, 3, 5)]
+        linear = [
+            value / 12.92 if value <= 0.04045 else ((value + 0.055) / 1.055) ** 2.4
+            for value in channels
+        ]
+        return sum(
+            value * weight for value, weight in zip(linear, (0.2126, 0.7152, 0.0722))
+        )
+
+    background_luminance = luminance(background)
+
+    def contrast(color: str) -> float:
+        foreground_luminance = luminance(color)
+        return (max(background_luminance, foreground_luminance) + 0.05) / (
+            min(background_luminance, foreground_luminance) + 0.05
+        )
+
+    return max(("#383838", "#c4c4c4"), key=contrast)
+
+
 def theme_preview_html(preset: dict) -> str:
     """Render the shared palette with CSS supported by Qt's rich text engine."""
     preset = validate_resolved_theme(preset)
@@ -283,30 +287,11 @@ def theme_preview_html(preset: dict) -> str:
     )
 
 
-def _theme_variables_css(
-    preset: dict, selector: str, *, use_shared_variables: bool = False
-) -> str:
+def _theme_variables_css(preset: dict, selector: str) -> str:
     """Keep all mode-dependent colors and font styles in custom properties."""
-    colors = preset["colors"]
-    syntax_variables = (
-        _CASSIDY_DARK_SYNTAX_VARIABLES
-        if use_shared_variables and preset["id"] == "cassidy-dark"
-        else {}
-    )
-    css = [
-        f"{selector} {{",
-        f"  --agk-syntax-background: var(--syntax-{syntax_variables['background']});"
-        if syntax_variables
-        else f"  --agk-syntax-background: {colors['background']};",
-        f"  --agk-syntax-foreground: var(--syntax-{syntax_variables['foreground']});"
-        if syntax_variables
-        else f"  --agk-syntax-foreground: {colors['foreground']};",
-    ]
-    for role, color in colors.items():
-        if role not in {"background", "foreground"}:
-            variable = syntax_variables.get(role)
-            value = f"var(--syntax-{variable})" if variable else color
-            css.append(f"  --agk-syntax-{role}: {value};")
+    css = [f"{selector} {{"]
+    for role, color in preset["colors"].items():
+        css.append(f"  --agk-syntax-{role}: {color};")
     for role in _TOKEN_SELECTORS:
         weight = 700 if role in preset["styles"]["bold"] else 400
         style = "italic" if role in preset["styles"]["italic"] else "normal"
@@ -325,11 +310,7 @@ def generate_theme_css(
         if resolved is not None
         else resolve_preset(preset_id)
     )
-    css = [
-        _theme_variables_css(
-            preset, ":root,\nanki-editable", use_shared_variables=resolved is None
-        ).rstrip()
-    ]
+    css = [_theme_variables_css(preset, ":root,\nanki-editable").rstrip()]
     css.extend(
         [
             "",
@@ -340,7 +321,7 @@ def generate_theme_css(
             "  white-space: pre;",
             "}",
             "",
-            ":is(.agk-code-block, .syntax-highlights) :is(.n, .nx) {",
+            ":is(pre, .agk-code-block, .syntax-highlights) :is(.n, .nx, .w, .esc, .g) {",
             "  color: var(--agk-syntax-foreground);",
             "}",
         ]
@@ -355,13 +336,32 @@ def generate_theme_css(
         css.extend(
             [
                 "",
-                f":is(.agk-code-block, .syntax-highlights) :is({selectors}),",
-                f':is(.agk-code-block, .syntax-highlights) [data-global-kit-token="{role}"] {{',
+                *[
+                    f":is(pre, .agk-code-block, .syntax-highlights) {selector},"
+                    for selector in selectors.split(", ")
+                ],
+                f':is(pre, .agk-code-block, .syntax-highlights) [data-global-kit-token="{role}"] {{',
                 *declarations,
                 "}",
             ]
         )
 
+    css.extend(
+        [
+            "",
+            ":is(pre, .agk-code-block, .syntax-highlights) :is(.gs, .ges) {",
+            "  font-weight: 700;",
+            "}",
+            "",
+            ":is(pre, .agk-code-block, .syntax-highlights) :is(.ge, .ges) {",
+            "  font-style: italic;",
+            "}",
+            "",
+            ":is(pre, .agk-code-block, .syntax-highlights) .err {",
+            "  border: 0.0625rem solid var(--agk-syntax-error);",
+            "}",
+        ]
+    )
     return "\n".join(css) + "\n"
 
 

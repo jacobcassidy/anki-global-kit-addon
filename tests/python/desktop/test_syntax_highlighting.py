@@ -2,6 +2,7 @@
 
 import gc
 import json
+import re
 import sys
 import threading
 import unittest
@@ -164,16 +165,34 @@ class SyntaxRenderingTests(unittest.TestCase):
             self.assertIn(".agk-code-block", css)
             if theme_id == "cassidy-dark":
                 self.assertIn(
-                    "--agk-syntax-background: var(--syntax-gray-900);",
+                    "--agk-syntax-background: #242424;",
                     css,
                 )
-                self.assertIn("--agk-syntax-keyword: var(--syntax-red);", css)
+                self.assertIn("--agk-syntax-keyword: #ef9182;", css)
             else:
                 self.assertRegex(css, r"--agk-syntax-background: #[0-9a-fA-F]{6};")
 
         self.assertFalse(
             any(name == "aqt" or name.startswith("aqt.") for name in sys.modules)
         )
+
+    def test_generated_styles_cover_bundled_pygments_classes_and_rendered_subtypes(
+        self,
+    ):
+        from pygments.token import STANDARD_TYPES
+
+        themes = load_addon_module("desktop.syntax_highlighting.themes")
+        css = themes.generate_theme_css()
+        for token, name in STANDARD_TYPES.items():
+            if name:
+                with self.subTest(token=token):
+                    self.assertRegex(css, rf"\.{re.escape(name)}(?=[, )])")
+        rendered, _language = self.renderer.render_code(
+            'count = 42\ntext = "a\\n"\n', "python"
+        )
+        self.assertIn('class="mi"', rendered)
+        self.assertIn('class="se"', rendered)
+        self.assertNotIn("--syntax-", css)
 
     def test_theme_labels_and_preview_use_the_resolved_palette(self):
         themes = load_addon_module("desktop.syntax_highlighting.themes")
@@ -189,6 +208,13 @@ class SyntaxRenderingTests(unittest.TestCase):
             self.assertNotIn("var(", html)
             self.assertNotIn(":is(", html)
 
+    def test_pygments_presets_without_a_text_color_use_a_contrasting_foreground(self):
+        themes = load_addon_module("desktop.syntax_highlighting.themes")
+        light = themes.resolve_preset("pygments:default")
+        self.assertEqual(light["colors"]["foreground"], "#383838")
+        self.assertEqual(themes._contrasting_foreground("#242424"), "#c4c4c4")
+        self.assertEqual(themes._contrasting_foreground("#f8f8f8"), "#383838")
+
     def test_cassidy_keywords_and_declarations_have_independent_theme_colors(self):
         themes = load_addon_module("desktop.syntax_highlighting.themes")
         preset = themes.resolve_preset("cassidy-dark")
@@ -196,7 +222,7 @@ class SyntaxRenderingTests(unittest.TestCase):
         self.assertEqual(preset["colors"]["declaration"], "#92c1fd")
         css = themes.generate_theme_css()
         declaration_rule = css.split(
-            ':is(.agk-code-block, .syntax-highlights) [data-global-kit-token="declaration"] {',
+            ':is(pre, .agk-code-block, .syntax-highlights) [data-global-kit-token="declaration"] {',
             1,
         )[1]
         declaration_rule = declaration_rule.split("}", 1)[0]
@@ -295,11 +321,9 @@ class SyntaxRenderingTests(unittest.TestCase):
         self.assertIn("--agk-syntax-keyword: #654321;", standalone)
         self.assertIn("background-color: #123456", themes.theme_preview_html(light))
 
-        # The packaged fallback still follows the shared tokens until a
-        # collection's resolved palette overrides them.
-        self.assertIn(
-            "--agk-syntax-keyword: var(--syntax-red);", themes.generate_theme_css()
-        )
+        # The packaged fallback comes from the maintained preset; collection
+        # palettes still override it with their saved values.
+        self.assertIn("--agk-syntax-keyword: #ef9182;", themes.generate_theme_css())
 
     def test_cassidy_semantic_palette_maps_available_python_tokens(self):
         themes = load_addon_module("desktop.syntax_highlighting.themes")
@@ -348,15 +372,16 @@ class SyntaxRenderingTests(unittest.TestCase):
         self.assertNotIn(".agk-code-block", overrides)
         self.assertEqual(combined.count(".agk-code-block {"), 1)
         for role, selectors in themes._TOKEN_SELECTORS.items():
+            for selector in selectors.split(", "):
+                self.assertEqual(
+                    combined.count(
+                        f":is(pre, .agk-code-block, .syntax-highlights) {selector},"
+                    ),
+                    1,
+                )
             self.assertEqual(
                 combined.count(
-                    f":is(.agk-code-block, .syntax-highlights) :is({selectors}),"
-                ),
-                1,
-            )
-            self.assertEqual(
-                combined.count(
-                    f':is(.agk-code-block, .syntax-highlights) [data-global-kit-token="{role}"] {{'
+                    f':is(pre, .agk-code-block, .syntax-highlights) [data-global-kit-token="{role}"] {{'
                 ),
                 1,
             )

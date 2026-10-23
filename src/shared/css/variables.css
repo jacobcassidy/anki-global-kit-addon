@@ -28,36 +28,21 @@ anki-editable {
   --spacing--default: 24px;
   --container-width: 40rem;
 
-  /* Syntax Highlighting Colors */
-  --syntax-blue: #92c1fd;
-  --syntax-cyan: #89dfdf;
-  --syntax-green: #a2cd8b;
-  --syntax-orange: #eeae7b;
-  --syntax-pink: #fcb7cb;
-  --syntax-purple: #d6aaea;
-  --syntax-purple-deep: #bd84d7;
-  --syntax-red: #ef9182;
-  --syntax-red-deep: #db6656;
-  --syntax-yellow: #efddac;
-  --syntax-yellow-deep: #d7bb70;
-
-  /* Syntax Highlighting Grayscale */
-  --syntax-gray-900: #242424;
-  --syntax-gray-800: #383838;
-  --syntax-gray-700: #4d4d4d;
-  --syntax-gray-600: #636363;
-  --syntax-gray-500: #7a7a7a;
-  --syntax-gray-400: #929292;
-  --syntax-gray-300: #ababab;
-  --syntax-gray-200: #c4c4c4;
-  --syntax-gray-100: #dedede;
-  --syntax-gray-050: #ebebeb;
-  --syntax-gray-000: #f8f8f8;
+  /* Ordinary inline code; block colors come from the selected syntax theme. */
+  --agk-inline-code-background: #ebebeb;
+  --agk-inline-code-border: #dedede;
+  --agk-inline-code-foreground: #383838;
+  --agk-inline-code-dark-background: #7a7a7a;
+  --agk-inline-code-dark-foreground: #f8f8f8;
 }
 
 /* NIGHTMODE THEME VARIABLES */
 
-.nightMode {
+.nightMode,
+.night_mode,
+.night-mode {
   --color--link: oklch(70% 0.2 264 / 0.9);
   --color--link-hover: oklch(80% 0.2 264 / 0.9);
+  --agk-inline-code-background: var(--agk-inline-code-dark-background);
+  --agk-inline-code-foreground: var(--agk-inline-code-dark-foreground);
 }

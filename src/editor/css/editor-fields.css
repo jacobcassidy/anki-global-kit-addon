@@ -26,19 +26,21 @@ anki-editable {
 }
 
 pre {
-  background-color: var(--syntax-gray-900);
-  color: var(--syntax-gray-200);
+  background-color: var(--agk-syntax-background);
+  color: var(--agk-syntax-foreground);
 }
 
 code {
-  background-color: var(--syntax-gray-050);
-  border-color: var(--syntax-gray-100);
-  color: var(--syntax-gray-800);
+  background-color: var(--agk-inline-code-background);
+  border-color: var(--agk-inline-code-border);
+  color: var(--agk-inline-code-foreground);
+}
 
-  .nightMode & {
-    background-color: var(--syntax-gray-500);
-    color: var(--syntax-gray-000);
-  }
+:host-context(.nightMode) anki-editable,
+:host-context(.night_mode) anki-editable,
+:host-context(.night-mode) anki-editable {
+  --agk-inline-code-background: var(--agk-inline-code-dark-background);
+  --agk-inline-code-foreground: var(--agk-inline-code-dark-foreground);
 }
 
 .agk-code-block .code-block__header {

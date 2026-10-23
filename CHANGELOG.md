@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Retired Tab/Backtab indentation bindings and card-only `CodeBlock+` aliases in editor settings. Unsupported saved bindings use current defaults without changing configuration until Settings is saved; enabled/disabled choices are preserved. Tab retains native focus navigation, and the card `CodeBlock+C` shortcut remains supported.
 - Removed redundant Desktop color-token fallbacks using the tokens provided by the minimum supported Anki version.
+- Consolidated saved Pygments markup and current code highlighting under the same generated token themes, including number/string subtypes and generic emphasis. Removed the older `--syntax-*` palette; inline code uses maintained semantic variables and line numbers use the selected theme's comment color. Saved fields and synced palettes are preserved, though older snippets now follow the selected theme's token colors.
 
 - Renamed kit-prefixed card and editor classes to the `.agk-*` namespace.
 
@@ -58,6 +59,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved Help content beside its Settings page and the AnkiWeb listing description into publishing documentation. Updated guide links and package validation for the new locations.
 
 ### Fixed
+
+- Chose a contrasting foreground for newly resolved Pygments palettes that leave text color unspecified, preserving readability on light backgrounds without replacing existing synced palettes.
 
 - Removed the duplicate browser list shortcut map; native bindings, browser handling, and Settings reservations now use the same Python definitions.
 
