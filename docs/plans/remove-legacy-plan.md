@@ -4,7 +4,9 @@
 
 This inventory covers active first-party Desktop, card, editor, and shared source, runtime templates, build and packaging scripts, and the tests and documentation describing their contracts. Generated bundles duplicate their source and should be rebuilt after implementation. Vendored dependencies and historical documentation are outside the removal inventory.
 
-The supported minimum is Anki Desktop **26.05** (`addon/manifest.json`). The audit checked the official 26.05 source for editor shortcuts, cloze handlers, and color definitions. This is a source audit; no live Anki behavior was verified and no runtime code was removed.
+Last refreshed against the working tree on **2026-10-23**. All four findings below remain present; none of the removal work is complete. This update changes the plan only.
+
+The supported minimum remains Anki Desktop **26.05** (`min_point_version: 260500` in `addon/manifest.json`). The original audit checked the official 26.05 source for editor shortcuts, cloze handlers, and color definitions. This refresh checked repository source and existing test assertions; the linked upstream files could not be fetched again. Recheck version-sensitive assumptions against 26.05 before implementation. No runtime tests or live Anki behavior were run for this refresh.
 
 ## Findings
 
@@ -27,9 +29,18 @@ The defaults now use punctuation keys. The following code retains the old modifi
 
 Retiring these bindings requires settings validation and browser runtime matching to agree with the new policy. Removing only the Qt branch would leave custom Tab settings accepted while making their Desktop behavior unreliable. Do not remove general shortcut recording merely because it can record Tab combinations for other configurable actions.
 
+Implementation sequence if Tab indentation support is retired:
+
+1. Define and document one policy for saved and newly recorded Tab indentation bindings. Recommended target: reject new Tab bindings for the four card/editor indentation settings and use the corresponding current default for unsupported saved bindings at runtime. Do not write configuration during reads; persist a replacement only through Settings save. Preserve each action's enabled setting and master switch.
+2. Apply that policy in `addon/desktop/settings/dialog.py` (candidate validation and conflict checks), `addon/desktop/config/service.py` (saved settings), `src/cards/js/runtime/settings.js`, and the card/editor indentation handlers. Ensure manually edited configuration and browser settings injected without normalization cannot reactivate Tab indentation. Treat Tab/Backtab spelling and modifier combinations consistently. Keep the restriction specific to indentation; do not change the shared keyboard matcher or recorder to reject Tab for every action.
+3. Check `_configured_editor_shortcuts()` in `addon/desktop/editor/integration.py` so unsupported saved indentation bindings cannot become native `QShortcut` registrations. Apply existing fixed-shortcut and duplicate-binding checks to any recovered defaults as well.
+4. Remove the dedicated Tab routing, editor webview registry, two editor hook registrations, and two card-side indentation globals listed above only after all input paths follow the policy.
+
+Keep `_PreferencesShortcutFilter` and its installation. Its `_card_indent_shortcut_override()` punctuation handling, Command+Comma Preferences handling, and `_toolbar_owns_navigation()` handling are current behavior. Keep `_preview_input_webviews`, `_toolbar_webviews`, `_live_webviews()`, focus reporting, and the card/message hooks: these also support current punctuation shortcuts and toolbar navigation outside the Tab branch.
+
 Keep `changeTextareaIndentation()` and the general indentation matching currently named `handleTabIndentation()` in `src/cards/js/inputs/tab-navigation.js`. They implement current punctuation shortcuts and toolbar actions too. The analogous editor indentation functions in `src/editor/js/formatting/blocks.js` also remain current behavior. Historical `tab` names in settings keys and function names are not unused implementations; renaming persisted keys would introduce a separate migration.
 
-Affected coverage: `tests/python/desktop/test_reviewer_shortcuts.py`, `test_bootstrap.py`, and Tab-specific assertions in `test_card_shortcut_input.py`; `tests/javascript/cards/tab-navigation.test.js` and `tests/javascript/editor/editor-blocks.test.js`. Many tests use old Tab bindings to exercise general indentation. Update those fixtures to current shortcuts and retain the row, selection, list, and undo behavior they cover.
+Affected coverage: `tests/python/desktop/test_reviewer_shortcuts.py`, `test_bootstrap.py`, `test_card_settings.py`, `test_editor_settings.py`, and `test_settings_bindings.py`; `tests/javascript/cards/tab-navigation.test.js` and `tests/javascript/editor/editor-blocks.test.js`. Many tests use old Tab bindings to exercise general indentation. Update those fixtures to current shortcuts and retain the row, selection, list, and undo behavior they cover. Keep the generic Tab recording/label assertions in `test_card_shortcut_input.py`; add indentation-specific rejection coverage at the validation boundary instead. Test saved-config recovery, disabled actions, native Tab/Shift+Tab navigation, and current punctuation shortcuts on macOS and non-macOS paths.
 
 ### 2. Card-only shortcut alias migration in editor settings
 
@@ -39,7 +50,11 @@ Affected coverage: `tests/python/desktop/test_reviewer_shortcuts.py`, `test_boot
 - `anki_editor_indent_increase_shortcut`
 - `anki_editor_indent_decrease_shortcut`
 
-This loop is explicitly covered as migration of card-only aliases accidentally saved in editor settings by `tests/python/desktop/test_editor_settings.py`. It can be removed when that saved-data compatibility is retired. Define how unsupported saved values are handled so they are not passed through as invalid Qt shortcuts.
+This loop is explicitly covered as migration of card-only aliases accidentally saved in editor settings by `tests/python/desktop/test_editor_settings.py`. It can be removed when that saved-data compatibility is retired.
+
+Recommended target: treat `CodeBlock+` as unsupported for editor shortcuts and recover to that setting's release default without writing during reads. Replace the expansion loop with the agreed invalid-value handling, then retain the separate `Control+` translation loop. Check the broader editor shortcut registration and browser matching paths too: `_configured_editor_shortcuts()` currently checks fixed and duplicate bindings, but does not reject this alias. Do not assume removing the expansion alone makes a saved alias harmless; shared shortcut normalization still recognizes it.
+
+Update `test_editor_settings.py` to assert the chosen recovery for all three previously migrated settings on both platform paths. Cover manually supplied editor aliases before native registration and browser matching, preserve conflict validation after recovery, and assert that card `CodeBlock+C` is unchanged. Include any other editor shortcut settings if the implementation applies the same unsupported-alias rule to them.
 
 Keep the active card-side `CodeBlock+C` alias, its recorder, formatting, normalization, runtime matching, and physical-key fallback. Those are used by current card shortcuts. Keep the separate `Control+` and Qt/browser modifier translations as current platform behavior.
 
@@ -48,28 +63,35 @@ Keep the active card-side `CodeBlock+C` alias, its recorder, formatting, normali
 `addon/desktop/ui/theme.py`: `get_theme_color(token_name, *fallback_names)` tries alternate tokens when a primary token is absent. All primary tokens used by the following chains are defined in Anki 26.05's [color map](https://github.com/ankitects/anki/blob/26.05/ts/lib/sass/_vars.scss). Simplify these calls and then remove the helper's alternate-name iteration while retaining `theme_manager.var()` for theme-aware colors.
 
 - `addon/desktop/ui/shortcut_input.py`, `CardShortcutInput.__init__()`: the `BUTTON_BG`, `BUTTON_GRADIENT_START`, `BUTTON_GRADIENT_END`, and `BUTTON_DISABLED` chains.
+- `addon/desktop/ui/input_styles.py`, `style_settings_input()`: the `BUTTON_BG` and `BUTTON_DISABLED` chains for line edits and spin boxes.
 - `addon/desktop/ui/shortcut_rows.py`, `style_shortcut_option()`: the `FLAG_2` chain.
 - The same file's `build_shortcut_rows()`: the `ACCENT_DANGER` chain.
-- `addon/desktop/settings/pages/editor/editor_fields.py`, `build_editor_fields_section()`: both `ACCENT_DANGER` chains.
+- `addon/desktop/settings/pages/editor/editor_fields.py`, `build_editor_fields_section()`: one remaining `ACCENT_DANGER` call inside the action-row loop. Indentation warning labels now come from `build_shortcut_rows()`.
+- `addon/desktop/settings/pages/syntax_highlighting/__init__.py`, `LanguageStatusDelegate.paint()`: the `BUTTON_BG` chain for language Auto badges.
 
 This removes defensive support for missing API tokens. It does not replace semantic Anki colors with static colors or remove light/dark theme handling.
+
+After updating every caller, reduce `get_theme_color()` to one token name and retain explicit failure for an unavailable required token. Update isolated Qt/color stubs to expose the supported tokens rather than relying on fallback behavior. Exercise settings inputs, shortcut conflict/validation colors, and language Auto badges; visually check enabled, disabled, hover, and pressed states in both Anki themes.
 
 ### 4. Older unscoped syntax styling
 
 `src/shared/css/syntax-highlighting.css`: the block beginning at `/* BOLD */` contains the older unscoped `pre .…` Pygments token rules. They style saved token markup outside the new `.agk-code-block` theme boundary as well as matching tokens inside current blocks.
 
-`src/shared/css/variables.css`: the `--syntax-*` palette supplies those older rules. The new theme system uses `--agk-syntax-*`, generated by `addon/desktop/syntax_highlighting/themes.py` and exported into `src/shared/css/generated/cassidy-dark.css`.
+`src/shared/css/variables.css`: the `--syntax-*` palette supplies those older rules and several current consumers. The new theme system uses `--agk-syntax-*`, generated by `addon/desktop/syntax_highlighting/themes.py` and exported into `src/shared/css/generated/cassidy-dark.css`. The generated fallback itself still references `--syntax-*`; the older palette is not dead code.
 
 Removal requires consolidation rather than deleting every Pygments selector:
 
-- Current `render_code()` in `addon/desktop/syntax_highlighting/rendering.py` still emits ordinary Pygments classes using `HtmlFormatter(nowrap=True, classprefix="")`. Keep Pygments support in the new theme generator.
-- The generator's `_TOKEN_SELECTORS` does not cover every class in the older stylesheet. Account for classes such as `.n`, `.nv`, `.mi`, and `.se` and inherited token roles before removing rules that currently provide their presentation.
-- Existing fields may contain highlighted markup without `.agk-code-block`. Removing the broad rules drops that presentation unless users explicitly convert the content. Document the scope and any migration; do not silently rewrite fields.
-- `src/editor/css/editor-fields.css` still uses several `--syntax-gray-*` variables for ordinary `pre` and inline `code` presentation. Move those consumers to appropriate maintained tokens before deleting their variables.
+- Current `render_code()` delegates to `_render_with_clozes()` in `addon/desktop/syntax_highlighting/rendering.py`, which still emits ordinary Pygments classes using `HtmlFormatter(nowrap=True, classprefix="")`. Keep Pygments support in the new theme generator.
+- The generator already handles `.n`/`.nx` explicitly as foreground and `.nv` through the variable role. Its rules cover both `.agk-code-block` and `.syntax-highlights`. Do not list these classes as missing. `_TOKEN_SELECTORS` still omits older rules for classes including `.mi`, `.se`, `.sd`, `.ch`, `.cp`, `.nd`, and generic emphasis/diff tokens. Inventory all old selectors against actual formatter output and role inheritance; mapping only the base `.m` or `.s` selector does not match spans whose sole class is `.mi` or `.se`.
+- Existing fields may contain highlighted markup without either theme boundary. Removing the broad rules drops that presentation unless users explicitly convert the content. Recommended first stage: keep the unscoped saved-markup rules until their presentation is preserved by a consolidated fallback or an explicit user conversion workflow is documented. Do not silently rewrite fields. Consolidated rules must not override selected themes inside current blocks.
+- `src/editor/css/editor-fields.css` still uses several `--syntax-gray-*` variables for ordinary `pre` and inline `code` presentation. `src/shared/css/syntax-highlighting.css` also uses `--syntax-gray-600` for current line numbers. Move these consumers to maintained semantic CSS variables before deleting their palette entries, preserving ordinary inline-code contrast and line-number visibility in light and dark modes.
+- `_CASSIDY_DARK_SYNTAX_VARIABLES` and `_theme_variables_css(..., use_shared_variables=True)` in `themes.py` deliberately generate fallback references to the older palette. Remove or replace this dependency before deleting palette variables. Keep colors in maintained theme/palette definitions and generated CSS custom properties, rather than adding color literals to component rules. Preserve collection-selected palettes: resolved theme exports already use saved color values instead of these fallback references.
 - Keep `.syntax-highlights { padding: 0 !important; }` while `src/cards/js/syntax-highlighting/index.js` still applies that class to current submitted-answer code.
-- Regenerate theme fallback CSS and built card/editor assets from their sources after consolidating the styles.
+- Remove only palette entries with no remaining first-party consumer, including generator string references. Document changes to the shared palette if user CSS overrides can be affected. Regenerate theme fallback CSS and built card/editor assets from their sources after consolidating the styles.
 
-Relevant coverage includes `tests/python/desktop/test_syntax_highlighting.py`, `tests/javascript/cards/syntax-highlighting.test.js`, and the editor code-block and Markdown tests. Existing saved snippets require visual review in addition to isolated rendering checks.
+Relevant coverage includes `tests/python/desktop/test_syntax_highlighting.py`, `tests/javascript/shared/syntax-theme-styles.test.js`, `tests/javascript/cards/syntax-highlighting.test.js`, and the editor code-block and Markdown tests. The Python suite explicitly asserts that packaged fallback CSS follows `--syntax-*`; update that assertion only when the dependency is intentionally replaced. Keep mode-switch coverage that resets inherited bold/italic styles. Add representative Pygments subtype coverage and compare scoped blocks, unscoped saved snippets, and submitted answers under fallback and selected light/dark palettes. Existing saved snippets require visual review in addition to isolated rendering checks.
+
+Suggested sequence: complete token coverage first, consolidate saved-markup fallback rules second, migrate current palette consumers third, and delete unused palette definitions last. If a safe saved-markup replacement is not part of the implementation, leave those rules and their required variables in place and mark that part deferred.
 
 ## Earlier candidates excluded after review
 
@@ -89,7 +111,11 @@ Relevant coverage includes `tests/python/desktop/test_syntax_highlighting.py`, `
 
 ## Implementation completion checks
 
+- Implement color-token cleanup independently first; it does not change saved shortcut or field-markup contracts. Handle Tab retirement and editor alias retirement as separate changes with their documented recovery policies. Keep syntax consolidation in its own change because saved content and generated assets need broader review.
 - Keep each cleanup scoped to the behavior identified above and document changes to accepted saved shortcuts or existing note presentation.
 - Update the applicable tests without losing coverage of current indentation, formatting, platform, and rendering behavior.
-- Run focused tests for the changed area, build the affected assets, and check asset freshness when generated files change.
+- Run focused Python tests with `python3 -m unittest tests.python.desktop.<test_module>` and JavaScript tests with `node --import ./tests/support/register-svg.js --test <test-file>`. Run the broader `npm test` suite after shared shortcut or theme changes, plus formatting and lint checks for the edited files.
+- Run `npm run build` whenever card/editor source or theme generation changes. It runs `scripts/export_syntax_themes.py` before bundling. Include the affected generated files in the same commit and check freshness with `python3 scripts/export_syntax_themes.py --check` and `npm run verify:package-assets`.
 - Verify supported Anki editor and review behavior where native event interception or saved markup is affected; report source checks and live verification separately.
+- For shortcut changes, cover review, browser/template previews, and editor fields; check focus traversal, current punctuation bindings, toolbar keyboard navigation, and Preferences handling on macOS. For syntax changes, visually compare current and saved blocks, ordinary `pre`/inline `code`, and line numbers in light/dark modes, including an existing collection palette.
+- Update `README.md` and/or `CHANGELOG.md` for implemented user-visible changes. Recheck that excluded behavior remains intact, stage only the scoped change, and commit on a branch other than `main` after validation.
