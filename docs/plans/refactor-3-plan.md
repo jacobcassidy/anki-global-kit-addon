@@ -29,6 +29,7 @@ The existing layout and `AGENTS.md` remain authoritative until the corresponding
 - Preserve existing settings keys, add-on/configuration identity, browser globals, bridge command strings, media filenames, saved HTML classes/data attributes, and note-type names and fields.
 - Keep Anki Desktop 26.05 as the minimum. Verify version-sensitive integration changes against that target and official documentation during implementation.
 - Keep colors token-based, web sizing in `rem` where appropriate, native editor toolbar spacing, and fixed/configurable shortcut conflict rules.
+- Document every first-party Python and JavaScript function, method, and nested function in maintained source, tests, and tooling with a Python docstring or JavaScript JSDoc. State its purpose and clarify non-obvious inputs, outputs, side effects, or lifecycle behavior; keep documentation accurate as code moves or changes.
 - Do not combine these structural changes with new features or unrelated behavior fixes.
 
 ## Target repository layout
@@ -591,6 +592,7 @@ Automated validation:
 - Run relevant lint/format checks. Before completing the refactor, run `npm run lint`, `npm run check`, `npm run build`, `npm run verify:package-assets`, and `npm run package:addon`.
 - Add a generator freshness command to CI. Clean builds must reproduce all tracked generated files without a diff; ignored assembled outputs must independently pass manifest/archive verification.
 - Check feature-catalog coverage and dependency direction: no user-facing behavior left in integration/transport, no feature imports from editor support or shared rendering services, and no duplicate fixed shortcut maps or action definitions. Verify that feature-local helpers stay with their owner and that extracted support operations have actual shared consumers.
+- Audit first-party Python and JavaScript function documentation across `addon/`, `src/`, `scripts/`, and `tests/`; every function, method, and nested function must have a useful docstring or JSDoc, including after modules move.
 - Cover Markdown selection versus clipboard conversion, rendering limits/failures, stale results, and shared renderer scheduling after handler extraction. Cover inline-code entry/exit, quote/list nesting, indentation, saved code rows, copy, cloze, style installation, toolbar visibility/order, and native undo/redo.
 - Cover pure shared-helper and editor-declaration/aggregate imports without Qt, labels and modifier mapping on both platform paths, feature-contribution completeness, the required `<feature>/shortcuts.py` structure for small and large shortcut-bearing features, and duplicate declarations, fixed reservations, shared/editor validation boundaries, policy recovery, duplicate assignments, activation guards, object reuse, native/browser parity, Settings rebinding, deleted-editor pruning, and preservation of unrelated bindings.
 - Verify startup registration once, headless imports in a fresh process, contract validation, shared-code boundaries, lifecycle cleanup, and note-type revalidation with targeted regressions.
